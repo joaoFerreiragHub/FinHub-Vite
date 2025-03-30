@@ -2,8 +2,11 @@ import { ReactNode } from 'react'
 
 type Props<T> = {
   data: T[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  columns: { key: keyof T; header: string; render?: (value: any, row: T) => ReactNode }[]
+  columns: {
+    key: keyof T
+    header: string
+    render?: (value: T[keyof T], row: T) => ReactNode
+  }[]
 }
 
 export function VirtualTable<T>({ data, columns }: Props<T>) {

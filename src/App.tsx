@@ -1,21 +1,13 @@
-import { useState } from 'react'
-import './App.css'
+import { PageTracker } from './components/providers/PageTracker'
+import { ToggleTheme } from './components/ui/toggle-theme'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div></div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>count is {count}</button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">Click on the Vite and React logos to learn more</p>
-    </>
+    <div className="min-h-screen bg-background text-foreground p-6">
+      <PageTracker />
+      <ToggleTheme />
+      <h1 className="text-2xl font-bold mt-4">Olá FinHub! 🚀</h1>
+    </div>
   )
 }
 
