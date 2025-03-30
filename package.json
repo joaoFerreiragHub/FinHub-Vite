@@ -4,19 +4,25 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "start": "yarn lint && yarn test && yarn ssr:dev",
+    "start:spa": "yarn validate && yarn dev",
+    "start:ssr": "yarn validate && vite",
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "ssr:dev": "vite",
+    "build": "tsc -b && vite build && vite-plugin-ssr prerender",
     "preview": "vite preview",
-    "init:tailwind": "tailwindcss init -p",
-    "lint": "eslint src --ext .ts,.tsx",
-    "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "test": "jest",
-    "check:deps": "depcheck",
+    "test:watch": "jest --watch",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "prepare": "husky install"
+    "check:deps": "depcheck",
+    "prepare": "husky install",
+    "postinstall": "yarn prepare",
+    "validate": "yarn format:check && yarn lint && yarn test"
   },
   "dependencies": {
     "@tanstack/react-virtual": "^3.13.5",
@@ -27,11 +33,13 @@
     "posthog-js": "^1.234.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-helmet-async": "^2.0.5",
     "react-i18next": "^15.4.1",
     "react-router-dom": "^7.4.1",
     "tailwind-merge": "^3.0.2",
     "tailwind-variants": "^1.0.0",
     "tailwindcss-animate": "^1.0.7",
+    "vite-plugin-ssr": "^0.4.142",
     "zustand": "^5.0.3"
   },
   "devDependencies": {
@@ -50,8 +58,10 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.13.14",
-    "@types/react": "^19.0.10",
+    "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
+    "@types/react-helmet-async": "^1.0.3",
+    "@types/react-router-dom": "^5.3.3",
     "@vitejs/plugin-react": "^4.3.4",
     "@vitejs/plugin-react-swc": "^3.8.1",
     "@vitest/browser": "^3.0.9",
@@ -90,7 +100,9 @@
       "prettier --write",
       "eslint --fix"
     ],
-     "*.{ts,tsx}": "eslint --fix --no-warn-ignored"
+      "*.ts": "eslint --fix",
+  "*.tsx": "eslint --fix",
+    "*.{ts,tsx}": "eslint --fix --no-warn-ignored"
   },
   "eslintConfig": {
     "extends": [

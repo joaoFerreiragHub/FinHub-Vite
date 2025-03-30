@@ -24,3 +24,4 @@ Plataforma web desenvolvida com Vite, React e TypeScript, com o objetivo de ajud
 
 ```bash
 yarn install
+```
