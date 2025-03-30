@@ -24,7 +24,8 @@ jobs:
 
       - name: 🧹 Lint
         run: yarn lint
-
+      - name: 🛡️ Verificar vulnerabilidades com yarn audit
+        run: yarn audit || true
       - name: 🧪 Testes
         run: yarn test
 
