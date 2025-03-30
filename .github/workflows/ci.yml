@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🔄 Checkout código
+        uses: actions/checkout@v4
+
+      - name: 📦 Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 📥 Instalar dependências
+        run: yarn install
+
+      - name: 🧹 Lint
+        run: yarn lint
+
+      - name: 🧪 Testes
+        run: yarn test
+
+      - name: 🔨 Build
+        run: yarn build
