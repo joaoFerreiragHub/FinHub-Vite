@@ -1,22 +1,133 @@
 // src/pages/index.page.tsx
+
+import ShowBooks from '../components/book/ShowBooks'
+import SidebarLayout from '../components/layout/SidebarLayout'
+import { Button } from '../components/ui/button'
+import { Card, CardContent } from '../components/ui/card'
+import { Carousel, CarouselContent, CarouselItem } from '../components/ui/carousel'
+import { Separator } from '../components/ui/separator'
+
 export function Page() {
   return (
-    <main>
-      <h1>Bem-vindo à tua app com SSR!</h1>
-    </main>
+    <SidebarLayout>
+      {/* Hero Section */}
+      <section className="text-center py-20 px-6 bg-gradient-to-br from-primary/10 to-background">
+        <h2 className="text-4xl font-bold mb-4">
+          Bem-vindo à plataforma #1 de literacia financeira em Portugal 🌟
+        </h2>
+        <p className="text-muted-foreground max-w-2xl mx-auto">
+          Aprende a gerir o teu dinheiro, investir com confiança e atingir a tua liberdade
+          financeira com ferramentas simples e conteúdo de valor.
+        </p>
+        <div className="mt-6">
+          <Button size="lg">Começar agora</Button>
+        </div>
+      </section>
+
+      {/* Bloco: Criadores em Destaque */}
+      <section className="px-6 py-12 max-w-6xl mx-auto">
+        <h3 className="text-2xl font-bold mb-2">🎯 Criadores em Destaque</h3>
+        <p className="text-muted-foreground mb-4">Aprende com os melhores da comunidade.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {/* CriadorCard - colocar 2 ou 3 */}
+        </div>
+        <div className="text-center mt-4">
+          <Button variant="link">Explora todos os criadores →</Button>
+        </div>
+      </section>
+
+      {/* Bloco: Corretoras Populares */}
+      <section className="px-6 py-12 max-w-6xl mx-auto">
+        <h3 className="text-2xl font-bold mb-2">💼 Corretoras Populares</h3>
+        <p className="text-muted-foreground mb-4">Compara e escolhe a melhor plataforma para ti.</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+          {/* BrokerCard - 3 corretoras */}
+        </div>
+        <div className="text-center mt-4">
+          <Button variant="link">Ver todas as corretoras →</Button>
+        </div>
+      </section>
+
+      {/* Bloco: Ferramentas da FinHub */}
+      <section className="px-6 py-12 max-w-6xl mx-auto">
+        <h3 className="text-2xl font-bold mb-2">🛠️ Ferramentas FinHub</h3>
+        <p className="text-muted-foreground mb-4">
+          Usa ferramentas práticas para melhorar a tua vida financeira.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {/* ToolCard - Simulador / Orçamento / Comparador */}
+        </div>
+        <div className="text-center mt-4">
+          <Button variant="link">Explorar todas as ferramentas →</Button>
+        </div>
+      </section>
+
+      {/* Bloco: Livros */}
+      <section className="px-6 py-12 max-w-6xl mx-auto">
+        <h3 className="text-2xl font-bold mb-2 text-center">📚 Livros</h3>
+        <p className="text-muted-foreground mb-6 text-center">
+          Descobre livros essenciais sobre dinheiro, mentalidade e liberdade financeira.
+        </p>
+        <ShowBooks />
+      </section>
+
+      {/* Bloco: Comunidades e Podcasts */}
+      <section className="px-6 py-12 max-w-6xl mx-auto">
+        <h3 className="text-2xl font-bold mb-2">📚 Comunidades & Podcasts</h3>
+        <p className="text-muted-foreground mb-4">
+          Descobre espaços onde se fala de dinheiro sem tabus.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {/* PodcastCard + CommunityCard */}
+        </div>
+        <div className="text-center mt-4">
+          <Button variant="link">Ver mais recursos →</Button>
+        </div>
+      </section>
+
+      {/* Bloco: Eventos Futuros */}
+      <section className="px-6 py-12 max-w-4xl mx-auto">
+        <h3 className="text-2xl font-bold mb-4 text-center">🗓️ Eventos a não perder</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* EventCard - mostrar 2 eventos */}
+        </div>
+        <div className="text-center mt-4">
+          <Button variant="link">Ver todos os eventos →</Button>
+        </div>
+      </section>
+
+      <Separator className="my-12" />
+
+      {/* Carousel Section */}
+      <section className="px-6 py-12 max-w-6xl mx-auto">
+        <h3 className="text-2xl font-bold mb-6 text-center">Depoimentos de quem já usa ✨</h3>
+        <Carousel>
+          <CarouselContent className="flex gap-4">
+            {[1, 2, 3].map((item) => (
+              <CarouselItem key={item} className="min-w-[300px]">
+                <Card>
+                  <CardContent className="p-6">
+                    <p className="text-sm text-muted-foreground italic">
+                      "Com a FinHub finalmente percebi como organizar as minhas finanças. Recomendo
+                      a toda a gente!"
+                    </p>
+                    <p className="text-xs mt-2 text-right">- Joana, utilizadora premium</p>
+                  </CardContent>
+                </Card>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
+      </section>
+
+      {/* Footer */}
+      <footer className="text-sm text-center text-muted-foreground py-12">
+        &copy; 2025 FinHub. Todos os direitos reservados.
+      </footer>
+    </SidebarLayout>
   )
 }
 
-// O vite-plugin-ssr espera um objeto como exportação padrão
 export default {
-  Page, // Componente React que será renderizado
-  // Você pode adicionar outras propriedades aqui conforme necessário:
-  // documentProps: {
-  //   title: 'Título da Página',
-  //   description: 'Descrição da página'
-  // },
-  // onBeforeRender: async () => {
-  //   // Fetch data, etc.
-  //   return { pageProps: { /* ... */ } }
-  // }
+  Page,
 }

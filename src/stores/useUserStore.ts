@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-// Tipos de utilizador que a app reconhece
 export type UserRole = 'visitor' | 'regular' | 'premium' | 'creator' | 'admin'
 
 export interface User {
@@ -10,31 +9,41 @@ export interface User {
   email: string
   role: UserRole
   avatar?: string
-  // mais campos que aches úteis (token, settings, etc)
+  accessToken: string
 }
 
 interface UserStore {
   user: User | null
   isAuthenticated: boolean
+  hydrated: boolean
   setUser: (user: User) => void
   updateUser: (data: Partial<User>) => void
   logout: () => void
+  getRole: () => UserRole
 }
 
 export const useUserStore = create<UserStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       isAuthenticated: false,
+      hydrated: false,
       setUser: (user) => set({ user, isAuthenticated: true }),
       updateUser: (data) =>
         set((state) => ({
           user: state.user ? { ...state.user, ...data } : null,
         })),
       logout: () => set({ user: null, isAuthenticated: false }),
+      getRole: () => get().user?.role ?? 'visitor',
     }),
     {
-      name: 'user-storage', // localStorage key
+      name: 'user-storage',
+      onRehydrateStorage: () => {
+        return () => {
+          // 💡 usar set corretamente
+          useUserStore.setState({ hydrated: true })
+        }
+      },
     },
   ),
 )

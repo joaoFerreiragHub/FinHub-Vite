@@ -1,23 +1,53 @@
 // src/components/ui/toggle-theme.tsx
+import { useEffect, useState } from 'react'
+import { useTheme } from 'next-themes'
+import { Sun, Moon } from 'lucide-react'
 
-import { useEffect } from 'react'
-import { useThemeStore } from '../../stores/useThemeStore'
-
-export const ToggleTheme = () => {
-  const { theme, setTheme } = useThemeStore()
+export function ToggleTheme() {
+  const [mounted, setMounted] = useState(false)
+  const { setTheme, resolvedTheme } = useTheme()
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark')
-  }, [theme])
+    // Marca como montado para evitar SSR mismatch
+    setMounted(true)
 
-  const toggle = () => {
-    const next = theme === 'light' ? 'dark' : 'light'
-    setTheme(next)
+    // Se não houver nada guardado ainda, guarda o tema atual (para visitantes)
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('theme')
+      if (!stored && resolvedTheme) {
+        localStorage.setItem('theme', resolvedTheme)
+      }
+    }
+  }, [resolvedTheme])
+
+  function handleToggle() {
+    if (!mounted) return
+
+    const newTheme = resolvedTheme === 'dark' ? 'light' : 'dark'
+    setTheme(newTheme)
+    localStorage.setItem('theme', newTheme) // <-- guarda a escolha localmente
+  }
+
+  if (!mounted) {
+    return (
+      <button
+        disabled
+        className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+        aria-label="Carregando tema"
+      >
+        <Moon className="h-5 w-5" />
+      </button>
+    )
   }
 
   return (
-    <button onClick={toggle} className="px-4 py-2 rounded bg-muted text-foreground hover:bg-accent">
-      {theme === 'dark' ? '🌞 Claro' : '🌙 Escuro'}
+    <button
+      onClick={handleToggle}
+      className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+      aria-label="Alternar tema"
+      type="button"
+    >
+      {resolvedTheme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
     </button>
   )
 }

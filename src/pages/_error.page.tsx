@@ -1,7 +1,11 @@
-export default function ErrorPage({ is404 }: { is404: boolean }) {
+function ErrorPage() {
   return (
-    <main>
-      <h1>{is404 ? 'Página não encontrada' : 'Erro inesperado'}</h1>
+    <main className="p-4">
+      <h1 className="text-2xl font-bold text-red-600">Ocorreu um erro 😢</h1>
     </main>
   )
+}
+
+export default {
+  Page: ErrorPage,
 }
