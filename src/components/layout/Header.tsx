@@ -1,9 +1,8 @@
 import { useUserStore } from '../../stores/useUserStore'
 import { ToggleThemeSimple as ToggleTheme } from '../ui/toggle-theme-simple'
-import { Button } from './Button'
 
 export function Header() {
-  const { user, logout } = useUserStore()
+  // const { user, logout } = useUserStore()
   const role = useUserStore((state) => state.getRole())
 
   return (
@@ -14,9 +13,6 @@ export function Header() {
       <div className="flex items-center gap-4">
         <span className="text-sm text-muted-foreground">{user?.name || 'Convidado'}</span>
         <ToggleTheme />
-        <Button variant="outline" size="sm" onClick={logout}>
-          Logout
-        </Button>
       </div>
     </header>
   )

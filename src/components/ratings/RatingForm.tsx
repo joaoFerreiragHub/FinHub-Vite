@@ -1,7 +1,6 @@
 // src/components/ratings/RatingForm.tsx
 
 import { useState, useEffect } from 'react'
-
 import { Star } from 'lucide-react'
 import clsx from 'clsx'
 import { Textarea } from '../ui/textarea'
@@ -57,25 +56,28 @@ export function RatingForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="text-center text-base font-medium">Dá a tua avaliação</div>
-      <div className="flex justify-center gap-1">
-        {[1, 2, 3, 4, 5].map((value) => (
-          <Star
-            key={value}
-            className={clsx('w-6 h-6 cursor-pointer transition-colors', {
-              'text-yellow-500 fill-yellow-500': value <= (hovered || rating),
-              'text-muted-foreground': value > (hovered || rating),
-            })}
-            onClick={() => setRating(value)}
-            onMouseEnter={() => setHovered(value)}
-            onMouseLeave={() => setHovered(0)}
-          />
-        ))}
+      <div className="text-left text-base font-medium">Dá a tua avaliação</div>
+
+      <div className="flex gap-2">
+        <div className="flex items-center gap-1">
+          {[1, 2, 3, 4, 5].map((value) => (
+            <Star
+              key={value}
+              className={clsx('w-6 h-6 cursor-pointer transition-colors', {
+                'text-yellow-500 fill-yellow-500': value <= (hovered || rating),
+                'text-muted-foreground': value > (hovered || rating),
+              })}
+              onClick={() => setRating(value)}
+              onMouseEnter={() => setHovered(value)}
+              onMouseLeave={() => setHovered(0)}
+            />
+          ))}
+        </div>
       </div>
 
       {message && (
         <p
-          className={clsx('text-sm text-center', {
+          className={clsx('text-sm', {
             'text-red-500': message.toLowerCase().includes('erro'),
             'text-green-600': message.toLowerCase().includes('sucesso'),
           })}

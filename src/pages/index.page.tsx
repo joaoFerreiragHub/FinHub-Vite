@@ -1,6 +1,8 @@
 // src/pages/index.page.tsx
 
 import ShowBooks from '../components/book/ShowBooks'
+import { mockCreators } from '../components/creators/api/mockCreators'
+import { CarouselCreators } from '../components/creators/carousel/CarouselCreators'
 import SidebarLayout from '../components/layout/SidebarLayout'
 import { Button } from '../components/ui/button'
 import { Card, CardContent } from '../components/ui/card'
@@ -28,9 +30,9 @@ export function Page() {
       <section className="px-6 py-12 max-w-6xl mx-auto">
         <h3 className="text-2xl font-bold mb-2">🎯 Criadores em Destaque</h3>
         <p className="text-muted-foreground mb-4">Aprende com os melhores da comunidade.</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {/* CriadorCard - colocar 2 ou 3 */}
-        </div>
+
+        <CarouselCreators creators={mockCreators} maxToShow={6} />
+
         <div className="text-center mt-4">
           <Button variant="link">Explora todos os criadores →</Button>
         </div>

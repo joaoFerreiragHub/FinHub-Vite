@@ -12,11 +12,11 @@ import {
 import { useState } from 'react'
 import { Button } from '../ui/button'
 import { cn } from '../../lib/utils'
-import { ToggleTheme } from '../ui/toggle-theme' // usamos o principal agora
+import { ToggleTheme } from '../ui/toggle-theme'
 
 const links = [
   { label: 'Home', icon: Home, path: '/' },
-  { label: 'Educadores', icon: BookOpen, path: '/educadores' },
+  { label: 'Educadores', icon: BookOpen, path: '/creators' },
   { label: 'Eventos', icon: Calendar, path: '/eventos' },
   { label: 'Glossário', icon: Settings2, path: '/glossario' },
   { label: 'Ferramentas', icon: Settings2, path: '/ferramentas' },
@@ -26,7 +26,7 @@ const links = [
 
 export default function SidebarLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false)
-  const isLoggedIn = false // substituir pelo teu estado de autenticação
+  const isLoggedIn = false // alterar futuramente com autenticação real
 
   return (
     <div className="flex min-h-screen">
@@ -49,13 +49,13 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
             <span className="sr-only">Toggle sidebar</span>
           </Button>
         </div>
-        {/* BASE - Alternância de tema */}
+
+        {/* Alternância de tema */}
         <div className="flex items-center justify-start px-4 py-3">
           <ToggleTheme />
         </div>
 
-        {/* TOPO - Ações rápidas (login e criar conta) */}
-        {/* AÇÕES: Criar Conta / Login */}
+        {/* Ações rápidas: Criar conta / Login */}
         <div className="px-2 py-4 border-b border-border">
           <Button
             variant="default"
@@ -75,7 +75,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
           </Button>
         </div>
 
-        {/* MENU PRINCIPAL */}
+        {/* Menu principal */}
         <nav className="flex flex-col gap-1 p-2 flex-grow">
           {isLoggedIn && (
             <Button
@@ -89,16 +89,20 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
           )}
 
           {links.map(({ label, icon: Icon, path }) => (
-            <Button
+            <a
               key={label}
-              variant="ghost"
-              className="justify-start"
-              onClick={() => console.log(`Go to ${path}`)}
-              // Podes usar navigate(path) aqui se estiveres com react-router
+              href={path}
+              className="w-full"
+              onClick={(e) => {
+                e.preventDefault()
+                window.location.href = path
+              }}
             >
-              <Icon className="w-5 h-5 mr-2" />
-              {!collapsed && label}
-            </Button>
+              <Button variant="ghost" className="justify-start w-full">
+                <Icon className="w-5 h-5 mr-2" />
+                {!collapsed && label}
+              </Button>
+            </a>
           ))}
         </nav>
       </aside>

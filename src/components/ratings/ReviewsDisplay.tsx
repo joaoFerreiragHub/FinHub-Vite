@@ -1,7 +1,7 @@
+// src/components/ratings/ReviewsDisplay.tsx
+
 import { useEffect, useState } from 'react'
-
 import { MessageSquareText } from 'lucide-react'
-
 import { Review } from '../../types/book'
 
 interface ReviewsDisplayProps {
@@ -24,7 +24,7 @@ export function ReviewsDisplay({ reviews: initialReviews }: ReviewsDisplayProps)
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scroll">
       {reviews.map((review, index) => (
         <div key={index} className="rounded-md border p-4 bg-background shadow-sm">
           <div className="flex items-center justify-between mb-1">
