@@ -1,0 +1,46 @@
+import { CreatorFull } from '../types/creator'
+
+export const mockCreatorsFull: CreatorFull[] = [
+  {
+    _id: '1',
+    username: 'serriquinho',
+    email: 'ser@riquinho.pt',
+    firstname: 'Ser',
+    lastname: 'Riquinho',
+    role: 'creator',
+    isPremium: true,
+    topics: ['Finanças Pessoais'],
+    termsAccepted: true,
+    termsOfServiceAgreement: true,
+    contentLicenseAgreement: true,
+    paymentTermsAgreement: true,
+    socialMediaLinks: [],
+    followers: [],
+    famous: ['Youtube'],
+    content: [],
+    profilePictureUrl: '/avatars/riquinho.jpg',
+    averageRating: 4.1,
+    contentVisibility: {
+      playlists: { regular: true },
+      courses: true,
+      announcements: true,
+      articles: true,
+      events: true,
+    },
+    coursesResolved: [
+      {
+        id: 'curso1',
+        title: 'Como Ficar Rico',
+        description: 'Curso completo sobre finanças pessoais',
+        bannerImage: '/courses/rico.jpg',
+        rating: 4.7,
+        purchaseLink: '#',
+      },
+    ],
+    articlesResolved: [],
+    eventsResolved: [],
+    announcementsResolved: [],
+    fullPlaylists: [],
+    documentsResolved: [],
+  },
+]
