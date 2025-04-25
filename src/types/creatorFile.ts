@@ -3,4 +3,6 @@ export interface CreatorFile {
   name: string
   url: string
   uploadedAt: string
+  mimeType?: string
+  cleanOriginalName?: string
 }

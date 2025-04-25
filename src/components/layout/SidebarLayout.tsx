@@ -1,20 +1,27 @@
+// src/components/layout/SidebarLayout.tsx
+
 import {
   Home,
   BookOpen,
   Calendar,
   Settings2,
   Newspaper,
-  LayoutDashboard,
   LogIn,
   UserPlus,
   Menu,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '../ui/button'
 import { cn } from '../../lib/utils'
 import { ToggleTheme } from '../ui/toggle-theme'
+import { RegisterDialog } from '../auth/RegisterDialog'
+import { UserRole, useUserStore } from '../../stores/useUserStore'
 
-const links = [
+import { getRoutesByRole } from '../../utils/getRoutesByRole'
+import { LoginDialog } from '../auth/loginDialog'
+
+// 🔓 Rotas públicas (sempre visíveis)
+const publicLinks = [
   { label: 'Home', icon: Home, path: '/' },
   { label: 'Educadores', icon: BookOpen, path: '/creators' },
   { label: 'Eventos', icon: Calendar, path: '/eventos' },
@@ -26,7 +33,51 @@ const links = [
 
 export default function SidebarLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false)
-  const isLoggedIn = false // alterar futuramente com autenticação real
+  const [loginOpen, setLoginOpen] = useState(false)
+  const [registerOpen, setRegisterOpen] = useState(false)
+  const [currentPath, setCurrentPath] = useState<string>('')
+
+  const { isAuthenticated, user, logout,hydrated  } = useUserStore()
+  const privateLinks = isAuthenticated ? getRoutesByRole(user?.role || 'visitor') : []
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setCurrentPath(window.location.pathname)
+    }
+  }, [])
+
+if (typeof window !== 'undefined' && !hydrated && user === null && !isAuthenticated) {
+  // Força a marcar como hidratado se falhou
+  console.log("⚠️ Forçando hidratação")
+  useUserStore.setState({ hydrated: true })
+}
+
+    if (!hydrated) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+        <span className="ml-2 text-sm text-muted-foreground">A carregar...</span>
+      </div>
+    )
+  }
+const handleLogin = async (email: string, password: string) => {
+  console.log('Login com', email, password)
+
+  const mockUser = {
+    id: "123",
+    name: "Sérgio Criador",
+    email: "sergio@finhub.pt",
+    role: "creator" as UserRole,
+    avatar: "/avatars/criador.jpg",
+    accessToken: "mock-token-123",
+    username: "sergiocriador",
+  }
+
+  // Atualiza user + autenticação + hidratação
+  useUserStore.setState({ user: mockUser, isAuthenticated: true, hydrated: true })
+  setLoginOpen(false)
+}
+
 
   return (
     <div className="flex min-h-screen">
@@ -55,59 +106,90 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
           <ToggleTheme />
         </div>
 
-        {/* Ações rápidas: Criar conta / Login */}
+        {/* Ações rápidas */}
         <div className="px-2 py-4 border-b border-border">
-          <Button
-            variant="default"
-            className="w-full justify-start mb-2"
-            onClick={() => console.log('Criar Conta')}
-          >
-            <UserPlus className="w-5 h-5 mr-2" />
-            {!collapsed && 'Criar Conta'}
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full justify-start"
-            onClick={() => console.log('Login')}
-          >
-            <LogIn className="w-5 h-5 mr-2" />
-            {!collapsed && 'Login'}
-          </Button>
+          {!isAuthenticated ? (
+            <>
+              <Button
+                variant="default"
+                className="w-full justify-start mb-2"
+                onClick={() => setRegisterOpen(true)}
+              >
+                <UserPlus className="w-5 h-5 mr-2" />
+                {!collapsed && 'Criar Conta'}
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => setLoginOpen(true)}
+              >
+                <LogIn className="w-5 h-5 mr-2" />
+                {!collapsed && 'Login'}
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={() => logout()}
+            >
+              <LogIn className="w-5 h-5 mr-2 rotate-180" />
+              {!collapsed && 'Sair'}
+            </Button>
+          )}
         </div>
 
         {/* Menu principal */}
         <nav className="flex flex-col gap-1 p-2 flex-grow">
-          {isLoggedIn && (
-            <Button
-              variant="ghost"
-              className="justify-start"
-              onClick={() => console.log('Dashboard')}
-            >
-              <LayoutDashboard className="w-5 h-5 mr-2" />
-              {!collapsed && 'Dashboard'}
-            </Button>
-          )}
-
-          {links.map(({ label, icon: Icon, path }) => (
-            <a
-              key={label}
-              href={path}
-              className="w-full"
-              onClick={(e) => {
-                e.preventDefault()
-                window.location.href = path
-              }}
-            >
-              <Button variant="ghost" className="justify-start w-full">
+          {/* Rotas públicas */}
+          {publicLinks.map(({ label, icon: Icon, path }) => (
+            <a key={label} href={path} className="w-full">
+              <Button
+                variant="ghost"
+                className={cn("justify-start w-full", currentPath === path && "bg-muted text-primary")}
+              >
                 <Icon className="w-5 h-5 mr-2" />
                 {!collapsed && label}
               </Button>
             </a>
           ))}
+
+          {/* Separador visual e Rotas privadas */}
+          {isAuthenticated && (
+            <>
+              <div className="border-t border-border my-3" />
+              {!collapsed && (
+                <span className="text-xs text-muted-foreground px-2 mb-1">Tua Área</span>
+              )}
+
+              {privateLinks.map(({ label, icon: Icon, path }) => (
+                <a key={label} href={path} className="w-full">
+                  <Button
+                    variant="ghost"
+                    className={cn("justify-start w-full", currentPath === path && "bg-muted text-primary")}
+                  >
+                    <Icon className="w-5 h-5 mr-2" />
+                    {!collapsed && label}
+                  </Button>
+                </a>
+              ))}
+            </>
+          )}
         </nav>
       </aside>
 
       <main className="flex-1 bg-background text-foreground p-6">{children}</main>
+
+      <LoginDialog open={loginOpen} onOpenChange={setLoginOpen} onLogin={handleLogin} />
+      {typeof window !== 'undefined' && (
+        <RegisterDialog
+          open={registerOpen}
+          onOpenChange={setRegisterOpen}
+          onRegister={(data) => {
+            console.log('Novo registo:', data)
+          }}
+        />
+      )}
     </div>
   )
 }

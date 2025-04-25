@@ -1,10 +1,24 @@
-import { Playlist, Announcement, Article, Event, CourseWithRatings } from './content'
+import { Playlist, Announcement, Article, Event, CourseWithRatings, PlaylistResolved } from './content'
 import { CreatorFile } from './creatorFile'
 
 export interface SocialMediaLink {
   platform: string
   url: string
 }
+export interface PlaylistVideo {
+  videoId: string
+  title?: string
+  duration?: number
+  thumbnailUrl?: string
+}
+
+export interface CoursesSectionProps {
+  courses: CourseWithRatings[]
+  onCourseClick: (course: CourseWithRatings) => void
+  coursesWithRatings: CourseWithRatings[] // ✅ adiciona esta linha
+}
+
+
 
 export interface CreatorContent {
   contentId: string
@@ -86,21 +100,29 @@ export interface Creator {
 
 // Criador expandido (para página pública)
 export interface CreatorFull extends Creator {
-  // Dados resolvidos (apenas na página pública, por exemplo)
+    mainPlaylist?: PlaylistResolved
   fullPlaylists?: Playlist[]
   announcementsResolved?: Announcement[]
   articlesResolved?: Article[]
   eventsResolved?: Event[]
   documentsResolved?: CreatorFile[]
   coursesResolved?: CourseWithRatings[]
-
+  mainVideo?: {
+    videoLink: string
+  }
   // Se quiseres, também podes manter o contentVisibility aqui como override
   contentVisibility?: {
-    playlists?: { regular?: boolean; featured?: boolean }
+      playlists?: {
+        regular?: boolean
+        shorts?: boolean
+        podcast?: boolean
+        featured?: boolean
+      }
     announcements?: boolean
     courses?: boolean
     files?: boolean
     articles?: boolean
     events?: boolean
+      welcomeVideo?: boolean
   }
 }

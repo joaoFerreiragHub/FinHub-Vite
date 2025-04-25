@@ -3,7 +3,7 @@ import { Creator as CreatorType } from '../../../types/creator'
 export const mockCreators: CreatorType[] = [
   {
     _id: '1',
-    username: 'Ser Riquinho',
+    username: 'serriquinho',
     email: 'ser@riquinho.pt',
     firstname: 'Ser',
     lastname: 'Riquinho',

@@ -28,8 +28,9 @@ export const useUserStore = create<UserStore>()(
     (set, get) => ({
       user: null,
       isAuthenticated: false,
-      hydrated: false,
-      setUser: (user) => set({ user, isAuthenticated: true }),
+      hydrated: false, // 👈 Garante estado inicial
+      setUser: (user) => set({ user, isAuthenticated: true, hydrated: true }),
+
       updateUser: (data) =>
         set((state) => ({
           user: state.user ? { ...state.user, ...data } : null,
@@ -39,12 +40,19 @@ export const useUserStore = create<UserStore>()(
     }),
     {
       name: 'user-storage',
-      onRehydrateStorage: () => {
-        return () => {
-          // 💡 usar set corretamente
-          useUserStore.setState({ hydrated: true })
-        }
-      },
+    onRehydrateStorage: () => {
+      return (state, error) => {
+        console.log("🔄 Zustand hidratado:", state, "Erro:", error)
+        useUserStore.setState({ hydrated: true })
+
+        // Confirma que o estado está como esperas:
+        setTimeout(() => {
+          console.log("📊 Estado após hidratação:", useUserStore.getState())
+        }, 100)
+      }
+    },
+
     },
   ),
 )
+

@@ -1,21 +1,22 @@
-// src/renderer/server.tsx
 import ReactDOMServer from 'react-dom/server'
 import { escapeInject, dangerouslySkipEscape } from 'vite-plugin-ssr/server'
-
 import type { PageContext } from '../types/pageContext'
 import { PageShell } from '../renderer/PageShell'
 
-export const passToClient = ['pageProps', 'Page', 'user']
+export const passToClient = ['routeParams', 'pageProps', 'user']
 
 export const render = async (pageContext: PageContext) => {
+  // console.log('Server-side PageContext:', pageContext)
   const { Page, pageProps } = pageContext
 
+  // Pass pageContext both to PageShell and Page component
   const pageHtml = ReactDOMServer.renderToString(
     <PageShell pageContext={pageContext}>
-      <Page {...(pageProps || {})} />
+      <Page {...(pageProps || {})} pageContext={pageContext} />
     </PageShell>,
   )
 
+  // Rest of your HTML template remains the same
   const documentHtml = escapeInject`<!DOCTYPE html>
 <html lang="pt">
   <head>

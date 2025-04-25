@@ -2,7 +2,7 @@ import { useUserStore } from '../../stores/useUserStore'
 import { ToggleThemeSimple as ToggleTheme } from '../ui/toggle-theme-simple'
 
 export function Header() {
-  // const { user, logout } = useUserStore()
+  const { user } = useUserStore()
   const role = useUserStore((state) => state.getRole())
 
   return (

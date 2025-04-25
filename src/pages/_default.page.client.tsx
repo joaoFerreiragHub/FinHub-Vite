@@ -3,13 +3,18 @@ import type { PageContext } from '../types/pageContext'
 import { PageShell } from '../renderer/PageShell'
 import '../index.css'
 // Lista de propriedades que devem ser passadas do servidor para o cliente
-export const passToClient = ['pageProps', 'Page', 'user']
+export const passToClient = ['routeParams','pageProps','user',]
 
 export const render = (pageContext: PageContext) => {
+  console.log('Client-side PageContext:', pageContext) // Debug log
+  if (!pageContext) {
+    console.error('PageContext is undefined on the client')
+    return
+  }
+
   const { Page, pageProps } = pageContext
   console.log('Hidratando no cliente')
 
-  // Forçar um pequeno atraso antes da hidratação pode ajudar em alguns casos
   setTimeout(() => {
     const appElement = document.getElementById('app')
     if (appElement) {

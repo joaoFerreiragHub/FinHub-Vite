@@ -10,6 +10,8 @@ interface CreatorHeaderProps {
 }
 
 export function CreatorHeader({ creator }: CreatorHeaderProps) {
+
+   console.log('Creator:', creator.username)
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
       {/* Informação base */}
@@ -35,9 +37,10 @@ export function CreatorHeader({ creator }: CreatorHeaderProps) {
         </div>
 
         {/* Botão para mais info */}
-        <Button size="sm" variant="outline">
-          Saber mais
-        </Button>
+
+<Button asChild size="sm" variant="outline">
+  <a href={`/creators/${creator.username}`}>Saber mais</a>
+</Button>
       </div>
     </div>
   )
