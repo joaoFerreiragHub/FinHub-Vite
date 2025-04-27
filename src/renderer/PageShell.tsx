@@ -6,7 +6,8 @@ import { ThemeProvider } from '../components/providers/ThemeProvider'
 import type { PageContext } from '../types/pageContext'
 import React from 'react'
 import { ToastContainer } from 'react-toastify'
-
+import { QueryClientProvider } from '@tanstack/react-query'
+import { queryClient } from '../lib/react-query-client'
 // Create PageContext for component consumption
 const PageContextContext = React.createContext<PageContext | null>(null)
 
@@ -37,19 +38,21 @@ export function PageShell({ children, pageContext }: Props) {
 
   return (
     <PageContextContext.Provider value={pageContext}>
-      <ThemeProvider>
-        <Layout>
-          {children}
-        <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        closeOnClick
-        pauseOnHover
-        theme="colored"
-      />
-        </Layout>
-      </ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <Layout>
+            {children}
+            <ToastContainer
+              position="top-right"
+              autoClose={3000}
+              hideProgressBar={false}
+              closeOnClick
+              pauseOnHover
+              theme="colored"
+            />
+          </Layout>
+        </ThemeProvider>
+      </QueryClientProvider>
     </PageContextContext.Provider>
   )
 }
