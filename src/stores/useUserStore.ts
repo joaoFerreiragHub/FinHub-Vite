@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
 
 export type UserRole = 'visitor' | 'regular' | 'premium' | 'creator' | 'admin'
 
@@ -23,14 +23,23 @@ interface UserStore {
   getRole: () => UserRole
 }
 
+// Cria um mock de usuário para desenvolvimento
+const mockUser: User = {
+  id: "mock-id-123",
+  name: "Utilizador de Teste",
+  email: "teste@exemplo.com",
+  role: "creator", // Para permitir acesso nas rotas protegidas
+  accessToken: "mock-token-123",
+  username: "teste_user"
+}
+
 export const useUserStore = create<UserStore>()(
   persist(
     (set, get) => ({
       user: null,
       isAuthenticated: false,
-      hydrated: false, // 👈 Garante estado inicial
-      setUser: (user) => set({ user, isAuthenticated: true, hydrated: true }),
-
+      hydrated: false,
+      setUser: (user) => set({ user, isAuthenticated: true }),
       updateUser: (data) =>
         set((state) => ({
           user: state.user ? { ...state.user, ...data } : null,
@@ -40,19 +49,42 @@ export const useUserStore = create<UserStore>()(
     }),
     {
       name: 'user-storage',
-    onRehydrateStorage: () => {
-      return (state, error) => {
-        console.log("🔄 Zustand hidratado:", state, "Erro:", error)
-        useUserStore.setState({ hydrated: true })
-
-        // Confirma que o estado está como esperas:
+      storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: () => (state) => {
+        // Definir hidratado como true após o processo de rehidratação
         setTimeout(() => {
-          console.log("📊 Estado após hidratação:", useUserStore.getState())
+          useUserStore.setState({ hydrated: true })
+
+          // APENAS EM DESENVOLVIMENTO: inserir um usuário mock se não houver um
+          if (process.env.NODE_ENV === 'development' && !state?.user) {
+            useUserStore.setState({
+              user: mockUser,
+              isAuthenticated: true
+            })
+          }
+
+          console.log("🔄 Zustand hidratado:", useUserStore.getState())
         }, 100)
       }
-    },
-
-    },
-  ),
+    }
+  )
 )
 
+// Inicialização imediata para SSR
+if (typeof window !== 'undefined') {
+  // Verificar se estamos no ambiente do cliente
+  setTimeout(() => {
+    const state = useUserStore.getState()
+    if (!state.hydrated) {
+      useUserStore.setState({ hydrated: true })
+
+      // APENAS EM DESENVOLVIMENTO: inserir um usuário mock se não houver um
+      if (process.env.NODE_ENV === 'development' && !state.user) {
+        useUserStore.setState({
+          user: mockUser,
+          isAuthenticated: true
+        })
+      }
+    }
+  }, 500)
+}

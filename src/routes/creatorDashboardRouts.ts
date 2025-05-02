@@ -21,6 +21,10 @@ export const creatorDashboardRouts = [
         path: '/creators/conteudos/anuncios',
         label: 'Gerir Anúncios',
       },
+    {
+        path: '/creators/conteudos/artigos',
+        label: 'Gerir Artigos',
+      },
       {
         path: '/creators/conteudos/videos',
         label: 'Gerir Vídeos',

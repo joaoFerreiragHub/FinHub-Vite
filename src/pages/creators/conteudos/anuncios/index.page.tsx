@@ -7,7 +7,7 @@ import { useUserStore } from '../../../../stores/useUserStore'
 function GerirConteudosPage() {
   const { user, hydrated } = useUserStore()
 
-  console.log('🚀 ~ file: index.page.tsx:8 ~ GerirConteudosPage ~ hydrated:', hydrated, user)
+  console.log('🚀 ~ file: index.page.tsx:8 ~ GerirConteudosPage ~ hydrated teste:', hydrated, user)
 
   if (!hydrated) {
     return (
