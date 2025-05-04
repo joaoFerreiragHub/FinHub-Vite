@@ -72,7 +72,7 @@ export const RegisterDialog = ({ open, onOpenChange}: Props) => {
               {roles.map((r) => (
                 <button
                   key={r.key}
-                  onClick={() => handleRoleSelect(r.key as any)}
+                  onClick={() => handleRoleSelect(r.key as 'RegularUser' | 'CreatorUser')}
                   className={cn(
                     'group flex items-center gap-4 p-4 rounded-lg border bg-card transition hover:shadow-md hover:bg-muted/30',
                     r.key === role && 'ring-2 ring-primary border-primary'

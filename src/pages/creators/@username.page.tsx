@@ -10,9 +10,8 @@ import CreatorProfile from '../../components/creators/public/CreatorProfile'
 // Define passToClient directly here
 export const passToClient = ['routeParams', 'pageProps', 'user']
 
-// Two options to access the pageContext:
-// 1. Via props drilling
-// 2. Via the new context hook
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function Page(props: any) {
   try {
     // Try to get pageContext from usePageContext hook
@@ -25,7 +24,7 @@ export function Page(props: any) {
     }
 
     return <CreatorPage username={username} />
-  } catch (error) {
+  } catch {
     // Fallback to props drilling if context isn't available
     console.log('Using fallback props-based approach')
 

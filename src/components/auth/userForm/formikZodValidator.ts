@@ -14,7 +14,7 @@ export const validateWithZod = async <T>(
 
     Object.entries(fieldErrors).forEach(([key, messages]) => {
       if (Array.isArray(messages) && messages.length > 0) {
-        errors[key as keyof T] = messages[0] as any
+        errors[key as keyof T] = messages[0] as string
       }
     })
   }

@@ -7,6 +7,9 @@ export interface Article {
   updatedAt: string
   author: string
   imageUrl?: string
+  hidden?: boolean
+  views: number,
+  likes: number
   // likes: number
   // comments: number
   // isPublished: boolean

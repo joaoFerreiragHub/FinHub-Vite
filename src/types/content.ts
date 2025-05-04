@@ -88,13 +88,23 @@ export interface ArticleWithRatings extends Article {
   averageRating: number
   bannerImage?: string
 }
-export function resolveArticles(articles: Article[]): ArticleWithRatings[] {
-  return articles.map((article) => ({
-    ...article,
-    averageRating: (article as any).averageRating ?? 0, // fallback para evitar erro
-    bannerImage: (article as any).bannerImage ?? '/assets/serriquinho.jpg',
-  }))
+
+type MaybeRatedArticle = Article & {
+  averageRating?: number
+  bannerImage?: string
 }
+export function resolveArticles(articles: Article[]): ArticleWithRatings[] {
+  return articles.map((article) => {
+    const a = article as MaybeRatedArticle
+    return {
+      ...article,
+      averageRating: a.averageRating ?? 0,
+      bannerImage: a.bannerImage ?? '/assets/serriquinho.jpg',
+    }
+  })
+}
+
+
 export interface Event {
   id: string
   name: string // ← muda de title para name, ou adiciona os dois se precisares

@@ -1,8 +1,8 @@
 export interface CreatorFile {
-  id: string
-  name: string
-  url: string
-  uploadedAt: string
-  mimeType?: string
-  cleanOriginalName?: string
+  _id: string            // usado em delete e keys
+  name: string           // exibição principal (title)
+  url: string            // usado no botão "Descarregar"
+  topic?: string         // categoria opcional
+  mimeType?: string      // para ícones
+  createdAt?: string     // exibição opcional
 }

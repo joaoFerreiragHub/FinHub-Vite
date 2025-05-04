@@ -1,4 +1,3 @@
-
 import { Article } from "../../../../types/article"
 import ArticleCard from "./ArticleCard"
 import ArticleSkeleton from "./ArticleSkeleton"
@@ -8,17 +7,25 @@ interface ArticleListProps {
   isLoading: boolean
   onEdit: (article: Article) => void
   onDelete: (id: string) => void
+  onToggleVisibility: (id: string) => void
 }
 
-export default function ArticleList({ articles, isLoading, onEdit, onDelete }: ArticleListProps) {
-if (isLoading) {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {[1, 2, 3].map(i => <ArticleSkeleton key={i} />)}
-    </div>
-  )
-}
-
+export default function ArticleList({
+  articles,
+  isLoading,
+  onEdit,
+  onDelete,
+  onToggleVisibility,
+}: ArticleListProps) {
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {[1, 2, 3].map((i) => (
+          <ArticleSkeleton key={i} />
+        ))}
+      </div>
+    )
+  }
 
   if (articles.length === 0) {
     return <p className="text-muted-foreground">Nenhum artigo encontrado.</p>
@@ -26,12 +33,13 @@ if (isLoading) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {articles.map(article => (
+      {articles.map((article) => (
         <ArticleCard
           key={article.id}
           article={article}
           onEdit={() => onEdit(article)}
           onDelete={() => onDelete(article.id)}
+          onToggleVisibility={() => onToggleVisibility(article.id)}
         />
       ))}
     </div>

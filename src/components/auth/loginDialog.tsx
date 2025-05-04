@@ -38,7 +38,7 @@ export const LoginDialog = ({ open, onOpenChange, onLogin }: Props) => {
     try {
       await onLogin(email, password)
       onOpenChange(false)
-    } catch (err) {
+    } catch {
       setError('Credenciais inválidas.')
     } finally {
       setLoading(false)

@@ -14,20 +14,44 @@ export const creatorDashboardRouts = [
     allowedRoles: ['creator', 'admin'] as UserRole[],
     children: [
       {
-        path: '/creators/conteudos/gerir',
+        path: '/creators/conteudos/resumo',
         label: 'Todos os Conteúdos',
       },
       {
         path: '/creators/conteudos/anuncios',
         label: 'Gerir Anúncios',
       },
+      {
+        path: '/creators/conteudos/reels',
+        label: 'Gerir Reels',
+      },
     {
         path: '/creators/conteudos/artigos',
         label: 'Gerir Artigos',
       },
       {
-        path: '/creators/conteudos/videos',
-        label: 'Gerir Vídeos',
+        path: '/creators/conteudos/courses',
+        label: 'Gerir Cursos',
+      },
+      {
+        path: '/creators/conteudos/podcasts',
+        label: 'Gerir Podcasts',
+      },
+      {
+        path: '/creators/conteudos/welcomeVideos',
+        label: 'Gerir Vídeos de Apresentação',
+      },
+            {
+        path: '/creators/conteudos/lives',
+        label: 'Gerir Lives',
+      },
+      {
+        path: '/creators/conteudos/files',
+        label: 'Gerir Ficheiros',
+      },
+     {
+        path: '/creators/conteudos/playlists',
+        label: 'Gerir Playlists',
       },
     ],
   },
@@ -44,7 +68,7 @@ export const creatorDashboardRouts = [
     allowedRoles: ['creator', 'admin'] as UserRole[],
   },
   {
-    path: '/creators/configuracoes',
+    path: '/creators/definicoes',
     label: 'Configurações',
     icon: Settings,
     allowedRoles: ['creator', 'admin'] as UserRole[],

@@ -10,6 +10,9 @@ export const mockArticles: Article[] = [
     createdAt: "2024-12-01T10:00:00Z",
     updatedAt: "2024-12-01T12:00:00Z",
     author: "Pedro Alves",
+     hidden: false,
+    views: 100,
+    likes: 25,
   },
   {
     id: "2",
@@ -20,6 +23,9 @@ export const mockArticles: Article[] = [
     createdAt: "2024-12-02T14:30:00Z",
     updatedAt: "2024-12-02T15:00:00Z",
     author: "Pedro Alves",
+    hidden: false,
+    views: 150,
+    likes: 45,
   },
   {
     id: "3",
@@ -30,6 +36,9 @@ export const mockArticles: Article[] = [
     createdAt: "2024-12-03T08:15:00Z",
     updatedAt: "2024-12-03T10:00:00Z",
     author: "Maria Silva",
+    hidden: false,
+    views: 2100,
+    likes: 235,
   },
   {
     id: "4",
@@ -40,6 +49,8 @@ export const mockArticles: Article[] = [
     createdAt: "2024-12-04T16:00:00Z",
     updatedAt: "2024-12-04T17:00:00Z",
     author: "João Fernandes",
+    views: 12100,
+    likes: 2325,
   },
   {
     id: "5",
@@ -50,5 +61,7 @@ export const mockArticles: Article[] = [
     createdAt: "2024-12-05T11:45:00Z",
     updatedAt: "2024-12-05T12:15:00Z",
     author: "Ana Costa",
+        views: 122100,
+    likes: 23258,
   }
 ]

@@ -65,6 +65,7 @@ export const useUserStore = create<UserStore>()(
 
           console.log("🔄 Zustand hidratado:", useUserStore.getState())
         }, 100)
+        console.log("✅ Mock user injetado:", mockUser)
       }
     }
   )

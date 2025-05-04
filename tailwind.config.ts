@@ -1,6 +1,7 @@
 // tailwind.config.js
 import animate from 'tailwindcss-animate'
 import type { Config } from 'tailwindcss'
+import aspectRatio from '@tailwindcss/aspect-ratio'
 
 const config: Config = {
   darkMode: ['class'],
@@ -68,7 +69,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [animate],
+  plugins: [animate,aspectRatio]
 }
 
 export default config
