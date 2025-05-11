@@ -1,5 +1,6 @@
-import { FormikErrors } from "formik"
+// src/components/userForm/formikZodValidator.ts
 import { ZodSchema } from "zod"
+import { FormikErrors } from "formik"
 
 export const validateWithZod = async <T>(
   schema: ZodSchema<T>,
@@ -11,7 +12,6 @@ export const validateWithZod = async <T>(
 
   if (!result.success) {
     const fieldErrors = result.error.flatten().fieldErrors
-
     Object.entries(fieldErrors).forEach(([key, messages]) => {
       if (Array.isArray(messages) && messages.length > 0) {
         errors[key as keyof T] = messages[0] as string

@@ -6,12 +6,15 @@ export type UserRole = 'visitor' | 'regular' | 'premium' | 'creator' | 'admin'
 export interface User {
   id: string
   name: string
+  lastName?: string       // ✅ novo campo
   email: string
-  role: UserRole
+  username: string
   avatar?: string
   accessToken: string
-  username: string
+  bio?: string            // ✅ novo campo
+  role: UserRole
 }
+
 
 interface UserStore {
   user: User | null

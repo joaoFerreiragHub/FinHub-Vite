@@ -8,7 +8,8 @@ import { Label } from "../../ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover"
 import { Calendar } from "../../ui/calendar"
 import { FormikProps } from "formik"
-import { FormValues } from "../RegistrationFormRUsers"
+import { FormValues } from "../../../types/FormValues"
+
 
 interface Props {
   formik: FormikProps<FormValues>

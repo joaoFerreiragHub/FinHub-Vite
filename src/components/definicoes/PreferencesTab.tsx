@@ -5,27 +5,37 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { mockFormik } from "../../mock/mockFormik";
 import StepSocialLinks from "./SocialLinksTab";
+import { Button } from "../ui/button";
+import { FormValues } from "../../types/FormValues";
+import { FormikProps } from "formik"
 
-export default function PreferencesTab() {
+interface PreferencesTabProps {
+  onSave: () => void
+}
+
+export default function PreferencesTab({ onSave }: PreferencesTabProps) {
   return (
     <div className="space-y-6">
       <StepTopics
-        formik={mockFormik}
+        formik={mockFormik as FormikProps<FormValues>}
         isInvalid={() => false}
         errorMessage={() => null}
       />
 
       <div>
         <Label htmlFor="website">Website</Label>
-        <Input id="website" defaultValue={mockFormik.values.website} />
+        <Input id="website" defaultValue={(mockFormik.values as FormValues).website} />
       </div>
-  <StepSocialLinks />
+
+      <StepSocialLinks />
+
       <StepDateOfBirth
-        formik={mockFormik}
+          formik={mockFormik as FormikProps<FormValues>}
         isInvalid={() => false}
         errorMessage={() => null}
       />
+
+      <Button onClick={onSave}>Guardar Alterações</Button>
     </div>
   )
 }
-

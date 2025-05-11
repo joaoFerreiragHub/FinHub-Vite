@@ -3,7 +3,8 @@ import { Input } from "../../ui/input"
 import { Label } from "../../ui/label"
 import { cn } from "../../../lib/utils"
 import { FormikProps } from "formik"
-import { FormValues } from "../RegistrationFormRUsers"
+import { FormValues } from "../../../types/FormValues"
+
 
 interface Props {
   formik: FormikProps<FormValues>

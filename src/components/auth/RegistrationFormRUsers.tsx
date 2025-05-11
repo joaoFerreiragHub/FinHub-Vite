@@ -8,19 +8,12 @@ import StepDateOfBirth from "./userForm/StepDateOfBirth"
 import StepTopics from "./userForm/StepTopics"
 import StepTerms from "./userForm/StepTerms"
 import { userFormSchema } from "../../schemas/userFormSchema"
+import { FormikErrors } from "formik"
+import { FormValues } from "../../types/FormValues"
 import { validateWithZod } from "./userForm/formikZodValidator"
 
 
-export interface FormValues {
-  userName: string
-  name: string
-  lastName: string
-  email: string
-  password: string
-  dateOfBirth: Date | null
-  termsAccepted: boolean
-  topics: string[]
-}
+
 
 const RegistrationFormRUsers = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -74,12 +67,14 @@ const RegistrationFormRUsers = () => {
       lastName: "",
       email: "",
       password: "",
+      confirmPassword: "",
+      website:"",
       dateOfBirth: null,
       termsAccepted: false,
       topics: [],
     },
     validate: (values) =>
-      validateWithZod(userFormSchema, values, async (errors) => {
+      validateWithZod(userFormSchema, values, async (errors: Partial<FormikErrors<FormValues>>) => {
         if (
           !errors.userName &&
           (await checkExists("/authRoutes/checkUsername", "userName", values.userName))

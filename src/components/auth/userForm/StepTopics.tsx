@@ -6,7 +6,8 @@ import { Label } from "../../ui/label"
 import { Check } from "lucide-react"
 import { cn } from "../../../lib/utils"
 import { FormikProps } from "formik"
-import { FormValues } from "../RegistrationFormRUsers"
+import { FormValues } from "../../../types/FormValues"
+
 
 const topicOptions = [
   "ETFs", "Ações", "Reits", "Cryptos", "Finanças Pessoais",

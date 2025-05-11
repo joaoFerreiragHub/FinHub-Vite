@@ -1,8 +1,9 @@
 import { cn } from "../../../lib/utils"
+import { FormValues } from "../../../types/FormValues"
 import { Input } from "../../ui/input"
 import { Label } from "../../ui/label"
 import { FormikProps } from "formik"
-import { FormValues } from "../RegistrationFormRUsers" // ajusta o path se necessário
+
 
 
 

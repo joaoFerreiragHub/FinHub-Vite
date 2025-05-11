@@ -29,11 +29,6 @@ export default function TodosContentPage({ user }: TodosContentPageProps) {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Todos os Conteúdos</h1>
-      <p className="text-muted-foreground text-sm">
-        Aqui tens uma visão geral dos teus conteúdos. Podes navegar, editar ou criar novos.
-      </p>
-
       <Tabs value={tab} onValueChange={setTab} className="w-full">
         <TabsList className="flex gap-2">
           <TabsTrigger value="resumo">Resumo</TabsTrigger>

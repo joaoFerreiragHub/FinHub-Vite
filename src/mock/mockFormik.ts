@@ -1,7 +1,8 @@
-import { FormValues } from "../components/auth/RegistrationFormRUsers";
+import { FormikProps } from "formik"
+import { FormValues } from "../types/FormValues"
 
 
-export const mockFormik = {
+export const mockFormik: Partial<FormikProps<FormValues>> = {
   values: {
     userName: "criador123",
     name: "João",
@@ -13,7 +14,7 @@ export const mockFormik = {
     topics: ["ETFs"],
     website: "https://meusite.com",
     dateOfBirth: new Date(),
-  } as FormValues,
+  },
   setFieldValue: async () => Promise.resolve(),
   handleChange: () => {},
-} as any // cast to 'any' apenas para mock local
+}

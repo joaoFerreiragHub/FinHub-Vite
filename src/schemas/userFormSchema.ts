@@ -11,6 +11,12 @@ export const userFormSchema = z.object({
     .regex(/[A-Z]/, "Deve conter uma letra maiúscula")
     .regex(/[a-z]/, "Deve conter uma letra minúscula")
     .regex(/[0-9]/, "Deve conter um número"),
+  confirmPassword: z.string(),
+  website: z.string()
+  .url("URL inválido")
+  .or(z.literal("")),
+
+
   dateOfBirth: z.date({
     required_error: "Data obrigatória",
     invalid_type_error: "Data inválida",
@@ -22,12 +28,18 @@ export const userFormSchema = z.object({
     const actualAge = isBirthdayPassed ? age : age - 1
     return actualAge >= 18 && actualAge <= 100
   }, { message: "A idade deve estar entre 18 e 100 anos" }),
+
   termsAccepted: z.literal(true, {
     errorMap: () => ({ message: "Obrigatório aceitar os termos" }),
   }),
+
   topics: z.array(z.string())
     .min(1, "Seleciona pelo menos 1 tópico")
     .max(3, "No máximo 3 tópicos"),
 })
+.refine((data) => data.password === data.confirmPassword, {
+  message: "As passwords não coincidem",
+  path: ["confirmPassword"],
+})
 
-export type UserFormSchema = z.infer<typeof userFormSchema>
+export type FormValues = z.infer<typeof userFormSchema>
