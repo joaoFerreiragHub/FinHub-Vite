@@ -62,7 +62,7 @@ export const creatorDashboardRouts = [
     allowedRoles: ['creator', 'admin'] as UserRole[],
   },
   {
-    path: '/creators/publicidade',
+    path: '/creators/anuncios',
     label: 'Gerir Publicidade',
     icon: Megaphone,
     allowedRoles: ['creator', 'admin'] as UserRole[],

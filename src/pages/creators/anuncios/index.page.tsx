@@ -2,7 +2,7 @@ import ProtectedRoute from "../../../components/auth/ProtectedRoute"
 import CreatorSidebar from "../../../components/creators/sidebar/creatorSidebar"
 import MarketingTabs from "../../../components/creators/marketing/MarketingTabs"
 
-function WalletPage() {
+function PubPage() {
   return (
     <ProtectedRoute allowedRoles={["creator", "admin"]}>
       <div className="flex min-h-screen">
@@ -22,5 +22,5 @@ function WalletPage() {
 }
 
 export default {
-  Page: WalletPage,
+  Page: PubPage,
 }
