@@ -23,9 +23,10 @@ export default function AdCreationWizard() {
   const nextStep = () => setStep((prev) => prev + 1)
   const prevStep = () => setStep((prev) => prev - 1)
 
-  const handleChange = (field: string, value: any) => {
+  const handleChange = <T extends keyof typeof formData>(field: T, value: typeof formData[T]) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
+
 
   return (
     <Card>

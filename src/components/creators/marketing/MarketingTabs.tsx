@@ -1,4 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/tabs";
+import CampaignsDashboard from "./campanhas/CampaignsDashboard";
 import InsightsDashboard from "./insights/InsightsDashboard";
 import WalletDashboardPage from "./wallet/WalletDashboard";
 
@@ -8,6 +9,7 @@ export default function MarketingTabs() {
       <TabsList>
         <TabsTrigger value="wallet">Wallet</TabsTrigger>
         <TabsTrigger value="insights">Insights de Anúncios</TabsTrigger>
+        <TabsTrigger value="anuncios">Anúncios</TabsTrigger>
       </TabsList>
 
       <TabsContent value="wallet">
@@ -17,6 +19,10 @@ export default function MarketingTabs() {
       <TabsContent value="insights">
         <InsightsDashboard />
       </TabsContent>
+
+      <TabsContent value="anuncios">
+        <CampaignsDashboard />
+        </TabsContent>
     </Tabs>
   )
 }
