@@ -9,6 +9,12 @@ export const creatorDashboardRouts = [
     allowedRoles: ['creator', 'admin'] as UserRole[],
   },
   {
+    path: '/creators/progresso',
+    label: 'Progresso',
+    icon: LayoutDashboard,
+    allowedRoles: ['creator', 'admin'] as UserRole[],
+  },
+  {
     label: 'Gerir Conteúdos',
     icon: FileText,
     allowedRoles: ['creator', 'admin'] as UserRole[],
