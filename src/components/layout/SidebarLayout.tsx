@@ -29,6 +29,7 @@ const publicLinks = [
   { label: 'Ferramentas', icon: Settings2, path: '/ferramentas' },
   { label: 'Notícias', icon: Newspaper, path: '/noticias' },
   { label: 'Conteúdos', icon: BookOpen, path: '/conteudos' },
+  { label: 'Ações', icon: BookOpen, path: '/stocks' },
 ]
 
 export default function SidebarLayout({ children }: { children: React.ReactNode }) {
