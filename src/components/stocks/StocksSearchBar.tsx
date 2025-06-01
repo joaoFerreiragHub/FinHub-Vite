@@ -1,5 +1,6 @@
-// components/Stocks/StocksSearchBar.tsx
-import React from 'react'
+import { Input } from "../ui/input"
+import { Button } from "../ui/button"
+import { Search } from "lucide-react"
 
 export interface StocksSearchBarProps {
   value: string
@@ -9,17 +10,18 @@ export interface StocksSearchBarProps {
 
 export function StocksSearchBar({ value, onChange, onSearch }: StocksSearchBarProps) {
   return (
-    <div className="flex gap-2">
-      <input
+    <div className="flex w-full max-w-md gap-2">
+      <Input
         type="text"
         value={value}
         onChange={onChange}
         placeholder="Ticker (ex: AAPL)"
-        className="border p-2 rounded-md w-full"
+        className="text-sm"
       />
-      <button onClick={onSearch} className="bg-primary text-white px-4 py-2 rounded-md">
+      <Button onClick={onSearch} className="flex gap-1">
+        <Search className="w-4 h-4" />
         Pesquisar
-      </button>
+      </Button>
     </div>
   )
 }

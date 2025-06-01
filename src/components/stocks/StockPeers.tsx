@@ -1,7 +1,5 @@
-// components/Stocks/StockPeers.tsx
 import React from 'react'
 import { Badge } from '../ui/badge'
-
 
 interface StockPeersProps {
   peers: string[]
@@ -13,13 +11,13 @@ export const StockPeers: React.FC<StockPeersProps> = ({ peers, onPeerClick }) =>
 
   return (
     <div className="mt-6">
-      <h4 className="text-lg font-semibold mb-2">Empresas Semelhantes</h4>
+      <h4 className="text-lg font-semibold text-muted-foreground mb-3">Empresas Semelhantes</h4>
       <div className="flex flex-wrap gap-2">
         {peers.map((symbol) => (
           <Badge
             key={symbol}
-            variant="secondary"
-            className="cursor-pointer hover:bg-blue-500 hover:text-white transition"
+            variant="outline"
+            className="cursor-pointer hover:bg-primary hover:text-white transition-all duration-150 ease-in-out"
             onClick={() => onPeerClick(symbol)}
           >
             {symbol}

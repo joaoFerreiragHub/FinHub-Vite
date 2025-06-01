@@ -1,27 +1,12 @@
-import { CardBlock } from "./StockCard"
+// 1. Ajusta o componente StockDetails para incluir tabs
+import { useState } from 'react'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs'
 
-
-interface StockData {
-  symbol: string
-  companyName: string
-  image?: string
-  setor: string
-  industry: string
-  exchange: string
-  pais: string
-  preco: string
-  marketCap: string
-  enterpriseValue: string
-  eps: string
-  pe: string
-  pegRatio: string
-  dcf: string
-  ebitda: string
-  lucroLiquido: string
-  margemEbitda: string
-  roe: string
-  peers: string[]
-}
+import { StockData } from '../../types/stocks'
+import { WatchlistButton } from './WatchlistButton'
+import { GeneralInfoSection } from './sections/GeneralInfoSection'
+import { QuickAnalysis } from './quickAnalysis/QuickAnalysis'
+import { FullDetailedAnalysis } from './sections/FullDetailedAnalysis'
 
 interface StockDetailsProps {
   stockData: StockData
@@ -29,32 +14,55 @@ interface StockDetailsProps {
   onToggleWatchlist: () => void
 }
 
-export function StockDetails({
-  stockData,
-  isInWatchlist,
-  onToggleWatchlist,
-}: StockDetailsProps) {
+export function StockDetails({ stockData, isInWatchlist, onToggleWatchlist }: StockDetailsProps) {
+  const { companyName, symbol, image } = stockData
+
+  const [tab, setTab] = useState<'resumo' | 'detalhada'>('resumo')
+  function handlePeerClick(symbol: string) {
+    console.log('Peer clicked:', symbol)
+  }
   return (
-    <CardBlock title={`${stockData.companyName} (${stockData.symbol})`}>
-      <div className="grid grid-cols-2 gap-2">
-        <p><strong>Setor:</strong> {stockData.setor}</p>
-        <p><strong>Indústria:</strong> {stockData.industry}</p>
-        <p><strong>Bolsa:</strong> {stockData.exchange}</p>
-        <p><strong>País:</strong> {stockData.pais}</p>
-        <p><strong>Preço:</strong> {stockData.preco}</p>
-        <p><strong>Market Cap:</strong> {stockData.marketCap}</p>
-        <p><strong>Enterprise Value:</strong> {stockData.enterpriseValue}</p>
-        <p><strong>Lucro Líquido:</strong> {stockData.lucroLiquido}</p>
-        <p><strong>EBITDA:</strong> {stockData.ebitda}</p>
-        <p><strong>Margem EBITDA:</strong> {stockData.margemEbitda}</p>
-        <p><strong>EPS:</strong> {stockData.eps}</p>
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        {image && (
+          <img
+            src={image}
+            alt={`Logo da ${companyName}`}
+            className="w-10 h-10 rounded shadow-sm"
+          />
+        )}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+          <h2 className="text-xl font-bold">
+            {companyName} <span className="text-muted-foreground">({symbol})</span>
+          </h2>
+        </div>
+        <WatchlistButton isInWatchlist={isInWatchlist} onToggle={onToggleWatchlist} />
       </div>
-      <button
-        onClick={onToggleWatchlist}
-        className="mt-4 underline text-blue-600 hover:text-blue-800"
-      >
-        {isInWatchlist ? "Remover da Watchlist" : "Adicionar à Watchlist"}
-      </button>
-    </CardBlock>
+
+      <GeneralInfoSection data={stockData} />
+
+      <Tabs value={tab} onValueChange={(v) => setTab(v as 'resumo' | 'detalhada')} className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="resumo">Análise Rápida</TabsTrigger>
+          <TabsTrigger value="detalhada">Análise Detalhada</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="resumo">
+          <div className="grid grid-cols-1 gap-4">
+          <h2 className="text-lg font-semibold mb-2">📊 Ratings Rápidos</h2>
+          <QuickAnalysis
+            data={stockData}
+            onToggleWatchlist={onToggleWatchlist}
+            onPeerClick={handlePeerClick}
+          />
+
+          </div>
+        </TabsContent>
+
+        <TabsContent value="detalhada">
+        <FullDetailedAnalysis data={stockData} />
+      </TabsContent>
+      </Tabs>
+    </div>
   )
 }

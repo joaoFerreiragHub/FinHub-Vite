@@ -1,18 +1,19 @@
 import { ReactNode } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 
-// components/ui/CardBlock.tsx
 export interface CardBlockProps {
   title: string
   children: ReactNode
 }
 
 export const CardBlock = ({ title, children }: CardBlockProps) => (
-  <Card>
-    <CardHeader>
-      <CardTitle>{title}</CardTitle>
+  <Card className="border-muted shadow-sm rounded-2xl">
+    <CardHeader className="pb-2">
+      <CardTitle className="text-base font-semibold tracking-tight">
+        {title}
+      </CardTitle>
     </CardHeader>
-    <CardContent className="space-y-2 text-sm">
+    <CardContent className="space-y-2 text-sm text-muted-foreground">
       {children}
     </CardContent>
   </Card>
