@@ -1,18 +1,40 @@
-export interface StockData {
+export interface PeerQuote {
   symbol: string
-  companyName: string
+  name: string
+  price: number
+  changesPercentage: number | null
+}
+
+export interface Alert {
+  title: string
+  description: string
+  severity: 'low' | 'medium' | 'high'
+}
+
+export interface ScoreData {
+  metric: string
+  value: number
+}
+
+export interface StockData {
+  // Básicos
+  symbol: string
+  name: string // substitui companyName
   image?: string
-  setor: string
+  sector: string // substitui 'setor'
   industry: string
   exchange: string
   pais: string
-  preco: string
-  valuationGrade: string // A, B, C, D, F
+  price: number // substitui 'preco'
   marketCap: string
   enterpriseValue: string
+  companyName: string // substitui 'nomeEmpresa'
+  // Scores e Valuation
+  valuationGrade: 'A' | 'B' | 'C' | 'D' | 'F'
   qualityScore: number // 0-10
   growthScore: number // 0-10
   riskScore: number // 0-10
+
   // Valuation
   eps: string
   pe: string
@@ -20,7 +42,8 @@ export interface StockData {
   dcf: string
   leveredDCF: string
   freeCashFlow: string
-  // Profitability
+
+  // Rentabilidade
   ebitda: string
   lucroLiquido: string
   margemEbitda: string
@@ -33,18 +56,18 @@ export interface StockData {
   epsGrowth5Y: string
   ebitdaGrowth5Y: string
 
-  // Dividends
+  // Dividendos
   dividendYield: string
   dividend_pershare: string
   payoutRatio: string
 
-  // Financial Health
+  // Saúde financeira
   debtToEquity: string
   currentRatio: string
   cash: string
   interestCoverage: string
 
-  // Debt
+  // Dívida
   netDebt: string
   totalDebt: string
   interestExpense: string
@@ -52,7 +75,7 @@ export interface StockData {
   debtToEBITDA: string
   netDebtToEBITDA: string
 
-  // Risks & Costs
+  // Riscos e Custos
   riskFreeRate: string
   marketRiskPremium: string
   beta: string
@@ -61,7 +84,7 @@ export interface StockData {
   effectiveTaxRate: string
   wacc: string
 
-  // Growth
+  // Crescimento
   receita: string
   receitaPorAcao: string
   receitaCagr3y: string
@@ -71,11 +94,24 @@ export interface StockData {
   lucroCagr3y: string
   lucroGrowth5y: string
 
-  // Institutional Info
+  // Institucional
   ceo: string
   fundacao: string
   employees: string
 
-  // Outros
+  // Extras da nova API
+  description: string
+  website: string
+  ipoDate: string
+  address: string
+  indicadores: Record<string, string>
+  radarData: ScoreData[]
+  radarPeers: {
+  symbol: string
+  radar: ScoreData[]
+}[]
+
+  alerts: Alert[]
   peers: string[]
+  peersQuotes: PeerQuote[]
 }

@@ -8,6 +8,7 @@ import React from 'react'
 import { ToastContainer } from 'react-toastify'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from '../lib/react-query-client'
+import { TooltipProvider } from '@radix-ui/react-tooltip'
 // Create PageContext for component consumption
 const PageContextContext = React.createContext<PageContext | null>(null)
 
@@ -40,6 +41,7 @@ export function PageShell({ children, pageContext }: Props) {
     <PageContextContext.Provider value={pageContext}>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
+        <TooltipProvider>
           <Layout>
             {children}
             <ToastContainer
@@ -50,7 +52,8 @@ export function PageShell({ children, pageContext }: Props) {
               pauseOnHover
               theme="colored"
             />
-          </Layout>
+            </Layout>
+            </TooltipProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </PageContextContext.Provider>

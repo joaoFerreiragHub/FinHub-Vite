@@ -19,25 +19,41 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
   console.log('StockRatingsBySector', { setor, indicadores })
   return (
     <>
-    {setor === 'Saúde' && (
+    {setor === 'Healthcare' && (
       <RatingsHealthcare
         investimentoPD={indicadores['Investimento em P&D'] ?? '0'}
         margemBruta={indicadores['Margem Bruta'] ?? '0'}
         margemEbitda={indicadores['Margem EBITDA'] ?? '0'}
         margemLiquida={indicadores['Margem Líquida'] ?? '0'}
+        margemLiquidaAnoAnterior={indicadores['Margem Líquida (Y-1)'] ?? '0'}
         roic={indicadores['ROIC'] ?? '0'}
+        roicAnoAnterior={indicadores['ROIC (Y-1)'] ?? '0'}
         roe={indicadores['ROE'] ?? '0'}
         pl={indicadores['P/L'] ?? '0'}
         ps={indicadores['P/S'] ?? '0'}
         debtToEbitda={indicadores['Dívida/EBITDA'] ?? '0'}
+        debtToEbitdaAnoAnterior={indicadores['Dívida/EBITDA (Y-1)'] ?? '0'}
         liquidezCorrente={indicadores['Liquidez Corrente'] ?? '0'}
         cagrEps={indicadores['CAGR EPS'] ?? '0'}
+        cagrEpsAnoAnterior={indicadores['CAGR EPS (Y-1)'] ?? '0'}
         eps={indicadores['EPS'] ?? '0'}
         beta={indicadores['Beta'] ?? '0'}
+        fcf={indicadores['Free Cash Flow'] ?? '0'}
+        peg={indicadores['PEG'] ?? '0'}
+        crescimentoReceita={indicadores['Crescimento Receita'] ?? '0'}
+        debtEquity={indicadores['Dívida / Capitais Próprios'] ?? '0'}
+
+        // ✅ NOVOS COMPLEMENTARES
+        rAnddEfficiency={indicadores['Eficiência de P&D'] ?? '0'}
+        cashFlowOverCapex={indicadores['Cash Flow / CapEx'] ?? '0'}
+        sgaOverRevenue={indicadores['SG&A / Receita'] ?? '0'}
+        margemOperacional={indicadores['Margem Operacional'] ?? '0'}
+        payoutRatio={indicadores['Payout Ratio'] ?? '0'}
       />
+
     )}
 
-    {setor === 'Tecnologia' && (
+    {setor === 'Technology' && (
       <RatingsTech
         crescimentoReceita={indicadores['Crescimento da Receita'] ?? '0'}
         cagrEps={indicadores['CAGR EPS'] ?? '0'}
@@ -45,6 +61,7 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
         margemBruta={indicadores['Margem Bruta'] ?? '0'}
         margemEbitda={indicadores['Margem EBITDA'] ?? '0'}
         margemLiquida={indicadores['Margem Líquida'] ?? '0'}
+        margemOperacional={indicadores['Margem Operacional'] ?? '0'}
         roic={indicadores['ROIC'] ?? '0'}
         roe={indicadores['ROE'] ?? '0'}
         pl={indicadores['P/L'] ?? '0'}
@@ -54,27 +71,34 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
         liquidezCorrente={indicadores['Liquidez Corrente'] ?? '0'}
         cashRatio={indicadores['Cash Ratio'] ?? '0'}
         beta={indicadores['Beta'] ?? '0'}
+        investimentoPD={indicadores['Investimento em P&D'] ?? '0'}
+        rAnddEfficiency={indicadores['Eficiência de P&D'] ?? '0'}
+        cashFlowOverCapex={indicadores['Cash Flow / CapEx'] ?? '0'}
+        fcf={indicadores['Free Cash Flow'] ?? '0'}
+        sgaOverRevenue={indicadores['SG&A / Receita'] ?? '0'}
+        payoutRatio={indicadores['Payout Ratio'] ?? '0'}
       />
+
     )}
 
   {setor === 'Bancos' && indicadores['ROE'] && (
     <RatingsFinancials
-  roe={indicadores['ROE'] ?? '0'}
-  eficiencia={indicadores['Índice de Eficiência'] ?? '0'}
-  basileia={indicadores['Índice de Basileia'] ?? '0'}
-  alavancagem={indicadores['Alavancagem Financeira'] ?? '0'}
-  liquidez={indicadores['Liquidez Corrente'] ?? '0'}
-  inadimplencia={indicadores['Índice de Inadimplência'] ?? '0'}
-  cobertura={indicadores['Cobertura de Provisões'] ?? '0'}
-  pl={indicadores['P/L'] ?? '0'}
-  pvpa={indicadores['P/VPA'] ?? '0'}
-  dividendYield={indicadores['Dividend Yield'] ?? '0'}
-  payoutRatio={indicadores['Payout Ratio'] ?? '0'}
-  ldr={indicadores['Loan-to-Deposit Ratio'] ?? '0'}
-  beta={indicadores['Beta'] ?? '0'}
-  precoAtual={indicadores['Preço Atual'] ?? '0'}
-  leveredDcf={indicadores['Levered DCF'] ?? '0'}
-/>
+      roe={indicadores['ROE'] ?? '0'}
+      eficiencia={indicadores['Índice de Eficiência'] ?? '0'}
+      basileia={indicadores['Índice de Basileia'] ?? '0'}
+      alavancagem={indicadores['Alavancagem Financeira'] ?? '0'}
+      liquidez={indicadores['Liquidez Corrente'] ?? '0'}
+      inadimplencia={indicadores['Índice de Inadimplência'] ?? '0'}
+      cobertura={indicadores['Cobertura de Provisões'] ?? '0'}
+      pl={indicadores['P/L'] ?? '0'}
+      pvpa={indicadores['P/VPA'] ?? '0'}
+      dividendYield={indicadores['Dividend Yield'] ?? '0'}
+      payoutRatio={indicadores['Payout Ratio'] ?? '0'}
+      ldr={indicadores['Loan-to-Deposit Ratio'] ?? '0'}
+      beta={indicadores['Beta'] ?? '0'}
+      precoAtual={indicadores['Preço Atual'] ?? '0'}
+      leveredDcf={indicadores['Levered DCF'] ?? '0'}
+    />
 
 
   )}

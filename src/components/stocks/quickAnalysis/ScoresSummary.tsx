@@ -1,7 +1,5 @@
-
 import { cn } from '../../../lib/utils'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../ui/tooltip'
-
 
 interface ScoreBlockProps {
   label: string
@@ -58,8 +56,16 @@ export function ScoresSummary({ data }: ScoresSummaryProps) {
     riscoScore = 2,
   } = data
 
-  const riscoLabel = riscoScore >= 7 ? 'Alto' : riscoScore >= 4 ? 'Médio' : 'Baixo'
-  const riscoColor = riscoScore >= 7 ? 'red' : riscoScore >= 4 ? 'yellow' : 'green'
+  const riscoLabel =
+  riscoScore >= 3 ? 'Baixo' :
+  riscoScore >= 1.8 ? 'Médio' :
+  'Alto'
+
+const riscoColor =
+  riscoScore >= 3 ? 'green' :
+  riscoScore >= 1.8 ? 'yellow' :
+  'red'
+
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
@@ -81,14 +87,15 @@ export function ScoresSummary({ data }: ScoresSummaryProps) {
         label="Valuation"
         value={valuationGrade}
         color={valuationGrade === 'A' || valuationGrade === 'B' ? 'green' : valuationGrade === 'C' ? 'yellow' : 'red'}
-        tooltip="Classificação do preço atual em relação ao valor intrínseco estimado."
+        tooltip={`Nota atribuída pela FMP com base em múltiplos e DCF. Ex: ${valuationGrade}`}
         icon="💰"
       />
       <ScoreBlock
         label="Risco"
         value={riscoLabel}
         color={riscoColor}
-        tooltip="Probabilidade de instabilidade financeira ou falência."
+        tooltip={`Altman Z-Score: ${riscoScore.toFixed(1)}\n• >3: Risco Baixo\n• 1.8–3: Risco Médio\n• <1.8: Risco Elevado`}
+
         icon="⚠️"
       />
     </div>

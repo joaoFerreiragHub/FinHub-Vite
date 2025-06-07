@@ -7,6 +7,7 @@ interface ScoreData {
 
 interface PerformanceRadarChartProps {
   data?: ScoreData[]
+  title?: string
 }
 
 const defaultData: ScoreData[] = [
@@ -18,23 +19,26 @@ const defaultData: ScoreData[] = [
   { metric: 'Dividendos', value: 60 },
 ]
 
-export function PerformanceRadarChart({ data = defaultData }: PerformanceRadarChartProps) {
+export function PerformanceRadarChart({ data = defaultData, title }: PerformanceRadarChartProps) {
   return (
-    <div className="w-full h-[350px]">
-      <ResponsiveContainer width="100%" height="100%">
-        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
-          <PolarGrid strokeDasharray="3 3" />
-          <PolarAngleAxis dataKey="metric" tick={{ fontSize: 12 }} />
-          <PolarRadiusAxis angle={30} domain={[0, 100]} tickCount={6} />
-          <Radar
-            name="Desempenho"
-            dataKey="value"
-            stroke="#2563eb" // azul
-            fill="#3b82f6"   // azul claro
-            fillOpacity={0.3}
-          />
-        </RadarChart>
-      </ResponsiveContainer>
+    <div className="flex flex-col items-center w-full sm:w-1/3 p-2">
+      {title && <h3 className="text-sm font-semibold mb-2 text-center">{title}</h3>}
+      <div className="w-full h-[300px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
+            <PolarGrid strokeDasharray="3 3" />
+            <PolarAngleAxis dataKey="metric" tick={{ fontSize: 10 }} />
+            <PolarRadiusAxis angle={30} domain={[0, 100]} tickCount={5} />
+            <Radar
+              name="Desempenho"
+              dataKey="value"
+              stroke="#2563eb"
+              fill="#3b82f6"
+              fillOpacity={0.3}
+            />
+          </RadarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   )
 }
