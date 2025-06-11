@@ -1,6 +1,7 @@
 // src/utils/mergeStockData.ts
 import { StockData } from '../types/stocks'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function mergeStockData(stockData: StockData, quickData: any): StockData {
   return {
     ...stockData,

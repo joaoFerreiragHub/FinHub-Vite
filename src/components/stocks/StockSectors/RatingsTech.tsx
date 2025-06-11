@@ -1,70 +1,16 @@
+// src/components/ratings/RatingsTech.tsx
+
+import { buildTechnologyComplementares, RatingsTechProps } from "../../../utils/complementares/technologyComplementares"
 import { avaliarIndicadorComContexto } from "../hooks/avaliarIndicadorComContexto"
 import { IndicatorValuePro } from "../quickAnalysis/IndicatorValuePro"
 
-interface RatingsTechProps {
-  // Crescimento e Performance
-  crescimentoReceita: string
-  crescimentoReceitaAnoAnterior?: string // NOVO
-  cagrEps: string
-  cagrEpsAnoAnterior?: string
-  eps: string
-  epsAnoAnterior?: string // NOVO
-
-  // Margens e Rentabilidade
-  margemBruta: string
-  margemBrutaAnoAnterior?: string // NOVO
-  margemEbitda: string
-  margemEbitdaAnoAnterior?: string // NOVO
-  margemLiquida: string
-  margemLiquidaAnoAnterior?: string
-  margemOperacional: string
-  margemOperacionalAnoAnterior?: string // NOVO
-
-  // Retorno sobre Capital
-  roic: string
-  roicAnoAnterior?: string // NOVO
-  roe: string
-  roeAnoAnterior?: string // NOVO
-
-  // Múltiplos de Avaliação
-  pl: string
-  plAnoAnterior?: string // NOVO
-  ps: string
-  psAnoAnterior?: string // NOVO
-  peg: string
-  pegAnoAnterior?: string // NOVO
-
-  // Estrutura de Capital e Liquidez
-  debtToEbitda: string
-  debtToEbitdaAnoAnterior?: string
-  liquidezCorrente: string
-  liquidezCorrenteAnoAnterior?: string // NOVO
-  cashRatio: string
-  cashRatioAnoAnterior?: string // NOVO
-
-  // Risco e Volatilidade
-  beta: string
-  betaAnoAnterior?: string // NOVO
-
-  // Métricas Específicas de Tech
-  investimentoPD: string
-  investimentoPDAnoAnterior?: string // NOVO
-  rAnddEfficiency: string
-  rAnddEfficiencyAnoAnterior?: string // NOVO
-  cashFlowOverCapex: string
-  cashFlowOverCapexAnoAnterior?: string // NOVO
-  fcf: string
-  fcfAnoAnterior?: string // NOVO
-  sgaOverRevenue: string
-  sgaOverRevenueAnoAnterior?: string // NOVO
-  payoutRatio: string
-  payoutRatioAnoAnterior?: string // NOVO
-
-  debtEquity?: string
-  debtEquityAnoAnterior?: string // NOVO
-}
 
 export function RatingsTech(props: RatingsTechProps) {
+  // ✅ NOVO: Constrói complementares específicos para Technology
+  const complementares = buildTechnologyComplementares(props)
+
+  console.log('🔧 Technology Complementares:', complementares)
+
   const categorias: Record<
     string,
     {
@@ -189,7 +135,7 @@ export function RatingsTech(props: RatingsTechProps) {
         label: "Liquidez Corrente",
         chave: "liquidezCorrente",
         valor: props.liquidezCorrente,
-        anterior: props.liquidezCorrenteAnoAnterior, // ADICIONADO
+        anterior: props.liquidezCorrenteAnoAnterior,
         icon: "💧",
         description: "Capacidade de pagamento a curto prazo"
       },
@@ -197,7 +143,7 @@ export function RatingsTech(props: RatingsTechProps) {
         label: "Cash Ratio",
         chave: "cashRatio",
         valor: props.cashRatio,
-        anterior: props.cashRatioAnoAnterior, // ADICIONADO
+        anterior: props.cashRatioAnoAnterior,
         icon: "💵",
         description: "Ratio de liquidez imediata"
       },
@@ -205,7 +151,7 @@ export function RatingsTech(props: RatingsTechProps) {
         label: "Dívida / Capitais Próprios",
         chave: "debtEquity",
         valor: props.debtEquity ?? "0",
-        anterior: props.debtEquityAnoAnterior, // ADICIONADO
+        anterior: props.debtEquityAnoAnterior,
         icon: "⚖️",
         description: "Dívida sobre Patrimônio"
       },
@@ -215,7 +161,7 @@ export function RatingsTech(props: RatingsTechProps) {
         label: "Beta",
         chave: "beta",
         valor: props.beta,
-        anterior: props.betaAnoAnterior, // ADICIONADO
+        anterior: props.betaAnoAnterior,
         icon: "📉",
         description: "Volatilidade em relação ao mercado"
       },
@@ -263,43 +209,22 @@ export function RatingsTech(props: RatingsTechProps) {
         label: "Payout Ratio",
         chave: "payoutRatio",
         valor: props.payoutRatio,
-        anterior: props.payoutRatioAnoAnterior, // ADICIONADO
+        anterior: props.payoutRatioAnoAnterior,
         icon: "💸",
         description: "Percentual de lucros distribuídos"
       },
     ],
   }
 
-  const complementares = {
-    peg: parseFloat(props.peg ?? "NaN"),
-    pegAnoAnterior: parseFloat(props.pegAnoAnterior ?? "NaN"), // NOVO
-    crescimentoReceita: parseFloat(props.crescimentoReceita ?? "NaN"),
-    crescimentoReceitaAnoAnterior: parseFloat(props.crescimentoReceitaAnoAnterior ?? "NaN"), // NOVO
-    debtEquity: parseFloat(props.debtEquity ?? "NaN"),
-    debtEquityAnoAnterior: parseFloat(props.debtEquityAnoAnterior ?? "NaN"), // NOVO
-    freeCashFlow: parseFloat(props.fcf ?? "NaN"),
-    freeCashFlowAnoAnterior: parseFloat(props.fcfAnoAnterior ?? "NaN"), // NOVO
-    rAnddEfficiency: parseFloat(props.rAnddEfficiency ?? "NaN"),
-    rAnddEfficiencyAnoAnterior: parseFloat(props.rAnddEfficiencyAnoAnterior ?? "NaN"), // NOVO
-    cashFlowOverCapex: parseFloat(props.cashFlowOverCapex ?? "NaN"),
-    sgaOverRevenue: parseFloat(props.sgaOverRevenue ?? "NaN"),
-    margemOperacional: parseFloat(props.margemOperacional ?? "NaN"),
-    payoutRatio: parseFloat(props.payoutRatio ?? "NaN"),
-    eps: parseFloat(props.eps ?? "NaN"),
-    epsAnoAnterior: parseFloat(props.epsAnoAnterior ?? "NaN"), // NOVO
-    cashRatio: parseFloat(props.cashRatio ?? "NaN"),
-    investimentoPD: parseFloat(props.investimentoPD ?? "NaN"),
-    beta: parseFloat(props.beta ?? "NaN"),
-    roic: parseFloat(props.roic ?? "NaN"),
-    roe: parseFloat(props.roe ?? "NaN"),
-  }
-
   // Função para formatar valores
   const formatValue = (valor: string, chave: string) => {
-    const num = parseFloat(valor)
+    // Limpar o valor primeiro (remover % se existir)
+    const cleanValue = valor.replace('%', '').trim()
+    const num = parseFloat(cleanValue)
+
     if (isNaN(num)) return valor
 
-    // Valores em percentual - USAR AS MESMAS CHAVES DO HEALTHCARE
+    // Valores em percentual
     if (['margemBruta', 'margemEbitda', 'margemLiquida', 'margemOperacional', 'roic', 'roe', 'cagrEps', 'crescimentoReceita', 'investimentoPD', 'sgaOverRevenue', 'payoutRatio', 'rAnddEfficiency'].includes(chave)) {
       return `${num.toFixed(2)}%`
     }
@@ -319,13 +244,15 @@ export function RatingsTech(props: RatingsTechProps) {
         // Filtrar indicadores válidos antes de renderizar a categoria
         const indicadoresValidos = indicadores.filter(({ label, valor }) => {
           const numeric = parseFloat(valor)
+
+          // ✅ NOVO: Usar complementares específicos de Technology
           const { apenasInformativo } = avaliarIndicadorComContexto(
             "Technology",
             label,
             numeric,
             {
               valorAnterior: undefined,
-              complementares,
+              complementares, // ✅ Agora só contém indicadores de Tech
             }
           )
           return !apenasInformativo
@@ -352,13 +279,14 @@ export function RatingsTech(props: RatingsTechProps) {
                   const numeric = parseFloat(valor)
                   const prev = anterior ? parseFloat(anterior) : undefined
 
+                  // ✅ NOVO: Usar complementares específicos de Technology
                   const { score, explicacaoCustom } = avaliarIndicadorComContexto(
                     "Technology",
                     label,
                     numeric,
                     {
                       valorAnterior: prev,
-                      complementares,
+                      complementares, // ✅ Agora só contém indicadores de Tech
                     }
                   )
 
@@ -389,13 +317,13 @@ export function RatingsTech(props: RatingsTechProps) {
 
                       <div className="flex items-center justify-between">
                         <span className="text-lg font-bold text-gray-900">
-                          {formatValue(valor, chave)} {/* CORRIGIDO: usar chave diretamente */}
+                          {formatValue(valor, chave)}
                         </span>
 
                         {anterior && (
                           <div className="flex items-center gap-1 text-xs">
                             <span className="text-gray-500">vs.</span>
-                            <span className="text-gray-600">{formatValue(anterior, chave)}</span> {/* CORRIGIDO: usar chave */}
+                            <span className="text-gray-600">{formatValue(anterior, chave)}</span>
                             {hasImprovement && <span className="text-green-500">↗</span>}
                             {hasDeterioration && <span className="text-red-500">↘</span>}
                           </div>

@@ -1,65 +1,79 @@
 export const thresholds = {
-    Healthcare: {
-      investimentoPD: { good: 0.1, medium: 0.05 },
-      margemBruta: { good: 0.6, medium: 0.4 },
-      margemEbitda: { good: 0.3, medium: 0.2 },
-      margemLiquida: { good: 0.15, medium: 0.05 },
-      roic: { good: 0.15, medium: 0.08 },
-      roe: { good: 0.18, medium: 0.1 },
-      pl: { good: 15, medium: 25 },
-      ps: { good: 3, medium: 6 },
-      debtToEbitda: { good: 2, medium: 3.5 },
-      debtEquity: { good: 1, medium: 2, reverse: true }, // ✅
-      liquidezCorrente: {
-        good: 2.5,
-        medium: 1.7,
-        peso: 0.7,
-        setorSensível: true,
-      },
-      cagrEps: { good: 0.15, medium: 0.08 },
-      eps: { good: 3, medium: 1.5 },
-      beta: { good: 1, medium: 1.2, neutralRange: [0.3, 0.6] },
-      fcf: { good: 10000000, medium: 0 }, // ✅
-      peg: { good: 1.0, medium: 1.5, reverse: true }, // ✅
-      crescimentoReceita: { good: 0.15, medium: 0.05 }, // ✅
-    },
+
+  Healthcare: {
+    // Crescimento - Específico para Healthcare
+    crescimentoReceita: { good: 0.10, medium: 0.04 }, // 10%+ é bom, 4%+ é médio
+    cagrEps: { good: 0.15, medium: 0.08 }, // 15%+ é excelente, 8%+ é bom
+    eps: { good: 2.0, medium: 1.0 }, // $2+ é bom para Healthcare
+
+    // Margens - Otimizadas para Healthcare
+    margemBruta: { good: 0.65, medium: 0.45 }, // 65%+ é excelente
+    margemEbitda: { good: 0.25, medium: 0.15 }, // 25%+ é muito bom
+    margemLiquida: { good: 0.12, medium: 0.06 }, // 12%+ é sólido
+    margemOperacional: { good: 0.20, medium: 0.10 }, // 20%+ é excelente
+
+    // Retornos - Adequados para Healthcare
+    roic: { good: 0.12, medium: 0.08 }, // 12%+ é bom
+    roe: { good: 0.15, medium: 0.10 }, // 15%+ é sólido
+
+    // Múltiplos - Específicos para Healthcare
+    pl: { good: 20, medium: 35, reverse: true }, // <20 é bom, <35 é ok
+    ps: { good: 5, medium: 8, reverse: true }, // <5 é bom, <8 é razoável
+    peg: { good: 1.0, medium: 1.8, reverse: true }, // <1.0 é excelente, <1.8 é ok
+
+    // Estrutura de capital - Healthcare específico
+    debtToEbitda: { good: 2.5, medium: 4.0, reverse: true }, // <2.5 é bom
+    liquidezCorrente: { good: 2.0, medium: 1.3 }, // 2.0+ é confortável
+    debtEquity: { good: 0.6, medium: 1.2, reverse: true }, // <0.6 é conservador
+
+    // Risco - Setor defensivo
+    beta: { good: 0.9, medium: 1.2, reverse: true }, // <0.9 é estável
+
+    // Healthcare específicos - Otimizados
+    investimentoPD: { good: 0.15, medium: 0.08 }, // 15%+ é inovador
+    rAnddEfficiency: { good: 0.25, medium: 0.12 }, // 0.25+ é eficiente
+    cashFlowOverCapex: { good: 2.0, medium: 1.2 }, // 2.0+ é excelente
+    fcf: { good: 2000000000, medium: 500000000 }, // 2B+ é muito bom, 500M+ é ok
+    sgaOverRevenue: { good: 0.25, medium: 0.35, reverse: true }, // <25% é eficiente
+    payoutRatio: { good: 0.6, medium: 0.8, reverse: true }, // <60% permite reinvestimento
+  },
     Technology: {
       // Crescimento
-      crescimentoReceita: { good: 0.20, medium: 0.10 }, // 20% good, 10% medium
-      cagrEps: { good: 0.15, medium: 0.08 },             // 15% good, 8% medium
-      eps: { good: 1.5, medium: 0.3 },                   // $1.5 good, $0.3 medium
+      crescimentoReceita: { good: 0.20, medium: 0.10 },
+      cagrEps: { good: 0.15, medium: 0.08 },
+      eps: { good: 3.0, medium: 1.0 }, // ✅ CORRIGIDO para Tech
 
-      // Margens
-      margemBruta: { good: 0.6, medium: 0.4 },           // 60% good, 40% medium
-      margemEbitda: { good: 0.3, medium: 0.15 },         // 30% good, 15% medium
-      margemLiquida: { good: 0.15, medium: 0.08 },       // 15% good, 8% medium
-      margemOperacional: { good: 0.20, medium: 0.10 },   // 20% good, 10% medium
+      // Margens (mantidas)
+      margemBruta: { good: 0.6, medium: 0.4 },
+      margemEbitda: { good: 0.3, medium: 0.15 },
+      margemLiquida: { good: 0.15, medium: 0.08 },
+      margemOperacional: { good: 0.20, medium: 0.10 },
 
-      // Retornos
-      roic: { good: 0.15, medium: 0.08 },                // 15% good, 8% medium
-      roe: { good: 0.18, medium: 0.10 },                 // 18% good, 10% medium
+      // Retornos (mantidos)
+      roic: { good: 0.15, medium: 0.08 },
+      roe: { good: 0.18, medium: 0.10 },
 
-      // Múltiplos
-      pl: { good: 15, medium: 25, reverse: true },       // <15 good, <25 medium
-      ps: { good: 3, medium: 6, reverse: true },         // <3 good, <6 medium
-      peg: { good: 1.0, medium: 1.5, reverse: true },    // <1 good, <1.5 medium
+      // Múltiplos - ✅ CORRIGIDOS para Tech
+      pl: { good: 25, medium: 40, reverse: true },
+      ps: { good: 8, medium: 15, reverse: true },
+      peg: { good: 1.0, medium: 1.5, reverse: true },
 
       // Estrutura de capital
-      debtToEbitda: { good: 2, medium: 3.5, reverse: true }, // <2 good, <3.5 medium
-      liquidezCorrente: { good: 2, medium: 1.5 },            // >2 good, >1.5 medium
-      cashRatio: { good: 0.5, medium: 0.3 },                 // >0.5 good, >0.3 medium
-      debtEquity: { good: 1, medium: 2, reverse: true },     // <1 good, <2 medium
+      debtToEbitda: { good: 2, medium: 3.5, reverse: true },
+      liquidezCorrente: { good: 1.8, medium: 1.2 }, // ✅ AJUSTADO
+      cashRatio: { good: 0.5, medium: 0.3 },
+      debtEquity: { good: 1, medium: 2, reverse: true },
 
-      // Risco
-      beta: { good: 0.8, medium: 1.2, reverse: true },   // <0.8 good, <1.2 medium
+      // Risco - ✅ CORRIGIDO para Tech
+      beta: { good: 1.2, medium: 1.8, reverse: true },
 
-      // Tech específicos
-      investimentoPD: { good: 0.10, medium: 0.05 },      // 10% good, 5% medium
-      rAnddEfficiency: { good: 1.0, medium: 0.5 },       // >1 good, >0.5 medium
-      cashFlowOverCapex: { good: 1.2, medium: 0.8 },     // >1.2 good, >0.8 medium
-      fcf: { good: 10000000, medium: 0 },                // >10M good, >0 medium
-      sgaOverRevenue: { good: 0.25, medium: 0.35, reverse: true }, // <25% good, <35% medium
-      payoutRatio: { good: 0.4, medium: 0.7, reverse: true },     // <40% good, <70% medium
+      // Tech específicos - ✅ CORRIGIDOS
+      investimentoPD: { good: 0.15, medium: 0.08 },
+      rAnddEfficiency: { good: 0.5, medium: 0.2 }, // ✅ AJUSTADO
+      cashFlowOverCapex: { good: 1.2, medium: 0.8 },
+      fcf: { good: 1000000000, medium: 100000000 }, // ✅ CORRIGIDO (1B/100M)
+      sgaOverRevenue: { good: 0.25, medium: 0.35, reverse: true },
+      payoutRatio: { good: 0.4, medium: 0.7, reverse: true },
     },
     utilities: {
       // Múltiplos de Valuation

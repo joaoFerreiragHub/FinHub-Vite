@@ -17,14 +17,16 @@ export interface IndicadorExplicacaoContexto {
   meta: IndicadorMeta
 }
 
+// src/sections/indicadoresMeta/indicadoresMetaTech.ts
 export const indicadoresMetaTech: IndicadorMeta[] = [
   {
     label: 'P&D / Receita',
     chave: 'investimentoPD',
     peso: 1.5,
     setorSensível: true,
-    ajustarComDelta: true, // ADICIONADO - melhoria no P&D é relevante
-    complementar: ['cagrEps', 'rAnddEfficiency'],
+    ajustarComDelta: true,
+    // ✅ CORRIGIDO: Só indicadores de Technology
+    complementar: ['cagrEps', 'rAnddEfficiency', 'eps'],
     explicacaoCustom: ({ valor, valorAnterior }) => {
       const atual = Number(valor)
       const anterior = Number(valorAnterior)
@@ -34,7 +36,7 @@ export const indicadoresMetaTech: IndicadorMeta[] = [
         if (delta < -2) return `Redução em P&D (${delta.toFixed(1)}pp) pode comprometer competitividade futura.`
       }
       if (!isNaN(atual)) {
-        if (atual > 15) return 'P&D muito alto pode indicar sector farmacêutico ou startup intensiva em pesquisa.'
+        if (atual > 15) return 'P&D muito alto pode indicar sector intensivo em pesquisa ou startup.'
         if (atual < 3) return 'P&D baixo pode ser adequado para empresas maduras com produtos estabelecidos.'
       }
       return ''
@@ -44,8 +46,9 @@ export const indicadoresMetaTech: IndicadorMeta[] = [
     label: 'Eficiência de P&D',
     chave: 'rAnddEfficiency',
     peso: 0.8,
-    ajustarComDelta: true, // ADICIONADO - melhoria na eficiência é crucial
-    complementar: ['cagrEps', 'investimentoPD'],
+    ajustarComDelta: true,
+    // ✅ CORRIGIDO: Só indicadores de Technology
+    complementar: ['cagrEps', 'investimentoPD', 'eps'],
     explicacaoCustom: ({ valor }) => {
       const v = Number(valor)
       if (!isNaN(v)) {
@@ -58,30 +61,34 @@ export const indicadoresMetaTech: IndicadorMeta[] = [
   {
     label: 'CAGR EPS',
     chave: 'cagrEps',
-    ajustarComDelta: true, // JÁ EXISTIA
+    ajustarComDelta: true,
     peso: 1.3,
-    complementar: ['investimentoPD', 'eps'],
+    // ✅ CORRIGIDO: Só indicadores de Technology
+    complementar: ['investimentoPD', 'eps', 'peg'],
   },
   {
     label: 'EPS',
     chave: 'eps',
     peso: 1,
-    ajustarComDelta: true, // ADICIONADO - crescimento do EPS YoY é importante
-    complementar: ['pl', 'cagrEps'],
+    ajustarComDelta: true,
+    // ✅ CORRIGIDO: Só indicadores de Technology
+    complementar: ['pl', 'cagrEps', 'payoutRatio'],
   },
   {
     label: 'ROE',
     chave: 'roe',
     peso: 1,
-    ajustarComDelta: true, // ADICIONADO - melhoria na rentabilidade
-    complementar: ['debtEquity', 'margemOperacional'],
+    ajustarComDelta: true,
+    // ✅ CORRIGIDO: Só indicadores de Technology
+    complementar: ['debtEquity', 'margemOperacional', 'roic'],
   },
   {
     label: 'ROIC',
     chave: 'roic',
     peso: 1.2,
-    ajustarComDelta: true, // ADICIONADO - consistente com Healthcare
-    complementar: ['margemOperacional', 'fcf'],
+    ajustarComDelta: true,
+    // ✅ CORRIGIDO: Só indicadores de Technology
+    complementar: ['margemOperacional', 'freeCashFlow', 'roe'],
     explicacaoCustom: ({ valor, valorAnterior }) => {
       const atual = Number(valor)
       const anterior = Number(valorAnterior)
@@ -103,68 +110,78 @@ export const indicadoresMetaTech: IndicadorMeta[] = [
     label: 'Margem Operacional',
     chave: 'margemOperacional',
     peso: 1,
-    ajustarComDelta: true, // ADICIONADO - melhoria operacional relevante
-    complementar: ['margemEbitda', 'roe'],
+    ajustarComDelta: true,
+    // ✅ CORRIGIDO: Só indicadores de Technology
+    complementar: ['margemEbitda', 'roe', 'sgaOverRevenue'],
   },
   {
     label: 'Margem EBITDA',
     chave: 'margemEbitda',
     peso: 1,
-    ajustarComDelta: true, // ADICIONADO - melhoria na eficiência
-    complementar: ['fcf', 'sgaOverRevenue'],
+    ajustarComDelta: true,
+    // ✅ CORRIGIDO: Só indicadores de Technology
+    complementar: ['freeCashFlow', 'sgaOverRevenue', 'margemOperacional'],
   },
   {
     label: 'Margem Líquida',
     chave: 'margemLiquida',
     peso: 1,
-    ajustarComDelta: true, // ADICIONADO - consistente com outros
-    complementar: ['roe', 'roic'],
+    ajustarComDelta: true,
+    // ✅ CORRIGIDO: Só indicadores de Technology
+    complementar: ['roe', 'roic', 'margemOperacional'],
   },
   {
     label: 'P/L',
     chave: 'pl',
     peso: 1,
-    complementar: ['peg', 'eps'], // CORRIGIDO - 'forwardPe' não existe nos complementares
+    // ✅ CORRIGIDO: Só indicadores de Technology
+    complementar: ['peg', 'eps', 'cagrEps'],
   },
   {
     label: 'PEG',
     chave: 'peg',
     peso: 0.8,
-    complementar: ['pl', 'cagrEps'],
+    // ✅ CORRIGIDO: Só indicadores de Technology
+    complementar: ['pl', 'cagrEps', 'eps'],
   },
   {
     label: 'P/S',
     chave: 'ps',
     peso: 1,
+    // ✅ CORRIGIDO: Só indicadores de Technology
     complementar: ['crescimentoReceita', 'margemBruta'],
   },
   {
     label: 'Margem Bruta',
     chave: 'margemBruta',
     peso: 1,
-    ajustarComDelta: true, // ADICIONADO - melhoria na margem é relevante
-    complementar: ['ps', 'crescimentoReceita'],
+    ajustarComDelta: true,
+    // ✅ CORRIGIDO: Só indicadores de Technology
+    complementar: ['ps', 'crescimentoReceita', 'margemOperacional'],
   },
   {
     label: 'Crescimento Receita',
     chave: 'crescimentoReceita',
     peso: 0.8,
-    ajustarComDelta: true, // ADICIONADO - aceleração/desaceleração importante
-    complementar: ['ps', 'investimentoPD'],
+    ajustarComDelta: true,
+    // ✅ CORRIGIDO: Só indicadores de Technology
+    complementar: ['ps', 'investimentoPD', 'cagrEps'],
   },
   {
     label: 'Dívida/EBITDA',
     chave: 'debtToEbitda',
     peso: 0.8,
-    ajustarComDelta: true, // JÁ EXISTIA
-    complementar: ['fcf', 'liquidezCorrente'],
+    ajustarComDelta: true,
+    // ✅ CORRIGIDO: Só indicadores de Technology
+    complementar: ['freeCashFlow', 'liquidezCorrente', 'debtEquity'],
   },
   {
     label: 'Free Cash Flow',
     chave: 'fcf',
     peso: 1,
-    ajustarComDelta: true, // ADICIONADO - melhoria no FCF é crucial
-    complementar: ['debtToEbitda', 'roic'],
+    ajustarComDelta: true,
+    // ✅ CORRIGIDO: Só indicadores de Technology
+    complementar: ['debtToEbitda', 'roic', 'cashFlowOverCapex'],
     explicacaoCustom: ({ valor, valorAnterior }) => {
       const atual = Number(valor)
       const anterior = Number(valorAnterior)
@@ -184,36 +201,24 @@ export const indicadoresMetaTech: IndicadorMeta[] = [
     label: 'Cash Flow / CapEx',
     chave: 'cashFlowOverCapex',
     peso: 0.9,
-    ajustarComDelta: true, // ADICIONADO - melhoria na eficiência de CapEx
-    complementar: ['fcf', 'crescimentoReceita'],
-  },
-  {
-    label: 'Receitas Recorrentes (%)',
-    chave: 'receitasRecorrentesPercent',
-    peso: 0.7,
-    ajustarComDelta: true, // ADICIONADO - aumento da recorrência é valioso
-    complementar: ['liquidezCorrente', 'beta'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 80) return 'Receitas altamente recorrentes proporcionam estabilidade e previsibilidade.'
-        if (v < 20) return 'Baixa recorrência pode indicar modelo de negócio mais volátil.'
-      }
-      return ''
-    }
+    ajustarComDelta: true,
+    // ✅ CORRIGIDO: Só indicadores de Technology
+    complementar: ['freeCashFlow', 'crescimentoReceita'],
   },
   {
     label: 'SG&A / Receita',
     chave: 'sgaOverRevenue',
     peso: 0.6,
-    ajustarComDelta: true, // ADICIONADO - melhoria na eficiência de custos
+    ajustarComDelta: true,
+    // ✅ CORRIGIDO: Só indicadores de Technology
     complementar: ['margemEbitda', 'margemOperacional'],
   },
   {
     label: 'Payout Ratio',
     chave: 'payoutRatio',
     peso: 0.8,
-    complementar: ['eps', 'fcf'],
+    // ✅ CORRIGIDO: Só indicadores de Technology
+    complementar: ['eps', 'freeCashFlow'],
     explicacaoCustom: ({ valor }) => {
       const v = Number(valor)
       if (!isNaN(v)) {
@@ -228,6 +233,7 @@ export const indicadoresMetaTech: IndicadorMeta[] = [
     chave: 'beta',
     peso: 0.5,
     setorSensível: true,
+    // ✅ CORRIGIDO: Só indicadores de Technology
     complementar: ['roe', 'liquidezCorrente'],
     explicacaoCustom: ({ valor }) => {
       const v = Number(valor)
@@ -242,15 +248,17 @@ export const indicadoresMetaTech: IndicadorMeta[] = [
     label: 'Dívida / Capitais Próprios',
     chave: 'debtEquity',
     peso: 0.7,
-    ajustarComDelta: true, // ADICIONADO - melhoria na estrutura de capital
-    complementar: ['roe', 'liquidezCorrente'],
+    ajustarComDelta: true,
+    // ✅ CORRIGIDO: Só indicadores de Technology
+    complementar: ['roe', 'liquidezCorrente', 'debtToEbitda'],
   },
   {
     label: 'Liquidez Corrente',
     chave: 'liquidezCorrente',
     setorSensível: true,
     peso: 0.7,
-    complementar: ['debtEquity', 'fcf'],
+    // ✅ CORRIGIDO: Só indicadores de Technology
+    complementar: ['debtEquity', 'freeCashFlow', 'cashRatio'],
     explicacaoCustom: ({ valor }) => {
       const v = Number(valor)
       if (!isNaN(v)) {
@@ -263,7 +271,9 @@ export const indicadoresMetaTech: IndicadorMeta[] = [
   {
     label: 'Cash Ratio',
     chave: 'cashRatio',
-    apenasInformativo: true, // MANTIDO - apenas informativo
+    apenasInformativo: true,
+    // ✅ CORRIGIDO: Só indicadores de Technology (mas sempre N/A)
+    complementar: ['liquidezCorrente'],
     explicacaoCustom: ({ valor }) => {
       const v = Number(valor)
       if (!isNaN(v)) {

@@ -20,101 +20,129 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
   console.log('StockRatingsBySector', { setor, indicadores })
   return (
     <>
-    {setor === 'Healthcare' && (
-      <RatingsHealthcare
-        investimentoPD={indicadores['Investimento em P&D'] ?? '0'}
-        margemBruta={indicadores['Margem Bruta'] ?? '0'}
-        margemEbitda={indicadores['Margem EBITDA'] ?? '0'}
-        margemLiquida={indicadores['Margem Líquida'] ?? '0'}
-        margemLiquidaAnoAnterior={indicadores['Margem Líquida (Y-1)'] ?? '0'}
-        roic={indicadores['ROIC'] ?? '0'}
-        roicAnoAnterior={indicadores['ROIC (Y-1)'] ?? '0'}
-        roe={indicadores['ROE'] ?? '0'}
-        pl={indicadores['P/L'] ?? '0'}
-        ps={indicadores['P/S'] ?? '0'}
-        debtToEbitda={indicadores['Dívida/EBITDA'] ?? '0'}
-        debtToEbitdaAnoAnterior={indicadores['Dívida/EBITDA (Y-1)'] ?? '0'}
-        liquidezCorrente={indicadores['Liquidez Corrente'] ?? '0'}
-        cagrEps={indicadores['CAGR EPS'] ?? '0'}
-        cagrEpsAnoAnterior={indicadores['CAGR EPS (Y-1)'] ?? '0'}
-        eps={indicadores['EPS'] ?? '0'}
-        beta={indicadores['Beta'] ?? '0'}
-        fcf={indicadores['Free Cash Flow'] ?? '0'}
-        peg={indicadores['PEG'] ?? '0'}
-        crescimentoReceita={indicadores['Crescimento Receita'] ?? '0'}
-        debtEquity={indicadores['Dívida / Capitais Próprios'] ?? '0'}
+{setor === 'Healthcare' && (
+  <RatingsHealthcare
+    // Crescimento e Performance
+    crescimentoReceita={indicadores['Crescimento Receita'] ?? '0'}
+    crescimentoReceitaAnoAnterior={indicadores['Crescimento Receita (Y-1)'] ?? undefined}
+    cagrEps={indicadores['CAGR EPS'] ?? '0'}
+    cagrEpsAnoAnterior={indicadores['CAGR EPS (Y-1)'] ?? undefined}
+    eps={indicadores['EPS'] ?? '0'}
+    epsAnoAnterior={indicadores['EPS (Y-1)'] ?? undefined}
 
-        // ✅ NOVOS COMPLEMENTARES
-        rAnddEfficiency={indicadores['Eficiência de P&D'] ?? '0'}
-        cashFlowOverCapex={indicadores['Cash Flow / CapEx'] ?? '0'}
-        sgaOverRevenue={indicadores['SG&A / Receita'] ?? '0'}
-        margemOperacional={indicadores['Margem Operacional'] ?? '0'}
-        payoutRatio={indicadores['Payout Ratio'] ?? '0'}
-      />
+    // Margens e Rentabilidade
+    margemBruta={indicadores['Margem Bruta'] ?? '0'}
+    margemBrutaAnoAnterior={indicadores['Margem Bruta (Y-1)'] ?? undefined}
+    margemEbitda={indicadores['Margem EBITDA'] ?? '0'}
+    margemEbitdaAnoAnterior={indicadores['Margem EBITDA (Y-1)'] ?? undefined}
+    margemLiquida={indicadores['Margem Líquida'] ?? '0'}
+    margemLiquidaAnoAnterior={indicadores['Margem Líquida (Y-1)'] ?? undefined}
+    margemOperacional={indicadores['Margem Operacional'] ?? '0'}
+    margemOperacionalAnoAnterior={indicadores['Margem Operacional (Y-1)'] ?? undefined}
 
-    )}
+    // Retorno sobre Capital
+    roic={indicadores['ROIC'] ?? '0'}
+    roicAnoAnterior={indicadores['ROIC (Y-1)'] ?? undefined}
+    roe={indicadores['ROE'] ?? '0'}
+    roeAnoAnterior={indicadores['ROE (Y-1)'] ?? undefined}
+
+    // Múltiplos de Avaliação
+    pl={indicadores['P/L'] ?? '0'}
+    plAnoAnterior={indicadores['P/L (Y-1)'] ?? undefined}
+    ps={indicadores['P/S'] ?? '0'}
+    psAnoAnterior={indicadores['P/S (Y-1)'] ?? undefined}
+    peg={indicadores['PEG'] ?? '0'}
+    pegAnoAnterior={indicadores['PEG (Y-1)'] ?? undefined}
+
+    // Estrutura de Capital e Liquidez
+    debtToEbitda={indicadores['Dívida/EBITDA'] ?? '0'}
+    debtToEbitdaAnoAnterior={indicadores['Dívida/EBITDA (Y-1)'] ?? undefined}
+    liquidezCorrente={indicadores['Liquidez Corrente'] ?? '0'}
+    liquidezCorrenteAnoAnterior={indicadores['Liquidez Corrente (Y-1)'] ?? undefined}
+    debtEquity={indicadores['Dívida / Capitais Próprios'] ?? '0'}
+    debtEquityAnoAnterior={indicadores['Dívida / Capitais Próprios (Y-1)'] ?? undefined}
+
+    // Risco e Volatilidade
+    beta={indicadores['Beta'] ?? '0'}
+    betaAnoAnterior={indicadores['Beta (Y-1)'] ?? undefined}
+
+    // Métricas Específicas de Healthcare
+    investimentoPD={indicadores['Investimento em P&D'] ?? '0'}
+    investimentoPDAnoAnterior={indicadores['Investimento em P&D (Y-1)'] ?? undefined}
+    rAnddEfficiency={indicadores['Eficiência de P&D'] ?? '0'}
+    rAnddEfficiencyAnoAnterior={indicadores['Eficiência de P&D (Y-1)'] ?? undefined}
+    cashFlowOverCapex={indicadores['Cash Flow / CapEx'] ?? '0'}
+    cashFlowOverCapexAnoAnterior={indicadores['Cash Flow / CapEx (Y-1)'] ?? undefined}
+    fcf={indicadores['Free Cash Flow'] ?? '0'}
+    fcfAnoAnterior={indicadores['Free Cash Flow (Y-1)'] ?? undefined}
+    sgaOverRevenue={indicadores['SG&A / Receita'] ?? '0'}
+    sgaOverRevenueAnoAnterior={indicadores['SG&A / Receita (Y-1)'] ?? undefined}
+    payoutRatio={indicadores['Payout Ratio'] ?? '0'}
+    payoutRatioAnoAnterior={indicadores['Payout Ratio (Y-1)'] ?? undefined}
+  />
+)}
     {setor === 'Technology' && (
       <RatingsTech
-        // Crescimento e Performance
-        crescimentoReceita={indicadores['Crescimento da Receita'] ?? '0'}
-        crescimentoReceitaAnoAnterior={indicadores['Crescimento da Receita (Y-1)'] ?? undefined} // NOVO
-        cagrEps={indicadores['CAGR EPS'] ?? '0'}
-        cagrEpsAnoAnterior={indicadores['CAGR EPS (Y-1)'] ?? undefined} // NOVO
-        eps={indicadores['EPS'] ?? '0'}
-        epsAnoAnterior={indicadores['EPS (Y-1)'] ?? undefined} // NOVO
+  // Crescimento e Performance
+      crescimentoReceita={indicadores['Crescimento Receita'] ?? '0'} // ✅ "15.67%"
+      crescimentoReceitaAnoAnterior={indicadores['Crescimento Receita (Y-1)'] ?? undefined} // ✅ "15.67%" - DISPONÍVEL!
+      cagrEps={indicadores['CAGR EPS'] ?? '0'} // ✅ "17.29%"
+      cagrEpsAnoAnterior={indicadores['CAGR EPS (Y-1)'] ?? undefined} // ✅ "9.67%"
+      eps={indicadores['EPS'] ?? '0'} // ✅ "3.46"
+      epsAnoAnterior={indicadores['EPS (Y-1)'] ?? undefined} // ✅ "9.72" - DISPONÍVEL!
 
-        // Margens e Rentabilidade
-        margemBruta={indicadores['Margem Bruta'] ?? '0'}
-        margemBrutaAnoAnterior={indicadores['Margem Bruta (Y-1)'] ?? undefined} // NOVO
-        margemEbitda={indicadores['Margem EBITDA'] ?? '0'}
-        margemEbitdaAnoAnterior={indicadores['Margem EBITDA (Y-1)'] ?? undefined} // NOVO
-        margemLiquida={indicadores['Margem Líquida'] ?? '0'}
-        margemLiquidaAnoAnterior={indicadores['Margem Líquida (Y-1)'] ?? undefined} // NOVO
-        margemOperacional={indicadores['Margem Operacional'] ?? '0'}
-        margemOperacionalAnoAnterior={indicadores['Margem Operacional (Y-1)'] ?? undefined} // NOVO
+      // Margens e Rentabilidade
+      margemBruta={indicadores['Margem Bruta'] ?? '0'} // ✅ "69.07%"
+      margemBrutaAnoAnterior={indicadores['Margem Bruta (Y-1)'] ?? undefined} // ✅ "68.92%" - DISPONÍVEL!
+      margemEbitda={indicadores['Margem EBITDA'] ?? '0'} // ✅ "54.26%"
+      margemEbitdaAnoAnterior={indicadores['Margem EBITDA (Y-1)'] ?? undefined} // ✅ "49.61%" - DISPONÍVEL!
+      margemLiquida={indicadores['Margem Líquida'] ?? '0'} // ✅ "35.79%"
+      margemLiquidaAnoAnterior={indicadores['Margem Líquida (Y-1)'] ?? undefined} // ✅ "34.15%"
+      margemOperacional={indicadores['Margem Operacional'] ?? '0'} // ✅ "45.23%"
+      margemOperacionalAnoAnterior={indicadores['Margem Operacional (Y-1)'] ?? undefined} // ✅ "41.77%" - DISPONÍVEL!
 
-        // Retorno sobre Capital
-        roic={indicadores['ROIC'] ?? '0'}
-        roicAnoAnterior={indicadores['ROIC (Y-1)'] ?? undefined} // NOVO
-        roe={indicadores['ROE'] ?? '0'}
-        roeAnoAnterior={indicadores['ROE (Y-1)'] ?? undefined} // NOVO
+      // Retorno sobre Capital
+      roic={indicadores['ROIC'] ?? '0'} // ✅ "22.11%"
+      roicAnoAnterior={indicadores['ROIC (Y-1)'] ?? undefined} // ✅ "28.76%"
+      roe={indicadores['ROE'] ?? '0'} // ✅ "32.74%"
+      roeAnoAnterior={indicadores['ROE (Y-1)'] ?? undefined} // ✅ "35.09%" - DISPONÍVEL!
 
-        // Múltiplos de Avaliação
-        pl={indicadores['P/L'] ?? '0'}
-        plAnoAnterior={indicadores['P/L (Y-1)'] ?? undefined} // NOVO
-        ps={indicadores['P/S'] ?? '0'}
-        psAnoAnterior={indicadores['P/S (Y-1)'] ?? undefined} // NOVO
-        peg={indicadores['PEG'] ?? '0'}
-        pegAnoAnterior={indicadores['PEG (Y-1)'] ?? undefined} // NOVO
+      // Múltiplos de Avaliação
+      pl={indicadores['P/L'] ?? '0'} // ✅ "36.23"
+      plAnoAnterior={indicadores['P/L (Y-1)'] ?? undefined} // ✅ "35.04" - CORRIGIDO!
+      ps={indicadores['P/S'] ?? '0'} // ✅ "12.96"
+      psAnoAnterior={indicadores['P/S (Y-1)'] ?? undefined} // ✅ "11.97" - DISPONÍVEL!
+      peg={indicadores['PEG'] ?? '0'} // ✅ "2.10"
+      pegAnoAnterior={indicadores['PEG (Y-1)'] ?? undefined} // ✅ "3.63" - DISPONÍVEL!
 
-        // Estrutura de Capital e Liquidez
-        debtToEbitda={indicadores['Dívida/EBITDA'] ?? '0'}
-        debtToEbitdaAnoAnterior={indicadores['Dívida/EBITDA (Y-1)'] ?? undefined} // NOVO
-        liquidezCorrente={indicadores['Liquidez Corrente'] ?? '0'}
-        liquidezCorrenteAnoAnterior={indicadores['Liquidez Corrente (Y-1)'] ?? undefined} // NOVO
-        cashRatio={indicadores['Cash Ratio'] ?? '0'}
-        cashRatioAnoAnterior={indicadores['Cash Ratio (Y-1)'] ?? undefined} // NOVO
-        debtEquity={indicadores['Dívida / Capitais Próprios'] ?? '0'}
-        debtEquityAnoAnterior={indicadores['Dívida / Capitais Próprios (Y-1)'] ?? undefined} // NOVO
+      // Estrutura de Capital e Liquidez
+      debtToEbitda={indicadores['Dívida/EBITDA'] ?? '0'} // ✅ "0.21"
+      debtToEbitdaAnoAnterior={indicadores['Dívida/EBITDA (Y-1)'] ?? undefined} // ✅ "0.21"
+      liquidezCorrente={indicadores['Liquidez Corrente'] ?? '0'} // ✅ "1.37"
+      liquidezCorrenteAnoAnterior={indicadores['Liquidez Corrente (Y-1)'] ?? undefined} // ✅ "1.77" - DISPONÍVEL!
+      cashRatio={indicadores['Cash Ratio'] ?? 'N/A'} // ✅ "N/A" - DISPONÍVEL!
+      cashRatioAnoAnterior={indicadores['Cash Ratio (Y-1)'] ?? undefined} // ✅ "N/A" - DISPONÍVEL!
+      debtEquity={indicadores['Dívida / Capitais Próprios'] ?? '0'} // ✅ "0.19"
+      debtEquityAnoAnterior={indicadores['Dívida / Capitais Próprios (Y-1)'] ?? undefined} // ✅ "0.29" - DISPONÍVEL!
 
-        // Risco e Volatilidade
-        beta={indicadores['Beta'] ?? '0'}
-        betaAnoAnterior={indicadores['Beta (Y-1)'] ?? undefined} // NOVO
+      // Risco e Volatilidade
+      beta={indicadores['Beta'] ?? '0'} // ✅ "1.03"
+      betaAnoAnterior={indicadores['Beta (Y-1)'] ?? undefined} // ✅ "1.03" - DISPONÍVEL!
 
-        // Métricas Específicas de Tech
-        investimentoPD={indicadores['Investimento em P&D'] ?? '0'}
-        investimentoPDAnoAnterior={indicadores['Investimento em P&D (Y-1)'] ?? undefined} // NOVO
-        rAnddEfficiency={indicadores['Eficiência de P&D'] ?? '0'}
-        rAnddEfficiencyAnoAnterior={indicadores['Eficiência de P&D (Y-1)'] ?? undefined} // NOVO
-        cashFlowOverCapex={indicadores['Cash Flow / CapEx'] ?? '0'}
-        cashFlowOverCapexAnoAnterior={indicadores['Cash Flow / CapEx (Y-1)'] ?? undefined} // NOVO
-        fcf={indicadores['Free Cash Flow'] ?? '0'}
-        fcfAnoAnterior={indicadores['Free Cash Flow (Y-1)'] ?? undefined} // NOVO
-        sgaOverRevenue={indicadores['SG&A / Receita'] ?? '0'}
-        sgaOverRevenueAnoAnterior={indicadores['SG&A / Receita (Y-1)'] ?? undefined} // NOVO
-        payoutRatio={indicadores['Payout Ratio'] ?? '0'}
-        payoutRatioAnoAnterior={indicadores['Payout Ratio (Y-1)'] ?? undefined} // NOVO
-      />
+      // Métricas Específicas de Tech
+      investimentoPD={indicadores['Investimento em P&D'] ?? '0'} // ✅ "29.5B"
+      investimentoPDAnoAnterior={indicadores['Investimento em P&D (Y-1)'] ?? undefined} // ✅ "27.2B" - DISPONÍVEL!
+      rAnddEfficiency={indicadores['Eficiência de P&D'] ?? '0'} // ✅ "0.12" - CORRIGIDO!
+      rAnddEfficiencyAnoAnterior={indicadores['Eficiência de P&D (Y-1)'] ?? undefined} // ✅ "0.36" - DISPONÍVEL!
+      cashFlowOverCapex={indicadores['Cash Flow / CapEx'] ?? '0'} // ✅ "2.67"
+      cashFlowOverCapexAnoAnterior={indicadores['Cash Flow / CapEx (Y-1)'] ?? undefined} // ✅ "3.12" - DISPONÍVEL!
+      fcf={indicadores['Free Cash Flow'] ?? '0'} // ✅ "74.1B"
+      fcfAnoAnterior={indicadores['Free Cash Flow (Y-1)'] ?? undefined} // ✅ "59.5B" - DISPONÍVEL!
+      sgaOverRevenue={indicadores['SG&A / Receita'] ?? '0'} // ✅ "13.08%"
+      sgaOverRevenueAnoAnterior={indicadores['SG&A / Receita (Y-1)'] ?? undefined} // ✅ "14.31%" - DISPONÍVEL!
+      payoutRatio={indicadores['Payout Ratio'] ?? '0'} // ✅ "24.30%"
+      payoutRatioAnoAnterior={indicadores['Payout Ratio (Y-1)'] ?? undefined} // ✅ "N/A" - DISPONÍVEL!
+    />
     )}
     {setor === 'Financial Services'&& (
       <RatingsFinancials
