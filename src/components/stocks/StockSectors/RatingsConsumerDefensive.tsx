@@ -1,121 +1,27 @@
+// src/components/ratings/RatingsConsumerDefensive.tsx
+
+import { buildConsumerDefensiveComplementares, RatingsConsumerDefensiveProps } from "../../../utils/complementares/consumerDefensiveComplementares"
+import { calculateEstabilidade, calculateQualidadeDefensiva, calculateSustentabilidadeDividendos } from "../../../utils/consumerCalc"
 import { avaliarIndicadorComContexto } from "../hooks/avaliarIndicadorComContexto"
 import { IndicatorValuePro } from "../quickAnalysis/IndicatorValuePro"
 
-interface RatingsConsumerDefensiveProps {
-  // Rentabilidade e Retorno
-  pe: string
-  peAnoAnterior?: string
-  pb: string
-  pbAnoAnterior?: string
-  ps: string
-  psAnoAnterior?: string
-  roe: string
-  roeAnoAnterior?: string
-  roic: string
-  roicAnoAnterior?: string
-
-  // Margens e Eficiência
-  grossMargin: string
-  grossMarginAnoAnterior?: string
-  ebitdaMargin: string
-  ebitdaMarginAnoAnterior?: string
-  margemLiquida: string
-  margemLiquidaAnoAnterior?: string
-  margemOperacional: string
-  margemOperacionalAnoAnterior?: string
-
-  // Crescimento e Estabilidade
-  receitaCagr3y: string
-  receitaCagr3yAnoAnterior?: string
-  crescimentoReceita: string
-  crescimentoReceitaAnoAnterior?: string
-  consistenciaReceita: string
-  consistenciaReceitaAnoAnterior?: string
-
-  // Estrutura de Capital e Solvência
-  dividaEbitda: string
-  dividaEbitdaAnoAnterior?: string
-  coberturaJuros: string
-  coberturaJurosAnoAnterior?: string
-  liquidezCorrente: string
-  liquidezCorrenteAnoAnterior?: string
-  debtEquity: string
-  debtEquityAnoAnterior?: string
-
-  // Fluxo de Caixa e Eficiência
-  freeCashFlow: string
-  freeCashFlowAnoAnterior?: string
-  fcfYield: string
-  fcfYieldAnoAnterior?: string
-  workingCapitalTurnover: string
-  workingCapitalTurnoverAnoAnterior?: string
-  inventoryTurnover: string
-  inventoryTurnoverAnoAnterior?: string
-
-  // Dividendos e Retorno Defensivo
-  payoutRatio: string
-  payoutRatioAnoAnterior?: string
-  dividendYield: string
-  dividendYieldAnoAnterior?: string
-  dividendGrowth: string
-  dividendGrowthAnoAnterior?: string
-  yearsOfDividends: string
-  yearsOfDividendsAnoAnterior?: string
-
-  // Volatilidade e Avaliação
-  beta: string
-  betaAnoAnterior?: string
-  leveredDcf: string
-  leveredDcfAnoAnterior?: string
-  precoAtual: string
-  precoAtualAnoAnterior?: string
-
-  // Métricas Específicas de Consumer Defensive
-  marketShare?: string
-  marketShareAnoAnterior?: string
-  brandStrength?: string
-  brandStrengthAnoAnterior?: string
-  storeCount?: string
-  storeCountAnoAnterior?: string
-}
-
-interface Categoria {
-  label: string
-  chave: string
-  valor: string
-  anterior?: string
-  icon?: string
-  description?: string
-}
-
 export function RatingsConsumerDefensive(props: RatingsConsumerDefensiveProps) {
-  // Calcular métricas específicas de consumer defensive
-  const calculateConsumerDefensiveMetrics = () => {
-    const roeNum = parseFloat(props.roe) || 0
-    const grossMarginNum = parseFloat(props.grossMargin) || 0
-    const dividendYieldNum = parseFloat(props.dividendYield) || 0
-    const betaNum = parseFloat(props.beta) || 0
-    const payoutRatioNum = parseFloat(props.payoutRatio) || 0
-    const receitaCagr3yNum = parseFloat(props.receitaCagr3y) || 0
+  // ✅ NOVO: Constrói complementares específicos para Consumer Defensive
+  const complementares = buildConsumerDefensiveComplementares(props)
 
-    return {
-      // Score de Estabilidade
-      estabilidade: betaNum < 0.8 && dividendYieldNum > 3 && payoutRatioNum < 70 ? "95" :
-                   betaNum < 1 && dividendYieldNum > 2 ? "80" : "60",
+  console.log('🛡️ Consumer Defensive Complementares:', complementares)
 
-      // Score de Qualidade Defensiva
-      qualidadeDefensiva: grossMarginNum > 35 && roeNum > 15 && receitaCagr3yNum > 5 ? "90" :
-                         grossMarginNum > 25 && roeNum > 12 ? "75" : "50",
-
-      // Score de Sustentabilidade de Dividendos
-      sustentabilidadeDividendos: payoutRatioNum < 60 && dividendYieldNum > 3 ? "85" :
-                                 payoutRatioNum < 75 && dividendYieldNum > 2 ? "70" : "45",
-    }
-  }
-
-  const calculatedMetrics = calculateConsumerDefensiveMetrics()
-
-  const categorias: Record<string, Categoria[]> = {
+  const categorias: Record<
+    string,
+    {
+      label: string
+      chave: string
+      valor: string
+      anterior?: string
+      icon?: string
+      description?: string
+    }[]
+  > = {
     "Rentabilidade e Retorno": [
       {
         label: "P/L",
@@ -196,7 +102,7 @@ export function RatingsConsumerDefensive(props: RatingsConsumerDefensiveProps) {
 
     "Crescimento e Estabilidade": [
       {
-        label: "Crescimento da Receita",  // ✅ CORRIGIDO: Era "CAGR Receita 3Y"
+        label: "Crescimento da Receita",
         chave: "receitaCagr3y",
         valor: props.receitaCagr3y,
         anterior: props.receitaCagr3yAnoAnterior,
@@ -370,105 +276,37 @@ export function RatingsConsumerDefensive(props: RatingsConsumerDefensiveProps) {
         icon: "🏪",
         description: "Número de Lojas"
       }] : []),
+      // ✅ NOVO: Métricas calculadas melhoradas
       {
         label: "Estabilidade",
         chave: "estabilidade",
-        valor: calculatedMetrics.estabilidade,
+        valor: calculateEstabilidade(complementares).toString(),
         icon: "🛡️",
         description: "Score de estabilidade defensiva"
       },
       {
         label: "Qualidade Defensiva",
         chave: "qualidadeDefensiva",
-        valor: calculatedMetrics.qualidadeDefensiva,
+        valor: calculateQualidadeDefensiva(complementares).toString(),
         icon: "🏆",
         description: "Score de qualidade defensiva"
       },
       {
         label: "Sustentabilidade Dividendos",
         chave: "sustentabilidadeDividendos",
-        valor: calculatedMetrics.sustentabilidadeDividendos,
+        valor: calculateSustentabilidadeDividendos(complementares).toString(),
         icon: "💎",
         description: "Score de sustentabilidade dos dividendos"
       },
     ],
   };
 
-  // Complementares incluindo métricas calculadas e dados base
-  const complementares = {
-    // Métricas calculadas
-    estabilidade: parseFloat(calculatedMetrics.estabilidade || "0"),
-    qualidadeDefensiva: parseFloat(calculatedMetrics.qualidadeDefensiva || "0"),
-    sustentabilidadeDividendos: parseFloat(calculatedMetrics.sustentabilidadeDividendos || "0"),
-
-    // Dados originais (valores atuais)
-    pe: parseFloat(props.pe ?? "NaN"),
-    pb: parseFloat(props.pb ?? "NaN"),
-    ps: parseFloat(props.ps ?? "NaN"),
-    roe: parseFloat(props.roe ?? "NaN"),
-    roic: parseFloat(props.roic ?? "NaN"),
-    grossMargin: parseFloat(props.grossMargin ?? "NaN"),
-    ebitdaMargin: parseFloat(props.ebitdaMargin ?? "NaN"),
-    margemLiquida: parseFloat(props.margemLiquida ?? "NaN"),
-    margemOperacional: parseFloat(props.margemOperacional ?? "NaN"),
-    receitaCagr3y: parseFloat(props.receitaCagr3y ?? "NaN"),
-    crescimentoReceita: parseFloat(props.crescimentoReceita ?? "NaN"),
-    consistenciaReceita: parseFloat(props.consistenciaReceita ?? "NaN"),
-    dividaEbitda: parseFloat(props.dividaEbitda ?? "NaN"),
-    coberturaJuros: parseFloat(props.coberturaJuros ?? "NaN"),
-    liquidezCorrente: parseFloat(props.liquidezCorrente ?? "NaN"),
-    debtEquity: parseFloat(props.debtEquity ?? "NaN"),
-    freeCashFlow: parseFloat(props.freeCashFlow ?? "NaN"),
-    fcfYield: parseFloat(props.fcfYield ?? "NaN"),
-    workingCapitalTurnover: parseFloat(props.workingCapitalTurnover ?? "NaN"),
-    inventoryTurnover: parseFloat(props.inventoryTurnover ?? "NaN"),
-    payoutRatio: parseFloat(props.payoutRatio ?? "NaN"),
-    dividendYield: parseFloat(props.dividendYield ?? "NaN"),
-    dividendGrowth: parseFloat(props.dividendGrowth ?? "NaN"),
-    yearsOfDividends: parseFloat(props.yearsOfDividends ?? "NaN"),
-    beta: parseFloat(props.beta ?? "NaN"),
-    leveredDcf: parseFloat(props.leveredDcf ?? "NaN"),
-    precoAtual: parseFloat(props.precoAtual ?? "NaN"),
-    marketShare: parseFloat(props.marketShare ?? "NaN"),
-    brandStrength: parseFloat(props.brandStrength ?? "NaN"),
-    storeCount: parseFloat(props.storeCount ?? "NaN"),
-
-    // Dados anteriores (todos os campos com AnoAnterior)
-    peAnoAnterior: parseFloat(props.peAnoAnterior ?? "NaN"),
-    pbAnoAnterior: parseFloat(props.pbAnoAnterior ?? "NaN"),
-    psAnoAnterior: parseFloat(props.psAnoAnterior ?? "NaN"),
-    roeAnoAnterior: parseFloat(props.roeAnoAnterior ?? "NaN"),
-    roicAnoAnterior: parseFloat(props.roicAnoAnterior ?? "NaN"),
-    grossMarginAnoAnterior: parseFloat(props.grossMarginAnoAnterior ?? "NaN"),
-    ebitdaMarginAnoAnterior: parseFloat(props.ebitdaMarginAnoAnterior ?? "NaN"),
-    margemLiquidaAnoAnterior: parseFloat(props.margemLiquidaAnoAnterior ?? "NaN"),
-    margemOperacionalAnoAnterior: parseFloat(props.margemOperacionalAnoAnterior ?? "NaN"),
-    receitaCagr3yAnoAnterior: parseFloat(props.receitaCagr3yAnoAnterior ?? "NaN"),
-    crescimentoReceitaAnoAnterior: parseFloat(props.crescimentoReceitaAnoAnterior ?? "NaN"),
-    consistenciaReceitaAnoAnterior: parseFloat(props.consistenciaReceitaAnoAnterior ?? "NaN"),
-    dividaEbitdaAnoAnterior: parseFloat(props.dividaEbitdaAnoAnterior ?? "NaN"),
-    coberturaJurosAnoAnterior: parseFloat(props.coberturaJurosAnoAnterior ?? "NaN"),
-    liquidezCorrenteAnoAnterior: parseFloat(props.liquidezCorrenteAnoAnterior ?? "NaN"),
-    debtEquityAnoAnterior: parseFloat(props.debtEquityAnoAnterior ?? "NaN"),
-    freeCashFlowAnoAnterior: parseFloat(props.freeCashFlowAnoAnterior ?? "NaN"),
-    fcfYieldAnoAnterior: parseFloat(props.fcfYieldAnoAnterior ?? "NaN"),
-    workingCapitalTurnoverAnoAnterior: parseFloat(props.workingCapitalTurnoverAnoAnterior ?? "NaN"),
-    inventoryTurnoverAnoAnterior: parseFloat(props.inventoryTurnoverAnoAnterior ?? "NaN"),
-    payoutRatioAnoAnterior: parseFloat(props.payoutRatioAnoAnterior ?? "NaN"),
-    dividendYieldAnoAnterior: parseFloat(props.dividendYieldAnoAnterior ?? "NaN"),
-    dividendGrowthAnoAnterior: parseFloat(props.dividendGrowthAnoAnterior ?? "NaN"),
-    yearsOfDividendsAnoAnterior: parseFloat(props.yearsOfDividendsAnoAnterior ?? "NaN"),
-    betaAnoAnterior: parseFloat(props.betaAnoAnterior ?? "NaN"),
-    leveredDcfAnoAnterior: parseFloat(props.leveredDcfAnoAnterior ?? "NaN"),
-    precoAtualAnoAnterior: parseFloat(props.precoAtualAnoAnterior ?? "NaN"),
-    marketShareAnoAnterior: parseFloat(props.marketShareAnoAnterior ?? "NaN"),
-    brandStrengthAnoAnterior: parseFloat(props.brandStrengthAnoAnterior ?? "NaN"),
-    storeCountAnoAnterior: parseFloat(props.storeCountAnoAnterior ?? "NaN"),
-  }
-
-  // Formatação adequada para consumer defensive
+  // Função para formatar valores adequadamente para consumer defensive
   const formatValue = (valor: string, chave: string) => {
-    const num = parseFloat(valor)
+    // Limpar o valor primeiro (remover % se existir)
+    const cleanValue = valor.replace('%', '').trim()
+    const num = parseFloat(cleanValue)
+
     if (isNaN(num)) return valor
 
     // Percentuais
@@ -478,6 +316,12 @@ export function RatingsConsumerDefensive(props: RatingsConsumerDefensiveProps) {
 
     // Valores monetários (DCF, FCF)
     if (['leveredDcf', 'precoAtual', 'freeCashFlow'].includes(chave)) {
+      if (Math.abs(num) > 1000000000) {
+        return `${(num / 1000000000).toFixed(1)}B`
+      }
+      if (Math.abs(num) > 1000000) {
+        return `${(num / 1000000).toFixed(1)}M`
+      }
       return `${num.toFixed(2)}`
     }
 
@@ -503,20 +347,18 @@ export function RatingsConsumerDefensive(props: RatingsConsumerDefensiveProps) {
   return (
     <div className="mt-6 space-y-8">
       {Object.entries(categorias).map(([categoria, indicadores]) => {
-        // Filtrar indicadores válidos
-        const indicadoresValidos = indicadores.filter(({ label, valor, anterior }) => {
+        // Filtrar indicadores válidos antes de renderizar a categoria
+        const indicadoresValidos = indicadores.filter(({ label, valor }) => {
           const numeric = parseFloat(valor)
-          if (isNaN(numeric)) return false
 
-          const prev = anterior ? parseFloat(anterior) : undefined
-
+          // ✅ NOVO: Usar complementares específicos de Consumer Defensive
           const { apenasInformativo } = avaliarIndicadorComContexto(
             "Consumer Defensive",
             label,
             numeric,
             {
-              valorAnterior: prev,
-              complementares,
+              valorAnterior: undefined,
+              complementares, // ✅ Agora só contém indicadores de Consumer Defensive
             }
           )
           return !apenasInformativo
@@ -543,13 +385,14 @@ export function RatingsConsumerDefensive(props: RatingsConsumerDefensiveProps) {
                   const numeric = parseFloat(valor)
                   const prev = anterior ? parseFloat(anterior) : undefined
 
+                  // ✅ NOVO: Usar complementares específicos de Consumer Defensive
                   const { score, explicacaoCustom } = avaliarIndicadorComContexto(
                     "Consumer Defensive",
                     label,
                     numeric,
                     {
                       valorAnterior: prev,
-                      complementares,
+                      complementares, // ✅ Agora só contém indicadores de Consumer Defensive
                     }
                   )
 
@@ -603,3 +446,4 @@ export function RatingsConsumerDefensive(props: RatingsConsumerDefensiveProps) {
     </div>
   )
 }
+

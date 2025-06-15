@@ -1,91 +1,14 @@
+// src/components/ratings/RatingsREITs.tsx
+
+import { buildRealEstateComplementares, RatingsREITsProps } from "../../../utils/complementares/realEstateComplementares"
 import { avaliarIndicadorComContexto } from "../hooks/avaliarIndicadorComContexto"
 import { IndicatorValuePro } from "../quickAnalysis/IndicatorValuePro"
 
-interface RatingsReitsProps {
-  // Rentabilidade e Dividendos
-  dividendYield: string
-  dividendYieldAnoAnterior?: string
-  dividendCagr5y: string
-  dividendCagr5yAnoAnterior?: string
-  ffoPayoutRatio: string
-  ffoPayoutRatioAnoAnterior?: string
+export function RatingsREITs(props: RatingsREITsProps) {
+  // ✅ NOVO: Constrói complementares específicos para REITs
+  const complementares = buildRealEstateComplementares(props)
 
-  // Múltiplos Específicos de REITs
-  pVpa: string
-  pVpaAnoAnterior?: string
-  pFfo: string
-  pFfoAnoAnterior?: string
-
-  // Operacionais
-  ocupacao: string
-  ocupacaoAnoAnterior?: string
-  capRate: string
-  capRateAnoAnterior?: string
-  noi?: string
-  noiAnoAnterior?: string
-  sameSoreNoi?: string
-  sameSoreNoiAnoAnterior?: string
-
-  // Fluxo de Caixa Específico
-  ffo: string
-  ffoAnoAnterior?: string
-  affo: string
-  affoAnoAnterior?: string
-
-  // Estrutura Financeira
-  coberturaJuros: string
-  coberturaJurosAnoAnterior?: string
-  dividaEbitda: string
-  dividaEbitdaAnoAnterior?: string
-  liquidezCorrente: string
-  liquidezCorrenteAnoAnterior?: string
-
-  // Gestão de Capital
-  navDiscount?: string
-  navDiscountAnoAnterior?: string
-  retentionRate?: string
-  retentionRateAnoAnterior?: string
-}
-
-export function RatingsREITs(props: RatingsReitsProps) {
-  // Calcular indicadores específicos de REITs a partir dos dados existentes
-  const calculateReitsMetrics = () => {
-    const ffoNum = parseFloat(props.ffo) || 0
-    const payoutNum = parseFloat(props.dividendYield) || 0 // Payout Ratio
-    const plNum = parseFloat(props.pVpa) || 0 // P/L
-    const fcfNum = parseFloat(props.affo) || 0 // Free Cash Flow
-    const roicNum = parseFloat(props.coberturaJuros) || 0 // ROIC
-    const margemOpNum = parseFloat(props.ocupacao) || 0 // Margem Operacional
-
-    return {
-      // Dividend Yield baseado no FFO e P/FFO
-      dividendYieldCalculated: ffoNum > 2 ?
-        Math.min(8.5, 100 / plNum).toFixed(1) : // FFO alto = yield melhor
-        "4.2", // FFO baixo = yield conservador
-
-      // FFO Payout Ratio usando FFO real
-      ffoPayoutCalculated: ffoNum > 0 ?
-        Math.min((payoutNum / 1.2), 90).toFixed(1) : // Ajustar payout baseado no FFO
-        "85", // Default conservador
-
-      // AFFO: FFO menos CapEx estimado (mais realista)
-      affoCalculated: ffoNum > 0 ?
-        (ffoNum * 0.75).toFixed(1) : // AFFO = FFO - CapEx (estimado como 25% do FFO)
-        (fcfNum * 0.85).toFixed(1), // Fallback para FCF
-
-      // Interest Coverage baseado na capacidade de pagamento (FFO/Debt service)
-      interestCoverage: ffoNum > 2 ?
-        (ffoNum / 2).toFixed(1) : // FFO alto = boa cobertura
-        Math.max(roicNum * 3, 1.2).toFixed(1), // Fallback para ROIC
-
-      // Occupancy Rate baseado na eficiência operacional
-      occupancyRate: margemOpNum > 40 ?
-        "94.5" : // Margem alta = ocupação alta
-        Math.min(margemOpNum * 2 + 10, 92).toFixed(1), // Fórmula ajustada
-    }
-  }
-
-  const calculatedMetrics = calculateReitsMetrics()
+  console.log('🏢 REITs Complementares:', complementares)
 
   const categorias: Record<
     string,
@@ -100,26 +23,12 @@ export function RatingsREITs(props: RatingsReitsProps) {
   > = {
     "Rentabilidade e Dividendos": [
       {
-        label: "Dividend Yield (Est.)",      // NOVO - calculado
-        chave: "dividendYieldCalc",
-        valor: calculatedMetrics.dividendYieldCalculated,
-        icon: "💰",
-        description: "Rendimento estimado de dividendos"
-      },
-      {
-        label: "Payout Ratio",
+        label: "Dividend Yield",
         chave: "dividendYield",
         valor: props.dividendYield,
         anterior: props.dividendYieldAnoAnterior,
-        icon: "💸",
+        icon: "💰",
         description: "% dos lucros distribuídos como dividendos"
-      },
-      {
-        label: "FFO Payout (Est.)",          // NOVO - calculado
-        chave: "ffoPayoutCalc",
-        valor: calculatedMetrics.ffoPayoutCalculated,
-        icon: "📊",
-        description: "% do FFO distribuído como dividendo (estimado)"
       },
       {
         label: "CAGR EPS",
@@ -128,6 +37,14 @@ export function RatingsREITs(props: RatingsReitsProps) {
         anterior: props.dividendCagr5yAnoAnterior,
         icon: "📈",
         description: "Taxa de crescimento anual composta do EPS"
+      },
+      {
+        label: "FFO Payout Ratio",
+        chave: "ffoPayoutRatio",
+        valor: props.ffoPayoutRatio,
+        anterior: props.ffoPayoutRatioAnoAnterior,
+        icon: "📊",
+        description: "% do FFO distribuído como dividendo"
       },
     ],
 
@@ -152,22 +69,15 @@ export function RatingsREITs(props: RatingsReitsProps) {
 
     "Performance Operacional REITs": [
       {
-        label: "Ocupação (Est.)",           // NOVO - calculado
-        chave: "occupancyCalc",
-        valor: calculatedMetrics.occupancyRate,
-        icon: "🏢",
-        description: "Taxa de ocupação estimada dos imóveis"
-      },
-      {
-        label: "Margem Operacional",
+        label: "Taxa de Ocupação",
         chave: "ocupacao",
         valor: props.ocupacao,
         anterior: props.ocupacaoAnoAnterior,
-        icon: "⚙️",
-        description: "Margem operacional da empresa"
+        icon: "🏢",
+        description: "Margem operacional da empresa (proxy ocupação)"
       },
       {
-        label: "ROE (Cap Rate Proxy)",
+        label: "Cap Rate",
         chave: "capRate",
         valor: props.capRate,
         anterior: props.capRateAnoAnterior,
@@ -175,7 +85,7 @@ export function RatingsREITs(props: RatingsReitsProps) {
         description: "Retorno sobre patrimônio (proxy para cap rate)"
       },
       ...(props.noi && parseFloat(props.noi) !== 0 ? [{
-        label: "Crescimento Receita",
+        label: "NOI Growth",
         chave: "noi",
         valor: props.noi,
         anterior: props.noiAnoAnterior,
@@ -194,37 +104,23 @@ export function RatingsREITs(props: RatingsReitsProps) {
         description: "Funds From Operations"
       },
       {
-        label: "AFFO (Est.)",               // NOVO - calculado
-        chave: "affoCalc",
-        valor: calculatedMetrics.affoCalculated,
-        icon: "💎",
-        description: "Adjusted FFO estimado (FCF * 0.85)"
-      },
-      {
-        label: "Free Cash Flow",
+        label: "AFFO",
         chave: "affo",
         valor: props.affo,
         anterior: props.affoAnoAnterior,
-        icon: "🔄",
-        description: "Fluxo de Caixa Livre"
+        icon: "💎",
+        description: "Fluxo de Caixa Livre (proxy para AFFO)"
       },
     ],
 
     "Estrutura Financeira": [
       {
-        label: "Interest Coverage (Est.)",   // NOVO - calculado
-        chave: "interestCoverageCalc",
-        valor: calculatedMetrics.interestCoverage,
-        icon: "🛡️",
-        description: "Cobertura de juros estimada"
-      },
-      {
-        label: "ROIC",
+        label: "Cobertura de Juros",
         chave: "coberturaJuros",
         valor: props.coberturaJuros,
         anterior: props.coberturaJurosAnoAnterior,
-        icon: "⚙️",
-        description: "Retorno sobre Capital Investido"
+        icon: "🛡️",
+        description: "Retorno sobre Capital Investido (proxy cobertura)"
       },
       {
         label: "Dívida/EBITDA",
@@ -264,56 +160,37 @@ export function RatingsREITs(props: RatingsReitsProps) {
     ],
   }
 
-  // Atualizar complementares com métricas calculadas
-  const complementares = {
-    ffoPayoutRatio: parseFloat(props.ffoPayoutRatio ?? "NaN"),
-    dividendCagr5y: parseFloat(props.dividendCagr5y ?? "NaN"),
-    navDiscount: parseFloat(props.navDiscount ?? "NaN"),
-    ocupacao: parseFloat(props.ocupacao ?? "NaN"),
-    noi: parseFloat(props.noi ?? "NaN"),
-    sameSoreNoi: parseFloat(props.sameSoreNoi ?? "NaN"),
-    ffo: parseFloat(props.ffo ?? "NaN"),
-    affo: parseFloat(props.affo ?? "NaN"),
-    coberturaJuros: parseFloat(props.coberturaJuros ?? "NaN"),
-    dividaEbitda: parseFloat(props.dividaEbitda ?? "NaN"),
-    liquidezCorrente: parseFloat(props.liquidezCorrente ?? "NaN"),
-    retentionRate: parseFloat(props.retentionRate ?? "NaN"),
-    // Métricas calculadas
-    dividendYieldCalc: parseFloat(calculatedMetrics.dividendYieldCalculated),
-    ffoPayoutCalc: parseFloat(calculatedMetrics.ffoPayoutCalculated),
-    affoCalc: parseFloat(calculatedMetrics.affoCalculated),
-    interestCoverageCalc: parseFloat(calculatedMetrics.interestCoverage),
-    occupancyCalc: parseFloat(calculatedMetrics.occupancyRate),
-  }
-
-  // ✅ FORMATAÇÃO CORRIGIDA para mostrar valores grandes corretamente
+  // Função para formatar valores
   const formatValue = (valor: string, chave: string) => {
-    const num = parseFloat(valor)
+    // Limpar o valor primeiro (remover % se existir)
+    const cleanValue = valor.replace('%', '').trim()
+    const num = parseFloat(cleanValue)
+
     if (isNaN(num)) return valor
 
     // Valores em percentual
-    if (['dividendYield', 'dividendCagr5y', 'ocupacao', 'capRate', 'noi', 'coberturaJuros', 'dividendYieldCalc', 'ffoPayoutCalc', 'occupancyCalc'].includes(chave)) {
+    if (['dividendYield', 'dividendCagr5y', 'ffoPayoutRatio', 'ocupacao', 'capRate', 'noi', 'coberturaJuros'].includes(chave)) {
       return `${num.toFixed(2)}%`
     }
 
-    // Valores monetários - AJUSTADO para detectar formato "3.6B"
-    if (['ffo', 'affo', 'affoCalc'].includes(chave)) {
+    // Valores monetários grandes (FFO, AFFO)
+    if (['ffo', 'affo'].includes(chave)) {
       // Se o valor original contém "B", é bilhões
       if (typeof valor === 'string' && valor.includes('B')) {
-        return `$${num.toFixed(1)}B`
+        return `${num.toFixed(1)}B`
       }
       // Se o valor original contém "M", é milhões
       if (typeof valor === 'string' && valor.includes('M')) {
-        return `$${num.toFixed(1)}M`
+        return `${num.toFixed(1)}M`
       }
       // Senão, valores normais
       if (Math.abs(num) > 1000000000) {
-        return `$${(num / 1000000000).toFixed(1)}B`
+        return `${(num / 1000000000).toFixed(1)}B`
       }
       if (Math.abs(num) > 1000000) {
-        return `$${(num / 1000000).toFixed(1)}M`
+        return `${(num / 1000000).toFixed(1)}M`
       }
-      return `$${num.toFixed(2)}`
+      return num.toFixed(2)
     }
 
     // Ratios com 2 casas decimais
@@ -324,15 +201,17 @@ export function RatingsREITs(props: RatingsReitsProps) {
     <div className="mt-6 space-y-8">
       {Object.entries(categorias).map(([categoria, indicadores]) => {
         // Filtrar indicadores válidos antes de renderizar a categoria
-        const indicadoresValidos = indicadores.filter(({ label, valor }) => {
+        const indicadoresValidos = indicadores.filter(({ label, valor, anterior }) => {
           const numeric = parseFloat(valor)
+
+          // ✅ NOVO: Usar complementares específicos de REITs
           const { apenasInformativo } = avaliarIndicadorComContexto(
             "Real Estate",
             label,
             numeric,
             {
-              valorAnterior: undefined,
-              complementares,
+              valorAnterior: anterior ? parseFloat(anterior) : undefined,
+              complementares, // ✅ Agora só contém indicadores de REITs
             }
           )
           return !apenasInformativo
@@ -359,13 +238,14 @@ export function RatingsREITs(props: RatingsReitsProps) {
                   const numeric = parseFloat(valor)
                   const prev = anterior ? parseFloat(anterior) : undefined
 
+                  // ✅ NOVO: Usar complementares específicos de REITs
                   const { score, explicacaoCustom } = avaliarIndicadorComContexto(
                     "Real Estate",
                     label,
                     numeric,
                     {
                       valorAnterior: prev,
-                      complementares,
+                      complementares, // ✅ Agora só contém indicadores de REITs
                     }
                   )
 

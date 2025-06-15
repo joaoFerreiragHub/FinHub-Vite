@@ -284,7 +284,6 @@ export const indicadoresMetaTech: IndicadorMeta[] = [
     }
   },
 ]
-
 export const indicadoresMetaHealthcare: IndicadorMeta[] = [
   {
     label: 'P&D / Receita',
@@ -453,7 +452,6 @@ export const indicadoresMetaHealthcare: IndicadorMeta[] = [
     complementar: ['eps', 'fcf'], // sustentabilidade dos dividendos
   },
 ]
-
 export const indicadoresMetaReits: IndicadorMeta[] = [
   // === RENTABILIDADE E DIVIDENDOS ===
   {
@@ -462,7 +460,7 @@ export const indicadoresMetaReits: IndicadorMeta[] = [
     peso: 1.5, // Muito importante para REITs
     setorSensível: true,
     ajustarComDelta: true,
-    complementar: ['ffoPayoutRatio', 'dividendCagr5y'],
+    complementar: ['ffoPayoutRatio', 'dividendCagr5y'], // ✅ Só indicadores REITs
     explicacaoCustom: ({ valor, valorAnterior }) => {
       const atual = Number(valor)
       const anterior = Number(valorAnterior)
@@ -479,11 +477,11 @@ export const indicadoresMetaReits: IndicadorMeta[] = [
     }
   },
   {
-    label: 'Crescimento Dividendo 5Y',
+    label: 'CAGR EPS', // ✅ CORRIGIDO: label igual ao componente
     chave: 'dividendCagr5y',
     peso: 1.2,
     ajustarComDelta: true,
-    complementar: ['ffoPayoutRatio', 'ffo'],
+    complementar: ['ffoPayoutRatio', 'ffo'], // ✅ Só indicadores REITs
     explicacaoCustom: ({ valor }) => {
       const v = Number(valor)
       if (!isNaN(v)) {
@@ -498,7 +496,7 @@ export const indicadoresMetaReits: IndicadorMeta[] = [
     chave: 'ffoPayoutRatio',
     peso: 1.3,
     ajustarComDelta: true,
-    complementar: ['ffo', 'affo'],
+    complementar: ['ffo', 'affo'], // ✅ Só indicadores REITs
     explicacaoCustom: ({ valor }) => {
       const v = Number(valor)
       if (!isNaN(v)) {
@@ -511,10 +509,10 @@ export const indicadoresMetaReits: IndicadorMeta[] = [
 
   // === MÚLTIPLOS ESPECÍFICOS ===
   {
-    label: 'P/VPA',
+    label: 'P/L', // ✅ CORRIGIDO: label igual ao componente
     chave: 'pVpa',
     peso: 1,
-    complementar: ['navDiscount', 'ocupacao'],
+    complementar: ['navDiscount', 'ocupacao'], // ✅ Só indicadores REITs
     explicacaoCustom: ({ valor }) => {
       const v = Number(valor)
       if (!isNaN(v)) {
@@ -528,17 +526,17 @@ export const indicadoresMetaReits: IndicadorMeta[] = [
     label: 'P/FFO',
     chave: 'pFfo',
     peso: 1,
-    complementar: ['ffo', 'affo'],
+    complementar: ['ffo', 'affo'], // ✅ Só indicadores REITs
   },
 
   // === OPERACIONAIS ===
   {
-    label: 'Taxa de Ocupação',
+    label: 'Taxa de Ocupação', // ✅ CORRIGIDO: label igual ao componente
     chave: 'ocupacao',
     peso: 1.4, // Crucial para REITs
     setorSensível: true,
     ajustarComDelta: true,
-    complementar: ['noi', 'sameSoreNoi'],
+    complementar: ['noi', 'sameSoreNoi'], // ✅ Só indicadores REITs
     explicacaoCustom: ({ valor, valorAnterior }) => {
       const atual = Number(valor)
       const anterior = Number(valorAnterior)
@@ -558,7 +556,7 @@ export const indicadoresMetaReits: IndicadorMeta[] = [
     label: 'Cap Rate',
     chave: 'capRate',
     peso: 1,
-    complementar: ['ocupacao', 'noi'],
+    complementar: ['ocupacao', 'noi'], // ✅ Só indicadores REITs
     explicacaoCustom: ({ valor }) => {
       const v = Number(valor)
       if (!isNaN(v)) {
@@ -573,7 +571,7 @@ export const indicadoresMetaReits: IndicadorMeta[] = [
     chave: 'noi',
     peso: 1.1,
     ajustarComDelta: true,
-    complementar: ['ocupacao', 'sameSoreNoi'],
+    complementar: ['ocupacao', 'sameSoreNoi'], // ✅ Só indicadores REITs
   },
   {
     label: 'Same-Store NOI',
@@ -597,7 +595,7 @@ export const indicadoresMetaReits: IndicadorMeta[] = [
     chave: 'ffo',
     peso: 1.3,
     ajustarComDelta: true,
-    complementar: ['affo', 'ffoPayoutRatio'],
+    complementar: ['affo', 'ffoPayoutRatio'], // ✅ Só indicadores REITs
     explicacaoCustom: ({ valor, valorAnterior }) => {
       const atual = Number(valor)
       const anterior = Number(valorAnterior)
@@ -614,7 +612,7 @@ export const indicadoresMetaReits: IndicadorMeta[] = [
     chave: 'affo',
     peso: 1.2,
     ajustarComDelta: true,
-    complementar: ['ffo', 'capex'],
+    complementar: ['ffo'], // ✅ Só indicadores REITs
     explicacaoCustom: ({ valor }) => {
       const v = Number(valor)
       if (!isNaN(v)) {
@@ -631,7 +629,7 @@ export const indicadoresMetaReits: IndicadorMeta[] = [
     chave: 'coberturaJuros',
     peso: 1.1,
     ajustarComDelta: true,
-    complementar: ['dividaEbitda', 'ffo'],
+    complementar: ['dividaEbitda', 'ffo'], // ✅ Só indicadores REITs
     explicacaoCustom: ({ valor }) => {
       const v = Number(valor)
       if (!isNaN(v)) {
@@ -646,7 +644,7 @@ export const indicadoresMetaReits: IndicadorMeta[] = [
     chave: 'dividaEbitda',
     peso: 1,
     ajustarComDelta: true,
-    complementar: ['coberturaJuros', 'liquidezCorrente'],
+    complementar: ['coberturaJuros', 'liquidezCorrente'], // ✅ Só indicadores REITs
     explicacaoCustom: ({ valor }) => {
       const v = Number(valor)
       if (!isNaN(v)) {
@@ -660,7 +658,7 @@ export const indicadoresMetaReits: IndicadorMeta[] = [
     label: 'Liquidez Corrente',
     chave: 'liquidezCorrente',
     peso: 0.7, // Menos importante para REITs
-    complementar: ['dividaEbitda', 'ffo'],
+    complementar: ['dividaEbitda', 'ffo'], // ✅ Só indicadores REITs
     explicacaoCustom: ({ valor }) => {
       const v = Number(valor)
       if (!isNaN(v)) {
@@ -672,11 +670,13 @@ export const indicadoresMetaReits: IndicadorMeta[] = [
   },
 
   // === GESTÃO DE CAPITAL ===
-  {
+   // === GESTÃO DE CAPITAL ===
+   {
     label: 'NAV Discount/Premium',
     chave: 'navDiscount',
     peso: 0.8,
-    complementar: ['pVpa', 'ocupacao'],
+    apenasInformativo: true, // ✅ Geralmente undefined, então informativo
+    complementar: ['pVpa', 'ocupacao'], // ✅ Só indicadores REITs
     explicacaoCustom: ({ valor }) => {
       const v = Number(valor)
       if (!isNaN(v)) {
@@ -690,1877 +690,13 @@ export const indicadoresMetaReits: IndicadorMeta[] = [
     label: 'Retention Rate',
     chave: 'retentionRate',
     peso: 0.9,
-    complementar: ['ffoPayoutRatio', 'dividendCagr5y'],
+    apenasInformativo: true, // ✅ Geralmente undefined, então informativo
+    complementar: ['ffoPayoutRatio', 'dividendCagr5y'], // ✅ Só indicadores REITs
     explicacaoCustom: ({ valor }) => {
       const v = Number(valor)
       if (!isNaN(v)) {
         if (v > 0.3) return 'Boa retenção de capital permite crescimento interno e externo.'
         if (v < 0.1) return 'Baixa retenção pode limitar capacidade de crescimento.'
-      }
-      return ''
-    }
-  },
-]
-
-export const indicadoresMetaUtilities: IndicadorMeta[] = [
-  // === MÚLTIPLOS DE VALUATION ===
-  {
-    label: 'P/L',
-    chave: 'pl',
-    peso: 1,
-    complementar: ['earningsYield', 'dividendYield'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v < 12) return 'P/L baixo para utility pode indicar oportunidade ou problemas regulatórios.'
-        if (v > 25) return 'P/L alto pode indicar expectations de crescimento ou mercado sobreaquecido.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'P/VPA',
-    chave: 'pb',
-    peso: 0.8,
-    complementar: ['roe', 'roic'],
-  },
-  {
-    label: 'P/S',
-    chave: 'ps',
-    peso: 0.7,
-    complementar: ['margemLiquida', 'crescimentoReceita'],
-  },
-  {
-    label: 'Earnings Yield',
-    chave: 'earningsYield',
-    peso: 0.9,
-    complementar: ['pl', 'dividendYield'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 8) return 'Earnings yield alto sugere utility subvalorizada ou riscos elevados.'
-        if (v < 4) return 'Earnings yield baixo pode indicar sobrevalorização.'
-      }
-      return ''
-    }
-  },
-
-  // === RENTABILIDADE ===
-  {
-    label: 'ROE',
-    chave: 'roe',
-    peso: 1.2,
-    ajustarComDelta: true,
-    complementar: ['endividamento', 'pb'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 15) return 'ROE alto para utility indica gestão eficiente do capital.'
-        if (v < 8) return 'ROE baixo pode refletir ambiente regulatório restritivo.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'ROIC',
-    chave: 'roic',
-    peso: 1.3,
-    ajustarComDelta: true,
-    complementar: ['capexOverRevenue', 'giroAtivo'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 10) return 'ROIC sólido indica eficiência na alocação de capital em infraestrutura.'
-        if (v < 5) return 'ROIC baixo pode indicar regulamentação restritiva ou investimentos ineficientes.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Margem EBITDA',
-    chave: 'margemEbitda',
-    peso: 1.1,
-    ajustarComDelta: true,
-    complementar: ['margemOperacional', 'endividamento'],
-  },
-  {
-    label: 'Margem Operacional',
-    chave: 'margemOperacional',
-    peso: 1,
-    ajustarComDelta: true,
-    complementar: ['margemEbitda', 'capexOverRevenue'],
-  },
-  {
-    label: 'Margem Líquida',
-    chave: 'margemLiquida',
-    peso: 1,
-    ajustarComDelta: true,
-    complementar: ['ps', 'roe'],
-  },
-
-  // === DIVIDENDOS E DISTRIBUIÇÕES ===
-  {
-    label: 'Dividend Yield',
-    chave: 'dividendYield',
-    peso: 1.4, // Muito importante para utilities
-    setorSensível: true,
-    ajustarComDelta: true,
-    complementar: ['payoutRatio', 'coberturaJuros'],
-    explicacaoCustom: ({ valor, valorAnterior }) => {
-      const atual = Number(valor)
-      const anterior = Number(valorAnterior)
-      if (!isNaN(atual) && !isNaN(anterior)) {
-        const delta = atual - anterior
-        if (delta > 0.5) return `Yield aumentou ${delta.toFixed(1)}pp. Pode indicar stress ou queda no preço.`
-        if (delta < -0.5) return `Yield diminuiu ${Math.abs(delta).toFixed(1)}pp. Pode indicar valorização ou corte.`
-      }
-      if (!isNaN(atual)) {
-        if (atual > 7) return 'Yield muito alto pode indicar risco de corte ou problemas financeiros.'
-        if (atual < 2.5) return 'Yield baixo pode indicar crescimento ou sobrevalorização.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Payout Ratio',
-    chave: 'payoutRatio',
-    peso: 1.2,
-    ajustarComDelta: true,
-    complementar: ['dividendYield', 'fcf'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 90) return 'Payout muito alto pode comprometer sustentabilidade e crescimento.'
-        if (v < 50) return 'Payout conservador proporciona margem de segurança e capacidade de crescimento.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Crescimento Dividendo 5Y',
-    chave: 'dividendCagr5y',
-    peso: 1,
-    ajustarComDelta: true,
-    complementar: ['payoutRatio', 'crescimentoEps'],
-  },
-
-  // === ESTRUTURA FINANCEIRA ===
-  {
-    label: 'Endividamento',
-    chave: 'endividamento',
-    peso: 1.1,
-    ajustarComDelta: true,
-    complementar: ['coberturaJuros', 'roe'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 70) return 'Endividamento alto típico de utilities, mas aumenta risco financeiro.'
-        if (v < 40) return 'Endividamento conservador pode limitar crescimento mas reduz risco.'
-      }
-      return 'Utilities tipicamente operam com alto endividamento devido aos investimentos em infraestrutura.'
-    }
-  },
-  {
-    label: 'Dívida/EBITDA',
-    chave: 'debtToEbitda',
-    peso: 1,
-    ajustarComDelta: true,
-    complementar: ['coberturaJuros', 'margemEbitda'],
-  },
-  {
-    label: 'Cobertura de Juros',
-    chave: 'coberturaJuros',
-    peso: 1.3, // Crucial para utilities
-    ajustarComDelta: true,
-    complementar: ['endividamento', 'margemEbitda'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 4) return 'Cobertura forte proporciona segurança financeira sólida.'
-        if (v < 2) return 'Cobertura baixa aumenta risco de stress financeiro.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Liquidez Corrente',
-    chave: 'liquidezCorrente',
-    peso: 0.7, // Menos crítico para utilities
-    complementar: ['endividamento', 'fcf'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 1.5) return 'Liquidez alta para utility pode indicar gestão conservadora de caixa.'
-        if (v < 0.8) return 'Liquidez baixa pode indicar gestão agressiva ou problemas de fluxo.'
-      }
-      return 'Utilities precisam de menos liquidez devido aos fluxos de caixa previsíveis.'
-    }
-  },
-
-  // === EFICIÊNCIA OPERACIONAL ===
-  {
-    label: 'Giro do Ativo',
-    chave: 'giroAtivo',
-    peso: 0.9,
-    complementar: ['roic', 'capexOverRevenue'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 0.5) return 'Giro alto indica uso eficiente dos ativos de infraestrutura.'
-        if (v < 0.3) return 'Giro baixo pode indicar sobrecapacidade ou ativos subutilizados.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'CapEx / Receita',
-    chave: 'capexOverRevenue',
-    peso: 1,
-    complementar: ['roic', 'crescimentoReceita'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 30) return 'CapEx muito alto pode pressionar fluxo de caixa e dividendos.'
-        if (v < 10) return 'CapEx baixo pode indicar falta de investimento em infraestrutura.'
-      }
-      return ''
-    }
-  },
-
-  // === CRESCIMENTO ===
-  {
-    label: 'Crescimento Receita',
-    chave: 'crescimentoReceita',
-    peso: 0.8,
-    ajustarComDelta: true,
-    complementar: ['ps', 'capexOverRevenue'],
-  },
-  {
-    label: 'Crescimento EPS',
-    chave: 'crescimentoEps',
-    peso: 0.9,
-    ajustarComDelta: true,
-    complementar: ['roe', 'dividendCagr5y'],
-  },
-
-  // === VALUATION VS FUNDAMENTALS ===
-  {
-    label: 'Levered DCF',
-    chave: 'leveredDcf',
-    peso: 0.8,
-    complementar: ['pl', 'fcf'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 1.2) return 'DCF sugere valor intrínseco significativamente acima do preço atual.'
-        if (v < 0.9) return 'DCF sugere possível sobrevalorização da utility.'
-      }
-      return ''
-    }
-  },
-]
-
-export const indicadoresMetaIndustrials: IndicadorMeta[] = [
-  // === RENTABILIDADE E EFICIÊNCIA ===
-  {
-    label: 'Margem EBITDA',
-    chave: 'margemEbitda',
-    peso: 1.3,
-    ajustarComDelta: true,
-    complementar: ['margemOperacional', 'alavancagem'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 20) return 'Margem EBITDA forte indica eficiência operacional excelente.'
-        if (v < 10) return 'Margem EBITDA baixa pode indicar pressão competitiva ou ineficiências.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'ROIC',
-    chave: 'roic',
-    peso: 1.4, // Muito importante para industrials
-    ajustarComDelta: true,
-    complementar: ['giroAtivo', 'alavancagem'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 15) return 'ROIC excelente indica alocação de capital muito eficiente.'
-        if (v < 8) return 'ROIC baixo sugere dificuldades na geração de retorno sobre o capital.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'ROE',
-    chave: 'roe',
-    peso: 1.1,
-    ajustarComDelta: true,
-    complementar: ['pb', 'alavancagem'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 18) return 'ROE alto pode indicar uso eficaz de alavancagem financeira.'
-        if (v < 10) return 'ROE baixo pode refletir ciclo industrial ou gestão ineficiente.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Margem Operacional',
-    chave: 'margemOperacional',
-    peso: 1.2,
-    ajustarComDelta: true,
-    complementar: ['margemEbitda', 'rotatividadeEstoques'],
-  },
-  {
-    label: 'Margem Líquida',
-    chave: 'margemLiquida',
-    peso: 1,
-    ajustarComDelta: true,
-    complementar: ['ps', 'roe'],
-  },
-
-  // === ESTRUTURA FINANCEIRA ===
-  {
-    label: 'Alavancagem Financeira',
-    chave: 'alavancagem',
-    peso: 1.2,
-    ajustarComDelta: true,
-    complementar: ['coberturaJuros', 'roic'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 4) return 'Alavancagem alta aumenta risco financeiro, especialmente em ciclos econômicos.'
-        if (v < 1.5) return 'Alavancagem conservadora pode limitar crescimento mas reduz risco.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Cobertura de Juros',
-    chave: 'coberturaJuros',
-    peso: 1.3,
-    ajustarComDelta: true,
-    complementar: ['alavancagem', 'margemEbitda'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 5) return 'Cobertura forte proporciona segurança financeira sólida.'
-        if (v < 2.5) return 'Cobertura baixa aumenta risco de stress financeiro em ciclos difíceis.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Liquidez Corrente',
-    chave: 'liquidezCorrente',
-    peso: 1,
-    ajustarComDelta: true,
-    complementar: ['rotatividadeEstoques', 'cicloOperacional'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 2.5) return 'Liquidez alta pode indicar gestão conservadora ou capital mal alocado.'
-        if (v < 1.2) return 'Liquidez baixa pode indicar dificuldades de capital de giro.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Endividamento',
-    chave: 'endividamento',
-    peso: 1.1,
-    ajustarComDelta: true,
-    complementar: ['coberturaJuros', 'roic'],
-  },
-
-  // === EFICIÊNCIA OPERACIONAL ===
-  {
-    label: 'Rotatividade de Estoques',
-    chave: 'rotatividadeEstoques',
-    peso: 1.2, // Importante para industrials
-    ajustarComDelta: true,
-    complementar: ['cicloOperacional', 'margemEbitda'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 8) return 'Rotatividade alta indica gestão eficiente de estoques e demanda forte.'
-        if (v < 4) return 'Rotatividade baixa pode indicar estoques obsoletos ou demanda fraca.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Giro do Ativo',
-    chave: 'giroAtivo',
-    peso: 1.1,
-    ajustarComDelta: true,
-    complementar: ['roic', 'capexOverRevenue'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 1.5) return 'Giro alto indica uso muito eficiente dos ativos produtivos.'
-        if (v < 0.8) return 'Giro baixo pode indicar sobrecapacidade ou ativos subutilizados.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Ciclo Operacional',
-    chave: 'cicloOperacional',
-    peso: 1,
-    ajustarComDelta: true,
-    complementar: ['rotatividadeEstoques', 'liquidezCorrente'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 90) return 'Ciclo longo pode pressionar fluxo de caixa e capital de giro.'
-        if (v < 45) return 'Ciclo curto indica eficiência operacional excelente.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'CapEx/Receita',
-    chave: 'capexOverRevenue',
-    peso: 1,
-    complementar: ['roic', 'crescimentoReceita'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 8) return 'CapEx alto pode indicar fase de expansão ou modernização.'
-        if (v < 3) return 'CapEx baixo pode indicar falta de investimento em capacidade produtiva.'
-      }
-      return ''
-    }
-  },
-
-  // === MÚLTIPLOS DE VALUATION ===
-  {
-    label: 'P/L',
-    chave: 'pe',
-    peso: 1,
-    complementar: ['peg', 'dividendYield'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v < 10) return 'P/L baixo pode indicar oportunidade ou expectativas pessimistas.'
-        if (v > 25) return 'P/L alto pode indicar sobrevalorização ou crescimento esperado.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'P/VPA',
-    chave: 'pb',
-    peso: 0.9,
-    complementar: ['roe', 'roic'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v < 1) return 'P/VPA abaixo de 1 pode indicar oportunidade ou problemas estruturais.'
-        if (v > 4) return 'P/VPA alto pode indicar sobrevalorização para empresa industrial.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'P/S',
-    chave: 'ps',
-    peso: 0.8,
-    complementar: ['margemLiquida', 'crescimentoReceita'],
-  },
-  {
-    label: 'PEG',
-    chave: 'peg',
-    peso: 1.1,
-    complementar: ['pe', 'crescimentoEps'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v < 0.8) return 'PEG baixo sugere oportunidade de valorização considerando o crescimento.'
-        if (v > 2) return 'PEG alto pode indicar sobrevalorização vs. crescimento esperado.'
-      }
-      return ''
-    }
-  },
-
-  // === DIVIDENDOS E RISCO ===
-  {
-    label: 'Dividend Yield',
-    chave: 'dividendYield',
-    peso: 0.9,
-    ajustarComDelta: true,
-    complementar: ['payoutRatio', 'coberturaJuros'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 5) return 'Yield alto pode indicar stress financeiro ou ciclo industrial baixo.'
-        if (v < 1.5) return 'Yield baixo pode indicar foco em crescimento ou sobrevalorização.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Payout Ratio',
-    chave: 'payoutRatio',
-    peso: 0.8,
-    ajustarComDelta: true,
-    complementar: ['dividendYield', 'fcf'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 80) return 'Payout alto pode comprometer flexibilidade em ciclos difíceis.'
-        if (v < 30) return 'Payout baixo proporciona margem de segurança e capacidade de investimento.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Beta',
-    chave: 'beta',
-    peso: 0.7,
-    complementar: ['alavancagem', 'roic'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 1.8) return 'Beta alto indica alta volatilidade e sensibilidade ao ciclo econômico.'
-        if (v < 0.6) return 'Beta baixo indica estabilidade relativa ao mercado.'
-      }
-      return ''
-    }
-  },
-
-  // === CRESCIMENTO ===
-  {
-    label: 'Crescimento Receita',
-    chave: 'crescimentoReceita',
-    peso: 1,
-    ajustarComDelta: true,
-    complementar: ['ps', 'capexOverRevenue'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 10) return 'Crescimento forte pode indicar expansão de mercado ou market share.'
-        if (v < 0) return 'Contração pode refletir ciclo industrial ou perda de competitividade.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Crescimento EPS',
-    chave: 'crescimentoEps',
-    peso: 1.1,
-    ajustarComDelta: true,
-    complementar: ['roe', 'peg'],
-  },
-
-  // === MÉTRICAS ESPECÍFICAS ===
-  {
-    label: 'Free Cash Flow',
-    chave: 'fcf',
-    peso: 1.2,
-    ajustarComDelta: true,
-    complementar: ['capexOverRevenue', 'dividendYield'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 0) return 'FCF positivo indica geração de caixa após investimentos necessários.'
-        if (v < 0) return 'FCF negativo pode indicar fase de investimento intenso ou problemas operacionais.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Eficiência Capital de Giro',
-    chave: 'eficienciaCapitalGiro',
-    peso: 1,
-    complementar: ['rotatividadeEstoques', 'liquidezCorrente'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 80) return 'Gestão muito eficiente do capital de giro.'
-        if (v < 60) return 'Oportunidades de melhoria na gestão do capital de giro.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Qualidade dos Ativos',
-    chave: 'qualidadeAtivos',
-    peso: 1.1,
-    complementar: ['roic', 'giroAtivo'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 85) return 'Ativos de alta qualidade com excelente produtividade.'
-        if (v < 65) return 'Qualidade dos ativos pode estar comprometida.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Ciclo Conversão Caixa',
-    chave: 'cicloConversaoCaixa',
-    peso: 1,
-    complementar: ['rotatividadeEstoques', 'liquidezCorrente'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v < 45) return 'Ciclo de conversão excelente, liberando caixa rapidamente.'
-        if (v > 90) return 'Ciclo longo pode pressionar necessidades de capital de giro.'
-      }
-      return ''
-    }
-  },
-]
-export const indicadoresMetaFinancials: IndicadorMeta[] = [
-  // === RENTABILIDADE E EFICIÊNCIA ===
-  {
-    label: 'ROE',
-    chave: 'roe',
-    peso: 1.4, // Muito importante para bancos
-    ajustarComDelta: true,
-    complementar: ['alavancagem', 'pvpa'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 18) return 'ROE excelente indica gestão muito eficaz do patrimônio e alavancagem otimizada.'
-        if (v < 10) return 'ROE baixo pode indicar ineficiências operacionais ou ambiente regulatório restritivo.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Eficiência',
-    chave: 'eficiencia',
-    peso: 1.3,
-    ajustarComDelta: true,
-    complementar: ['roe', 'nim'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v < 45) return 'Eficiência excelente indica controle rigoroso de custos operacionais.'
-        if (v > 65) return 'Eficiência baixa sugere estrutura de custos elevada ou baixa produtividade.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'NIM',
-    chave: 'nim',
-    peso: 1.2,
-    ajustarComDelta: true,
-    complementar: ['ldr', 'custoCredito'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 4.5) return 'Margem financeira forte indica pricing power e mix de produtos favorável.'
-        if (v < 3) return 'Margem baixa pode indicar pressão competitiva ou ambiente de juros desfavorável.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'ROA',
-    chave: 'roa',
-    peso: 1.1,
-    ajustarComDelta: true,
-    complementar: ['roe', 'alavancagem'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 1.5) return 'ROA alto indica gestão muito eficiente dos ativos do banco.'
-        if (v < 0.8) return 'ROA baixo sugere baixa produtividade dos ativos ou problemas operacionais.'
-      }
-      return ''
-    }
-  },
-
-  // === SOLIDEZ E CAPITALIZAÇÃO ===
-  {
-    label: 'Basileia',
-    chave: 'basileia',
-    peso: 1.3,
-    ajustarComDelta: true,
-    complementar: ['tier1', 'alavancagem'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 14) return 'Índice forte proporciona margem robusta acima do mínimo regulatório.'
-        if (v < 11.5) return 'Próximo ao mínimo regulatório, limitando flexibilidade para crescimento.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Tier 1',
-    chave: 'tier1',
-    peso: 1.2,
-    ajustarComDelta: true,
-    complementar: ['basileia', 'crescimentoCarteira'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 12) return 'Capital principal robusto oferece excelente capacidade de absorção de perdas.'
-        if (v < 9.5) return 'Capital principal próximo ao mínimo pode restringir crescimento.'
-      }
-      return ''
-    }
-  },
-
-  // === ESTRUTURA DE CAPITAL E RISCO ===
-  {
-    label: 'Alavancagem',
-    chave: 'alavancagem',
-    peso: 1.1,
-    ajustarComDelta: true,
-    complementar: ['roe', 'basileia'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 12) return 'Alavancagem alta amplifica retornos mas aumenta risco sistêmico.'
-        if (v < 8) return 'Alavancagem conservadora pode limitar ROE mas oferece maior segurança.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Liquidez',
-    chave: 'liquidez',
-    peso: 1,
-    ajustarComDelta: true,
-    complementar: ['ldr', 'beta'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 1.8) return 'Liquidez alta oferece segurança mas pode indicar ativos ociosos.'
-        if (v < 1.2) return 'Liquidez baixa pode indicar gestão agressiva ou problemas de funding.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Inadimplência',
-    chave: 'inadimplencia',
-    peso: 1.4, // Crítico para bancos
-    ajustarComDelta: true,
-    complementar: ['cobertura', 'custoCredito'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v < 2) return 'Taxa baixa indica excelente qualidade da carteira e políticas de crédito rigorosas.'
-        if (v > 4) return 'Taxa elevada sugere deterioração da qualidade de crédito ou ciclo econômico adverso.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Cobertura',
-    chave: 'cobertura',
-    peso: 1.2,
-    ajustarComDelta: true,
-    complementar: ['inadimplencia', 'qualidadeCredito'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 150) return 'Cobertura robusta oferece proteção excelente contra perdas de crédito.'
-        if (v < 100) return 'Cobertura insuficiente pode expor o banco a perdas em cenários adversos.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Custo do Crédito',
-    chave: 'custoCredito',
-    peso: 1.1,
-    ajustarComDelta: true,
-    complementar: ['inadimplencia', 'nim'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v < 1.5) return 'Custo baixo indica políticas de crédito conservadoras e boa seleção de clientes.'
-        if (v > 3) return 'Custo elevado pode pressionar margens e indicar problemas na carteira.'
-      }
-      return ''
-    }
-  },
-
-  // === MÚLTIPLOS DE AVALIAÇÃO ===
-  {
-    label: 'P/L',
-    chave: 'pl',
-    peso: 0.9,
-    complementar: ['roe', 'dividendYield'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v < 8) return 'P/L baixo pode indicar oportunidade ou expectativas de deterioração.'
-        if (v > 18) return 'P/L alto pode indicar sobrevalorização para o setor bancário.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'P/VPA',
-    chave: 'pvpa',
-    peso: 1.1, // Importante para bancos
-    complementar: ['roe', 'basileia'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v < 1) return 'P/VPA baixo pode indicar oportunidade ou problemas fundamentais.'
-        if (v > 2.5) return 'P/VPA alto pode indicar sobrevalorização vs. valor contábil.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Valuation (DCF)',
-    chave: 'leveredDcf',
-    peso: 1,
-    complementar: ['roe', 'crescimentoCarteira'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 0) return 'DCF positivo indica valor intrínseco calculado para avaliação.'
-        return 'Valor de DCF disponível para comparação com preço de mercado.'
-      }
-      return ''
-    }
-  },
-
-  // === DIVIDENDOS E RETORNO ===
-  {
-    label: 'Dividend Yield',
-    chave: 'dividendYield',
-    peso: 0.9,
-    ajustarComDelta: true,
-    complementar: ['payoutRatio', 'roe'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 6) return 'Yield alto pode indicar stress ou distribuição insustentável.'
-        if (v < 2) return 'Yield baixo pode indicar foco em crescimento ou retenção de capital.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Payout Ratio',
-    chave: 'payoutRatio',
-    peso: 0.8,
-    ajustarComDelta: true,
-    complementar: ['dividendYield', 'basileia'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 70) return 'Payout alto pode comprometer capacidade de reforçar capital.'
-        if (v < 30) return 'Payout baixo oferece flexibilidade para crescimento e fortalecimento patrimonial.'
-      }
-      return ''
-    }
-  },
-
-  // === MÉTRICAS ESPECÍFICAS BANCÁRIAS ===
-  {
-    label: 'LDR',
-    chave: 'ldr',
-    peso: 1.1,
-    ajustarComDelta: true,
-    complementar: ['nim', 'liquidez'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 95) return 'LDR muito alto pode indicar pressão de liquidez ou funding.'
-        if (v < 70) return 'LDR baixo pode indicar recursos ociosos ou oportunidades perdidas.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Beta',
-    chave: 'beta',
-    peso: 0.7,
-    complementar: ['alavancagem', 'basileia'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 1.8) return 'Beta alto indica maior sensibilidade a ciclos econômicos e stress financeiro.'
-        if (v < 0.8) return 'Beta baixo sugere maior estabilidade vs. mercado.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Crescimento Carteira',
-    chave: 'crescimentoCarteira',
-    peso: 1,
-    ajustarComDelta: true,
-    complementar: ['basileia', 'custoCredito'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 20) return 'Crescimento acelerado pode pressionar capital e qualidade de crédito.'
-        if (v < 5) return 'Crescimento baixo pode indicar ambiente competitivo ou políticas restritivas.'
-      }
-      return ''
-    }
-  },
-
-  // === MÉTRICAS CALCULADAS ===
-  {
-    label: 'Qualidade de Crédito',
-    chave: 'qualidadeCredito',
-    peso: 1.2,
-    complementar: ['inadimplencia', 'cobertura'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 85) return 'Score excelente indica carteira de alta qualidade com risco controlado.'
-        if (v < 60) return 'Score baixo sugere necessidade de aprimoramento nas políticas de crédito.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Solidez Patrimonial',
-    chave: 'solidezPatrimonial',
-    peso: 1.1,
-    complementar: ['roe', 'basileia'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 90) return 'Excelente combinação de rentabilidade e capitalização robusta.'
-        if (v < 65) return 'Solidez limitada pode restringir flexibilidade em cenários adversos.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Eficiência Ajustada',
-    chave: 'eficienciaAjustada',
-    peso: 1,
-    complementar: ['eficiencia', 'roe'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 80) return 'Gestão operacional muito eficiente com controle rigoroso de custos.'
-        if (v < 55) return 'Oportunidades significativas de melhoria na eficiência operacional.'
-      }
-      return ''
-    }
-  },
-]
-export const indicadoresMetaEnergy: IndicadorMeta[] = [
-  // === RENTABILIDADE E RETORNO ===
-  {
-    label: 'P/L',
-    chave: 'pe',
-    peso: 0.9,
-    complementar: ['roe', 'dividendYield'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v < 8) return 'P/L baixo pode indicar oportunidade ou expectativas de queda nos preços de commodities.'
-        if (v > 18) return 'P/L alto pode indicar sobrevalorização em setor cíclico como energia.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'P/VPA',
-    chave: 'pb',
-    peso: 0.8,
-    complementar: ['roe', 'roic'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v < 1) return 'P/VPA baixo pode indicar assets undervalued ou deterioração de reservas.'
-        if (v > 2) return 'P/VPA alto pode indicar sobrevalorização vs. ativos tangíveis.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'ROE',
-    chave: 'roe',
-    peso: 1.2,
-    ajustarComDelta: true,
-    complementar: ['roic', 'dividaEbitda'],
-    explicacaoCustom: ({ valor, valorAnterior }) => {
-      const atual = Number(valor)
-      const anterior = Number(valorAnterior)
-      if (!isNaN(atual) && !isNaN(anterior)) {
-        const delta = atual - anterior
-        if (delta > 5) return `ROE melhorou ${delta.toFixed(1)}pp - pode refletir ambiente de preços favorável.`
-        if (delta < -5) return `ROE deteriorou ${delta.toFixed(1)}pp - pode indicar pressão de commodities.`
-      }
-      if (!isNaN(atual)) {
-        if (atual > 15) return 'ROE forte indica gestão eficaz em ambiente de commodities voláteis.'
-        if (atual < 8) return 'ROE baixo pode refletir ambiente de preços desfavorável ou ineficiências.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'ROIC',
-    chave: 'roic',
-    peso: 1.3, // Muito importante para capital intensivo
-    ajustarComDelta: true,
-    complementar: ['capexRevenue', 'freeCashFlow'],
-    explicacaoCustom: ({ valor, valorAnterior }) => {
-      const atual = Number(valor)
-      const anterior = Number(valorAnterior)
-      if (!isNaN(atual) && !isNaN(anterior)) {
-        const delta = atual - anterior
-        if (delta > 3) return `ROIC melhorou ${delta.toFixed(1)}pp - indica eficiência crescente na alocação de capital.`
-        if (delta < -3) return `ROIC deteriorou ${delta.toFixed(1)}pp - pode indicar pressão nos retornos.`
-      }
-      if (!isNaN(atual)) {
-        if (atual > 12) return 'ROIC excelente demonstra alocação eficiente de capital em setor intensivo.'
-        if (atual < 8) return 'ROIC baixo indica retornos insuficientes vs. custo de capital.'
-      }
-      return ''
-    }
-  },
-
-  // === MARGENS E EFICIÊNCIA ===
-  {
-    label: 'Margem EBITDA',
-    chave: 'margemEbitda',
-    peso: 1.4, // Crítico para energia
-    ajustarComDelta: true,
-    complementar: ['custoProducao', 'roic'],
-    explicacaoCustom: ({ valor, valorAnterior }) => {
-      const atual = Number(valor)
-      const anterior = Number(valorAnterior)
-      if (!isNaN(atual) && !isNaN(anterior)) {
-        const delta = atual - anterior
-        if (delta > 5) return `Margem EBITDA melhorou ${delta.toFixed(1)}pp - indica controle de custos ou preços favoráveis.`
-        if (delta < -5) return `Margem EBITDA deteriorou ${delta.toFixed(1)}pp - pressão de custos ou preços.`
-      }
-      if (!isNaN(atual)) {
-        if (atual > 30) return 'Margem EBITDA forte indica controle de custos e pricing power.'
-        if (atual < 20) return 'Margem baixa pode indicar pressão de custos ou preços desfavoráveis.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Margem Bruta',
-    chave: 'margemBruta',
-    peso: 1.1,
-    ajustarComDelta: true,
-    complementar: ['margemEbitda', 'custoProducao'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 40) return 'Margem bruta sólida indica estrutura de custos competitiva.'
-        if (v < 25) return 'Margem apertada pode limitar flexibilidade em downturns.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Margem Líquida',
-    chave: 'margemLiquida',
-    peso: 1,
-    ajustarComDelta: true,
-    complementar: ['margemEbitda', 'dividaEbitda'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 15) return 'Margem líquida forte demonstra conversão eficiente de receita em lucro.'
-        if (v < 5) return 'Margem baixa pode indicar alta carga tributária ou custos financeiros.'
-      }
-      return ''
-    }
-  },
-
-  // === ESTRUTURA DE CAPITAL E SOLVÊNCIA ===
-  {
-    label: 'Endividamento',
-    chave: 'dividaEbitda',
-    peso: 1.3, // Crítico para setor cíclico
-    ajustarComDelta: true,
-    complementar: ['coberturaJuros', 'freeCashFlow'],
-    explicacaoCustom: ({ valor, valorAnterior }) => {
-      const atual = Number(valor)
-      const anterior = Number(valorAnterior)
-      if (!isNaN(atual) && !isNaN(anterior)) {
-        const delta = atual - anterior
-        if (delta < -0.5) return `Endividamento reduziu ${Math.abs(delta).toFixed(1)}x - fortalecimento da estrutura financeira.`
-        if (delta > 0.5) return `Endividamento aumentou ${delta.toFixed(1)}x - pode indicar novos investimentos ou stress.`
-      }
-      if (!isNaN(atual)) {
-        if (atual < 2) return 'Alavancagem conservadora oferece flexibilidade em ciclos baixos.'
-        if (atual > 3) return 'Endividamento elevado pode ser arriscado em setor volátil.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Cobertura de Juros',
-    chave: 'coberturaJuros',
-    peso: 1.2,
-    ajustarComDelta: true,
-    complementar: ['dividaEbitda', 'margemEbitda'],
-    explicacaoCustom: ({ valor, valorAnterior }) => {
-      const atual = Number(valor)
-      const anterior = Number(valorAnterior)
-      if (!isNaN(atual) && !isNaN(anterior)) {
-        const delta = atual - anterior
-        if (delta > 1) return `Cobertura melhorou ${delta.toFixed(1)}x - maior segurança financeira.`
-        if (delta < -1) return `Cobertura deteriorou ${Math.abs(delta).toFixed(1)}x - pode indicar pressão de EBITDA.`
-      }
-      if (!isNaN(atual)) {
-        if (atual > 5) return 'Cobertura robusta oferece segurança mesmo em cenários adversos.'
-        if (atual < 3) return 'Cobertura baixa pode indicar stress financeiro em downturns.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Liquidez Corrente',
-    chave: 'liquidezCorrente',
-    peso: 1,
-    ajustarComDelta: true,
-    complementar: ['freeCashFlow', 'dividaEbitda'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 1.5) return 'Liquidez adequada para operações e investimentos de curto prazo.'
-        if (v < 1.2) return 'Liquidez apertada pode limitar flexibilidade operacional.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Dívida/Patrimônio',
-    chave: 'debtEquity',
-    peso: 1.1,
-    ajustarComDelta: true,
-    complementar: ['roe', 'dividaEbitda'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v < 0.5) return 'Estrutura conservadora minimiza riscos financeiros.'
-        if (v > 1.2) return 'Alavancagem alta pode amplificar volatilidade do setor.'
-      }
-      return ''
-    }
-  },
-
-  // === FLUXO DE CAIXA E INVESTIMENTOS ===
-  {
-    label: 'Fluxo de Caixa Livre',
-    chave: 'freeCashFlow',
-    peso: 1.4, // Crítico para energia
-    ajustarComDelta: true,
-    complementar: ['capexRevenue', 'dividendYield'],
-    explicacaoCustom: ({ valor, valorAnterior }) => {
-      const atual = Number(valor)
-      const anterior = Number(valorAnterior)
-      if (!isNaN(atual) && !isNaN(anterior)) {
-        const delta = atual - anterior
-        if (delta > 100000000) return `FCF melhorou significativamente (+${(delta/1000000).toFixed(0)}M). Excelente geração de caixa.`
-        if (delta < -100000000) return `FCF deteriorou (${(delta/1000000).toFixed(0)}M). Pode indicar CapEx elevado ou pressão operacional.`
-      }
-      if (!isNaN(atual)) {
-        if (atual > 0) return 'FCF positivo essencial para sustentar dividendos e reduzir dívida.'
-        if (atual < 0) return 'FCF negativo indica necessidade de financiamento externo.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'CapEx/Receita',
-    chave: 'capexRevenue',
-    peso: 1.1,
-    ajustarComDelta: true,
-    complementar: ['freeCashFlow', 'roic'],
-    explicacaoCustom: ({ valor, valorAnterior }) => {
-      const atual = Number(valor)
-      const anterior = Number(valorAnterior)
-      if (!isNaN(atual) && !isNaN(anterior)) {
-        const delta = atual - anterior
-        if (delta > 5) return `CapEx aumentou ${delta.toFixed(1)}pp - pode indicar ciclo de investimentos.`
-        if (delta < -5) return `CapEx reduziu ${Math.abs(delta).toFixed(1)}pp - pode liberar mais FCF.`
-      }
-      if (!isNaN(atual)) {
-        if (atual < 15) return 'CapEx moderado permite maior geração de caixa livre.'
-        if (atual > 25) return 'Investimentos altos podem pressionar fluxo de caixa no curto prazo.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'FCF Yield',
-    chave: 'fcfYield',
-    peso: 1.2,
-    ajustarComDelta: true,
-    complementar: ['freeCashFlow', 'dividendYield'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 8) return 'FCF Yield alto oferece retorno atrativo vs. valorização.'
-        if (v < 4) return 'Yield baixo pode indicar sobrevalorização ou baixa geração de caixa.'
-      }
-      return ''
-    }
-  },
-
-  // === DIVIDENDOS E RETORNO ===
-  {
-    label: 'Dividend Yield',
-    chave: 'dividendYield',
-    peso: 1.1,
-    ajustarComDelta: true,
-    complementar: ['payoutRatio', 'freeCashFlow'],
-    explicacaoCustom: ({ valor, valorAnterior }) => {
-      const atual = Number(valor)
-      const anterior = Number(valorAnterior)
-      if (!isNaN(atual) && !isNaN(anterior)) {
-        const delta = atual - anterior
-        if (delta > 1) return `Dividend Yield aumentou ${delta.toFixed(1)}pp - pode indicar aumento de dividendos ou queda de preço.`
-        if (delta < -1) return `Dividend Yield reduziu ${Math.abs(delta).toFixed(1)}pp - pode indicar corte ou valorização.`
-      }
-      if (!isNaN(atual)) {
-        if (atual > 6) return 'Yield alto atrativo mas deve ser sustentável pelo FCF.'
-        if (atual < 3) return 'Yield baixo pode indicar foco em crescimento ou pressão no caixa.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Payout Ratio',
-    chave: 'payoutRatio',
-    peso: 1,
-    ajustarComDelta: true,
-    complementar: ['dividendYield', 'freeCashFlow'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v < 60) return 'Payout conservador oferece sustentabilidade em ciclos baixos.'
-        if (v > 80) return 'Payout alto pode ser insustentável em downturn de commodities.'
-      }
-      return ''
-    }
-  },
-
-  // === VOLATILIDADE E AVALIAÇÃO ===
-  {
-    label: 'Beta',
-    chave: 'beta',
-    peso: 0.7,
-    setorSensível: true,
-    complementar: ['dividaEbitda', 'freeCashFlow'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 1.5) return 'Beta alto reflete volatilidade típica do setor de energia.'
-        if (v < 0.8) return 'Beta baixo pode indicar operações mais estáveis ou defensivas.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Levered DCF',
-    chave: 'leveredDcf',
-    peso: 1,
-    complementar: ['freeCashFlow', 'roic'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 0) return 'DCF positivo indica valor intrínseco calculado para avaliação.'
-        return 'Valor de DCF disponível para comparação com preço de mercado.'
-      }
-      return ''
-    }
-  },
-
-  // === MÉTRICAS ESPECÍFICAS DE ENERGIA ===
-  {
-    label: 'Reservas Provadas',
-    chave: 'reservasProvadas',
-    peso: 1.2,
-    ajustarComDelta: true,
-    complementar: ['custoProducao', 'capexRevenue'],
-    explicacaoCustom: ({ valor, valorAnterior }) => {
-      const atual = Number(valor)
-      const anterior = Number(valorAnterior)
-      if (!isNaN(atual) && !isNaN(anterior)) {
-        const delta = ((atual - anterior) / anterior) * 100
-        if (delta > 10) return `Reservas aumentaram ${delta.toFixed(1)}% - expansão da base de recursos.`
-        if (delta < -10) return `Reservas reduziram ${Math.abs(delta).toFixed(1)}% - pode indicar depleção ou reclassificação.`
-      }
-      if (!isNaN(atual)) {
-        if (atual > 0) return 'Reservas provadas garantem sustentabilidade operacional de longo prazo.'
-        return 'Acompanhamento das reservas essencial para avaliação de energia.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Custo de Produção',
-    chave: 'custoProducao',
-    peso: 1.3, // Crítico para competitividade
-    ajustarComDelta: true,
-    complementar: ['margemEbitda', 'breakEvenPrice'],
-    explicacaoCustom: ({ valor, valorAnterior }) => {
-      const atual = Number(valor)
-      const anterior = Number(valorAnterior)
-      if (!isNaN(atual) && !isNaN(anterior)) {
-        const delta = atual - anterior
-        if (delta < -5) return `Custo reduziu $${Math.abs(delta).toFixed(2)}/barril - melhoria na eficiência operacional.`
-        if (delta > 5) return `Custo aumentou $${delta.toFixed(2)}/barril - pode pressionar margens.`
-      }
-      if (!isNaN(atual)) {
-        if (atual < 40) return 'Custo baixo oferece vantagem competitiva e margens robustas.'
-        if (atual > 70) return 'Custo alto pode pressionar rentabilidade em cenários de preços baixos.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Break-even Price',
-    chave: 'breakEvenPrice',
-    peso: 1.4, // Crítico para viabilidade
-    ajustarComDelta: true,
-    complementar: ['custoProducao', 'margemEbitda'],
-    explicacaoCustom: ({ valor, valorAnterior }) => {
-      const atual = Number(valor)
-      const anterior = Number(valorAnterior)
-      if (!isNaN(atual) && !isNaN(anterior)) {
-        const delta = atual - anterior
-        if (delta < -5) return `Break-even melhorou $${Math.abs(delta).toFixed(2)}/barril - maior competitividade.`
-        if (delta > 5) return `Break-even deteriorou $${delta.toFixed(2)}/barril - pode indicar pressão de custos.`
-      }
-      if (!isNaN(atual)) {
-        if (atual < 50) return 'Break-even baixo oferece segurança em diversos cenários de preços.'
-        if (atual > 80) return 'Break-even alto indica vulnerabilidade a quedas de commodities.'
-      }
-      return ''
-    }
-  },
-
-  // === MÉTRICAS CALCULADAS ===
-  {
-    label: 'Eficiência Operacional',
-    chave: 'eficienciaOperacional',
-    peso: 1.2,
-    complementar: ['margemEbitda', 'roic'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 85) return 'Excelente eficiência operacional com controle de custos rigoroso.'
-        if (v < 60) return 'Oportunidades significativas de melhoria na eficiência operacional.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Solidez Financeira',
-    chave: 'solidezFinanceira',
-    peso: 1.3,
-    complementar: ['dividaEbitda', 'coberturaJuros'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 90) return 'Estrutura financeira muito sólida para navegar volatilidade do setor.'
-        if (v < 65) return 'Solidez limitada pode ser arriscada em ciclos baixos de commodities.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Geração de Caixa',
-    chave: 'geracaoCaixa',
-    peso: 1.4, // Crítico para sustentabilidade
-    complementar: ['freeCashFlow', 'dividendYield'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 80) return 'Excelente geração de caixa sustenta dividendos e redução de dívida.'
-        if (v < 55) return 'Geração fraca pode comprometer dividendos e flexibilidade financeira.'
-      }
-      return ''
-    }
-  },
-]
-export const indicadoresMetaBasicMaterials: IndicadorMeta[] = [
-  // === RENTABILIDADE E RETORNO ===
-  {
-    label: 'P/E',
-    chave: 'pe',
-    peso: 0.9,
-    complementar: ['roe', 'dividendYield'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v < 8) return 'P/E baixo pode indicar oportunidade ou expectativas de queda nos preços de commodities.'
-        if (v > 25) return 'P/E alto pode indicar sobrevalorização para setor cíclico de materiais básicos.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'P/B',
-    chave: 'pb',
-    peso: 1,
-    complementar: ['roe', 'roic'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v < 1.5) return 'P/B baixo pode indicar assets undervalued ou deterioração de ativos.'
-        if (v > 3) return 'P/B alto pode indicar sobrevalorização vs. ativos tangíveis.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'ROE',
-    chave: 'roe',
-    peso: 1.2,
-    ajustarComDelta: true,
-    complementar: ['roic', 'dividaEbitda'],
-    explicacaoCustom: ({ valor, valorAnterior }) => {
-      const atual = Number(valor)
-      const anterior = Number(valorAnterior)
-      if (!isNaN(atual) && !isNaN(anterior)) {
-        const delta = atual - anterior
-        if (delta > 5) return `ROE melhorou ${delta.toFixed(1)}pp - pode refletir ciclo favorável de preços.`
-        if (delta < -5) return `ROE deteriorou ${delta.toFixed(1)}pp - pressão de commodities ou custos.`
-      }
-      if (!isNaN(atual)) {
-        if (atual > 15) return 'ROE forte indica gestão eficaz em setor cíclico de materiais.'
-        if (atual < 8) return 'ROE baixo pode refletir ciclo desfavorável ou ineficiências operacionais.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'ROIC',
-    chave: 'roic',
-    peso: 1.3, // Crítico para setor capital-intensivo
-    ajustarComDelta: true,
-    complementar: ['capexRevenue', 'assetTurnover'],
-    explicacaoCustom: ({ valor, valorAnterior }) => {
-      const atual = Number(valor)
-      const anterior = Number(valorAnterior)
-      if (!isNaN(atual) && !isNaN(anterior)) {
-        const delta = atual - anterior
-        if (delta > 3) return `ROIC melhorou ${delta.toFixed(1)}pp - eficiência crescente na alocação de capital.`
-        if (delta < -3) return `ROIC deteriorou ${delta.toFixed(1)}pp - pressão nos retornos do capital.`
-      }
-      if (!isNaN(atual)) {
-        if (atual > 12) return 'ROIC excelente demonstra uso eficiente de capital em setor intensivo.'
-        if (atual < 8) return 'ROIC baixo indica retornos insuficientes vs. custo de capital.'
-      }
-      return ''
-    }
-  },
-
-  // === MARGENS E EFICIÊNCIA ===
-  {
-    label: 'Margem EBITDA',
-    chave: 'margemEbitda',
-    peso: 1.4, // Crítico para basic materials
-    ajustarComDelta: true,
-    complementar: ['margemOperacional', 'roic'],
-    explicacaoCustom: ({ valor, valorAnterior }) => {
-      const atual = Number(valor)
-      const anterior = Number(valorAnterior)
-      if (!isNaN(atual) && !isNaN(anterior)) {
-        const delta = atual - anterior
-        if (delta > 5) return `Margem EBITDA melhorou ${delta.toFixed(1)}pp - controle de custos ou preços favoráveis.`
-        if (delta < -5) return `Margem EBITDA deteriorou ${delta.toFixed(1)}pp - pressão de custos ou preços.`
-      }
-      if (!isNaN(atual)) {
-        if (atual > 25) return 'Margem EBITDA forte indica operações eficientes e pricing power.'
-        if (atual < 15) return 'Margem baixa pode indicar pressão competitiva ou custos elevados.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Margem Bruta',
-    chave: 'margemBruta',
-    peso: 1.1,
-    ajustarComDelta: true,
-    complementar: ['margemEbitda', 'crescimentoReceita'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 35) return 'Margem bruta sólida indica controle de custos diretos eficaz.'
-        if (v < 20) return 'Margem apertada pode limitar flexibilidade em downturns.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Margem Líquida',
-    chave: 'margemLiquida',
-    peso: 1,
-    ajustarComDelta: true,
-    complementar: ['margemEbitda', 'dividaEbitda'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 12) return 'Margem líquida forte demonstra conversão eficiente em lucro final.'
-        if (v < 5) return 'Margem baixa pode indicar alta carga tributária ou custos financeiros.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Margem Operacional',
-    chave: 'margemOperacional',
-    peso: 1.1,
-    ajustarComDelta: true,
-    complementar: ['margemEbitda', 'roic'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 18) return 'Margem operacional forte indica controle eficaz de custos operacionais.'
-        if (v < 8) return 'Margem operacional baixa pode indicar ineficiências ou pressão competitiva.'
-      }
-      return ''
-    }
-  },
-
-  // === ESTRUTURA DE CAPITAL E SOLVÊNCIA ===
-  {
-    label: 'Dívida/EBITDA',
-    chave: 'dividaEbitda',
-    peso: 1.3, // Crítico para setor cíclico
-    ajustarComDelta: true,
-    complementar: ['coberturaJuros', 'freeCashFlow'],
-    explicacaoCustom: ({ valor, valorAnterior }) => {
-      const atual = Number(valor)
-      const anterior = Number(valorAnterior)
-      if (!isNaN(atual) && !isNaN(anterior)) {
-        const delta = atual - anterior
-        if (delta < -0.5) return `Endividamento reduziu ${Math.abs(delta).toFixed(1)}x - fortalecimento financeiro.`
-        if (delta > 0.5) return `Endividamento aumentou ${delta.toFixed(1)}x - pode indicar investimentos ou stress.`
-      }
-      if (!isNaN(atual)) {
-        if (atual < 2.5) return 'Alavancagem conservadora oferece flexibilidade em ciclos baixos.'
-        if (atual > 4) return 'Endividamento elevado pode ser arriscado em setor volátil.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Cobertura de Juros',
-    chave: 'coberturaJuros',
-    peso: 1.2,
-    ajustarComDelta: true,
-    complementar: ['dividaEbitda', 'margemEbitda'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 4) return 'Cobertura robusta oferece segurança financeira em volatilidade.'
-        if (v < 2.5) return 'Cobertura baixa pode indicar stress em cenários adversos.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Liquidez Corrente',
-    chave: 'liquidezCorrente',
-    peso: 1,
-    ajustarComDelta: true,
-    complementar: ['workingCapitalTurnover', 'inventoryTurnover'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 1.5) return 'Liquidez adequada para operações e gestão de inventário.'
-        if (v < 1.2) return 'Liquidez apertada pode limitar flexibilidade operacional.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Dívida/Patrimônio',
-    chave: 'debtEquity',
-    peso: 1.1,
-    ajustarComDelta: true,
-    complementar: ['roe', 'dividaEbitda'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v < 0.6) return 'Estrutura conservadora minimiza riscos financeiros.'
-        if (v > 1.5) return 'Alavancagem alta pode amplificar volatilidade do setor.'
-      }
-      return ''
-    }
-  },
-
-  // === FLUXO DE CAIXA E EFICIÊNCIA DE CAPITAL ===
-  {
-    label: 'Free Cash Flow',
-    chave: 'freeCashFlow',
-    peso: 1.3, // Importante para setor capital-intensivo
-    ajustarComDelta: true,
-    complementar: ['capexRevenue', 'dividendYield'],
-    explicacaoCustom: ({ valor, valorAnterior }) => {
-      const atual = Number(valor)
-      const anterior = Number(valorAnterior)
-      if (!isNaN(atual) && !isNaN(anterior)) {
-        const delta = atual - anterior
-        if (delta > 50000000) return `FCF melhorou significativamente (+${(delta/1000000).toFixed(0)}M). Forte geração de caixa.`
-        if (delta < -50000000) return `FCF deteriorou (${(delta/1000000).toFixed(0)}M). Pode indicar CapEx elevado.`
-      }
-      if (!isNaN(atual)) {
-        if (atual > 0) return 'FCF positivo essencial para sustentar dividendos e crescimento.'
-        if (atual < 0) return 'FCF negativo pode indicar ciclo de investimentos pesados.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'CapEx/Receita',
-    chave: 'capexRevenue',
-    peso: 1.1,
-    ajustarComDelta: true,
-    complementar: ['freeCashFlow', 'roic'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v < 12) return 'CapEx moderado permite maior geração de FCF.'
-        if (v > 20) return 'Investimentos altos podem pressionar caixa no curto prazo.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'FCF Yield',
-    chave: 'fcfYield',
-    peso: 1.1,
-    ajustarComDelta: true,
-    complementar: ['freeCashFlow', 'dividendYield'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 7) return 'FCF Yield atrativo oferece bom retorno vs. valorização.'
-        if (v < 3) return 'Yield baixo pode indicar sobrevalorização ou baixa geração.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Working Capital Turnover',
-    chave: 'workingCapitalTurnover',
-    peso: 1,
-    ajustarComDelta: true,
-    complementar: ['inventoryTurnover', 'liquidezCorrente'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 8) return 'Excelente eficiência na gestão do capital de giro.'
-        if (v < 4) return 'Gestão de capital de giro pode ser otimizada.'
-      }
-      return ''
-    }
-  },
-
-  // === CRESCIMENTO E PERFORMANCE ===
-  {
-    label: 'Crescimento Receita',
-    chave: 'crescimentoReceita',
-    peso: 1,
-    ajustarComDelta: true,
-    complementar: ['crescimentoEbitda', 'margemBruta'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 15) return 'Crescimento forte pode indicar expansão de mercado ou preços favoráveis.'
-        if (v < 0) return 'Crescimento negativo pode refletir ciclo baixo de commodities.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Crescimento EBITDA',
-    chave: 'crescimentoEbitda',
-    peso: 1.1,
-    ajustarComDelta: true,
-    complementar: ['crescimentoReceita', 'margemEbitda'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 20) return 'Crescimento EBITDA forte indica alavancagem operacional positiva.'
-        if (v < -10) return 'Contração do EBITDA pode indicar pressão de custos ou preços.'
-      }
-      return ''
-    }
-  },
-
-  // === DIVIDENDOS E RETORNO ===
-  {
-    label: 'Dividend Yield',
-    chave: 'dividendYield',
-    peso: 1,
-    ajustarComDelta: true,
-    complementar: ['payoutRatio', 'freeCashFlow'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 5) return 'Yield alto atrativo mas deve ser sustentável pelos fundamentais.'
-        if (v < 2) return 'Yield baixo pode indicar foco em reinvestimento ou pressão no caixa.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Payout Ratio',
-    chave: 'payoutRatio',
-    peso: 0.9,
-    ajustarComDelta: true,
-    complementar: ['dividendYield', 'freeCashFlow'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v < 50) return 'Payout conservador oferece sustentabilidade em ciclos baixos.'
-        if (v > 75) return 'Payout alto pode ser arriscado em setor cíclico.'
-      }
-      return ''
-    }
-  },
-
-  // === VOLATILIDADE E AVALIAÇÃO ===
-  {
-    label: 'Beta',
-    chave: 'beta',
-    peso: 0.7,
-    setorSensível: true,
-    complementar: ['dividaEbitda', 'freeCashFlow'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 1.4) return 'Beta alto reflete volatilidade típica de materiais básicos.'
-        if (v < 0.9) return 'Beta baixo pode indicar operações mais defensivas.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Valuation (DCF)',
-    chave: 'leveredDcf',
-    peso: 1,
-    complementar: ['freeCashFlow', 'roic'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 0) return 'DCF positivo indica valor intrínseco calculado para avaliação.'
-        return 'Valor de DCF disponível para comparação com preço de mercado.'
-      }
-      return ''
-    }
-  },
-
-  // === MÉTRICAS ESPECÍFICAS DE BASIC MATERIALS ===
-  {
-    label: 'Inventory Turnover',
-    chave: 'inventoryTurnover',
-    peso: 1.2, // Importante para gestão de inventário
-    ajustarComDelta: true,
-    complementar: ['workingCapitalTurnover', 'liquidezCorrente'],
-    explicacaoCustom: ({ valor, valorAnterior }) => {
-      const atual = Number(valor)
-      const anterior = Number(valorAnterior)
-      if (!isNaN(atual) && !isNaN(anterior)) {
-        const delta = atual - anterior
-        if (delta > 1) return `Giro de inventário melhorou ${delta.toFixed(1)}x - gestão mais eficiente.`
-        if (delta < -1) return `Giro deteriorou ${Math.abs(delta).toFixed(1)}x - pode indicar excesso de estoque.`
-      }
-      if (!isNaN(atual)) {
-        if (atual > 8) return 'Giro alto indica gestão eficiente de inventário e demanda forte.'
-        if (atual < 4) return 'Giro baixo pode indicar excesso de estoque ou demanda fraca.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Asset Turnover',
-    chave: 'assetTurnover',
-    peso: 1.1,
-    ajustarComDelta: true,
-    complementar: ['roic', 'capexRevenue'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 1.2) return 'Giro de ativos forte indica uso eficiente da base de ativos.'
-        if (v < 0.8) return 'Giro baixo pode indicar ativos subutilizados ou overcapacity.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Capacity Utilization',
-    chave: 'capacityUtilization',
-    peso: 1.2, // Crítico para basic materials
-    ajustarComDelta: true,
-    complementar: ['margemEbitda', 'crescimentoReceita'],
-    explicacaoCustom: ({ valor, valorAnterior }) => {
-      const atual = Number(valor)
-      const anterior = Number(valorAnterior)
-      if (!isNaN(atual) && !isNaN(anterior)) {
-        const delta = atual - anterior
-        if (delta > 5) return `Utilização aumentou ${delta.toFixed(1)}pp - demanda crescente ou otimização.`
-        if (delta < -5) return `Utilização reduziu ${Math.abs(delta).toFixed(1)}pp - pode indicar demanda fraca.`
-      }
-      if (!isNaN(atual)) {
-        if (atual > 85) return 'Alta utilização indica demanda forte e operações otimizadas.'
-        if (atual < 70) return 'Baixa utilização pode indicar overcapacity ou demanda fraca.'
-      }
-      return ''
-    }
-  },
-
-  // === MÉTRICAS CALCULADAS ===
-  {
-    label: 'Eficiência Operacional',
-    chave: 'eficienciaOperacional',
-    peso: 1.2,
-    complementar: ['margemEbitda', 'roic'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 85) return 'Excelente eficiência operacional com controle de custos rigoroso.'
-        if (v < 60) return 'Oportunidades significativas de melhoria na eficiência operacional.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Gestão de Capital',
-    chave: 'gestaoCapital',
-    peso: 1.3,
-    complementar: ['inventoryTurnover', 'dividaEbitda'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 90) return 'Excelente gestão de capital com giro eficiente e estrutura sólida.'
-        if (v < 65) return 'Gestão de capital pode ser otimizada para melhor eficiência.'
-      }
-      return ''
-    }
-  },
-  {
-    label: 'Geração de Valor',
-    chave: 'geracaoValor',
-    peso: 1.3,
-    complementar: ['freeCashFlow', 'roic'],
-    explicacaoCustom: ({ valor }) => {
-      const v = Number(valor)
-      if (!isNaN(v)) {
-        if (v > 80) return 'Excelente geração de valor com FCF positivo e retornos sólidos.'
-        if (v < 55) return 'Geração de valor limitada pode comprometer sustentabilidade.'
       }
       return ''
     }
@@ -3106,6 +1242,1071 @@ export const indicadoresMetaConsumerDefensive: IndicadorMeta[] = [
       if (!isNaN(v)) {
         if (v > 80) return 'Excelente sustentabilidade de dividendos com payout conservador.'
         if (v < 60) return 'Sustentabilidade questionável pode comprometer dividendos futuros.'
+      }
+      return ''
+    }
+  },
+]
+export const indicadoresMetaFinancials: IndicadorMeta[] = [
+  // === RENTABILIDADE E EFICIÊNCIA ===
+  {
+    label: 'ROE',
+    chave: 'roe',
+    peso: 1.4, // Muito importante para bancos
+    ajustarComDelta: true,
+    complementar: ['alavancagem', 'pvpa'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 18) return 'ROE excelente indica gestão muito eficaz do patrimônio e alavancagem otimizada.'
+        if (v < 10) return 'ROE baixo pode indicar ineficiências operacionais ou ambiente regulatório restritivo.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Eficiência',
+    chave: 'eficiencia',
+    peso: 1.3,
+    ajustarComDelta: true,
+    complementar: ['roe', 'nim'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v < 45) return 'Eficiência excelente indica controle rigoroso de custos operacionais.'
+        if (v > 65) return 'Eficiência baixa sugere estrutura de custos elevada ou baixa produtividade.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'NIM',
+    chave: 'nim',
+    peso: 1.2,
+    ajustarComDelta: true,
+    complementar: ['ldr', 'custoCredito'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 4.5) return 'Margem financeira forte indica pricing power e mix de produtos favorável.'
+        if (v < 3) return 'Margem baixa pode indicar pressão competitiva ou ambiente de juros desfavorável.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'ROA',
+    chave: 'roa',
+    peso: 1.1,
+    ajustarComDelta: true,
+    complementar: ['roe', 'alavancagem'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 1.5) return 'ROA alto indica gestão muito eficiente dos ativos do banco.'
+        if (v < 0.8) return 'ROA baixo sugere baixa produtividade dos ativos ou problemas operacionais.'
+      }
+      return ''
+    }
+  },
+
+  // === SOLIDEZ E CAPITALIZAÇÃO ===
+  {
+    label: 'Basileia',
+    chave: 'basileia',
+    peso: 1.3,
+    ajustarComDelta: true,
+    complementar: ['tier1', 'alavancagem'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 14) return 'Índice forte proporciona margem robusta acima do mínimo regulatório.'
+        if (v < 11.5) return 'Próximo ao mínimo regulatório, limitando flexibilidade para crescimento.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Tier 1',
+    chave: 'tier1',
+    peso: 1.2,
+    ajustarComDelta: true,
+    complementar: ['basileia', 'crescimentoCarteira'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 12) return 'Capital principal robusto oferece excelente capacidade de absorção de perdas.'
+        if (v < 9.5) return 'Capital principal próximo ao mínimo pode restringir crescimento.'
+      }
+      return ''
+    }
+  },
+
+  // === ESTRUTURA DE CAPITAL E RISCO ===
+  {
+    label: 'Alavancagem',
+    chave: 'alavancagem',
+    peso: 1.1,
+    ajustarComDelta: true,
+    complementar: ['roe', 'basileia'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 12) return 'Alavancagem alta amplifica retornos mas aumenta risco sistêmico.'
+        if (v < 8) return 'Alavancagem conservadora pode limitar ROE mas oferece maior segurança.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Liquidez',
+    chave: 'liquidez',
+    peso: 1,
+    ajustarComDelta: true,
+    complementar: ['ldr', 'beta'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 1.8) return 'Liquidez alta oferece segurança mas pode indicar ativos ociosos.'
+        if (v < 1.2) return 'Liquidez baixa pode indicar gestão agressiva ou problemas de funding.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Inadimplência',
+    chave: 'inadimplencia',
+    peso: 1.4, // Crítico para bancos
+    ajustarComDelta: true,
+    complementar: ['cobertura', 'custoCredito'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v < 2) return 'Taxa baixa indica excelente qualidade da carteira e políticas de crédito rigorosas.'
+        if (v > 4) return 'Taxa elevada sugere deterioração da qualidade de crédito ou ciclo econômico adverso.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Cobertura',
+    chave: 'cobertura',
+    peso: 1.2,
+    ajustarComDelta: true,
+    complementar: ['inadimplencia', 'qualidadeCredito'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 150) return 'Cobertura robusta oferece proteção excelente contra perdas de crédito.'
+        if (v < 100) return 'Cobertura insuficiente pode expor o banco a perdas em cenários adversos.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Custo do Crédito',
+    chave: 'custoCredito',
+    peso: 1.1,
+    ajustarComDelta: true,
+    complementar: ['inadimplencia', 'nim'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v < 1.5) return 'Custo baixo indica políticas de crédito conservadoras e boa seleção de clientes.'
+        if (v > 3) return 'Custo elevado pode pressionar margens e indicar problemas na carteira.'
+      }
+      return ''
+    }
+  },
+
+  // === MÚLTIPLOS DE AVALIAÇÃO ===
+  {
+    label: 'P/L',
+    chave: 'pl',
+    peso: 0.9,
+    complementar: ['roe', 'dividendYield'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v < 8) return 'P/L baixo pode indicar oportunidade ou expectativas de deterioração.'
+        if (v > 18) return 'P/L alto pode indicar sobrevalorização para o setor bancário.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'P/VPA',
+    chave: 'pvpa',
+    peso: 1.1, // Importante para bancos
+    complementar: ['roe', 'basileia'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v < 1) return 'P/VPA baixo pode indicar oportunidade ou problemas fundamentais.'
+        if (v > 2.5) return 'P/VPA alto pode indicar sobrevalorização vs. valor contábil.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Valuation (DCF)',
+    chave: 'leveredDcf',
+    peso: 1,
+    complementar: ['roe', 'crescimentoCarteira'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 0) return 'DCF positivo indica valor intrínseco calculado para avaliação.'
+        return 'Valor de DCF disponível para comparação com preço de mercado.'
+      }
+      return ''
+    }
+  },
+
+  // === DIVIDENDOS E RETORNO ===
+  {
+    label: 'Dividend Yield',
+    chave: 'dividendYield',
+    peso: 0.9,
+    ajustarComDelta: true,
+    complementar: ['payoutRatio', 'roe'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 6) return 'Yield alto pode indicar stress ou distribuição insustentável.'
+        if (v < 2) return 'Yield baixo pode indicar foco em crescimento ou retenção de capital.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Payout Ratio',
+    chave: 'payoutRatio',
+    peso: 0.8,
+    ajustarComDelta: true,
+    complementar: ['dividendYield', 'basileia'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 70) return 'Payout alto pode comprometer capacidade de reforçar capital.'
+        if (v < 30) return 'Payout baixo oferece flexibilidade para crescimento e fortalecimento patrimonial.'
+      }
+      return ''
+    }
+  },
+
+  // === MÉTRICAS ESPECÍFICAS BANCÁRIAS ===
+  {
+    label: 'LDR',
+    chave: 'ldr',
+    peso: 1.1,
+    ajustarComDelta: true,
+    complementar: ['nim', 'liquidez'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 95) return 'LDR muito alto pode indicar pressão de liquidez ou funding.'
+        if (v < 70) return 'LDR baixo pode indicar recursos ociosos ou oportunidades perdidas.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Beta',
+    chave: 'beta',
+    peso: 0.7,
+    complementar: ['alavancagem', 'basileia'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 1.8) return 'Beta alto indica maior sensibilidade a ciclos econômicos e stress financeiro.'
+        if (v < 0.8) return 'Beta baixo sugere maior estabilidade vs. mercado.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Crescimento Carteira',
+    chave: 'crescimentoCarteira',
+    peso: 1,
+    ajustarComDelta: true,
+    complementar: ['basileia', 'custoCredito'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 20) return 'Crescimento acelerado pode pressionar capital e qualidade de crédito.'
+        if (v < 5) return 'Crescimento baixo pode indicar ambiente competitivo ou políticas restritivas.'
+      }
+      return ''
+    }
+  },
+
+  // === MÉTRICAS CALCULADAS ===
+  {
+    label: 'Qualidade de Crédito',
+    chave: 'qualidadeCredito',
+    peso: 1.2,
+    complementar: ['inadimplencia', 'cobertura'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 85) return 'Score excelente indica carteira de alta qualidade com risco controlado.'
+        if (v < 60) return 'Score baixo sugere necessidade de aprimoramento nas políticas de crédito.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Solidez Patrimonial',
+    chave: 'solidezPatrimonial',
+    peso: 1.1,
+    complementar: ['roe', 'basileia'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 90) return 'Excelente combinação de rentabilidade e capitalização robusta.'
+        if (v < 65) return 'Solidez limitada pode restringir flexibilidade em cenários adversos.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Eficiência Ajustada',
+    chave: 'eficienciaAjustada',
+    peso: 1,
+    complementar: ['eficiencia', 'roe'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 80) return 'Gestão operacional muito eficiente com controle rigoroso de custos.'
+        if (v < 55) return 'Oportunidades significativas de melhoria na eficiência operacional.'
+      }
+      return ''
+    }
+  },
+]
+export const indicadoresMetaIndustrials: IndicadorMeta[] = [
+  // === RENTABILIDADE E EFICIÊNCIA ===
+  {
+    label: 'Margem EBITDA',
+    chave: 'margemEbitda',
+    peso: 1.3,
+    ajustarComDelta: true,
+    complementar: ['alavancagem', 'roic'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 20) return 'Margem EBITDA forte indica eficiência operacional excelente.'
+        if (v < 10) return 'Margem EBITDA baixa pode indicar pressão competitiva ou ineficiências.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'ROIC',
+    chave: 'roic',
+    peso: 1.4, // Muito importante para industrials
+    ajustarComDelta: true,
+    complementar: ['giroAtivo', 'alavancagem'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 15) return 'ROIC excelente indica alocação de capital muito eficiente.'
+        if (v < 8) return 'ROIC baixo sugere dificuldades na geração de retorno sobre o capital.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'ROE',
+    chave: 'roe',
+    peso: 1.1,
+    ajustarComDelta: true,
+    complementar: ['pb', 'alavancagem'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 18) return 'ROE alto pode indicar uso eficaz de alavancagem financeira.'
+        if (v < 10) return 'ROE baixo pode refletir ciclo industrial ou gestão ineficiente.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Margem Líquida',
+    chave: 'margemLiquida',
+    peso: 1,
+    ajustarComDelta: true,
+    complementar: ['ps', 'roe'],
+  },
+
+  // === ESTRUTURA FINANCEIRA ===
+  {
+    label: 'Alavancagem Financeira',
+    chave: 'alavancagem',
+    peso: 1.2,
+    ajustarComDelta: true,
+    complementar: ['coberturaJuros', 'roic'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 4) return 'Alavancagem alta aumenta risco financeiro, especialmente em ciclos econômicos.'
+        if (v < 1.5) return 'Alavancagem conservadora pode limitar crescimento mas reduz risco.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Cobertura de Juros',
+    chave: 'coberturaJuros',
+    peso: 1.3,
+    ajustarComDelta: true,
+    complementar: ['alavancagem', 'margemEbitda'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 5) return 'Cobertura forte proporciona segurança financeira sólida.'
+        if (v < 2.5) return 'Cobertura baixa aumenta risco de stress financeiro em ciclos difíceis.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Liquidez Corrente',
+    chave: 'liquidezCorrente',
+    peso: 1,
+    ajustarComDelta: true,
+    complementar: ['rotatividadeEstoques'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 2.5) return 'Liquidez alta pode indicar gestão conservadora ou capital mal alocado.'
+        if (v < 1.2) return 'Liquidez baixa pode indicar dificuldades de capital de giro.'
+      }
+      return ''
+    }
+  },
+
+  // === EFICIÊNCIA OPERACIONAL ===
+  {
+    label: 'Rotatividade de Estoques',
+    chave: 'rotatividadeEstoques',
+    peso: 1.2, // Importante para industrials
+    ajustarComDelta: true,
+    complementar: ['margemEbitda', 'giroAtivo'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 8) return 'Rotatividade alta indica gestão eficiente de estoques e demanda forte.'
+        if (v < 4) return 'Rotatividade baixa pode indicar estoques obsoletos ou demanda fraca.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Giro do Ativo',
+    chave: 'giroAtivo',
+    peso: 1.1,
+    ajustarComDelta: true,
+    complementar: ['roic', 'rotatividadeEstoques'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 1.5) return 'Giro alto indica uso muito eficiente dos ativos produtivos.'
+        if (v < 0.8) return 'Giro baixo pode indicar sobrecapacidade ou ativos subutilizados.'
+      }
+      return ''
+    }
+  },
+
+  // === MÚLTIPLOS DE VALUATION ===
+  {
+    label: 'P/L',
+    chave: 'pe',
+    peso: 1,
+    complementar: ['peg', 'dividendYield'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v < 10) return 'P/L baixo pode indicar oportunidade ou expectativas pessimistas.'
+        if (v > 25) return 'P/L alto pode indicar sobrevalorização ou crescimento esperado.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'P/VPA',
+    chave: 'pb',
+    peso: 0.9,
+    complementar: ['roe', 'roic'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v < 1) return 'P/VPA abaixo de 1 pode indicar oportunidade ou problemas estruturais.'
+        if (v > 4) return 'P/VPA alto pode indicar sobrevalorização para empresa industrial.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'P/S',
+    chave: 'ps',
+    peso: 0.8,
+    complementar: ['margemLiquida'],
+  },
+  {
+    label: 'PEG',
+    chave: 'peg',
+    peso: 1.1,
+    complementar: ['pe'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v < 0.8) return 'PEG baixo sugere oportunidade de valorização considerando o crescimento.'
+        if (v > 2) return 'PEG alto pode indicar sobrevalorização vs. crescimento esperado.'
+      }
+      return ''
+    }
+  },
+
+  // === DIVIDENDOS E RISCO ===
+  {
+    label: 'Dividend Yield',
+    chave: 'dividendYield',
+    peso: 0.9,
+    ajustarComDelta: true,
+    complementar: ['coberturaJuros', 'fcf'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 5) return 'Yield alto pode indicar stress financeiro ou ciclo industrial baixo.'
+        if (v < 1.5) return 'Yield baixo pode indicar foco em crescimento ou sobrevalorização.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Beta',
+    chave: 'beta',
+    peso: 0.7,
+    complementar: ['alavancagem', 'roic'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 1.8) return 'Beta alto indica alta volatilidade e sensibilidade ao ciclo econômico.'
+        if (v < 0.6) return 'Beta baixo indica estabilidade relativa ao mercado.'
+      }
+      return ''
+    }
+  },
+
+  // === FLUXO DE CAIXA ===
+  {
+    label: 'Free Cash Flow',
+    chave: 'fcf',
+    peso: 1.2,
+    ajustarComDelta: true,
+    complementar: ['dividendYield', 'alavancagem'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 0) return 'FCF positivo indica geração de caixa após investimentos necessários.'
+        if (v < 0) return 'FCF negativo pode indicar fase de investimento intenso ou problemas operacionais.'
+      }
+      return ''
+    }
+  },
+
+  // === MÉTRICAS CALCULADAS ESPECÍFICAS ===
+  {
+    label: 'Eficiência Operacional',
+    chave: 'eficienciaOperacional',
+    peso: 1,
+    complementar: ['rotatividadeEstoques', 'giroAtivo'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 80) return 'Excelente eficiência operacional com gestão otimizada.'
+        if (v < 60) return 'Oportunidades de melhoria na eficiência operacional.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Qualidade dos Ativos',
+    chave: 'qualidadeAtivos',
+    peso: 1.1,
+    complementar: ['roic', 'giroAtivo'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 85) return 'Ativos de alta qualidade com excelente produtividade.'
+        if (v < 65) return 'Qualidade dos ativos pode estar comprometida.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Ciclo Operacional',
+    chave: 'cicloOperacional',
+    peso: 1,
+    complementar: ['rotatividadeEstoques', 'liquidezCorrente'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v < 45) return 'Ciclo operacional excelente, liberando caixa rapidamente.'
+        if (v > 90) return 'Ciclo longo pode pressionar necessidades de capital de giro.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Alavancagem Operacional',
+    chave: 'alavancagemOperacional',
+    peso: 1,
+    complementar: ['margemEbitda', 'alavancagem'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 80) return 'Excelente alavancagem operacional com margens fortes.'
+        if (v < 60) return 'Alavancagem operacional pode ser otimizada.'
+      }
+      return ''
+    }
+  },
+]
+export const indicadoresMetaEnergy: IndicadorMeta[] = [
+  // === RENTABILIDADE E RETORNO ===
+  {
+    label: 'P/L',
+    chave: 'pe',
+    peso: 0.9,
+    complementar: ['roe', 'dividendYield'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v < 8) return 'P/L baixo pode indicar oportunidade ou expectativas de queda nos preços de commodities.'
+        if (v > 18) return 'P/L alto pode indicar sobrevalorização em setor cíclico como energia.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'P/VPA',
+    chave: 'pb',
+    peso: 0.8,
+    complementar: ['roe', 'roic'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v < 1) return 'P/VPA baixo pode indicar assets undervalued ou deterioração de reservas.'
+        if (v > 2) return 'P/VPA alto pode indicar sobrevalorização vs. ativos tangíveis.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'ROE',
+    chave: 'roe',
+    peso: 1.2,
+    ajustarComDelta: true,
+    complementar: ['roic', 'dividaEbitda'],
+    explicacaoCustom: ({ valor, valorAnterior }) => {
+      const atual = Number(valor)
+      const anterior = Number(valorAnterior)
+      if (!isNaN(atual) && !isNaN(anterior)) {
+        const delta = atual - anterior
+        if (delta > 5) return `ROE melhorou ${delta.toFixed(1)}pp - pode refletir ambiente de preços favorável.`
+        if (delta < -5) return `ROE deteriorou ${delta.toFixed(1)}pp - pode indicar pressão de commodities.`
+      }
+      if (!isNaN(atual)) {
+        if (atual > 15) return 'ROE forte indica gestão eficaz em ambiente de commodities voláteis.'
+        if (atual < 8) return 'ROE baixo pode refletir ambiente de preços desfavorável ou ineficiências.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'ROIC',
+    chave: 'roic',
+    peso: 1.3, // Muito importante para capital intensivo
+    ajustarComDelta: true,
+    complementar: ['capexRevenue', 'freeCashFlow'],
+    explicacaoCustom: ({ valor, valorAnterior }) => {
+      const atual = Number(valor)
+      const anterior = Number(valorAnterior)
+      if (!isNaN(atual) && !isNaN(anterior)) {
+        const delta = atual - anterior
+        if (delta > 3) return `ROIC melhorou ${delta.toFixed(1)}pp - indica eficiência crescente na alocação de capital.`
+        if (delta < -3) return `ROIC deteriorou ${delta.toFixed(1)}pp - pode indicar pressão nos retornos.`
+      }
+      if (!isNaN(atual)) {
+        if (atual > 12) return 'ROIC excelente demonstra alocação eficiente de capital em setor intensivo.'
+        if (atual < 8) return 'ROIC baixo indica retornos insuficientes vs. custo de capital.'
+      }
+      return ''
+    }
+  },
+
+  // === MARGENS E EFICIÊNCIA ===
+  {
+    label: 'Margem EBITDA',
+    chave: 'margemEbitda',
+    peso: 1.4, // Crítico para energia
+    ajustarComDelta: true,
+    complementar: ['custoProducao', 'roic'],
+    explicacaoCustom: ({ valor, valorAnterior }) => {
+      const atual = Number(valor)
+      const anterior = Number(valorAnterior)
+      if (!isNaN(atual) && !isNaN(anterior)) {
+        const delta = atual - anterior
+        if (delta > 5) return `Margem EBITDA melhorou ${delta.toFixed(1)}pp - indica controle de custos ou preços favoráveis.`
+        if (delta < -5) return `Margem EBITDA deteriorou ${delta.toFixed(1)}pp - pressão de custos ou preços.`
+      }
+      if (!isNaN(atual)) {
+        if (atual > 30) return 'Margem EBITDA forte indica controle de custos e pricing power.'
+        if (atual < 20) return 'Margem baixa pode indicar pressão de custos ou preços desfavoráveis.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Margem Bruta',
+    chave: 'margemBruta',
+    peso: 1.1,
+    ajustarComDelta: true,
+    complementar: ['margemEbitda', 'custoProducao'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 40) return 'Margem bruta sólida indica estrutura de custos competitiva.'
+        if (v < 25) return 'Margem apertada pode limitar flexibilidade em downturns.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Margem Líquida',
+    chave: 'margemLiquida',
+    peso: 1,
+    ajustarComDelta: true,
+    complementar: ['margemEbitda', 'dividaEbitda'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 15) return 'Margem líquida forte demonstra conversão eficiente de receita em lucro.'
+        if (v < 5) return 'Margem baixa pode indicar alta carga tributária ou custos financeiros.'
+      }
+      return ''
+    }
+  },
+
+  // === ESTRUTURA DE CAPITAL E SOLVÊNCIA ===
+  {
+    label: 'Endividamento',
+    chave: 'dividaEbitda',
+    peso: 1.3, // Crítico para setor cíclico
+    ajustarComDelta: true,
+    complementar: ['coberturaJuros', 'freeCashFlow'],
+    explicacaoCustom: ({ valor, valorAnterior }) => {
+      const atual = Number(valor)
+      const anterior = Number(valorAnterior)
+      if (!isNaN(atual) && !isNaN(anterior)) {
+        const delta = atual - anterior
+        if (delta < -0.5) return `Endividamento reduziu ${Math.abs(delta).toFixed(1)}x - fortalecimento da estrutura financeira.`
+        if (delta > 0.5) return `Endividamento aumentou ${delta.toFixed(1)}x - pode indicar novos investimentos ou stress.`
+      }
+      if (!isNaN(atual)) {
+        if (atual < 2) return 'Alavancagem conservadora oferece flexibilidade em ciclos baixos.'
+        if (atual > 3) return 'Endividamento elevado pode ser arriscado em setor volátil.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Cobertura de Juros',
+    chave: 'coberturaJuros',
+    peso: 1.2,
+    ajustarComDelta: true,
+    complementar: ['dividaEbitda', 'margemEbitda'],
+    explicacaoCustom: ({ valor, valorAnterior }) => {
+      const atual = Number(valor)
+      const anterior = Number(valorAnterior)
+      if (!isNaN(atual) && !isNaN(anterior)) {
+        const delta = atual - anterior
+        if (delta > 1) return `Cobertura melhorou ${delta.toFixed(1)}x - maior segurança financeira.`
+        if (delta < -1) return `Cobertura deteriorou ${Math.abs(delta).toFixed(1)}x - pode indicar pressão de EBITDA.`
+      }
+      if (!isNaN(atual)) {
+        if (atual > 5) return 'Cobertura robusta oferece segurança mesmo em cenários adversos.'
+        if (atual < 3) return 'Cobertura baixa pode indicar stress financeiro em downturns.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Liquidez Corrente',
+    chave: 'liquidezCorrente',
+    peso: 1,
+    ajustarComDelta: true,
+    complementar: ['freeCashFlow', 'dividaEbitda'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 1.5) return 'Liquidez adequada para operações e investimentos de curto prazo.'
+        if (v < 1.2) return 'Liquidez apertada pode limitar flexibilidade operacional.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Dívida/Patrimônio',
+    chave: 'debtEquity',
+    peso: 1.1,
+    ajustarComDelta: true,
+    complementar: ['roe', 'dividaEbitda'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v < 0.5) return 'Estrutura conservadora minimiza riscos financeiros.'
+        if (v > 1.2) return 'Alavancagem alta pode amplificar volatilidade do setor.'
+      }
+      return ''
+    }
+  },
+
+  // === FLUXO DE CAIXA E INVESTIMENTOS ===
+  {
+    label: 'Fluxo de Caixa Livre',
+    chave: 'freeCashFlow',
+    peso: 1.4, // Crítico para energia
+    ajustarComDelta: true,
+    complementar: ['capexRevenue', 'dividendYield'],
+    explicacaoCustom: ({ valor, valorAnterior }) => {
+      const atual = Number(valor)
+      const anterior = Number(valorAnterior)
+      if (!isNaN(atual) && !isNaN(anterior)) {
+        const delta = atual - anterior
+        if (delta > 100000000) return `FCF melhorou significativamente (+${(delta/1000000).toFixed(0)}M). Excelente geração de caixa.`
+        if (delta < -100000000) return `FCF deteriorou (${(delta/1000000).toFixed(0)}M). Pode indicar CapEx elevado ou pressão operacional.`
+      }
+      if (!isNaN(atual)) {
+        if (atual > 0) return 'FCF positivo essencial para sustentar dividendos e reduzir dívida.'
+        if (atual < 0) return 'FCF negativo indica necessidade de financiamento externo.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'CapEx/Receita',
+    chave: 'capexRevenue',
+    peso: 1.1,
+    ajustarComDelta: true,
+    complementar: ['freeCashFlow', 'roic'],
+    explicacaoCustom: ({ valor, valorAnterior }) => {
+      const atual = Number(valor)
+      const anterior = Number(valorAnterior)
+      if (!isNaN(atual) && !isNaN(anterior)) {
+        const delta = atual - anterior
+        if (delta > 5) return `CapEx aumentou ${delta.toFixed(1)}pp - pode indicar ciclo de investimentos.`
+        if (delta < -5) return `CapEx reduziu ${Math.abs(delta).toFixed(1)}pp - pode liberar mais FCF.`
+      }
+      if (!isNaN(atual)) {
+        if (atual < 15) return 'CapEx moderado permite maior geração de caixa livre.'
+        if (atual > 25) return 'Investimentos altos podem pressionar fluxo de caixa no curto prazo.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'FCF Yield',
+    chave: 'fcfYield',
+    peso: 1.2,
+    ajustarComDelta: true,
+    complementar: ['freeCashFlow', 'dividendYield'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 8) return 'FCF Yield alto oferece retorno atrativo vs. valorização.'
+        if (v < 4) return 'Yield baixo pode indicar sobrevalorização ou baixa geração de caixa.'
+      }
+      return ''
+    }
+  },
+
+  // === DIVIDENDOS E RETORNO ===
+  {
+    label: 'Dividend Yield',
+    chave: 'dividendYield',
+    peso: 1.1,
+    ajustarComDelta: true,
+    complementar: ['payoutRatio', 'freeCashFlow'],
+    explicacaoCustom: ({ valor, valorAnterior }) => {
+      const atual = Number(valor)
+      const anterior = Number(valorAnterior)
+      if (!isNaN(atual) && !isNaN(anterior)) {
+        const delta = atual - anterior
+        if (delta > 1) return `Dividend Yield aumentou ${delta.toFixed(1)}pp - pode indicar aumento de dividendos ou queda de preço.`
+        if (delta < -1) return `Dividend Yield reduziu ${Math.abs(delta).toFixed(1)}pp - pode indicar corte ou valorização.`
+      }
+      if (!isNaN(atual)) {
+        if (atual > 6) return 'Yield alto atrativo mas deve ser sustentável pelo FCF.'
+        if (atual < 3) return 'Yield baixo pode indicar foco em crescimento ou pressão no caixa.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Payout Ratio',
+    chave: 'payoutRatio',
+    peso: 1,
+    ajustarComDelta: true,
+    complementar: ['dividendYield', 'freeCashFlow'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v < 60) return 'Payout conservador oferece sustentabilidade em ciclos baixos.'
+        if (v > 80) return 'Payout alto pode ser insustentável em downturn de commodities.'
+      }
+      return ''
+    }
+  },
+
+  // === VOLATILIDADE E AVALIAÇÃO ===
+  {
+    label: 'Beta',
+    chave: 'beta',
+    peso: 0.7,
+    setorSensível: true,
+    complementar: ['dividaEbitda', 'freeCashFlow'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 1.5) return 'Beta alto reflete volatilidade típica do setor de energia.'
+        if (v < 0.8) return 'Beta baixo pode indicar operações mais estáveis ou defensivas.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Levered DCF',
+    chave: 'leveredDcf',
+    peso: 1,
+    complementar: ['freeCashFlow', 'roic'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 0) return 'DCF positivo indica valor intrínseco calculado para avaliação.'
+        return 'Valor de DCF disponível para comparação com preço de mercado.'
+      }
+      return ''
+    }
+  },
+
+  // === MÉTRICAS ESPECÍFICAS DE ENERGIA ===
+  {
+    label: 'Reservas Provadas',
+    chave: 'reservasProvadas',
+    peso: 1.2,
+    ajustarComDelta: true,
+    complementar: ['custoProducao', 'capexRevenue'],
+    explicacaoCustom: ({ valor, valorAnterior }) => {
+      const atual = Number(valor)
+      const anterior = Number(valorAnterior)
+      if (!isNaN(atual) && !isNaN(anterior)) {
+        const delta = ((atual - anterior) / anterior) * 100
+        if (delta > 10) return `Reservas aumentaram ${delta.toFixed(1)}% - expansão da base de recursos.`
+        if (delta < -10) return `Reservas reduziram ${Math.abs(delta).toFixed(1)}% - pode indicar depleção ou reclassificação.`
+      }
+      if (!isNaN(atual)) {
+        if (atual > 0) return 'Reservas provadas garantem sustentabilidade operacional de longo prazo.'
+        return 'Acompanhamento das reservas essencial para avaliação de energia.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Custo de Produção',
+    chave: 'custoProducao',
+    peso: 1.3, // Crítico para competitividade
+    ajustarComDelta: true,
+    complementar: ['margemEbitda', 'breakEvenPrice'],
+    explicacaoCustom: ({ valor, valorAnterior }) => {
+      const atual = Number(valor)
+      const anterior = Number(valorAnterior)
+      if (!isNaN(atual) && !isNaN(anterior)) {
+        const delta = atual - anterior
+        if (delta < -5) return `Custo reduziu $${Math.abs(delta).toFixed(2)}/barril - melhoria na eficiência operacional.`
+        if (delta > 5) return `Custo aumentou $${delta.toFixed(2)}/barril - pode pressionar margens.`
+      }
+      if (!isNaN(atual)) {
+        if (atual < 40) return 'Custo baixo oferece vantagem competitiva e margens robustas.'
+        if (atual > 70) return 'Custo alto pode pressionar rentabilidade em cenários de preços baixos.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Break-even Price',
+    chave: 'breakEvenPrice',
+    peso: 1.4, // Crítico para viabilidade
+    ajustarComDelta: true,
+    complementar: ['custoProducao', 'margemEbitda'],
+    explicacaoCustom: ({ valor, valorAnterior }) => {
+      const atual = Number(valor)
+      const anterior = Number(valorAnterior)
+      if (!isNaN(atual) && !isNaN(anterior)) {
+        const delta = atual - anterior
+        if (delta < -5) return `Break-even melhorou $${Math.abs(delta).toFixed(2)}/barril - maior competitividade.`
+        if (delta > 5) return `Break-even deteriorou $${delta.toFixed(2)}/barril - pode indicar pressão de custos.`
+      }
+      if (!isNaN(atual)) {
+        if (atual < 50) return 'Break-even baixo oferece segurança em diversos cenários de preços.'
+        if (atual > 80) return 'Break-even alto indica vulnerabilidade a quedas de commodities.'
+      }
+      return ''
+    }
+  },
+
+  // === MÉTRICAS CALCULADAS ===
+  {
+    label: 'Eficiência Operacional',
+    chave: 'eficienciaOperacional',
+    peso: 1.2,
+    complementar: ['margemEbitda', 'roic'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 85) return 'Excelente eficiência operacional com controle de custos rigoroso.'
+        if (v < 60) return 'Oportunidades significativas de melhoria na eficiência operacional.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Solidez Financeira',
+    chave: 'solidezFinanceira',
+    peso: 1.3,
+    complementar: ['dividaEbitda', 'coberturaJuros'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 90) return 'Estrutura financeira muito sólida para navegar volatilidade do setor.'
+        if (v < 65) return 'Solidez limitada pode ser arriscada em ciclos baixos de commodities.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Geração de Caixa',
+    chave: 'geracaoCaixa',
+    peso: 1.4, // Crítico para sustentabilidade
+    complementar: ['freeCashFlow', 'dividendYield'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 80) return 'Excelente geração de caixa sustenta dividendos e redução de dívida.'
+        if (v < 55) return 'Geração fraca pode comprometer dividendos e flexibilidade financeira.'
       }
       return ''
     }
@@ -3730,6 +2931,740 @@ export const indicadoresMetaConsumerCyclical: IndicadorMeta[] = [
     }
   },
 ]
+export const indicadoresMetaUtilities: IndicadorMeta[] = [
+  // === MÚLTIPLOS DE VALUATION ===
+  {
+    label: 'P/L',
+    chave: 'pl',
+    peso: 1,
+    complementar: ['earningsYield', 'dividendYield'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v < 12) return 'P/L baixo para utility pode indicar oportunidade ou problemas regulatórios.'
+        if (v > 25) return 'P/L alto pode indicar expectations de crescimento ou mercado sobreaquecido.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'P/VPA',
+    chave: 'pb',
+    peso: 0.8,
+    complementar: ['roe', 'roic'],
+  },
+  {
+    label: 'P/S',
+    chave: 'ps',
+    peso: 0.7,
+    complementar: ['margemLiquida', 'crescimentoReceita'],
+  },
+  {
+    label: 'Earnings Yield',
+    chave: 'earningsYield',
+    peso: 0.9,
+    complementar: ['pl', 'dividendYield'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 8) return 'Earnings yield alto sugere utility subvalorizada ou riscos elevados.'
+        if (v < 4) return 'Earnings yield baixo pode indicar sobrevalorização.'
+      }
+      return ''
+    }
+  },
+
+  // === RENTABILIDADE ===
+  {
+    label: 'ROE',
+    chave: 'roe',
+    peso: 1.2,
+    ajustarComDelta: true,
+    complementar: ['endividamento', 'pb'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 15) return 'ROE alto para utility indica gestão eficiente do capital.'
+        if (v < 8) return 'ROE baixo pode refletir ambiente regulatório restritivo.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'ROIC',
+    chave: 'roic',
+    peso: 1.3,
+    ajustarComDelta: true,
+    complementar: ['capexOverRevenue', 'giroAtivo'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 10) return 'ROIC sólido indica eficiência na alocação de capital em infraestrutura.'
+        if (v < 5) return 'ROIC baixo pode indicar regulamentação restritiva ou investimentos ineficientes.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Margem EBITDA',
+    chave: 'margemEbitda',
+    peso: 1.1,
+    ajustarComDelta: true,
+    complementar: ['margemOperacional', 'endividamento'],
+  },
+  {
+    label: 'Margem Operacional',
+    chave: 'margemOperacional',
+    peso: 1,
+    ajustarComDelta: true,
+    complementar: ['margemEbitda', 'capexOverRevenue'],
+  },
+  {
+    label: 'Margem Líquida',
+    chave: 'margemLiquida',
+    peso: 1,
+    ajustarComDelta: true,
+    complementar: ['ps', 'roe'],
+  },
+
+  // === DIVIDENDOS E DISTRIBUIÇÕES ===
+  {
+    label: 'Dividend Yield',
+    chave: 'dividendYield',
+    peso: 1.4, // Muito importante para utilities
+    setorSensível: true,
+    ajustarComDelta: true,
+    complementar: ['payoutRatio', 'coberturaJuros'],
+    explicacaoCustom: ({ valor, valorAnterior }) => {
+      const atual = Number(valor)
+      const anterior = Number(valorAnterior)
+      if (!isNaN(atual) && !isNaN(anterior)) {
+        const delta = atual - anterior
+        if (delta > 0.5) return `Yield aumentou ${delta.toFixed(1)}pp. Pode indicar stress ou queda no preço.`
+        if (delta < -0.5) return `Yield diminuiu ${Math.abs(delta).toFixed(1)}pp. Pode indicar valorização ou corte.`
+      }
+      if (!isNaN(atual)) {
+        if (atual > 7) return 'Yield muito alto pode indicar risco de corte ou problemas financeiros.'
+        if (atual < 2.5) return 'Yield baixo pode indicar crescimento ou sobrevalorização.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Payout Ratio',
+    chave: 'payoutRatio',
+    peso: 1.2,
+    ajustarComDelta: true,
+    complementar: ['dividendYield', 'fcf'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 90) return 'Payout muito alto pode comprometer sustentabilidade e crescimento.'
+        if (v < 50) return 'Payout conservador proporciona margem de segurança e capacidade de crescimento.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Crescimento Dividendo 5Y',
+    chave: 'dividendCagr5y',
+    peso: 1,
+    ajustarComDelta: true,
+    complementar: ['payoutRatio', 'crescimentoEps'],
+  },
+
+  // === ESTRUTURA FINANCEIRA ===
+  {
+    label: 'Endividamento',
+    chave: 'endividamento',
+    peso: 1.1,
+    ajustarComDelta: true,
+    complementar: ['coberturaJuros', 'roe'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 70) return 'Endividamento alto típico de utilities, mas aumenta risco financeiro.'
+        if (v < 40) return 'Endividamento conservador pode limitar crescimento mas reduz risco.'
+      }
+      return 'Utilities tipicamente operam com alto endividamento devido aos investimentos em infraestrutura.'
+    }
+  },
+  {
+    label: 'Dívida/EBITDA',
+    chave: 'debtToEbitda',
+    peso: 1,
+    ajustarComDelta: true,
+    complementar: ['coberturaJuros', 'margemEbitda'],
+  },
+  {
+    label: 'Cobertura de Juros',
+    chave: 'coberturaJuros',
+    peso: 1.3, // Crucial para utilities
+    ajustarComDelta: true,
+    complementar: ['endividamento', 'margemEbitda'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 4) return 'Cobertura forte proporciona segurança financeira sólida.'
+        if (v < 2) return 'Cobertura baixa aumenta risco de stress financeiro.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Liquidez Corrente',
+    chave: 'liquidezCorrente',
+    peso: 0.7, // Menos crítico para utilities
+    complementar: ['endividamento', 'fcf'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 1.5) return 'Liquidez alta para utility pode indicar gestão conservadora de caixa.'
+        if (v < 0.8) return 'Liquidez baixa pode indicar gestão agressiva ou problemas de fluxo.'
+      }
+      return 'Utilities precisam de menos liquidez devido aos fluxos de caixa previsíveis.'
+    }
+  },
+
+  // === EFICIÊNCIA OPERACIONAL ===
+  {
+    label: 'Giro do Ativo',
+    chave: 'giroAtivo',
+    peso: 0.9,
+    complementar: ['roic', 'capexOverRevenue'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 0.5) return 'Giro alto indica uso eficiente dos ativos de infraestrutura.'
+        if (v < 0.3) return 'Giro baixo pode indicar sobrecapacidade ou ativos subutilizados.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'CapEx / Receita',
+    chave: 'capexOverRevenue',
+    peso: 1,
+    complementar: ['roic', 'crescimentoReceita'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 30) return 'CapEx muito alto pode pressionar fluxo de caixa e dividendos.'
+        if (v < 10) return 'CapEx baixo pode indicar falta de investimento em infraestrutura.'
+      }
+      return ''
+    }
+  },
+
+  // === CRESCIMENTO ===
+  {
+    label: 'Crescimento Receita',
+    chave: 'crescimentoReceita',
+    peso: 0.8,
+    ajustarComDelta: true,
+    complementar: ['ps', 'capexOverRevenue'],
+  },
+  {
+    label: 'Crescimento EPS',
+    chave: 'crescimentoEps',
+    peso: 0.9,
+    ajustarComDelta: true,
+    complementar: ['roe', 'dividendCagr5y'],
+  },
+
+  // === VALUATION VS FUNDAMENTALS ===
+  {
+    label: 'Levered DCF',
+    chave: 'leveredDcf',
+    peso: 0.8,
+    complementar: ['pl', 'fcf'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 1.2) return 'DCF sugere valor intrínseco significativamente acima do preço atual.'
+        if (v < 0.9) return 'DCF sugere possível sobrevalorização da utility.'
+      }
+      return ''
+    }
+  },
+]
+
+export const indicadoresMetaBasicMaterials: IndicadorMeta[] = [
+  // === RENTABILIDADE E RETORNO ===
+  {
+    label: 'P/E',
+    chave: 'pe',
+    peso: 0.9,
+    complementar: ['roe', 'dividendYield'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v < 8) return 'P/E baixo pode indicar oportunidade ou expectativas de queda nos preços de commodities.'
+        if (v > 25) return 'P/E alto pode indicar sobrevalorização para setor cíclico de materiais básicos.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'P/B',
+    chave: 'pb',
+    peso: 1,
+    complementar: ['roe', 'roic'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v < 1.5) return 'P/B baixo pode indicar assets undervalued ou deterioração de ativos.'
+        if (v > 3) return 'P/B alto pode indicar sobrevalorização vs. ativos tangíveis.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'ROE',
+    chave: 'roe',
+    peso: 1.2,
+    ajustarComDelta: true,
+    complementar: ['roic', 'dividaEbitda'],
+    explicacaoCustom: ({ valor, valorAnterior }) => {
+      const atual = Number(valor)
+      const anterior = Number(valorAnterior)
+      if (!isNaN(atual) && !isNaN(anterior)) {
+        const delta = atual - anterior
+        if (delta > 5) return `ROE melhorou ${delta.toFixed(1)}pp - pode refletir ciclo favorável de preços.`
+        if (delta < -5) return `ROE deteriorou ${delta.toFixed(1)}pp - pressão de commodities ou custos.`
+      }
+      if (!isNaN(atual)) {
+        if (atual > 15) return 'ROE forte indica gestão eficaz em setor cíclico de materiais.'
+        if (atual < 8) return 'ROE baixo pode refletir ciclo desfavorável ou ineficiências operacionais.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'ROIC',
+    chave: 'roic',
+    peso: 1.3, // Crítico para setor capital-intensivo
+    ajustarComDelta: true,
+    complementar: ['capexRevenue', 'assetTurnover'],
+    explicacaoCustom: ({ valor, valorAnterior }) => {
+      const atual = Number(valor)
+      const anterior = Number(valorAnterior)
+      if (!isNaN(atual) && !isNaN(anterior)) {
+        const delta = atual - anterior
+        if (delta > 3) return `ROIC melhorou ${delta.toFixed(1)}pp - eficiência crescente na alocação de capital.`
+        if (delta < -3) return `ROIC deteriorou ${delta.toFixed(1)}pp - pressão nos retornos do capital.`
+      }
+      if (!isNaN(atual)) {
+        if (atual > 12) return 'ROIC excelente demonstra uso eficiente de capital em setor intensivo.'
+        if (atual < 8) return 'ROIC baixo indica retornos insuficientes vs. custo de capital.'
+      }
+      return ''
+    }
+  },
+
+  // === MARGENS E EFICIÊNCIA ===
+  {
+    label: 'Margem EBITDA',
+    chave: 'margemEbitda',
+    peso: 1.4, // Crítico para basic materials
+    ajustarComDelta: true,
+    complementar: ['margemOperacional', 'roic'],
+    explicacaoCustom: ({ valor, valorAnterior }) => {
+      const atual = Number(valor)
+      const anterior = Number(valorAnterior)
+      if (!isNaN(atual) && !isNaN(anterior)) {
+        const delta = atual - anterior
+        if (delta > 5) return `Margem EBITDA melhorou ${delta.toFixed(1)}pp - controle de custos ou preços favoráveis.`
+        if (delta < -5) return `Margem EBITDA deteriorou ${delta.toFixed(1)}pp - pressão de custos ou preços.`
+      }
+      if (!isNaN(atual)) {
+        if (atual > 25) return 'Margem EBITDA forte indica operações eficientes e pricing power.'
+        if (atual < 15) return 'Margem baixa pode indicar pressão competitiva ou custos elevados.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Margem Bruta',
+    chave: 'margemBruta',
+    peso: 1.1,
+    ajustarComDelta: true,
+    complementar: ['margemEbitda', 'crescimentoReceita'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 35) return 'Margem bruta sólida indica controle de custos diretos eficaz.'
+        if (v < 20) return 'Margem apertada pode limitar flexibilidade em downturns.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Margem Líquida',
+    chave: 'margemLiquida',
+    peso: 1,
+    ajustarComDelta: true,
+    complementar: ['margemEbitda', 'dividaEbitda'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 12) return 'Margem líquida forte demonstra conversão eficiente em lucro final.'
+        if (v < 5) return 'Margem baixa pode indicar alta carga tributária ou custos financeiros.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Margem Operacional',
+    chave: 'margemOperacional',
+    peso: 1.1,
+    ajustarComDelta: true,
+    complementar: ['margemEbitda', 'roic'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 18) return 'Margem operacional forte indica controle eficaz de custos operacionais.'
+        if (v < 8) return 'Margem operacional baixa pode indicar ineficiências ou pressão competitiva.'
+      }
+      return ''
+    }
+  },
+
+  // === ESTRUTURA DE CAPITAL E SOLVÊNCIA ===
+  {
+    label: 'Dívida/EBITDA',
+    chave: 'dividaEbitda',
+    peso: 1.3, // Crítico para setor cíclico
+    ajustarComDelta: true,
+    complementar: ['coberturaJuros', 'freeCashFlow'],
+    explicacaoCustom: ({ valor, valorAnterior }) => {
+      const atual = Number(valor)
+      const anterior = Number(valorAnterior)
+      if (!isNaN(atual) && !isNaN(anterior)) {
+        const delta = atual - anterior
+        if (delta < -0.5) return `Endividamento reduziu ${Math.abs(delta).toFixed(1)}x - fortalecimento financeiro.`
+        if (delta > 0.5) return `Endividamento aumentou ${delta.toFixed(1)}x - pode indicar investimentos ou stress.`
+      }
+      if (!isNaN(atual)) {
+        if (atual < 2.5) return 'Alavancagem conservadora oferece flexibilidade em ciclos baixos.'
+        if (atual > 4) return 'Endividamento elevado pode ser arriscado em setor volátil.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Cobertura de Juros',
+    chave: 'coberturaJuros',
+    peso: 1.2,
+    ajustarComDelta: true,
+    complementar: ['dividaEbitda', 'margemEbitda'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 4) return 'Cobertura robusta oferece segurança financeira em volatilidade.'
+        if (v < 2.5) return 'Cobertura baixa pode indicar stress em cenários adversos.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Liquidez Corrente',
+    chave: 'liquidezCorrente',
+    peso: 1,
+    ajustarComDelta: true,
+    complementar: ['workingCapitalTurnover', 'inventoryTurnover'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 1.5) return 'Liquidez adequada para operações e gestão de inventário.'
+        if (v < 1.2) return 'Liquidez apertada pode limitar flexibilidade operacional.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Dívida/Patrimônio',
+    chave: 'debtEquity',
+    peso: 1.1,
+    ajustarComDelta: true,
+    complementar: ['roe', 'dividaEbitda'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v < 0.6) return 'Estrutura conservadora minimiza riscos financeiros.'
+        if (v > 1.5) return 'Alavancagem alta pode amplificar volatilidade do setor.'
+      }
+      return ''
+    }
+  },
+
+  // === FLUXO DE CAIXA E EFICIÊNCIA DE CAPITAL ===
+  {
+    label: 'Free Cash Flow',
+    chave: 'freeCashFlow',
+    peso: 1.3, // Importante para setor capital-intensivo
+    ajustarComDelta: true,
+    complementar: ['capexRevenue', 'dividendYield'],
+    explicacaoCustom: ({ valor, valorAnterior }) => {
+      const atual = Number(valor)
+      const anterior = Number(valorAnterior)
+      if (!isNaN(atual) && !isNaN(anterior)) {
+        const delta = atual - anterior
+        if (delta > 50000000) return `FCF melhorou significativamente (+${(delta/1000000).toFixed(0)}M). Forte geração de caixa.`
+        if (delta < -50000000) return `FCF deteriorou (${(delta/1000000).toFixed(0)}M). Pode indicar CapEx elevado.`
+      }
+      if (!isNaN(atual)) {
+        if (atual > 0) return 'FCF positivo essencial para sustentar dividendos e crescimento.'
+        if (atual < 0) return 'FCF negativo pode indicar ciclo de investimentos pesados.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'CapEx/Receita',
+    chave: 'capexRevenue',
+    peso: 1.1,
+    ajustarComDelta: true,
+    complementar: ['freeCashFlow', 'roic'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v < 12) return 'CapEx moderado permite maior geração de FCF.'
+        if (v > 20) return 'Investimentos altos podem pressionar caixa no curto prazo.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'FCF Yield',
+    chave: 'fcfYield',
+    peso: 1.1,
+    ajustarComDelta: true,
+    complementar: ['freeCashFlow', 'dividendYield'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 7) return 'FCF Yield atrativo oferece bom retorno vs. valorização.'
+        if (v < 3) return 'Yield baixo pode indicar sobrevalorização ou baixa geração.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Working Capital Turnover',
+    chave: 'workingCapitalTurnover',
+    peso: 1,
+    ajustarComDelta: true,
+    complementar: ['inventoryTurnover', 'liquidezCorrente'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 8) return 'Excelente eficiência na gestão do capital de giro.'
+        if (v < 4) return 'Gestão de capital de giro pode ser otimizada.'
+      }
+      return ''
+    }
+  },
+
+  // === CRESCIMENTO E PERFORMANCE ===
+  {
+    label: 'Crescimento Receita',
+    chave: 'crescimentoReceita',
+    peso: 1,
+    ajustarComDelta: true,
+    complementar: ['crescimentoEbitda', 'margemBruta'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 15) return 'Crescimento forte pode indicar expansão de mercado ou preços favoráveis.'
+        if (v < 0) return 'Crescimento negativo pode refletir ciclo baixo de commodities.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Crescimento EBITDA',
+    chave: 'crescimentoEbitda',
+    peso: 1.1,
+    ajustarComDelta: true,
+    complementar: ['crescimentoReceita', 'margemEbitda'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 20) return 'Crescimento EBITDA forte indica alavancagem operacional positiva.'
+        if (v < -10) return 'Contração do EBITDA pode indicar pressão de custos ou preços.'
+      }
+      return ''
+    }
+  },
+
+  // === DIVIDENDOS E RETORNO ===
+  {
+    label: 'Dividend Yield',
+    chave: 'dividendYield',
+    peso: 1,
+    ajustarComDelta: true,
+    complementar: ['payoutRatio', 'freeCashFlow'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 5) return 'Yield alto atrativo mas deve ser sustentável pelos fundamentais.'
+        if (v < 2) return 'Yield baixo pode indicar foco em reinvestimento ou pressão no caixa.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Payout Ratio',
+    chave: 'payoutRatio',
+    peso: 0.9,
+    ajustarComDelta: true,
+    complementar: ['dividendYield', 'freeCashFlow'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v < 50) return 'Payout conservador oferece sustentabilidade em ciclos baixos.'
+        if (v > 75) return 'Payout alto pode ser arriscado em setor cíclico.'
+      }
+      return ''
+    }
+  },
+
+  // === VOLATILIDADE E AVALIAÇÃO ===
+  {
+    label: 'Beta',
+    chave: 'beta',
+    peso: 0.7,
+    setorSensível: true,
+    complementar: ['dividaEbitda', 'freeCashFlow'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 1.4) return 'Beta alto reflete volatilidade típica de materiais básicos.'
+        if (v < 0.9) return 'Beta baixo pode indicar operações mais defensivas.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Valuation (DCF)',
+    chave: 'leveredDcf',
+    peso: 1,
+    complementar: ['freeCashFlow', 'roic'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 0) return 'DCF positivo indica valor intrínseco calculado para avaliação.'
+        return 'Valor de DCF disponível para comparação com preço de mercado.'
+      }
+      return ''
+    }
+  },
+
+  // === MÉTRICAS ESPECÍFICAS DE BASIC MATERIALS ===
+  {
+    label: 'Inventory Turnover',
+    chave: 'inventoryTurnover',
+    peso: 1.2, // Importante para gestão de inventário
+    ajustarComDelta: true,
+    complementar: ['workingCapitalTurnover', 'liquidezCorrente'],
+    explicacaoCustom: ({ valor, valorAnterior }) => {
+      const atual = Number(valor)
+      const anterior = Number(valorAnterior)
+      if (!isNaN(atual) && !isNaN(anterior)) {
+        const delta = atual - anterior
+        if (delta > 1) return `Giro de inventário melhorou ${delta.toFixed(1)}x - gestão mais eficiente.`
+        if (delta < -1) return `Giro deteriorou ${Math.abs(delta).toFixed(1)}x - pode indicar excesso de estoque.`
+      }
+      if (!isNaN(atual)) {
+        if (atual > 8) return 'Giro alto indica gestão eficiente de inventário e demanda forte.'
+        if (atual < 4) return 'Giro baixo pode indicar excesso de estoque ou demanda fraca.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Asset Turnover',
+    chave: 'assetTurnover',
+    peso: 1.1,
+    ajustarComDelta: true,
+    complementar: ['roic', 'capexRevenue'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 1.2) return 'Giro de ativos forte indica uso eficiente da base de ativos.'
+        if (v < 0.8) return 'Giro baixo pode indicar ativos subutilizados ou overcapacity.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Capacity Utilization',
+    chave: 'capacityUtilization',
+    peso: 1.2, // Crítico para basic materials
+    ajustarComDelta: true,
+    complementar: ['margemEbitda', 'crescimentoReceita'],
+    explicacaoCustom: ({ valor, valorAnterior }) => {
+      const atual = Number(valor)
+      const anterior = Number(valorAnterior)
+      if (!isNaN(atual) && !isNaN(anterior)) {
+        const delta = atual - anterior
+        if (delta > 5) return `Utilização aumentou ${delta.toFixed(1)}pp - demanda crescente ou otimização.`
+        if (delta < -5) return `Utilização reduziu ${Math.abs(delta).toFixed(1)}pp - pode indicar demanda fraca.`
+      }
+      if (!isNaN(atual)) {
+        if (atual > 85) return 'Alta utilização indica demanda forte e operações otimizadas.'
+        if (atual < 70) return 'Baixa utilização pode indicar overcapacity ou demanda fraca.'
+      }
+      return ''
+    }
+  },
+
+  // === MÉTRICAS CALCULADAS ===
+  {
+    label: 'Eficiência Operacional',
+    chave: 'eficienciaOperacional',
+    peso: 1.2,
+    complementar: ['margemEbitda', 'roic'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 85) return 'Excelente eficiência operacional com controle de custos rigoroso.'
+        if (v < 60) return 'Oportunidades significativas de melhoria na eficiência operacional.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Gestão de Capital',
+    chave: 'gestaoCapital',
+    peso: 1.3,
+    complementar: ['inventoryTurnover', 'dividaEbitda'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 90) return 'Excelente gestão de capital com giro eficiente e estrutura sólida.'
+        if (v < 65) return 'Gestão de capital pode ser otimizada para melhor eficiência.'
+      }
+      return ''
+    }
+  },
+  {
+    label: 'Geração de Valor',
+    chave: 'geracaoValor',
+    peso: 1.3,
+    complementar: ['freeCashFlow', 'roic'],
+    explicacaoCustom: ({ valor }) => {
+      const v = Number(valor)
+      if (!isNaN(v)) {
+        if (v > 80) return 'Excelente geração de valor com FCF positivo e retornos sólidos.'
+        if (v < 55) return 'Geração de valor limitada pode comprometer sustentabilidade.'
+      }
+      return ''
+    }
+  },
+]
+
 export const indicadoresMetaCommunicationServices: IndicadorMeta[] = [
   // === RENTABILIDADE E RETORNO ===
   {

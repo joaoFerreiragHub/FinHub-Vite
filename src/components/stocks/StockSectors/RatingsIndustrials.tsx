@@ -1,110 +1,32 @@
+// src/components/ratings/RatingsIndustrials.tsx
+
+import { buildIndustrialsComplementares, RatingsIndustrialsProps } from "../../../utils/complementares/industrialsComplementares"
 import { avaliarIndicadorComContexto } from "../hooks/avaliarIndicadorComContexto"
 import { IndicatorValuePro } from "../quickAnalysis/IndicatorValuePro"
-
-interface RatingsIndustrialsProps {
-  // Rentabilidade e Eficiência (Props principais do JSX)
-  margemEbitda: string
-  margemEbitdaAnoAnterior?: string
-  roic: string
-  roicAnoAnterior?: string
-
-  // Estrutura Financeira (Props principais do JSX)
-  alavancagem: string
-  alavancagemAnoAnterior?: string
-  coberturaJuros: string
-  coberturaJurosAnoAnterior?: string
-  liquidezCorrente: string
-  liquidezCorrenteAnoAnterior?: string
-
-  // Eficiência Operacional (Props principais do JSX)
-  rotatividadeEstoques: string
-  rotatividadeEstoquesAnoAnterior?: string
-  giroAtivo: string
-  giroAtivoAnoAnterior?: string
-
-  // Múltiplos de Valuation (Props principais do JSX)
-  pe: string
-  peAnoAnterior?: string
-  pb: string
-  pbAnoAnterior?: string
-  ps: string
-  psAnoAnterior?: string
-  peg: string
-  pegAnoAnterior?: string
-
-  // Dividendos e Risco (Props principais do JSX)
-  dividendYield: string
-  dividendYieldAnoAnterior?: string
-  beta: string
-  betaAnoAnterior?: string
-
-  // Props opcionais para métricas adicionais
-  roe?: string
-  roeAnoAnterior?: string
-  margemOperacional?: string
-  margemOperacionalAnoAnterior?: string
-  margemLiquida?: string
-  margemLiquidaAnoAnterior?: string
-  endividamento?: string
-  endividamentoAnoAnterior?: string
-  cicloOperacional?: string
-  cicloOperacionalAnoAnterior?: string
-  payoutRatio?: string
-  payoutRatioAnoAnterior?: string
-  crescimentoReceita?: string
-  crescimentoReceitaAnoAnterior?: string
-  crescimentoEps?: string
-  crescimentoEpsAnoAnterior?: string
-  fcf?: string
-  fcfAnoAnterior?: string
-  capexOverRevenue?: string
-  capexOverRevenueAnoAnterior?: string
-}
-
-interface Categoria {
-  label: string
-  chave: string
-  valor: string
-  anterior?: string
-  icon?: string
-  description?: string
-}
+import {
+  calculateEfficiencyScore,
+  calculateCapitalQuality,
+  calculateOperationalCycle,
+  calculateOperationalLeverage,
+} from "../../../utils/industrialsCalculations"
 
 export function RatingsIndustrials(props: RatingsIndustrialsProps) {
-  // Calcular indicadores específicos de Industrials
-  const calculateIndustrialsMetrics = () => {
-    const rotatividadeEstoquesNum = parseFloat(props.rotatividadeEstoques) || 0
-    const giroAtivoNum = parseFloat(props.giroAtivo) || 0
-    const margemEbitdaNum = parseFloat(props.margemEbitda) || 0
-    const alavancagemNum = parseFloat(props.alavancagem) || 0
-    const roicNum = parseFloat(props.roic) || 0
+  // ✅ NOVO: Constrói complementares específicos para Industrials
+  const complementares = buildIndustrialsComplementares(props)
 
-    return {
-      // Eficiência de Capital de Giro (estimado)
-      eficienciaCapitalGiro: rotatividadeEstoquesNum > 6 && giroAtivoNum > 1 ? "85" :
-                            rotatividadeEstoquesNum > 4 ? "70" : "50",
+  console.log('🏭 Industrials Complementares:', complementares)
 
-      // Qualidade dos Ativos (baseado no ROIC e Giro)
-      qualidadeAtivos: roicNum > 12 && giroAtivoNum > 1.2 ? "90" :
-                      roicNum > 8 ? "75" : "60",
-
-      // Score de Alavancagem Operacional
-      alavancagemOperacional: margemEbitdaNum > 20 && alavancagemNum < 2 ? "80" :
-                             margemEbitdaNum > 15 ? "65" : "45",
-
-      // Ciclo de Conversão de Caixa (estimado)
-      cicloConversaoCaixa: rotatividadeEstoquesNum > 0 ? (365 / rotatividadeEstoquesNum).toFixed(0) : "0",
-
-      // Intensidade de Capital
-      intensidadeCapital: parseFloat(props.capexOverRevenue || "0") > 0 ?
-                         props.capexOverRevenue :
-                         margemEbitdaNum > 0 ? (20 - margemEbitdaNum * 0.3).toFixed(1) : "15",
-    }
-  }
-
-  const calculatedMetrics = calculateIndustrialsMetrics()
-
-  const categorias: Record<string, Categoria[]> = {
+  const categorias: Record<
+    string,
+    {
+      label: string
+      chave: string
+      valor: string
+      anterior?: string
+      icon?: string
+      description?: string
+    }[]
+  > = {
     "Rentabilidade e Eficiência": [
       {
         label: "Margem EBITDA",
@@ -129,14 +51,6 @@ export function RatingsIndustrials(props: RatingsIndustrialsProps) {
         anterior: props.roeAnoAnterior,
         icon: "📈",
         description: "Retorno sobre Patrimônio Líquido"
-      }] : []),
-      ...(props.margemOperacional ? [{
-        label: "Margem Operacional",
-        chave: "margemOperacional",
-        valor: props.margemOperacional,
-        anterior: props.margemOperacionalAnoAnterior,
-        icon: "🔧",
-        description: "Margem operacional"
       }] : []),
       ...(props.margemLiquida ? [{
         label: "Margem Líquida",
@@ -173,14 +87,6 @@ export function RatingsIndustrials(props: RatingsIndustrialsProps) {
         icon: "💧",
         description: "Liquidez de curto prazo"
       },
-      ...(props.endividamento ? [{
-        label: "Endividamento",
-        chave: "endividamento",
-        valor: props.endividamento,
-        anterior: props.endividamentoAnoAnterior,
-        icon: "⚠️",
-        description: "Nível de endividamento"
-      }] : []),
     ],
 
     "Eficiência Operacional": [
@@ -200,22 +106,6 @@ export function RatingsIndustrials(props: RatingsIndustrialsProps) {
         icon: "🔄",
         description: "Eficiência no uso dos ativos"
       },
-      ...(props.cicloOperacional ? [{
-        label: "Ciclo Operacional",
-        chave: "cicloOperacional",
-        valor: props.cicloOperacional,
-        anterior: props.cicloOperacionalAnoAnterior,
-        icon: "🔁",
-        description: "Ciclo operacional em dias"
-      }] : []),
-      ...(props.capexOverRevenue ? [{
-        label: "CapEx/Receita",
-        chave: "capexOverRevenue",
-        valor: props.capexOverRevenue,
-        anterior: props.capexOverRevenueAnoAnterior,
-        icon: "🏗️",
-        description: "Investimentos em capital"
-      }] : []),
     ],
 
     "Múltiplos de Valuation": [
@@ -270,36 +160,9 @@ export function RatingsIndustrials(props: RatingsIndustrialsProps) {
         icon: "📉",
         description: "Volatilidade em relação ao mercado"
       },
-      ...(props.payoutRatio ? [{
-        label: "Payout Ratio",
-        chave: "payoutRatio",
-        valor: props.payoutRatio,
-        anterior: props.payoutRatioAnoAnterior,
-        icon: "💸",
-        description: "% dos lucros distribuídos"
-      }] : []),
     ],
 
-    "Crescimento": [
-      ...(props.crescimentoReceita ? [{
-        label: "Crescimento Receita",
-        chave: "crescimentoReceita",
-        valor: props.crescimentoReceita,
-        anterior: props.crescimentoReceitaAnoAnterior,
-        icon: "📈",
-        description: "Taxa de crescimento da receita"
-      }] : []),
-      ...(props.crescimentoEps ? [{
-        label: "Crescimento EPS",
-        chave: "crescimentoEps",
-        valor: props.crescimentoEps,
-        anterior: props.crescimentoEpsAnoAnterior,
-        icon: "📊",
-        description: "Crescimento do lucro por ação"
-      }] : []),
-    ],
-
-    "Métricas Específicas de Industrials": [
+    "Fluxo de Caixa e Métricas Específicas": [
       ...(props.fcf ? [{
         label: "Free Cash Flow",
         chave: "fcf",
@@ -308,146 +171,150 @@ export function RatingsIndustrials(props: RatingsIndustrialsProps) {
         icon: "💵",
         description: "Fluxo de Caixa Livre"
       }] : []),
-      {
-        label: "Eficiência Capital de Giro",
-        chave: "eficienciaCapitalGiro",
-        valor: calculatedMetrics.eficienciaCapitalGiro,
-        icon: "💼",
-        description: "Eficiência na gestão do capital de giro"
-      },
-      {
-        label: "Qualidade dos Ativos",
-        chave: "qualidadeAtivos",
-        valor: calculatedMetrics.qualidadeAtivos,
-        icon: "🏭",
-        description: "Qualidade e produtividade dos ativos"
-      },
-      {
-        label: "Ciclo Conversão Caixa",
-        chave: "cicloConversaoCaixa",
-        valor: calculatedMetrics.cicloConversaoCaixa,
-        icon: "🔄",
-        description: "Dias para converter estoque em caixa"
-      },
+      // ✅ NOVO: Métricas calculadas melhoradas - apenas se temos dados suficientes
+      ...(() => {
+        try {
+          const efficiencyScore = calculateEfficiencyScore(complementares)
+          const capitalQuality = calculateCapitalQuality(complementares)
+          const operationalCycle = calculateOperationalCycle(complementares)
+          const operationalLeverage = calculateOperationalLeverage(complementares)
+
+          const metrics = []
+
+          // Só adiciona se não são valores padrão/erro
+          if (!isNaN(efficiencyScore) && efficiencyScore !== 50) {
+            metrics.push({
+              label: "Eficiência Operacional",
+              chave: "eficienciaOperacional",
+              valor: efficiencyScore.toFixed(1),
+              icon: "💼",
+              description: "Score de eficiência operacional (0-100)"
+            })
+          }
+
+          if (!isNaN(capitalQuality) && capitalQuality !== 50) {
+            metrics.push({
+              label: "Qualidade dos Ativos",
+              chave: "qualidadeAtivos",
+              valor: capitalQuality.toFixed(1),
+              icon: "🏭",
+              description: "Qualidade e produtividade dos ativos (0-100)"
+            })
+          }
+
+          if (!isNaN(operationalCycle) && operationalCycle > 0) {
+            metrics.push({
+              label: "Ciclo Operacional",
+              chave: "cicloOperacional",
+              valor: operationalCycle.toFixed(0),
+              icon: "🔄",
+              description: "Ciclo operacional estimado em dias"
+            })
+          }
+
+          if (!isNaN(operationalLeverage) && operationalLeverage !== 50) {
+            metrics.push({
+              label: "Alavancagem Operacional",
+              chave: "alavancagemOperacional",
+              valor: operationalLeverage.toFixed(1),
+              icon: "⚖️",
+              description: "Score de alavancagem operacional (0-100)"
+            })
+          }
+
+          return metrics
+        } catch (error) {
+          console.warn('Erro ao calcular métricas industriais:', error)
+          return []
+        }
+      })()
     ],
   };
 
-  // Complementares incluindo métricas calculadas e dados base
-  const complementares = {
-    // Métricas calculadas
-    eficienciaCapitalGiro: parseFloat(calculatedMetrics.eficienciaCapitalGiro || "0"),
-    qualidadeAtivos: parseFloat(calculatedMetrics.qualidadeAtivos || "0"),
-    alavancagemOperacional: parseFloat(calculatedMetrics.alavancagemOperacional || "0"),
-    cicloConversaoCaixa: parseFloat(calculatedMetrics.cicloConversaoCaixa || "0"),
-    intensidadeCapital: parseFloat(calculatedMetrics.intensidadeCapital || "0"),
-
-    // Dados originais (valores atuais)
-    margemEbitda: parseFloat(props.margemEbitda ?? "NaN"),
-    roic: parseFloat(props.roic ?? "NaN"),
-    alavancagem: parseFloat(props.alavancagem ?? "NaN"),
-    coberturaJuros: parseFloat(props.coberturaJuros ?? "NaN"),
-    liquidezCorrente: parseFloat(props.liquidezCorrente ?? "NaN"),
-    rotatividadeEstoques: parseFloat(props.rotatividadeEstoques ?? "NaN"),
-    pe: parseFloat(props.pe ?? "NaN"),
-    pb: parseFloat(props.pb ?? "NaN"),
-    ps: parseFloat(props.ps ?? "NaN"),
-    peg: parseFloat(props.peg ?? "NaN"),
-    dividendYield: parseFloat(props.dividendYield ?? "NaN"),
-    beta: parseFloat(props.beta ?? "NaN"),
-    giroAtivo: parseFloat(props.giroAtivo ?? "NaN"),
-    roe: parseFloat(props.roe ?? "NaN"),
-    margemOperacional: parseFloat(props.margemOperacional ?? "NaN"),
-    margemLiquida: parseFloat(props.margemLiquida ?? "NaN"),
-    endividamento: parseFloat(props.endividamento ?? "NaN"),
-    cicloOperacional: parseFloat(props.cicloOperacional ?? "NaN"),
-    payoutRatio: parseFloat(props.payoutRatio ?? "NaN"),
-    crescimentoReceita: parseFloat(props.crescimentoReceita ?? "NaN"),
-    crescimentoEps: parseFloat(props.crescimentoEps ?? "NaN"),
-    fcf: parseFloat(props.fcf ?? "NaN"),
-    capexOverRevenue: parseFloat(props.capexOverRevenue ?? "NaN"),
-
-    // Dados anteriores (valores do ano anterior)
-    margemEbitdaAnoAnterior: parseFloat(props.margemEbitdaAnoAnterior ?? "NaN"),
-    roicAnoAnterior: parseFloat(props.roicAnoAnterior ?? "NaN"),
-    alavancagemAnoAnterior: parseFloat(props.alavancagemAnoAnterior ?? "NaN"),
-    coberturaJurosAnoAnterior: parseFloat(props.coberturaJurosAnoAnterior ?? "NaN"),
-    liquidezCorrenteAnoAnterior: parseFloat(props.liquidezCorrenteAnoAnterior ?? "NaN"),
-    rotatividadeEstoquesAnoAnterior: parseFloat(props.rotatividadeEstoquesAnoAnterior ?? "NaN"),
-    peAnoAnterior: parseFloat(props.peAnoAnterior ?? "NaN"),
-    pbAnoAnterior: parseFloat(props.pbAnoAnterior ?? "NaN"),
-    psAnoAnterior: parseFloat(props.psAnoAnterior ?? "NaN"),
-    pegAnoAnterior: parseFloat(props.pegAnoAnterior ?? "NaN"),
-    dividendYieldAnoAnterior: parseFloat(props.dividendYieldAnoAnterior ?? "NaN"),
-    betaAnoAnterior: parseFloat(props.betaAnoAnterior ?? "NaN"),
-    giroAtivoAnoAnterior: parseFloat(props.giroAtivoAnoAnterior ?? "NaN"),
-    roeAnoAnterior: parseFloat(props.roeAnoAnterior ?? "NaN"),
-    margemOperacionalAnoAnterior: parseFloat(props.margemOperacionalAnoAnterior ?? "NaN"),
-    margemLiquidaAnoAnterior: parseFloat(props.margemLiquidaAnoAnterior ?? "NaN"),
-    endividamentoAnoAnterior: parseFloat(props.endividamentoAnoAnterior ?? "NaN"),
-    cicloOperacionalAnoAnterior: parseFloat(props.cicloOperacionalAnoAnterior ?? "NaN"),
-    payoutRatioAnoAnterior: parseFloat(props.payoutRatioAnoAnterior ?? "NaN"),
-    crescimentoReceitaAnoAnterior: parseFloat(props.crescimentoReceitaAnoAnterior ?? "NaN"),
-    crescimentoEpsAnoAnterior: parseFloat(props.crescimentoEpsAnoAnterior ?? "NaN"),
-    fcfAnoAnterior: parseFloat(props.fcfAnoAnterior ?? "NaN"),
-    capexOverRevenueAnoAnterior: parseFloat(props.capexOverRevenueAnoAnterior ?? "NaN"),
-  }
-
-  // Formatação adequada para Industrials
+  // Função para formatar valores adequadamente para industrials
   const formatValue = (valor: string, chave: string) => {
-    const num = parseFloat(valor)
+    // Limpar o valor primeiro (remover % se existir)
+    const cleanValue = valor.replace('%', '').trim()
+    const num = parseFloat(cleanValue)
+
     if (isNaN(num)) return valor
 
     // Percentuais
-    if (['margemEbitda', 'roic', 'roe', 'margemOperacional', 'margemLiquida', 'endividamento', 'dividendYield', 'payoutRatio', 'crescimentoReceita', 'crescimentoEps', 'capexOverRevenue', 'eficienciaCapitalGiro', 'qualidadeAtivos', 'alavancagemOperacional', 'intensidadeCapital'].includes(chave)) {
+    if (['margemEbitda', 'roic', 'roe', 'margemLiquida', 'dividendYield'].includes(chave)) {
       return `${num.toFixed(2)}%`
     }
 
+    // Scores (0-100)
+    if (['eficienciaOperacional', 'qualidadeAtivos', 'alavancagemOperacional'].includes(chave)) {
+      return `${num.toFixed(1)}`
+    }
+
     // Dias (ciclos)
-    if (['cicloOperacional', 'cicloConversaoCaixa'].includes(chave)) {
+    if (['cicloOperacional'].includes(chave)) {
       return `${num.toFixed(0)} dias`
     }
 
-    // Valores monetários (FCF)
+    // Valores monetários (FCF) - formatação igual ao Technology
     if (['fcf'].includes(chave)) {
-      if (Math.abs(num) > 1000000000) {
+      if (Math.abs(num) >= 1000000000) {
         return `${(num / 1000000000).toFixed(1)}B`
       }
-      if (Math.abs(num) > 1000000) {
+      if (Math.abs(num) >= 1000000) {
         return `${(num / 1000000).toFixed(1)}M`
       }
       return `${num.toFixed(2)}`
     }
 
     // Múltiplos e ratios
-    if (['rotatividadeEstoques', 'giroAtivo'].includes(chave)) {
-      return `${num.toFixed(1)}x`
+    if (['rotatividadeEstoques', 'giroAtivo', 'alavancagem', 'coberturaJuros', 'liquidezCorrente'].includes(chave)) {
+      return `${num.toFixed(2)}x`
     }
 
-    // Ratios gerais
+    // Múltiplos de valuation
+    if (['pe', 'pb', 'ps', 'peg'].includes(chave)) {
+      return num.toFixed(2)
+    }
+
+    // Beta (com duas casas decimais)
+    if (chave === 'beta') {
+      return num.toFixed(2)
+    }
+
+    // Default
     return num.toFixed(2)
   }
 
   return (
     <div className="mt-6 space-y-8">
       {Object.entries(categorias).map(([categoria, indicadores]) => {
-        // CORREÇÃO: Filtrar indicadores válidos passando o valorAnterior correto
-        const indicadoresValidos = indicadores.filter(({ label, valor, anterior }) => {
-          const numeric = parseFloat(valor)
-          // Aceitar qualquer valor numérico válido (incluindo 0)
-          if (isNaN(numeric)) return false
+        // Filtrar indicadores válidos antes de renderizar a categoria
+        const indicadoresValidos = indicadores.filter(({ label, valor, chave }) => {
+          const numeric = parseFloat(valor.replace('%', ''))
 
-          const prev = anterior ? parseFloat(anterior) : undefined
-
-          const { apenasInformativo } = avaliarIndicadorComContexto(
-            "industrials",
-            label,
-            numeric,
-            {
-              valorAnterior: prev, // ← CORREÇÃO: Passar o valor anterior correto
-              complementares,
+          // Para métricas calculadas, validar se realmente têm dados
+          if (['eficienciaOperacional', 'qualidadeAtivos', 'cicloOperacional', 'alavancagemOperacional'].includes(chave)) {
+            // Se é uma métrica calculada e tem valor padrão (50) ou inválido, filtrar
+            if (isNaN(numeric) || numeric === 50 || numeric <= 0) {
+              return false
             }
-          )
-          return !apenasInformativo
+          }
+
+          // ✅ IGUAL AO TECHNOLOGY: Usar complementares específicos de Industrials
+          try {
+            const { apenasInformativo } = avaliarIndicadorComContexto(
+              "industrials",
+              label,
+              numeric,
+              {
+                valorAnterior: undefined,
+                complementares, // ✅ Agora só contém indicadores de Industrials
+              }
+            )
+            return !apenasInformativo
+          } catch (error) {
+            console.warn(`Erro ao avaliar indicador ${label}:`, error)
+            return false
+          }
         })
 
         // Se não há indicadores válidos, não renderizar a categoria
@@ -468,19 +335,21 @@ export function RatingsIndustrials(props: RatingsIndustrialsProps) {
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {indicadoresValidos.map(({ label, valor, anterior, icon, description, chave }) => {
-                  const numeric = parseFloat(valor)
-                  const prev = anterior ? parseFloat(anterior) : undefined
+                  const numeric = parseFloat(valor.replace('%', ''))
+                  const prev = anterior ? parseFloat(anterior.replace('%', '')) : undefined
 
+                  // ✅ NOVO: Usar complementares específicos de Industrials
                   const { score, explicacaoCustom } = avaliarIndicadorComContexto(
                     "industrials",
                     label,
                     numeric,
                     {
                       valorAnterior: prev,
-                      complementares,
+                      complementares, // ✅ Agora só contém indicadores de Industrials
                     }
                   )
 
+                  // ✅ IGUAL AO TECHNOLOGY: Lógica simples de melhoria/deterioração
                   const hasImprovement = prev !== undefined && numeric > prev
                   const hasDeterioration = prev !== undefined && numeric < prev
 

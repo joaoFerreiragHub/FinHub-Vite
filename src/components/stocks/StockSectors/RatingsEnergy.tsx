@@ -1,105 +1,31 @@
+// src/components/ratings/RatingsEnergy.tsx
+
+import { buildEnergyComplementares, RatingsEnergyProps } from "../../../utils/complementares/energyComplementares"
+import { calculateCashGeneration, calculateEnergyEfficiency, calculateFinancialSolidity } from "../../../utils/energyCalculations"
 import { avaliarIndicadorComContexto } from "../hooks/avaliarIndicadorComContexto"
 import { IndicatorValuePro } from "../quickAnalysis/IndicatorValuePro"
 
-interface RatingsEnergyProps {
-  // Rentabilidade e Retorno
-  pe: string
-  peAnoAnterior?: string
-  pb: string
-  pbAnoAnterior?: string
-  roe: string
-  roeAnoAnterior?: string
-  roic: string
-  roicAnoAnterior?: string
-
-  // Margens e Eficiência
-  margemEbitda: string
-  margemEbitdaAnoAnterior?: string
-  margemBruta: string
-  margemBrutaAnoAnterior?: string
-  margemLiquida: string
-  margemLiquidaAnoAnterior?: string
-
-  // Estrutura de Capital e Solvência
-  dividaEbitda: string
-  dividaEbitdaAnoAnterior?: string
-  coberturaJuros: string
-  coberturaJurosAnoAnterior?: string
-  liquidezCorrente: string
-  liquidezCorrenteAnoAnterior?: string
-  debtEquity: string
-  debtEquityAnoAnterior?: string
-
-  // Fluxo de Caixa e Investimentos
-  freeCashFlow: string
-  freeCashFlowAnoAnterior?: string
-  capexRevenue: string
-  capexRevenueAnoAnterior?: string
-  fcfYield: string
-  fcfYieldAnoAnterior?: string
-
-  // Dividendos e Retorno ao Acionista
-  dividendYield: string
-  dividendYieldAnoAnterior?: string
-  payoutRatio: string
-  payoutRatioAnoAnterior?: string
-
-  // Volatilidade e Avaliação
-  beta: string
-  betaAnoAnterior?: string
-  leveredDcf: string
-  leveredDcfAnoAnterior?: string
-  precoAtual: string
-  precoAtualAnoAnterior?: string
-
-  // Métricas Específicas de Energia
-  reservasProvadas?: string
-  reservasProvadasAnoAnterior?: string
-  custoProducao?: string
-  custoProducaoAnoAnterior?: string
-  breakEvenPrice?: string
-  breakEvenPriceAnoAnterior?: string
-}
-
-interface Categoria {
-  label: string
-  chave: string
-  valor: string
-  anterior?: string
-  icon?: string
-  description?: string
-}
 
 export function RatingsEnergy(props: RatingsEnergyProps) {
-  // Calcular métricas específicas de energia
-  const calculateEnergyMetrics = () => {
-    const roicNum = parseFloat(props.roic) || 0
-    const margemEbitdaNum = parseFloat(props.margemEbitda) || 0
-    const dividaEbitdaNum = parseFloat(props.dividaEbitda) || 0
-    const freeCashFlowNum = parseFloat(props.freeCashFlow) || 0
-    const coberturaJurosNum = parseFloat(props.coberturaJuros) || 0
+  // ✅ NOVO: Constrói complementares específicos para Energy
+  const complementares = buildEnergyComplementares(props)
 
-    return {
-      // Score de Eficiência Operacional
-      eficienciaOperacional: margemEbitdaNum > 30 && roicNum > 12 ? "90" :
-                            margemEbitdaNum > 20 && roicNum > 8 ? "75" : "50",
+  console.log('⚡ Energy Complementares:', complementares)
 
-      // Score de Solidez Financeira
-      solidezFinanceira: dividaEbitdaNum < 2 && coberturaJurosNum > 5 ? "95" :
-                        dividaEbitdaNum < 3 && coberturaJurosNum > 3 ? "80" : "60",
-
-      // Score de Geração de Caixa
-      geracaoCaixa: freeCashFlowNum > 0 && margemEbitdaNum > 25 ? "85" :
-                   freeCashFlowNum > 0 ? "70" : "45",
-    }
-  }
-
-  const calculatedMetrics = calculateEnergyMetrics()
-
-  const categorias: Record<string, Categoria[]> = {
+  const categorias: Record<
+    string,
+    {
+      label: string
+      chave: string
+      valor: string
+      anterior?: string
+      icon?: string
+      description?: string
+    }[]
+  > = {
     "Rentabilidade e Retorno": [
       {
-        label: "P/E",
+        label: "P/L",
         chave: "pe",
         valor: props.pe,
         anterior: props.peAnoAnterior,
@@ -107,12 +33,12 @@ export function RatingsEnergy(props: RatingsEnergyProps) {
         description: "Preço sobre Lucro"
       },
       {
-        label: "P/B",
+        label: "P/VPA",
         chave: "pb",
         valor: props.pb,
         anterior: props.pbAnoAnterior,
         icon: "📚",
-        description: "Preço sobre Valor Contábil"
+        description: "Preço sobre Valor Patrimonial"
       },
       {
         label: "ROE",
@@ -159,7 +85,7 @@ export function RatingsEnergy(props: RatingsEnergyProps) {
       },
     ],
 
-    "Estrutura de Capital e Solvência": [
+    "Estrutura Financeira": [
       {
         label: "Dívida/EBITDA",
         chave: "dividaEbitda",
@@ -221,7 +147,7 @@ export function RatingsEnergy(props: RatingsEnergyProps) {
       },
     ],
 
-    "Dividendos e Retorno": [
+    "Dividendos e Risco": [
       {
         label: "Dividend Yield",
         chave: "dividendYield",
@@ -238,9 +164,6 @@ export function RatingsEnergy(props: RatingsEnergyProps) {
         icon: "📤",
         description: "% dos lucros distribuídos"
       },
-    ],
-
-    "Volatilidade e Avaliação": [
       {
         label: "Beta",
         chave: "beta",
@@ -249,6 +172,9 @@ export function RatingsEnergy(props: RatingsEnergyProps) {
         icon: "📉",
         description: "Volatilidade vs. mercado"
       },
+    ],
+
+    "Avaliação e Métricas Específicas": [
       {
         label: "Valuation (DCF)",
         chave: "leveredDcf",
@@ -257,9 +183,6 @@ export function RatingsEnergy(props: RatingsEnergyProps) {
         icon: "📊",
         description: "Fluxo de Caixa Descontado"
       },
-    ],
-
-    "Métricas Específicas de Energia": [
       ...(props.reservasProvadas ? [{
         label: "Reservas Provadas",
         chave: "reservasProvadas",
@@ -284,98 +207,81 @@ export function RatingsEnergy(props: RatingsEnergyProps) {
         icon: "⚖️",
         description: "Preço de equilíbrio"
       }] : []),
-      {
-        label: "Eficiência Operacional",
-        chave: "eficienciaOperacional",
-        valor: calculatedMetrics.eficienciaOperacional,
-        icon: "⚙️",
-        description: "Score de eficiência operacional"
-      },
-      {
-        label: "Solidez Financeira",
-        chave: "solidezFinanceira",
-        valor: calculatedMetrics.solidezFinanceira,
-        icon: "🏛️",
-        description: "Score de solidez financeira"
-      },
-      {
-        label: "Geração de Caixa",
-        chave: "geracaoCaixa",
-        valor: calculatedMetrics.geracaoCaixa,
-        icon: "💰",
-        description: "Score de geração de caixa"
-      },
+      // ✅ NOVO: Métricas calculadas melhoradas - apenas se temos dados suficientes
+      ...(() => {
+        try {
+          const efficiencyScore = calculateEnergyEfficiency(complementares)
+          const solidityScore = calculateFinancialSolidity(complementares)
+          const cashScore = calculateCashGeneration(complementares)
+
+          const metrics = []
+
+          // Só adiciona se não são valores padrão/erro
+          if (!isNaN(efficiencyScore) && efficiencyScore !== 50) {
+            metrics.push({
+              label: "Eficiência Operacional",
+              chave: "eficienciaOperacional",
+              valor: efficiencyScore.toFixed(1),
+              icon: "⚙️",
+              description: "Score de eficiência operacional (0-100)"
+            })
+          }
+
+          if (!isNaN(solidityScore) && solidityScore !== 50) {
+            metrics.push({
+              label: "Solidez Financeira",
+              chave: "solidezFinanceira",
+              valor: solidityScore.toFixed(1),
+              icon: "🏛️",
+              description: "Score de solidez financeira (0-100)"
+            })
+          }
+
+          if (!isNaN(cashScore) && cashScore !== 50) {
+            metrics.push({
+              label: "Geração de Caixa",
+              chave: "geracaoCaixa",
+              valor: cashScore.toFixed(1),
+              icon: "💰",
+              description: "Score de geração de caixa (0-100)"
+            })
+          }
+
+          return metrics
+        } catch (error) {
+          console.warn('Erro ao calcular métricas de energia:', error)
+          return []
+        }
+      })()
     ],
   };
 
-  // Complementares incluindo métricas calculadas e dados base
-  const complementares = {
-    // Métricas calculadas
-    eficienciaOperacional: parseFloat(calculatedMetrics.eficienciaOperacional || "0"),
-    solidezFinanceira: parseFloat(calculatedMetrics.solidezFinanceira || "0"),
-    geracaoCaixa: parseFloat(calculatedMetrics.geracaoCaixa || "0"),
-
-    // Dados originais (valores atuais)
-    pe: parseFloat(props.pe ?? "NaN"),
-    pb: parseFloat(props.pb ?? "NaN"),
-    roe: parseFloat(props.roe ?? "NaN"),
-    roic: parseFloat(props.roic ?? "NaN"),
-    margemEbitda: parseFloat(props.margemEbitda ?? "NaN"),
-    margemBruta: parseFloat(props.margemBruta ?? "NaN"),
-    margemLiquida: parseFloat(props.margemLiquida ?? "NaN"),
-    dividaEbitda: parseFloat(props.dividaEbitda ?? "NaN"),
-    coberturaJuros: parseFloat(props.coberturaJuros ?? "NaN"),
-    liquidezCorrente: parseFloat(props.liquidezCorrente ?? "NaN"),
-    debtEquity: parseFloat(props.debtEquity ?? "NaN"),
-    freeCashFlow: parseFloat(props.freeCashFlow ?? "NaN"),
-    capexRevenue: parseFloat(props.capexRevenue ?? "NaN"),
-    fcfYield: parseFloat(props.fcfYield ?? "NaN"),
-    dividendYield: parseFloat(props.dividendYield ?? "NaN"),
-    payoutRatio: parseFloat(props.payoutRatio ?? "NaN"),
-    beta: parseFloat(props.beta ?? "NaN"),
-    leveredDcf: parseFloat(props.leveredDcf ?? "NaN"),
-    precoAtual: parseFloat(props.precoAtual ?? "NaN"),
-    reservasProvadas: parseFloat(props.reservasProvadas ?? "NaN"),
-    custoProducao: parseFloat(props.custoProducao ?? "NaN"),
-    breakEvenPrice: parseFloat(props.breakEvenPrice ?? "NaN"),
-
-    // Dados anteriores
-    peAnoAnterior: parseFloat(props.peAnoAnterior ?? "NaN"),
-    pbAnoAnterior: parseFloat(props.pbAnoAnterior ?? "NaN"),
-    roeAnoAnterior: parseFloat(props.roeAnoAnterior ?? "NaN"),
-    roicAnoAnterior: parseFloat(props.roicAnoAnterior ?? "NaN"),
-    margemEbitdaAnoAnterior: parseFloat(props.margemEbitdaAnoAnterior ?? "NaN"),
-    margemBrutaAnoAnterior: parseFloat(props.margemBrutaAnoAnterior ?? "NaN"),
-    margemLiquidaAnoAnterior: parseFloat(props.margemLiquidaAnoAnterior ?? "NaN"),
-    dividaEbitdaAnoAnterior: parseFloat(props.dividaEbitdaAnoAnterior ?? "NaN"),
-    coberturaJurosAnoAnterior: parseFloat(props.coberturaJurosAnoAnterior ?? "NaN"),
-    liquidezCorrenteAnoAnterior: parseFloat(props.liquidezCorrenteAnoAnterior ?? "NaN"),
-    debtEquityAnoAnterior: parseFloat(props.debtEquityAnoAnterior ?? "NaN"),
-    freeCashFlowAnoAnterior: parseFloat(props.freeCashFlowAnoAnterior ?? "NaN"),
-    capexRevenueAnoAnterior: parseFloat(props.capexRevenueAnoAnterior ?? "NaN"),
-    fcfYieldAnoAnterior: parseFloat(props.fcfYieldAnoAnterior ?? "NaN"),
-    dividendYieldAnoAnterior: parseFloat(props.dividendYieldAnoAnterior ?? "NaN"),
-    payoutRatioAnoAnterior: parseFloat(props.payoutRatioAnoAnterior ?? "NaN"),
-    betaAnoAnterior: parseFloat(props.betaAnoAnterior ?? "NaN"),
-    leveredDcfAnoAnterior: parseFloat(props.leveredDcfAnoAnterior ?? "NaN"),
-    precoAtualAnoAnterior: parseFloat(props.precoAtualAnoAnterior ?? "NaN"),
-    reservasProvadasAnoAnterior: parseFloat(props.reservasProvadasAnoAnterior ?? "NaN"),
-    custoProducaoAnoAnterior: parseFloat(props.custoProducaoAnoAnterior ?? "NaN"),
-    breakEvenPriceAnoAnterior: parseFloat(props.breakEvenPriceAnoAnterior ?? "NaN"),
-  }
-
-  // Formatação adequada para energia
+  // Função para formatar valores adequadamente para energia
   const formatValue = (valor: string, chave: string) => {
-    const num = parseFloat(valor)
+    // Limpar o valor primeiro (remover % se existir)
+    const cleanValue = valor.replace('%', '').trim()
+    const num = parseFloat(cleanValue)
+
     if (isNaN(num)) return valor
 
     // Percentuais
-    if (['roe', 'roic', 'margemEbitda', 'margemBruta', 'margemLiquida', 'dividendYield', 'payoutRatio', 'fcfYield', 'capexRevenue', 'eficienciaOperacional', 'solidezFinanceira', 'geracaoCaixa'].includes(chave)) {
+    if (['roe', 'roic', 'margemEbitda', 'margemBruta', 'margemLiquida', 'dividendYield', 'payoutRatio', 'fcfYield', 'capexRevenue'].includes(chave)) {
       return `${num.toFixed(2)}%`
     }
 
-    // Valores monetários (DCF, FCF)
+    // Scores (0-100)
+    if (['eficienciaOperacional', 'solidezFinanceira', 'geracaoCaixa'].includes(chave)) {
+      return `${num.toFixed(1)}`
+    }
+
+    // Valores monetários (DCF, FCF) - formatação igual ao Technology
     if (['leveredDcf', 'precoAtual', 'freeCashFlow'].includes(chave)) {
+      if (Math.abs(num) >= 1000000000) {
+        return `${(num / 1000000000).toFixed(1)}B`
+      }
+      if (Math.abs(num) >= 1000000) {
+        return `${(num / 1000000).toFixed(1)}M`
+      }
       return `${num.toFixed(2)}`
     }
 
@@ -384,30 +290,67 @@ export function RatingsEnergy(props: RatingsEnergyProps) {
       return `$${num.toFixed(2)}`
     }
 
+    // Múltiplos de valuation
+    if (['pe', 'pb'].includes(chave)) {
+      return num.toFixed(2)
+    }
+
     // Ratios gerais
+    if (['dividaEbitda', 'coberturaJuros', 'liquidezCorrente', 'debtEquity'].includes(chave)) {
+      return `${num.toFixed(2)}x`
+    }
+
+    // Beta (com duas casas decimais)
+    if (chave === 'beta') {
+      return num.toFixed(2)
+    }
+
+    // Reservas (com formatação adequada)
+    if (chave === 'reservasProvadas') {
+      if (num >= 1000000) {
+        return `${(num / 1000000).toFixed(1)}M bbl`
+      }
+      if (num >= 1000) {
+        return `${(num / 1000).toFixed(1)}K bbl`
+      }
+      return `${num.toFixed(0)} bbl`
+    }
+
+    // Default
     return num.toFixed(2)
   }
 
   return (
     <div className="mt-6 space-y-8">
       {Object.entries(categorias).map(([categoria, indicadores]) => {
-        // Filtrar indicadores válidos
-        const indicadoresValidos = indicadores.filter(({ label, valor, anterior }) => {
-          const numeric = parseFloat(valor)
-          if (isNaN(numeric)) return false
+        // Filtrar indicadores válidos antes de renderizar a categoria
+        const indicadoresValidos = indicadores.filter(({ label, valor, chave }) => {
+          const numeric = parseFloat(valor.replace('%', ''))
 
-          const prev = anterior ? parseFloat(anterior) : undefined
-
-          const { apenasInformativo } = avaliarIndicadorComContexto(
-            "Energy",
-            label,
-            numeric,
-            {
-              valorAnterior: prev,
-              complementares,
+          // Para métricas calculadas, validar se realmente têm dados
+          if (['eficienciaOperacional', 'solidezFinanceira', 'geracaoCaixa'].includes(chave)) {
+            // Se é uma métrica calculada e tem valor padrão (50) ou inválido, filtrar
+            if (isNaN(numeric) || numeric === 50 || numeric <= 0) {
+              return false
             }
-          )
-          return !apenasInformativo
+          }
+
+          // ✅ IGUAL AO TECHNOLOGY: Usar complementares específicos de Energy
+          try {
+            const { apenasInformativo } = avaliarIndicadorComContexto(
+              "Energy",
+              label,
+              numeric,
+              {
+                valorAnterior: undefined,
+                complementares, // ✅ Agora só contém indicadores de Energy
+              }
+            )
+            return !apenasInformativo
+          } catch (error) {
+            console.warn(`Erro ao avaliar indicador ${label}:`, error)
+            return false
+          }
         })
 
         // Se não há indicadores válidos, não renderizar a categoria
@@ -428,19 +371,21 @@ export function RatingsEnergy(props: RatingsEnergyProps) {
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {indicadoresValidos.map(({ label, valor, anterior, icon, description, chave }) => {
-                  const numeric = parseFloat(valor)
-                  const prev = anterior ? parseFloat(anterior) : undefined
+                  const numeric = parseFloat(valor.replace('%', ''))
+                  const prev = anterior ? parseFloat(anterior.replace('%', '')) : undefined
 
+                  // ✅ NOVO: Usar complementares específicos de Energy
                   const { score, explicacaoCustom } = avaliarIndicadorComContexto(
                     "Energy",
                     label,
                     numeric,
                     {
                       valorAnterior: prev,
-                      complementares,
+                      complementares, // ✅ Agora só contém indicadores de Energy
                     }
                   )
 
+                  // ✅ IGUAL AO TECHNOLOGY: Lógica simples de melhoria/deterioração
                   const hasImprovement = prev !== undefined && numeric > prev
                   const hasDeterioration = prev !== undefined && numeric < prev
 

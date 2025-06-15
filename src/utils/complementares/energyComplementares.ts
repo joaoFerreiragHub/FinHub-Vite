@@ -124,14 +124,28 @@ export interface RatingsEnergyProps {
  * Constrói objeto de complementares específico para o setor Energy
  * Inclui APENAS indicadores relevantes para empresas de energia
  */
-export function buildEnergyComplementares(props: RatingsEnergyProps): EnergyComplementares {
+export function buildEnergyComplementares(
+  props: RatingsEnergyProps,
+): EnergyComplementares {
   const parseValue = (value: string | undefined): number => {
-    if (!value || value === 'N/A' || value === 'undefined' || value === '0') return NaN
+    if (!value || value === 'N/A' || value === 'undefined' || value.trim() === '') {
+      return NaN
+    }
 
-    // Remove % se existir
-    const cleanValue = value.replace('%', '').trim()
+    // ✅ IMPORTANTE: Não filtrar valores '0' válidos aqui
+    if (value === '0' || value === '0.0' || value === '0.00') {
+      return 0 // Zero é um valor válido
+    }
+
+    // Remove % e outros caracteres especiais
+    const cleanValue = value.replace(/[%$,]/g, '').trim()
+
+    // Trata valores negativos adequadamente
+    if (cleanValue === '-' || cleanValue === '--' || cleanValue === '') {
+      return NaN
+    }
+
     const parsed = parseFloat(cleanValue)
-
     return isNaN(parsed) ? NaN : parsed
   }
 
@@ -225,27 +239,52 @@ export function getEnergyComplementaresSubset(
 }
 
 /**
+ * Verifica se um indicador tem dados suficientes para análise
+ */
+export function hasValidData(complementares: EnergyComplementares, field: keyof EnergyComplementares): boolean {
+  return !isNaN(complementares[field]) && complementares[field] !== null && complementares[field] !== undefined
+}
+
+/**
+ * Obtém um valor seguro (retorna 0 se inválido)
+ */
+export function getSafeValue(complementares: EnergyComplementares, field: keyof EnergyComplementares): number {
+  const value = complementares[field]
+  return isNaN(value) ? 0 : value
+}
+
+/**
  * Indicadores core obrigatórios para análise de empresas de energia
  */
 export const ENERGY_CORE_INDICATORS: (keyof EnergyComplementares)[] = [
-  'pe',
-  'roe',
   'margemEbitda',
+  'roic',
   'dividaEbitda',
+  'liquidezCorrente',
   'freeCashFlow',
-  'beta',
-  'custoProducao',
+  'pe',
+  'dividendYield',
 ]
 
 /**
  * Indicadores de rentabilidade específicos para energia
  */
 export const ENERGY_PROFITABILITY_INDICATORS: (keyof EnergyComplementares)[] = [
-  'roe',
-  'roic',
   'margemEbitda',
-  'margemBruta',
+  'roic',
+  'roe',
   'margemLiquida',
+  'margemBruta',
+]
+
+/**
+ * Indicadores de eficiência operacional para energia
+ */
+export const ENERGY_EFFICIENCY_INDICATORS: (keyof EnergyComplementares)[] = [
+  'custoProducao',
+  'breakEvenPrice',
+  'margemEbitda',
+  'capexRevenue',
 ]
 
 /**
@@ -255,61 +294,37 @@ export const ENERGY_FINANCIAL_INDICATORS: (keyof EnergyComplementares)[] = [
   'dividaEbitda',
   'coberturaJuros',
   'liquidezCorrente',
+  'freeCashFlow',
   'debtEquity',
 ]
 
 /**
- * Indicadores de fluxo de caixa para energia
+ * Indicadores de avaliação para energia
  */
-export const ENERGY_CASHFLOW_INDICATORS: (keyof EnergyComplementares)[] = [
-  'freeCashFlow',
-  'capexRevenue',
+export const ENERGY_VALUATION_INDICATORS: (keyof EnergyComplementares)[] = [
+  'pe',
+  'pb',
   'fcfYield',
+  'leveredDcf',
 ]
 
 /**
- * Indicadores de dividendos para energia
- */
-export const ENERGY_DIVIDEND_INDICATORS: (keyof EnergyComplementares)[] = [
-  'dividendYield',
-  'payoutRatio',
-]
-
-/**
- * Indicadores específicos do setor de energia
- */
-export const ENERGY_SECTOR_SPECIFIC_INDICATORS: (keyof EnergyComplementares)[] = [
-  'reservasProvadas',
-  'custoProducao',
-  'breakEvenPrice',
-]
-
-/**
- * Indicadores de risco para energia (setor altamente cíclico)
+ * Indicadores de risco para energia
  */
 export const ENERGY_RISK_INDICATORS: (keyof EnergyComplementares)[] = [
   'beta',
   'dividaEbitda',
   'coberturaJuros',
   'liquidezCorrente',
-  'breakEvenPrice',
 ]
 
 /**
- * Indicadores de investimento de capital para energia
+ * Indicadores específicos do setor energia
  */
-export const ENERGY_CAPEX_INDICATORS: (keyof EnergyComplementares)[] = [
-  'capexRevenue',
-  'freeCashFlow',
-  'roic',
-]
-
-/**
- * Indicadores de commodities e preços para energia
- */
-export const ENERGY_COMMODITY_INDICATORS: (keyof EnergyComplementares)[] = [
+export const ENERGY_SECTOR_SPECIFIC_INDICATORS: (keyof EnergyComplementares)[] = [
+  'reservasProvadas',
   'custoProducao',
   'breakEvenPrice',
-  'margemBruta',
-  'beta',
+  'capexRevenue',
+  'fcfYield',
 ]

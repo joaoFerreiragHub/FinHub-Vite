@@ -100,12 +100,19 @@ export function buildIndustrialsComplementares(
   props: RatingsIndustrialsProps,
 ): IndustrialsComplementares {
   const parseValue = (value: string | undefined): number => {
-    if (!value || value === 'N/A' || value === 'undefined' || value === '0') return NaN
+    if (!value || value === 'N/A' || value === 'undefined' || value === '0' || value.trim() === '') {
+      return NaN
+    }
 
-    // Remove % se existir
-    const cleanValue = value.replace('%', '').trim()
+    // Remove % e outros caracteres especiais
+    const cleanValue = value.replace(/[%$,]/g, '').trim()
+
+    // Trata valores negativos adequadamente
+    if (cleanValue === '-' || cleanValue === '--') {
+      return NaN
+    }
+
     const parsed = parseFloat(cleanValue)
-
     return isNaN(parsed) ? NaN : parsed
   }
 
@@ -182,6 +189,21 @@ export function getIndustrialsComplementaresSubset(
   })
 
   return subset
+}
+
+/**
+ * Verifica se um indicador tem dados suficientes para análise
+ */
+export function hasValidData(complementares: IndustrialsComplementares, field: keyof IndustrialsComplementares): boolean {
+  return !isNaN(complementares[field]) && complementares[field] !== null && complementares[field] !== undefined
+}
+
+/**
+ * Obtém um valor seguro (retorna 0 se inválido)
+ */
+export function getSafeValue(complementares: IndustrialsComplementares, field: keyof IndustrialsComplementares): number {
+  const value = complementares[field]
+  return isNaN(value) ? 0 : value
 }
 
 /**
