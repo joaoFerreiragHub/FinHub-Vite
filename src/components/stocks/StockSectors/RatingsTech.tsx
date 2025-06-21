@@ -145,7 +145,17 @@ export function RatingsTech(props: RatingsTechProps) {
         valor: props.cashRatio,
         anterior: props.cashRatioAnoAnterior,
         icon: "💵",
-        description: "Ratio de liquidez imediata"
+        description: "Ratio de liquidez imediata (agora calculado!)"
+      },
+
+      // 🆕 NOVO: Adicionar se quiserem mostrar as receitas recorrentes
+      {
+        label: "Receitas Recorrentes",
+        chave: "receitasRecorrentes",
+        valor: props.receitasRecorrentes || "0%",
+        anterior: undefined,
+        icon: "🔄",
+        description: "Percentual de receitas recorrentes"
       },
       {
         label: "Dívida / Capitais Próprios",
@@ -218,14 +228,13 @@ export function RatingsTech(props: RatingsTechProps) {
 
   // Função para formatar valores
   const formatValue = (valor: string, chave: string) => {
-    // Limpar o valor primeiro (remover % se existir)
     const cleanValue = valor.replace('%', '').trim()
     const num = parseFloat(cleanValue)
 
     if (isNaN(num)) return valor
 
-    // Valores em percentual
-    if (['margemBruta', 'margemEbitda', 'margemLiquida', 'margemOperacional', 'roic', 'roe', 'cagrEps', 'crescimentoReceita', 'investimentoPD', 'sgaOverRevenue', 'payoutRatio', 'rAnddEfficiency'].includes(chave)) {
+    // Valores em percentual - ADICIONAR 'receitasRecorrentes' se for usar
+    if (['margemBruta', 'margemEbitda', 'margemLiquida', 'margemOperacional', 'roic', 'roe', 'cagrEps', 'crescimentoReceita', 'investimentoPD', 'sgaOverRevenue', 'payoutRatio', 'rAnddEfficiency', 'receitasRecorrentes'].includes(chave)) {
       return `${num.toFixed(2)}%`
     }
 
@@ -234,7 +243,7 @@ export function RatingsTech(props: RatingsTechProps) {
       return `${(num / 1000000).toFixed(1)}M`
     }
 
-    // Ratios com 2 casas decimais
+    // Cash Ratio e outros ratios com 2 casas decimais
     return num.toFixed(2)
   }
 

@@ -1,69 +1,51 @@
 // src/utils/complementares/healthcareComplementares.ts
 
 export interface HealthcareComplementares {
-  // Múltiplos de Avaliação
-  peg: number
-  pegAnoAnterior: number
-
-  // Crescimento
-  crescimentoReceita: number
-  crescimentoReceitaAnoAnterior: number
-  eps: number
-  epsAnoAnterior: number
-  cagrEps: number
-  cagrEpsAnoAnterior: number
-
-  // Estrutura de Capital
-  debtEquity: number
-  debtEquityAnoAnterior: number
-
-  // Cash Flow e Eficiência
-  freeCashFlow: number
-  freeCashFlowAnoAnterior: number
-  cashFlowOverCapex: number
-  cashFlowOverCapexAnoAnterior: number
-
-  // Específicos de Healthcare
-  rAnddEfficiency: number
-  rAnddEfficiencyAnoAnterior: number
-  sgaOverRevenue: number
-  sgaOverRevenueAnoAnterior: number
-  investimentoPD: number
-  investimentoPDAnoAnterior: number
-
-  // Retornos e Margens
-  roic: number
-  roicAnoAnterior: number
-  roe: number
-  roeAnoAnterior: number
-  margemOperacional: number
-  margemOperacionalAnoAnterior: number
-  margemBruta: number
-  margemBrutaAnoAnterior: number
-  margemLiquida: number
-  margemLiquidaAnoAnterior: number
-  margemEbitda: number
-  margemEbitdaAnoAnterior: number
-
-  // Risco e Liquidez
-  beta: number
-  betaAnoAnterior: number
-  liquidezCorrente: number
-  liquidezCorrenteAnoAnterior: number
-
-  // Distribuição
-  payoutRatio: number
-  payoutRatioAnoAnterior: number
-
-  // Múltiplos
-  pl: number
-  plAnoAnterior: number
+  // === CORE FINANCEIROS ===
+  pe: number
   ps: number
-  psAnoAnterior: number
+  roe: number
+  roic: number
 
-  // Endividamento
+  // === MARGENS ===
+  grossMargin: number
+  ebitdaMargin: number
+  margemLiquida: number
+  margemOperacional: number
+
+  // === CRESCIMENTO ===
+  crescimentoReceita: number
+  cagrEps: number
+  eps: number
+
+  // === ESTRUTURA CAPITAL ===
   debtToEbitda: number
-  debtToEbitdaAnoAnterior: number
+  debtEquity: number
+  liquidezCorrente: number
+
+  // === CASH FLOW ===
+  freeCashFlow: number
+  cashFlowOverCapex: number
+
+  // === HEALTHCARE ESPECÍFICOS ===
+  investimentoPD: number         // % receita investida em P&D
+  rAnddEfficiency: number       // Eficiência do P&D (ROI em inovação)
+  clinicalTrials: number        // Número de trials em pipeline
+  patentProtection: number      // Anos de proteção patente média
+  regulatoryApprovals: number   // Aprovações anuais de medicamentos
+
+  // === DISTRIBUIÇÃO ===
+  payoutRatio: number
+
+  // === RISCO ===
+  beta: number
+
+  // === DADOS ANTERIORES (críticos) ===
+  roeAnoAnterior: number
+  crescimentoReceitaAnoAnterior: number
+  investimentoPDAnoAnterior: number
+  rAnddEfficiencyAnoAnterior: number
+  epsAnoAnterior: number
 }
 
 export interface RatingsHealthcareProps {
@@ -126,87 +108,76 @@ export interface RatingsHealthcareProps {
   sgaOverRevenueAnoAnterior?: string
   payoutRatio: string
   payoutRatioAnoAnterior?: string
+
+  // ✅ NOVOS: Healthcare Específicos (opcionais - podem não estar disponíveis)
+  clinicalTrials?: string
+  patentProtection?: string
+  regulatoryApprovals?: string
 }
 
 /**
  * Constrói objeto de complementares específico para o setor Healthcare
- * Inclui APENAS indicadores relevantes para empresas farmacêuticas/healthcare
+ * Inclui APENAS indicadores relevantes para empresas farmacêuticas/biotecnologia
  */
 export function buildHealthcareComplementares(props: RatingsHealthcareProps): HealthcareComplementares {
   const parseValue = (value: string | undefined): number => {
     if (!value || value === 'N/A' || value === 'undefined') return NaN
 
-    // Remove % se existir
-    const cleanValue = value.replace('%', '').trim()
+    // Remove % e símbolos monetários
+    const cleanValue = value.replace('%', '').replace('$', '').replace(',', '').trim()
     const parsed = parseFloat(cleanValue)
 
     return isNaN(parsed) ? NaN : parsed
   }
 
   return {
-    // Múltiplos de Avaliação
-    peg: parseValue(props.peg),
-    pegAnoAnterior: parseValue(props.pegAnoAnterior),
+    // Core Financeiros
+    pe: parseValue(props.pl),
+    ps: parseValue(props.ps),
+    roe: parseValue(props.roe),
+    roic: parseValue(props.roic),
+
+    // Margens (renomeadas para consistência)
+    grossMargin: parseValue(props.margemBruta),
+    ebitdaMargin: parseValue(props.margemEbitda),
+    margemLiquida: parseValue(props.margemLiquida),
+    margemOperacional: parseValue(props.margemOperacional),
 
     // Crescimento
     crescimentoReceita: parseValue(props.crescimentoReceita),
-    crescimentoReceitaAnoAnterior: parseValue(props.crescimentoReceitaAnoAnterior),
-    eps: parseValue(props.eps),
-    epsAnoAnterior: parseValue(props.epsAnoAnterior),
     cagrEps: parseValue(props.cagrEps),
-    cagrEpsAnoAnterior: parseValue(props.cagrEpsAnoAnterior),
+    eps: parseValue(props.eps),
 
-    // Estrutura de Capital
+    // Estrutura Capital
+    debtToEbitda: parseValue(props.debtToEbitda),
     debtEquity: parseValue(props.debtEquity),
-    debtEquityAnoAnterior: parseValue(props.debtEquityAnoAnterior),
-
-    // Cash Flow e Eficiência
-    freeCashFlow: parseValue(props.fcf),
-    freeCashFlowAnoAnterior: parseValue(props.fcfAnoAnterior),
-    cashFlowOverCapex: parseValue(props.cashFlowOverCapex),
-    cashFlowOverCapexAnoAnterior: parseValue(props.cashFlowOverCapexAnoAnterior),
-
-    // Específicos de Healthcare
-    rAnddEfficiency: parseValue(props.rAnddEfficiency),
-    rAnddEfficiencyAnoAnterior: parseValue(props.rAnddEfficiencyAnoAnterior),
-    sgaOverRevenue: parseValue(props.sgaOverRevenue),
-    sgaOverRevenueAnoAnterior: parseValue(props.sgaOverRevenueAnoAnterior),
-    investimentoPD: parseValue(props.investimentoPD),
-    investimentoPDAnoAnterior: parseValue(props.investimentoPDAnoAnterior),
-
-    // Retornos e Margens
-    roic: parseValue(props.roic),
-    roicAnoAnterior: parseValue(props.roicAnoAnterior),
-    roe: parseValue(props.roe),
-    roeAnoAnterior: parseValue(props.roeAnoAnterior),
-    margemOperacional: parseValue(props.margemOperacional),
-    margemOperacionalAnoAnterior: parseValue(props.margemOperacionalAnoAnterior),
-    margemBruta: parseValue(props.margemBruta),
-    margemBrutaAnoAnterior: parseValue(props.margemBrutaAnoAnterior),
-    margemLiquida: parseValue(props.margemLiquida),
-    margemLiquidaAnoAnterior: parseValue(props.margemLiquidaAnoAnterior),
-    margemEbitda: parseValue(props.margemEbitda),
-    margemEbitdaAnoAnterior: parseValue(props.margemEbitdaAnoAnterior),
-
-    // Risco e Liquidez
-    beta: parseValue(props.beta),
-    betaAnoAnterior: parseValue(props.betaAnoAnterior),
     liquidezCorrente: parseValue(props.liquidezCorrente),
-    liquidezCorrenteAnoAnterior: parseValue(props.liquidezCorrenteAnoAnterior),
+
+    // Cash Flow
+    freeCashFlow: parseValue(props.fcf),
+    cashFlowOverCapex: parseValue(props.cashFlowOverCapex),
+
+    // Healthcare Específicos
+    investimentoPD: parseValue(props.investimentoPD),
+    rAnddEfficiency: parseValue(props.rAnddEfficiency),
+
+    // ✅ NOVOS: Específicos Healthcare (podem ser NaN se não disponíveis)
+    clinicalTrials: parseValue(props.clinicalTrials),
+    patentProtection: parseValue(props.patentProtection),
+    regulatoryApprovals: parseValue(props.regulatoryApprovals),
 
     // Distribuição
     payoutRatio: parseValue(props.payoutRatio),
-    payoutRatioAnoAnterior: parseValue(props.payoutRatioAnoAnterior),
 
-    // Múltiplos
-    pl: parseValue(props.pl),
-    plAnoAnterior: parseValue(props.plAnoAnterior),
-    ps: parseValue(props.ps),
-    psAnoAnterior: parseValue(props.psAnoAnterior),
+    // Risco
+    beta: parseValue(props.beta),
 
-    // Endividamento
-    debtToEbitda: parseValue(props.debtToEbitda),
-    debtToEbitdaAnoAnterior: parseValue(props.debtToEbitdaAnoAnterior),
+    // Dados Anteriores (apenas os críticos)
+    roeAnoAnterior: parseValue(props.roeAnoAnterior),
+    crescimentoReceitaAnoAnterior: parseValue(props.crescimentoReceitaAnoAnterior),
+    investimentoPDAnoAnterior: parseValue(props.investimentoPDAnoAnterior),
+    rAnddEfficiencyAnoAnterior: parseValue(props.rAnddEfficiencyAnoAnterior),
+    epsAnoAnterior: parseValue(props.epsAnoAnterior),
   }
 }
 

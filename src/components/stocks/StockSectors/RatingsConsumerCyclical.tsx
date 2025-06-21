@@ -1,88 +1,6 @@
-// === FICHEIRO 1: RatingsConsumerCyclical.tsx (COMPLETO) ===
 import { avaliarIndicadorComContexto } from "../hooks/avaliarIndicadorComContexto"
 import { IndicatorValuePro } from "../quickAnalysis/IndicatorValuePro"
-
-interface RatingsConsumerCyclicalProps {
-  // Rentabilidade e Retorno
-  pe: string
-  peAnoAnterior?: string
-  ps: string
-  psAnoAnterior?: string
-  pb: string
-  pbAnoAnterior?: string
-  roe: string
-  roeAnoAnterior?: string
-  roic: string
-  roicAnoAnterior?: string
-
-  // Margens e Eficiência
-  grossMargin: string
-  grossMarginAnoAnterior?: string
-  ebitdaMargin: string
-  ebitdaMarginAnoAnterior?: string
-  margemLiquida: string
-  margemLiquidaAnoAnterior?: string
-  margemOperacional: string
-  margemOperacionalAnoAnterior?: string
-
-  // Crescimento e Performance
-  receitaCagr3y: string
-  receitaCagr3yAnoAnterior?: string
-  crescimentoReceita: string
-  crescimentoReceitaAnoAnterior?: string
-  crescimentoEbitda: string
-  crescimentoEbitdaAnoAnterior?: string
-
-  // Estrutura de Capital e Solvência
-  endividamento: string
-  endividamentoAnoAnterior?: string
-  coberturaJuros: string
-  coberturaJurosAnoAnterior?: string
-  liquidezCorrente: string
-  liquidezCorrenteAnoAnterior?: string
-  debtEquity: string
-  debtEquityAnoAnterior?: string
-
-  // Eficiência Operacional
-  rotatividadeEstoques: string
-  rotatividadeEstoquesAnoAnterior?: string
-  workingCapitalTurnover: string
-  workingCapitalTurnoverAnoAnterior?: string
-  assetTurnover: string
-  assetTurnoverAnoAnterior?: string
-  receivablesTurnover: string
-  receivablesTurnoverAnoAnterior?: string
-
-  // Fluxo de Caixa
-  freeCashFlow: string
-  freeCashFlowAnoAnterior?: string
-  fcfYield: string
-  fcfYieldAnoAnterior?: string
-  capexRevenue: string
-  capexRevenueAnoAnterior?: string
-
-  // Dividendos e Retorno
-  dividendYield: string
-  dividendYieldAnoAnterior?: string
-  payoutRatio: string
-  payoutRatioAnoAnterior?: string
-
-  // Volatilidade e Avaliação
-  beta: string
-  betaAnoAnterior?: string
-  leveredDcf: string
-  leveredDcfAnoAnterior?: string
-  precoAtual: string
-  precoAtualAnoAnterior?: string
-
-  // Métricas Específicas de Consumer Cyclical
-  seasonalityIndex?: string
-  seasonalityIndexAnoAnterior?: string
-  consumerConfidence?: string
-  consumerConfidenceAnoAnterior?: string
-  marketShare?: string
-  marketShareAnoAnterior?: string
-}
+import { buildConsumerCyclicalComplementares, RatingsConsumerCyclicalProps } from "../../../utils/complementares/consumerCyclicalComplementares"
 
 interface Categoria {
   label: string
@@ -119,6 +37,18 @@ export function RatingsConsumerCyclical(props: RatingsConsumerCyclicalProps) {
   }
 
   const calculatedMetrics = calculateConsumerCyclicalMetrics()
+
+  // ✅ NOVO: Usar build function (como Technology e Energy)
+  const baseComplementares = buildConsumerCyclicalComplementares(props)
+
+  // ✅ NOVO: Combinar com métricas calculadas
+  const complementares = {
+    ...baseComplementares,
+    // Adicionar métricas calculadas
+    sensibilidadeCiclica: parseFloat(calculatedMetrics.sensibilidadeCiclica || "0"),
+    eficienciaOperacional: parseFloat(calculatedMetrics.eficienciaOperacional || "0"),
+    resilienciaFinanceira: parseFloat(calculatedMetrics.resilienciaFinanceira || "0"),
+  }
 
   const categorias: Record<string, Categoria[]> = {
     "Rentabilidade e Retorno": [
@@ -409,80 +339,6 @@ export function RatingsConsumerCyclical(props: RatingsConsumerCyclicalProps) {
       },
     ],
   };
-
-  // Complementares incluindo métricas calculadas e dados base
-  const complementares = {
-    // Métricas calculadas
-    sensibilidadeCiclica: parseFloat(calculatedMetrics.sensibilidadeCiclica || "0"),
-    eficienciaOperacional: parseFloat(calculatedMetrics.eficienciaOperacional || "0"),
-    resilienciaFinanceira: parseFloat(calculatedMetrics.resilienciaFinanceira || "0"),
-
-    // Dados originais (valores atuais)
-    pe: parseFloat(props.pe ?? "NaN"),
-    ps: parseFloat(props.ps ?? "NaN"),
-    pb: parseFloat(props.pb ?? "NaN"),
-    roe: parseFloat(props.roe ?? "NaN"),
-    roic: parseFloat(props.roic ?? "NaN"),
-    grossMargin: parseFloat(props.grossMargin ?? "NaN"),
-    ebitdaMargin: parseFloat(props.ebitdaMargin ?? "NaN"),
-    margemLiquida: parseFloat(props.margemLiquida ?? "NaN"),
-    margemOperacional: parseFloat(props.margemOperacional ?? "NaN"),
-    receitaCagr3y: parseFloat(props.receitaCagr3y ?? "NaN"),
-    crescimentoReceita: parseFloat(props.crescimentoReceita ?? "NaN"),
-    crescimentoEbitda: parseFloat(props.crescimentoEbitda ?? "NaN"),
-    endividamento: parseFloat(props.endividamento ?? "NaN"),
-    coberturaJuros: parseFloat(props.coberturaJuros ?? "NaN"),
-    liquidezCorrente: parseFloat(props.liquidezCorrente ?? "NaN"),
-    debtEquity: parseFloat(props.debtEquity ?? "NaN"),
-    rotatividadeEstoques: parseFloat(props.rotatividadeEstoques ?? "NaN"),
-    workingCapitalTurnover: parseFloat(props.workingCapitalTurnover ?? "NaN"),
-    assetTurnover: parseFloat(props.assetTurnover ?? "NaN"),
-    receivablesTurnover: parseFloat(props.receivablesTurnover ?? "NaN"),
-    freeCashFlow: parseFloat(props.freeCashFlow ?? "NaN"),
-    fcfYield: parseFloat(props.fcfYield ?? "NaN"),
-    capexRevenue: parseFloat(props.capexRevenue ?? "NaN"),
-    dividendYield: parseFloat(props.dividendYield ?? "NaN"),
-    payoutRatio: parseFloat(props.payoutRatio ?? "NaN"),
-    beta: parseFloat(props.beta ?? "NaN"),
-    leveredDcf: parseFloat(props.leveredDcf ?? "NaN"),
-    precoAtual: parseFloat(props.precoAtual ?? "NaN"),
-    seasonalityIndex: parseFloat(props.seasonalityIndex ?? "NaN"),
-    consumerConfidence: parseFloat(props.consumerConfidence ?? "NaN"),
-    marketShare: parseFloat(props.marketShare ?? "NaN"),
-
-    // Dados anteriores (todos os campos com AnoAnterior)
-    peAnoAnterior: parseFloat(props.peAnoAnterior ?? "NaN"),
-    psAnoAnterior: parseFloat(props.psAnoAnterior ?? "NaN"),
-    pbAnoAnterior: parseFloat(props.pbAnoAnterior ?? "NaN"),
-    roeAnoAnterior: parseFloat(props.roeAnoAnterior ?? "NaN"),
-    roicAnoAnterior: parseFloat(props.roicAnoAnterior ?? "NaN"),
-    grossMarginAnoAnterior: parseFloat(props.grossMarginAnoAnterior ?? "NaN"),
-    ebitdaMarginAnoAnterior: parseFloat(props.ebitdaMarginAnoAnterior ?? "NaN"),
-    margemLiquidaAnoAnterior: parseFloat(props.margemLiquidaAnoAnterior ?? "NaN"),
-    margemOperacionalAnoAnterior: parseFloat(props.margemOperacionalAnoAnterior ?? "NaN"),
-    receitaCagr3yAnoAnterior: parseFloat(props.receitaCagr3yAnoAnterior ?? "NaN"),
-    crescimentoReceitaAnoAnterior: parseFloat(props.crescimentoReceitaAnoAnterior ?? "NaN"),
-    crescimentoEbitdaAnoAnterior: parseFloat(props.crescimentoEbitdaAnoAnterior ?? "NaN"),
-    endividamentoAnoAnterior: parseFloat(props.endividamentoAnoAnterior ?? "NaN"),
-    coberturaJurosAnoAnterior: parseFloat(props.coberturaJurosAnoAnterior ?? "NaN"),
-    liquidezCorrenteAnoAnterior: parseFloat(props.liquidezCorrenteAnoAnterior ?? "NaN"),
-    debtEquityAnoAnterior: parseFloat(props.debtEquityAnoAnterior ?? "NaN"),
-    rotatividadeEstoquesAnoAnterior: parseFloat(props.rotatividadeEstoquesAnoAnterior ?? "NaN"),
-    workingCapitalTurnoverAnoAnterior: parseFloat(props.workingCapitalTurnoverAnoAnterior ?? "NaN"),
-    assetTurnoverAnoAnterior: parseFloat(props.assetTurnoverAnoAnterior ?? "NaN"),
-    receivablesTurnoverAnoAnterior: parseFloat(props.receivablesTurnoverAnoAnterior ?? "NaN"),
-    freeCashFlowAnoAnterior: parseFloat(props.freeCashFlowAnoAnterior ?? "NaN"),
-    fcfYieldAnoAnterior: parseFloat(props.fcfYieldAnoAnterior ?? "NaN"),
-    capexRevenueAnoAnterior: parseFloat(props.capexRevenueAnoAnterior ?? "NaN"),
-    dividendYieldAnoAnterior: parseFloat(props.dividendYieldAnoAnterior ?? "NaN"),
-    payoutRatioAnoAnterior: parseFloat(props.payoutRatioAnoAnterior ?? "NaN"),
-    betaAnoAnterior: parseFloat(props.betaAnoAnterior ?? "NaN"),
-    leveredDcfAnoAnterior: parseFloat(props.leveredDcfAnoAnterior ?? "NaN"),
-    precoAtualAnoAnterior: parseFloat(props.precoAtualAnoAnterior ?? "NaN"),
-    seasonalityIndexAnoAnterior: parseFloat(props.seasonalityIndexAnoAnterior ?? "NaN"),
-    consumerConfidenceAnoAnterior: parseFloat(props.consumerConfidenceAnoAnterior ?? "NaN"),
-    marketShareAnoAnterior: parseFloat(props.marketShareAnoAnterior ?? "NaN"),
-  }
 
   // Formatação adequada para consumer cyclical
   const formatValue = (valor: string, chave: string) => {

@@ -1,148 +1,93 @@
+// ✅ COMPONENTE RATINGSCOMMUNICATION OTIMIZADO
+import { buildCommunicationServicesComplementares, RatingsCommunicationProps } from "../../../utils/complementares/communicationServicesComplementares"
 import { avaliarIndicadorComContexto } from "../hooks/avaliarIndicadorComContexto"
 import { IndicatorValuePro } from "../quickAnalysis/IndicatorValuePro"
 
-interface RatingsCommunicationProps {
-  // Rentabilidade e Retorno
-  pe: string
-  peAnoAnterior?: string
-  ps: string
-  psAnoAnterior?: string
-  pb: string
-  pbAnoAnterior?: string
-  roe: string
-  roeAnoAnterior?: string
-  roic: string
-  roicAnoAnterior?: string
-
-  // Margens e Eficiência
-  grossMargin: string
-  grossMarginAnoAnterior?: string
-  ebitdaMargin: string
-  ebitdaMarginAnoAnterior?: string
-  margemLiquida: string
-  margemLiquidaAnoAnterior?: string
-  margemOperacional: string
-  margemOperacionalAnoAnterior?: string
-
-  // Crescimento e Performance
-  receitaCagr3y: string
-  receitaCagr3yAnoAnterior?: string
-  crescimentoReceita: string
-  crescimentoReceitaAnoAnterior?: string
-  crescimentoEbitda: string
-  crescimentoEbitdaAnoAnterior?: string
-
-  // Estrutura de Capital e Solvência
-  dividaEbitda: string
-  dividaEbitdaAnoAnterior?: string
-  coberturaJuros: string
-  coberturaJurosAnoAnterior?: string
-  liquidezCorrente: string
-  liquidezCorrenteAnoAnterior?: string
-  debtEquity: string
-  debtEquityAnoAnterior?: string
-
-  // Fluxo de Caixa e Eficiência de Capital
-  freeCashFlow: string
-  freeCashFlowAnoAnterior?: string
-  fcfYield: string
-  fcfYieldAnoAnterior?: string
-  capexRevenue: string
-  capexRevenueAnoAnterior?: string
-
-  // Dividendos e Retorno
-  dividendYield: string
-  dividendYieldAnoAnterior?: string
-  payoutRatio: string
-  payoutRatioAnoAnterior?: string
-
-  // Volatilidade e Avaliação
-  beta: string
-  betaAnoAnterior?: string
-  leveredDcf: string
-  leveredDcfAnoAnterior?: string
-  precoAtual: string
-  precoAtualAnoAnterior?: string
-
-  // Métricas Específicas de Communication Services
-  userGrowth?: string
-  userGrowthAnoAnterior?: string
-  arpu?: string
-  arpuAnoAnterior?: string
-  churnRate?: string
-  churnRateAnoAnterior?: string
-  contentInvestment?: string
-  contentInvestmentAnoAnterior?: string
-}
-
-interface Categoria {
-  label: string
-  chave: string
-  valor: string
-  anterior?: string
-  icon?: string
-  description?: string
-}
-
 export function RatingsCommunication(props: RatingsCommunicationProps) {
-  // Calcular métricas específicas de communication services
-  const calculateCommunicationMetrics = () => {
-    const userGrowthNum = parseFloat(props.userGrowth || "0") || 0
-    const churnRateNum = parseFloat(props.churnRate || "0") || 0
-    const ebitdaMarginNum = parseFloat(props.ebitdaMargin || "0") || 0
-    const receitaCagr3yNum = parseFloat(props.receitaCagr3y || "0") || 0
-    const roicNum = parseFloat(props.roic || "0") || 0
+  // ✅ NOVO: Constrói complementares específicos para Communication Services
+  const complementares = buildCommunicationServicesComplementares(props)
 
-    return {
-      // Score de Crescimento
-      scoreGrowth: userGrowthNum > 15 && receitaCagr3yNum > 12 ? "90" :
-                   userGrowthNum > 8 && receitaCagr3yNum > 6 ? "75" : "50",
+  console.log('🔧 Communication Services Complementares:', complementares)
 
-      // Score de Rentabilidade
-      scoreProfitability: ebitdaMarginNum > 25 && roicNum > 15 ? "85" :
-                         ebitdaMarginNum > 18 && roicNum > 10 ? "70" : "45",
+  const categorias: Record<string, {
+    label: string
+    chave: string
+    valor: string
+    anterior?: string
+    icon?: string
+    description?: string
+  }[]> = {
 
-      // Score de Qualidade
-      scoreQuality: churnRateNum < 5 && ebitdaMarginNum > 20 ? "95" :
-                   churnRateNum < 10 && ebitdaMarginNum > 15 ? "80" : "60",
-    }
-  }
-
-  const calculatedMetrics = calculateCommunicationMetrics()
-
-  const categorias: Record<string, Categoria[]> = {
-    "Rentabilidade e Retorno": [
+    "Core do Negócio": [
       {
-        label: "P/L",
-        chave: "pe",
-        valor: props.pe,
-        anterior: props.peAnoAnterior,
-        icon: "💲",
-        description: "Preço sobre Lucro"
+        label: "Crescimento de Usuários",
+        chave: "userGrowth",
+        valor: props.userGrowth || "0",
+        anterior: props.userGrowthAnoAnterior,
+        icon: "👥",
+        description: "Taxa de crescimento da base de usuários"
       },
       {
-        label: "P/S",
-        chave: "ps",
-        valor: props.ps,
-        anterior: props.psAnoAnterior,
+        label: "ARPU",
+        chave: "arpu",
+        valor: props.arpu || "0",
+        anterior: props.arpuAnoAnterior,
+        icon: "💰",
+        description: "Receita média por usuário"
+      },
+      {
+        label: "Churn Rate",
+        chave: "churnRate",
+        valor: props.churnRate || "0",
+        anterior: props.churnRateAnoAnterior,
+        icon: "🔄",
+        description: "Taxa de cancelamento"
+      },
+      {
+        label: "Content Investment",
+        chave: "contentInvestment",
+        valor: props.contentInvestment || "0",
+        anterior: props.contentInvestmentAnoAnterior,
+        icon: "🎬",
+        description: "% da receita investida em conteúdo"
+      },
+    ],
+
+    "Crescimento e Performance": [
+      {
+        label: "Crescimento Receita",
+        chave: "crescimentoReceita",
+        valor: props.crescimentoReceita,
+        anterior: props.crescimentoReceitaAnoAnterior,
+        icon: "📈",
+        description: "Crescimento anual da receita"
+      },
+      {
+        label: "CAGR Receita (3Y)",
+        chave: "receitaCagr3y",
+        valor: props.receitaCagr3y,
+        anterior: props.receitaCagr3yAnoAnterior,
         icon: "📊",
-        description: "Preço sobre Vendas"
+        description: "Taxa de crescimento composta (3 anos)"
       },
       {
-        label: "P/VPA",
-        chave: "pb",
-        valor: props.pb,
-        anterior: props.pbAnoAnterior,
-        icon: "📚",
-        description: "Preço sobre Valor Patrimonial"
+        label: "Crescimento EBITDA",
+        chave: "crescimentoEbitda",
+        valor: props.crescimentoEbitda,
+        anterior: props.crescimentoEbitdaAnoAnterior,
+        icon: "🚀",
+        description: "Crescimento do EBITDA"
       },
+    ],
+
+    "Rentabilidade": [
       {
         label: "ROE",
         chave: "roe",
         valor: props.roe,
         anterior: props.roeAnoAnterior,
         icon: "📈",
-        description: "Retorno sobre Patrimônio Líquido"
+        description: "Retorno sobre patrimônio líquido"
       },
       {
         label: "ROIC",
@@ -150,18 +95,7 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
         valor: props.roic,
         anterior: props.roicAnoAnterior,
         icon: "🎯",
-        description: "Retorno sobre Capital Investido"
-      },
-    ],
-
-    "Margens e Eficiência": [
-      {
-        label: "Margem Bruta",
-        chave: "grossMargin",
-        valor: props.grossMargin,
-        anterior: props.grossMarginAnoAnterior,
-        icon: "💰",
-        description: "Margem Bruta"
+        description: "Retorno sobre capital investido"
       },
       {
         label: "Margem EBITDA",
@@ -172,12 +106,20 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
         description: "Margem EBITDA"
       },
       {
+        label: "Margem Bruta",
+        chave: "grossMargin",
+        valor: props.grossMargin,
+        anterior: props.grossMarginAnoAnterior,
+        icon: "💰",
+        description: "Margem bruta"
+      },
+      {
         label: "Margem Líquida",
         chave: "margemLiquida",
         valor: props.margemLiquida,
         anterior: props.margemLiquidaAnoAnterior,
         icon: "🎯",
-        description: "Margem Líquida"
+        description: "Margem líquida"
       },
       {
         label: "Margem Operacional",
@@ -185,38 +127,65 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
         valor: props.margemOperacional,
         anterior: props.margemOperacionalAnoAnterior,
         icon: "⚙️",
-        description: "Margem Operacional"
+        description: "Margem operacional"
       },
     ],
 
-    "Crescimento e Performance": [
+    "Múltiplos de Avaliação": [
       {
-        label: "Crescimento da Receita (3Y)",
-        chave: "receitaCagr3y",
-        valor: props.receitaCagr3y,
-        anterior: props.receitaCagr3yAnoAnterior,
-        icon: "📈",
-        description: "CAGR de 3 anos da Receita"
+        label: "P/L",
+        chave: "pe",
+        valor: props.pe,
+        anterior: props.peAnoAnterior,
+        icon: "💲",
+        description: "Preço sobre lucro"
       },
       {
-        label: "Crescimento Receita",
-        chave: "crescimentoReceita",
-        valor: props.crescimentoReceita,
-        anterior: props.crescimentoReceitaAnoAnterior,
+        label: "P/S",
+        chave: "ps",
+        valor: props.ps,
+        anterior: props.psAnoAnterior,
         icon: "📊",
-        description: "Crescimento Anual da Receita"
+        description: "Preço sobre vendas"
       },
       {
-        label: "Crescimento EBITDA",
-        chave: "crescimentoEbitda",
-        valor: props.crescimentoEbitda,
-        anterior: props.crescimentoEbitdaAnoAnterior,
-        icon: "📈",
-        description: "Crescimento do EBITDA"
+        label: "P/VPA",
+        chave: "pb",
+        valor: props.pb,
+        anterior: props.pbAnoAnterior,
+        icon: "📚",
+        description: "Preço sobre valor patrimonial"
       },
     ],
 
-    "Estrutura de Capital e Solvência": [
+    "Fluxo de Caixa": [
+      {
+        label: "Free Cash Flow",
+        chave: "freeCashFlow",
+        valor: props.freeCashFlow,
+        anterior: props.freeCashFlowAnoAnterior,
+        icon: "💸",
+        description: "Fluxo de caixa livre"
+      },
+      {
+        label: "FCF Yield",
+        chave: "fcfYield",
+        valor: props.fcfYield,
+        anterior: props.fcfYieldAnoAnterior,
+        icon: "💰",
+        description: "Rendimento do fluxo de caixa"
+      },
+      {
+        label: "CapEx/Receita",
+        chave: "capexRevenue",
+        valor: props.capexRevenue,
+        anterior: props.capexRevenueAnoAnterior,
+        icon: "🏗️",
+        description: "Intensidade de investimentos"
+      },
+    ],
+
+    "Estrutura Financeira": [
       {
         label: "Dívida/EBITDA",
         chave: "dividaEbitda",
@@ -231,7 +200,7 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
         valor: props.coberturaJuros,
         anterior: props.coberturaJurosAnoAnterior,
         icon: "🛡️",
-        description: "Capacidade de Pagamento de Juros"
+        description: "Capacidade de pagamento de juros"
       },
       {
         label: "Liquidez Corrente",
@@ -239,7 +208,7 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
         valor: props.liquidezCorrente,
         anterior: props.liquidezCorrenteAnoAnterior,
         icon: "💧",
-        description: "Liquidez de Curto Prazo"
+        description: "Liquidez de curto prazo"
       },
       {
         label: "Dívida/Patrimônio",
@@ -247,34 +216,7 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
         valor: props.debtEquity,
         anterior: props.debtEquityAnoAnterior,
         icon: "📊",
-        description: "Alavancagem Financeira"
-      },
-    ],
-
-    "Fluxo de Caixa": [
-      {
-        label: "Free Cash Flow",
-        chave: "freeCashFlow",
-        valor: props.freeCashFlow,
-        anterior: props.freeCashFlowAnoAnterior,
-        icon: "💸",
-        description: "Fluxo de Caixa Livre"
-      },
-      {
-        label: "FCF Yield",
-        chave: "fcfYield",
-        valor: props.fcfYield,
-        anterior: props.fcfYieldAnoAnterior,
-        icon: "💰",
-        description: "Rendimento do Fluxo de Caixa"
-      },
-      {
-        label: "CapEx/Receita",
-        chave: "capexRevenue",
-        valor: props.capexRevenue,
-        anterior: props.capexRevenueAnoAnterior,
-        icon: "🏗️",
-        description: "Intensidade de Investimentos"
+        description: "Alavancagem financeira"
       },
     ],
 
@@ -285,7 +227,7 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
         valor: props.dividendYield,
         anterior: props.dividendYieldAnoAnterior,
         icon: "💎",
-        description: "Rendimento de Dividendos"
+        description: "Rendimento de dividendos"
       },
       {
         label: "Payout Ratio",
@@ -297,7 +239,7 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
       },
     ],
 
-    "Volatilidade e Avaliação": [
+    "Risco e Volatilidade": [
       {
         label: "Beta",
         chave: "beta",
@@ -306,188 +248,51 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
         icon: "📉",
         description: "Volatilidade vs. mercado"
       },
-      {
-        label: "Valuation (DCF)",
-        chave: "leveredDcf",
-        valor: props.leveredDcf,
-        anterior: props.leveredDcfAnoAnterior,
-        icon: "📊",
-        description: "Fluxo de Caixa Descontado"
-      },
-      {
-        label: "Preço Atual",
-        chave: "precoAtual",
-        valor: props.precoAtual,
-        anterior: props.precoAtualAnoAnterior,
-        icon: "💲",
-        description: "Preço Atual da Ação"
-      },
     ],
-
-    "Métricas Específicas de Communication Services": [
-      ...(props.userGrowth ? [{
-        label: "Crescimento de Usuários",
-        chave: "userGrowth",
-        valor: props.userGrowth,
-        anterior: props.userGrowthAnoAnterior,
-        icon: "👥",
-        description: "Taxa de Crescimento da Base de Usuários"
-      }] : []),
-      ...(props.arpu ? [{
-        label: "ARPU",
-        chave: "arpu",
-        valor: props.arpu,
-        anterior: props.arpuAnoAnterior,
-        icon: "💰",
-        description: "Receita Média por Usuário"
-      }] : []),
-      ...(props.churnRate ? [{
-        label: "Churn Rate",
-        chave: "churnRate",
-        valor: props.churnRate,
-        anterior: props.churnRateAnoAnterior,
-        icon: "🔄",
-        description: "Taxa de Cancelamento de Clientes"
-      }] : []),
-      ...(props.contentInvestment ? [{
-        label: "Investimento em Conteúdo",
-        chave: "contentInvestment",
-        valor: props.contentInvestment,
-        anterior: props.contentInvestmentAnoAnterior,
-        icon: "🎬",
-        description: "% da Receita Investida em Conteúdo"
-      }] : []),
-      {
-        label: "Score de Crescimento",
-        chave: "scoreGrowth",
-        valor: calculatedMetrics.scoreGrowth,
-        icon: "🚀",
-        description: "Score de performance de crescimento"
-      },
-      {
-        label: "Score de Rentabilidade",
-        chave: "scoreProfitability",
-        valor: calculatedMetrics.scoreProfitability,
-        icon: "💎",
-        description: "Score de rentabilidade e margens"
-      },
-      {
-        label: "Score de Qualidade",
-        chave: "scoreQuality",
-        valor: calculatedMetrics.scoreQuality,
-        icon: "⭐",
-        description: "Score de qualidade operacional"
-      },
-    ],
-  };
-
-  // Complementares incluindo métricas calculadas e dados base
-  const complementares = {
-    // Métricas calculadas
-    scoreGrowth: parseFloat(calculatedMetrics.scoreGrowth || "0"),
-    scoreProfitability: parseFloat(calculatedMetrics.scoreProfitability || "0"),
-    scoreQuality: parseFloat(calculatedMetrics.scoreQuality || "0"),
-
-    // Dados originais (valores atuais)
-    pe: parseFloat(props.pe ?? "NaN"),
-    ps: parseFloat(props.ps ?? "NaN"),
-    pb: parseFloat(props.pb ?? "NaN"),
-    roe: parseFloat(props.roe ?? "NaN"),
-    roic: parseFloat(props.roic ?? "NaN"),
-    grossMargin: parseFloat(props.grossMargin ?? "NaN"),
-    ebitdaMargin: parseFloat(props.ebitdaMargin ?? "NaN"),
-    margemLiquida: parseFloat(props.margemLiquida ?? "NaN"),
-    margemOperacional: parseFloat(props.margemOperacional ?? "NaN"),
-    receitaCagr3y: parseFloat(props.receitaCagr3y ?? "NaN"),
-    crescimentoReceita: parseFloat(props.crescimentoReceita ?? "NaN"),
-    crescimentoEbitda: parseFloat(props.crescimentoEbitda ?? "NaN"),
-    dividaEbitda: parseFloat(props.dividaEbitda ?? "NaN"),
-    coberturaJuros: parseFloat(props.coberturaJuros ?? "NaN"),
-    liquidezCorrente: parseFloat(props.liquidezCorrente ?? "NaN"),
-    debtEquity: parseFloat(props.debtEquity ?? "NaN"),
-    freeCashFlow: parseFloat(props.freeCashFlow ?? "NaN"),
-    fcfYield: parseFloat(props.fcfYield ?? "NaN"),
-    capexRevenue: parseFloat(props.capexRevenue ?? "NaN"),
-    dividendYield: parseFloat(props.dividendYield ?? "NaN"),
-    payoutRatio: parseFloat(props.payoutRatio ?? "NaN"),
-    beta: parseFloat(props.beta ?? "NaN"),
-    leveredDcf: parseFloat(props.leveredDcf ?? "NaN"),
-    precoAtual: parseFloat(props.precoAtual ?? "NaN"),
-    userGrowth: parseFloat(props.userGrowth ?? "NaN"),
-    arpu: parseFloat(props.arpu ?? "NaN"),
-    churnRate: parseFloat(props.churnRate ?? "NaN"),
-    contentInvestment: parseFloat(props.contentInvestment ?? "NaN"),
-
-    // Dados anteriores
-    peAnoAnterior: parseFloat(props.peAnoAnterior ?? "NaN"),
-    psAnoAnterior: parseFloat(props.psAnoAnterior ?? "NaN"),
-    pbAnoAnterior: parseFloat(props.pbAnoAnterior ?? "NaN"),
-    roeAnoAnterior: parseFloat(props.roeAnoAnterior ?? "NaN"),
-    roicAnoAnterior: parseFloat(props.roicAnoAnterior ?? "NaN"),
-    grossMarginAnoAnterior: parseFloat(props.grossMarginAnoAnterior ?? "NaN"),
-    ebitdaMarginAnoAnterior: parseFloat(props.ebitdaMarginAnoAnterior ?? "NaN"),
-    margemLiquidaAnoAnterior: parseFloat(props.margemLiquidaAnoAnterior ?? "NaN"),
-    margemOperacionalAnoAnterior: parseFloat(props.margemOperacionalAnoAnterior ?? "NaN"),
-    receitaCagr3yAnoAnterior: parseFloat(props.receitaCagr3yAnoAnterior ?? "NaN"),
-    crescimentoReceitaAnoAnterior: parseFloat(props.crescimentoReceitaAnoAnterior ?? "NaN"),
-    crescimentoEbitdaAnoAnterior: parseFloat(props.crescimentoEbitdaAnoAnterior ?? "NaN"),
-    dividaEbitdaAnoAnterior: parseFloat(props.dividaEbitdaAnoAnterior ?? "NaN"),
-    coberturaJurosAnoAnterior: parseFloat(props.coberturaJurosAnoAnterior ?? "NaN"),
-    liquidezCorrenteAnoAnterior: parseFloat(props.liquidezCorrenteAnoAnterior ?? "NaN"),
-    debtEquityAnoAnterior: parseFloat(props.debtEquityAnoAnterior ?? "NaN"),
-    freeCashFlowAnoAnterior: parseFloat(props.freeCashFlowAnoAnterior ?? "NaN"),
-    fcfYieldAnoAnterior: parseFloat(props.fcfYieldAnoAnterior ?? "NaN"),
-    capexRevenueAnoAnterior: parseFloat(props.capexRevenueAnoAnterior ?? "NaN"),
-    dividendYieldAnoAnterior: parseFloat(props.dividendYieldAnoAnterior ?? "NaN"),
-    payoutRatioAnoAnterior: parseFloat(props.payoutRatioAnoAnterior ?? "NaN"),
-    betaAnoAnterior: parseFloat(props.betaAnoAnterior ?? "NaN"),
-    leveredDcfAnoAnterior: parseFloat(props.leveredDcfAnoAnterior ?? "NaN"),
-    precoAtualAnoAnterior: parseFloat(props.precoAtualAnoAnterior ?? "NaN"),
-    userGrowthAnoAnterior: parseFloat(props.userGrowthAnoAnterior ?? "NaN"),
-    arpuAnoAnterior: parseFloat(props.arpuAnoAnterior ?? "NaN"),
-    churnRateAnoAnterior: parseFloat(props.churnRateAnoAnterior ?? "NaN"),
-    contentInvestmentAnoAnterior: parseFloat(props.contentInvestmentAnoAnterior ?? "NaN"),
   }
 
-  // Formatação adequada para communication services
+  // Função para formatar valores
   const formatValue = (valor: string, chave: string) => {
-    const num = parseFloat(valor)
+    const cleanValue = valor.replace('%', '').replace('$', '').replace(',', '').trim()
+    const num = parseFloat(cleanValue)
+
     if (isNaN(num)) return valor
 
-    // Percentuais
-    if (['roe', 'roic', 'grossMargin', 'ebitdaMargin', 'margemLiquida', 'margemOperacional', 'receitaCagr3y', 'crescimentoReceita', 'crescimentoEbitda', 'dividendYield', 'payoutRatio', 'fcfYield', 'capexRevenue', 'userGrowth', 'churnRate', 'contentInvestment', 'scoreGrowth', 'scoreProfitability', 'scoreQuality'].includes(chave)) {
+    // Valores em percentual
+    if (['roe', 'roic', 'grossMargin', 'ebitdaMargin', 'margemLiquida', 'margemOperacional',
+         'receitaCagr3y', 'crescimentoReceita', 'crescimentoEbitda', 'dividendYield',
+         'payoutRatio', 'fcfYield', 'capexRevenue', 'userGrowth', 'churnRate', 'contentInvestment'].includes(chave)) {
       return `${num.toFixed(2)}%`
     }
 
-    // Valores monetários (DCF, FCF, ARPU, Preço)
-    if (['leveredDcf', 'precoAtual', 'freeCashFlow', 'arpu'].includes(chave)) {
-      if (chave === 'freeCashFlow' && Math.abs(num) > 1000000) {
-        return `${(num / 1000000).toFixed(1)}M`
-      }
-      return `${num.toFixed(2)}`
+    // Valores monetários grandes (FCF, ARPU)
+    if (chave === 'freeCashFlow' && Math.abs(num) > 1000000) {
+      return `${(num / 1000000).toFixed(1)}M`
     }
 
-    // Ratios gerais
+    if (chave === 'arpu') {
+      return `$${num.toFixed(2)}`
+    }
+
+    // Ratios com 2 casas decimais
     return num.toFixed(2)
   }
 
   return (
     <div className="mt-6 space-y-8">
       {Object.entries(categorias).map(([categoria, indicadores]) => {
-        // Filtrar indicadores válidos
-        const indicadoresValidos = indicadores.filter(({ label, valor, anterior }) => {
+        // Filtrar indicadores válidos antes de renderizar a categoria
+        const indicadoresValidos = indicadores.filter(({ label, valor }) => {
           const numeric = parseFloat(valor)
-          if (isNaN(numeric)) return false
 
-          const prev = anterior ? parseFloat(anterior) : undefined
-
+          // ✅ NOVO: Usar complementares específicos de Communication Services
           const { apenasInformativo } = avaliarIndicadorComContexto(
             "Communication Services",
             label,
             numeric,
             {
-              valorAnterior: prev,
-              complementares,
+              valorAnterior: undefined,
+              complementares, // ✅ Agora só contém indicadores de Comm Services
             }
           )
           return !apenasInformativo
@@ -498,9 +303,9 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
 
         return (
           <div key={categoria} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-            <div className="bg-gradient-to-r from-indigo-50 to-blue-50 px-6 py-4 border-b border-gray-200">
+            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
+                <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
                 {categoria}
                 <span className="text-sm font-normal text-gray-500 ml-2">
                   ({indicadoresValidos.length} indicador{indicadoresValidos.length !== 1 ? 'es' : ''})
@@ -514,13 +319,14 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
                   const numeric = parseFloat(valor)
                   const prev = anterior ? parseFloat(anterior) : undefined
 
+                  // ✅ NOVO: Usar complementares específicos de Communication Services
                   const { score, explicacaoCustom } = avaliarIndicadorComContexto(
                     "Communication Services",
                     label,
                     numeric,
                     {
                       valorAnterior: prev,
-                      complementares,
+                      complementares, // ✅ Agora só contém indicadores de Comm Services
                     }
                   )
 

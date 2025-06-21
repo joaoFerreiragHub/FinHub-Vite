@@ -34,10 +34,15 @@ export interface TechnologyComplementares {
   // Risco e Liquidez
   beta: number
   cashRatio: number
+  cashRatioAnoAnterior: number // 🆕 ADICIONADO
   liquidezCorrente: number
 
   // Distribuição
   payoutRatio: number
+  payoutRatioAnoAnterior: number // 🆕 ADICIONADO
+
+  // 🆕 NOVOS: Receitas e outros indicadores importantes
+  receitasRecorrentes: number // 🆕 ADICIONADO
 }
 
 export interface RatingsTechProps {
@@ -48,6 +53,7 @@ export interface RatingsTechProps {
   cagrEpsAnoAnterior?: string
   eps: string
   epsAnoAnterior?: string
+  receitasRecorrentes?: string // 🆕 ADICIONADO opcional
 
   // Margens e Rentabilidade
   margemBruta: string
@@ -151,11 +157,16 @@ export function buildTechnologyComplementares(props: RatingsTechProps): Technolo
 
     // Risco e Liquidez
     beta: parseValue(props.beta),
-    cashRatio: parseValue(props.cashRatio),
+    cashRatio: parseValue(props.cashRatio), // ✅ JÁ EXISTIA
+    cashRatioAnoAnterior: parseValue(props.cashRatioAnoAnterior), // 🆕 ADICIONADO
     liquidezCorrente: parseValue(props.liquidezCorrente),
 
     // Distribuição
-    payoutRatio: parseValue(props.payoutRatio),
+    payoutRatio: parseValue(props.payoutRatio), // ✅ JÁ EXISTIA
+    payoutRatioAnoAnterior: parseValue(props.payoutRatioAnoAnterior), // 🆕 ADICIONADO
+
+    // 🆕 NOVOS: Receitas e outros indicadores importantes
+    receitasRecorrentes: parseValue(props.receitasRecorrentes), // 🆕 ADICIONADO
   }
 }
 

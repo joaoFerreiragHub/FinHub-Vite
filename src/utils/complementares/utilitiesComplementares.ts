@@ -1,7 +1,7 @@
 // src/utils/complementares/utilitiesComplementares.ts
 
 export interface UtilitiesComplementares {
-  // Múltiplos de Valuation
+  // === MÚLTIPLOS DE VALUATION ===
   pl: number
   plAnoAnterior: number
   pb: number
@@ -11,11 +11,13 @@ export interface UtilitiesComplementares {
   earningsYield: number
   earningsYieldAnoAnterior: number
 
-  // Rentabilidade
+  // === RENTABILIDADE ===
   roe: number
   roeAnoAnterior: number
   roic: number
   roicAnoAnterior: number
+  regulatoryROE: number // ✅ NOVO - Específico de Utilities
+  regulatoryROEAnoAnterior: number
   margemEbitda: number
   margemEbitdaAnoAnterior: number
   margemOperacional: number
@@ -23,45 +25,59 @@ export interface UtilitiesComplementares {
   margemLiquida: number
   margemLiquidaAnoAnterior: number
 
-  // Dividendos e Distribuições
+  // === DIVIDENDOS E DISTRIBUIÇÕES (CORE para Utilities) ===
   dividendYield: number
   dividendYieldAnoAnterior: number
   payoutRatio: number
   payoutRatioAnoAnterior: number
   dividendCagr5y: number
   dividendCagr5yAnoAnterior: number
+  dividendConsistency: number // ✅ NOVO - Histórico de pagamentos
+  dividendConsistencyAnoAnterior: number
 
-  // Estrutura Financeira
+  // === ESTRUTURA FINANCEIRA (Capital-intensive) ===
   endividamento: number
   endividamentoAnoAnterior: number
   debtToEbitda: number
   debtToEbitdaAnoAnterior: number
-  coberturaJuros: number
+  coberturaJuros: number // ✅ CRÍTICO para Utilities
   coberturaJurosAnoAnterior: number
   liquidezCorrente: number
   liquidezCorrenteAnoAnterior: number
 
-  // Eficiência Operacional
+  // === EFICIÊNCIA OPERACIONAL ===
   giroAtivo: number
   giroAtivoAnoAnterior: number
-  capexOverRevenue: number
+  capexOverRevenue: number // ✅ MUITO IMPORTANTE para infraestrutura
   capexOverRevenueAnoAnterior: number
+  assetAge: number // ✅ NOVO - Idade dos ativos
+  assetAgeAnoAnterior: number
 
-  // Crescimento
+  // === CRESCIMENTO (Moderado para Utilities) ===
   crescimentoReceita: number
   crescimentoReceitaAnoAnterior: number
   crescimentoEps: number
   crescimentoEpsAnoAnterior: number
+  rateBaseGrowth: number // ✅ NOVO - Crescimento da base tarifária
+  rateBaseGrowthAnoAnterior: number
 
-  // Valuation vs Fundamentals
+  // === VALUATION VS FUNDAMENTALS ===
   leveredDcf: number
+  leveredDcfAnoAnterior: number
   precoAtual: number
+  precoAtualAnoAnterior: number
   fcf: number
   fcfAnoAnterior: number
+
+  // === MÉTRICAS ESPECÍFICAS DE UTILITIES ===
+  capacityFactor: number // ✅ NOVO - Para empresas de geração
+  capacityFactorAnoAnterior: number
+  renewablePercentage: number // ✅ NOVO - % Energias renováveis (ESG)
+  renewablePercentageAnoAnterior: number
 }
 
 export interface RatingsUtilitiesProps {
-  // Múltiplos de Valuation
+  // === MÚLTIPLOS DE VALUATION ===
   pl: string
   plAnoAnterior?: string
   pb: string
@@ -71,11 +87,13 @@ export interface RatingsUtilitiesProps {
   earningsYield: string
   earningsYieldAnoAnterior?: string
 
-  // Rentabilidade
+  // === RENTABILIDADE ===
   roe: string
   roeAnoAnterior?: string
   roic: string
   roicAnoAnterior?: string
+  regulatoryROE?: string // ✅ NOVO
+  regulatoryROEAnoAnterior?: string
   margemEbitda: string
   margemEbitdaAnoAnterior?: string
   margemOperacional: string
@@ -83,15 +101,17 @@ export interface RatingsUtilitiesProps {
   margemLiquida: string
   margemLiquidaAnoAnterior?: string
 
-  // Dividendos e Distribuições
+  // === DIVIDENDOS E DISTRIBUIÇÕES ===
   dividendYield: string
   dividendYieldAnoAnterior?: string
   payoutRatio: string
   payoutRatioAnoAnterior?: string
   dividendCagr5y: string
   dividendCagr5yAnoAnterior?: string
+  dividendConsistency?: string // ✅ NOVO
+  dividendConsistencyAnoAnterior?: string
 
-  // Estrutura Financeira
+  // === ESTRUTURA FINANCEIRA ===
   endividamento: string
   endividamentoAnoAnterior?: string
   debtToEbitda: string
@@ -101,34 +121,46 @@ export interface RatingsUtilitiesProps {
   liquidezCorrente: string
   liquidezCorrenteAnoAnterior?: string
 
-  // Eficiência Operacional
+  // === EFICIÊNCIA OPERACIONAL ===
   giroAtivo: string
   giroAtivoAnoAnterior?: string
   capexOverRevenue: string
   capexOverRevenueAnoAnterior?: string
+  assetAge?: string // ✅ NOVO
+  assetAgeAnoAnterior?: string
 
-  // Crescimento
+  // === CRESCIMENTO ===
   crescimentoReceita: string
   crescimentoReceitaAnoAnterior?: string
   crescimentoEps: string
   crescimentoEpsAnoAnterior?: string
+  rateBaseGrowth?: string // ✅ NOVO
+  rateBaseGrowthAnoAnterior?: string
 
-  // Valuation vs Fundamentals
+  // === VALUATION VS FUNDAMENTALS ===
   leveredDcf: string
+  leveredDcfAnoAnterior?: string
   precoAtual: string
-  fcf?: string
+  precoAtualAnoAnterior?: string
+  fcf: string
   fcfAnoAnterior?: string
+
+  // === MÉTRICAS ESPECÍFICAS DE UTILITIES ===
+  capacityFactor?: string // ✅ NOVO
+  capacityFactorAnoAnterior?: string
+  renewablePercentage?: string // ✅ NOVO
+  renewablePercentageAnoAnterior?: string
 }
 
 /**
- * Constrói objeto de complementares específico para o setor Utilities
- * Inclui APENAS indicadores relevantes para empresas de serviços públicos
+ * ✅ CORRIGIDO: Constrói objeto de complementares específico para Utilities
+ * Focado nos indicadores mais relevantes para empresas de serviços públicos
  */
 export function buildUtilitiesComplementares(
   props: RatingsUtilitiesProps,
 ): UtilitiesComplementares {
   const parseValue = (value: string | undefined): number => {
-    if (!value || value === 'N/A' || value === 'undefined' || value === '0') return NaN
+    if (!value || value === 'N/A' || value === 'undefined' || value.trim() === '') return NaN
 
     // Remove % se existir
     const cleanValue = value.replace('%', '').trim()
@@ -138,7 +170,7 @@ export function buildUtilitiesComplementares(
   }
 
   return {
-    // Múltiplos de Valuation
+    // === MÚLTIPLOS DE VALUATION ===
     pl: parseValue(props.pl),
     plAnoAnterior: parseValue(props.plAnoAnterior),
     pb: parseValue(props.pb),
@@ -148,11 +180,13 @@ export function buildUtilitiesComplementares(
     earningsYield: parseValue(props.earningsYield),
     earningsYieldAnoAnterior: parseValue(props.earningsYieldAnoAnterior),
 
-    // Rentabilidade
+    // === RENTABILIDADE ===
     roe: parseValue(props.roe),
     roeAnoAnterior: parseValue(props.roeAnoAnterior),
     roic: parseValue(props.roic),
     roicAnoAnterior: parseValue(props.roicAnoAnterior),
+    regulatoryROE: parseValue(props.regulatoryROE), // ✅ NOVO
+    regulatoryROEAnoAnterior: parseValue(props.regulatoryROEAnoAnterior),
     margemEbitda: parseValue(props.margemEbitda),
     margemEbitdaAnoAnterior: parseValue(props.margemEbitdaAnoAnterior),
     margemOperacional: parseValue(props.margemOperacional),
@@ -160,15 +194,17 @@ export function buildUtilitiesComplementares(
     margemLiquida: parseValue(props.margemLiquida),
     margemLiquidaAnoAnterior: parseValue(props.margemLiquidaAnoAnterior),
 
-    // Dividendos e Distribuições
+    // === DIVIDENDOS E DISTRIBUIÇÕES ===
     dividendYield: parseValue(props.dividendYield),
     dividendYieldAnoAnterior: parseValue(props.dividendYieldAnoAnterior),
     payoutRatio: parseValue(props.payoutRatio),
     payoutRatioAnoAnterior: parseValue(props.payoutRatioAnoAnterior),
     dividendCagr5y: parseValue(props.dividendCagr5y),
     dividendCagr5yAnoAnterior: parseValue(props.dividendCagr5yAnoAnterior),
+    dividendConsistency: parseValue(props.dividendConsistency), // ✅ NOVO
+    dividendConsistencyAnoAnterior: parseValue(props.dividendConsistencyAnoAnterior),
 
-    // Estrutura Financeira
+    // === ESTRUTURA FINANCEIRA ===
     endividamento: parseValue(props.endividamento),
     endividamentoAnoAnterior: parseValue(props.endividamentoAnoAnterior),
     debtToEbitda: parseValue(props.debtToEbitda),
@@ -178,164 +214,146 @@ export function buildUtilitiesComplementares(
     liquidezCorrente: parseValue(props.liquidezCorrente),
     liquidezCorrenteAnoAnterior: parseValue(props.liquidezCorrenteAnoAnterior),
 
-    // Eficiência Operacional
+    // === EFICIÊNCIA OPERACIONAL ===
     giroAtivo: parseValue(props.giroAtivo),
     giroAtivoAnoAnterior: parseValue(props.giroAtivoAnoAnterior),
     capexOverRevenue: parseValue(props.capexOverRevenue),
     capexOverRevenueAnoAnterior: parseValue(props.capexOverRevenueAnoAnterior),
+    assetAge: parseValue(props.assetAge), // ✅ NOVO
+    assetAgeAnoAnterior: parseValue(props.assetAgeAnoAnterior),
 
-    // Crescimento
+    // === CRESCIMENTO ===
     crescimentoReceita: parseValue(props.crescimentoReceita),
     crescimentoReceitaAnoAnterior: parseValue(props.crescimentoReceitaAnoAnterior),
     crescimentoEps: parseValue(props.crescimentoEps),
     crescimentoEpsAnoAnterior: parseValue(props.crescimentoEpsAnoAnterior),
+    rateBaseGrowth: parseValue(props.rateBaseGrowth), // ✅ NOVO
+    rateBaseGrowthAnoAnterior: parseValue(props.rateBaseGrowthAnoAnterior),
 
-    // Valuation vs Fundamentals
+    // === VALUATION VS FUNDAMENTALS ===
     leveredDcf: parseValue(props.leveredDcf),
+    leveredDcfAnoAnterior: parseValue(props.leveredDcfAnoAnterior),
     precoAtual: parseValue(props.precoAtual),
+    precoAtualAnoAnterior: parseValue(props.precoAtualAnoAnterior),
     fcf: parseValue(props.fcf),
     fcfAnoAnterior: parseValue(props.fcfAnoAnterior),
+
+    // === MÉTRICAS ESPECÍFICAS DE UTILITIES ===
+    capacityFactor: parseValue(props.capacityFactor), // ✅ NOVO
+    capacityFactorAnoAnterior: parseValue(props.capacityFactorAnoAnterior),
+    renewablePercentage: parseValue(props.renewablePercentage), // ✅ NOVO
+    renewablePercentageAnoAnterior: parseValue(props.renewablePercentageAnoAnterior),
   }
 }
 
 /**
- * Valida se os indicadores complementares necessários estão disponíveis
+ * ✅ NOVO: Validação específica para Utilities com ranges setoriais
  */
-export function validateUtilitiesComplementares(
-  complementares: UtilitiesComplementares,
-  requiredFields: (keyof UtilitiesComplementares)[],
-): boolean {
-  return requiredFields.every((field) => !isNaN(complementares[field]))
+export function validateUtilitiesRanges(valor: number, chave: string): boolean {
+  const ranges: Record<string, [number, number]> = {
+    // Rentabilidade típica de Utilities
+    'roe': [5, 25],              // ROE: 5-25%
+    'roic': [3, 20],             // ROIC: 3-20%
+    'regulatoryROE': [8, 15],    // ROE Regulatório: 8-15%
+
+    // Dividendos (core do setor)
+    'dividendYield': [2, 12],    // Yield: 2-12%
+    'payoutRatio': [40, 95],     // Payout: 40-95%
+    'dividendCagr5y': [-2, 8],   // Crescimento: -2% a 8%
+
+    // Estrutura financeira
+    'endividamento': [30, 80],   // Endividamento: 30-80%
+    'debtToEbitda': [1, 8],      // Dívida/EBITDA: 1-8x
+    'coberturaJuros': [1, 15],   // Cobertura: 1-15x
+
+    // Operacional
+    'giroAtivo': [0.2, 0.8],     // Giro: 0.2-0.8x
+    'capexOverRevenue': [5, 40], // CapEx: 5-40%
+    'assetAge': [5, 50],         // Idade: 5-50 anos
+
+    // Crescimento
+    'crescimentoReceita': [-5, 15], // Crescimento: -5% a 15%
+    'rateBaseGrowth': [0, 10],      // Rate Base: 0-10%
+
+    // Específicas
+    'capacityFactor': [20, 95],     // Fator: 20-95%
+    'renewablePercentage': [0, 100], // Renováveis: 0-100%
+  }
+
+  const [min, max] = ranges[chave] || [-Infinity, Infinity]
+  return valor >= min && valor <= max
 }
 
 /**
- * Obtém um subset específico dos complementares para contexto de avaliação
- */
-export function getUtilitiesComplementaresSubset(
-  complementares: UtilitiesComplementares,
-  fields: (keyof UtilitiesComplementares)[],
-): Partial<UtilitiesComplementares> {
-  const subset: Partial<UtilitiesComplementares> = {}
-
-  fields.forEach((field) => {
-    if (!isNaN(complementares[field])) {
-      subset[field] = complementares[field]
-    }
-  })
-
-  return subset
-}
-
-/**
- * Indicadores core obrigatórios para análise de Utilities
+ * ✅ INDICADORES CORE obrigatórios para análise de Utilities
  */
 export const UTILITIES_CORE_INDICATORS: (keyof UtilitiesComplementares)[] = [
-  'pl',
-  'pb',
-  'roe',
-  'dividendYield',
-  'payoutRatio',
-  'debtToEbitda',
-  'coberturaJuros',
+  'dividendYield',    // #1 - Core do setor
+  'payoutRatio',      // #2 - Sustentabilidade
+  'coberturaJuros',   // #3 - Segurança financeira
+  'roe',              // #4 - Rentabilidade
+  'debtToEbitda',     // #5 - Endividamento
+  'margemEbitda',     // #6 - Rentabilidade operacional
+  'capexOverRevenue', // #7 - Investimento em infraestrutura
+  'pl',               // #8 - Valuation
 ]
 
 /**
- * Indicadores de rentabilidade específicos para Utilities
- */
-export const UTILITIES_PROFITABILITY_INDICATORS: (keyof UtilitiesComplementares)[] = [
-  'roe',
-  'roic',
-  'margemEbitda',
-  'margemOperacional',
-  'margemLiquida',
-  'earningsYield',
-]
-
-/**
- * Indicadores de dividendos para Utilities (setor focado em renda)
+ * ✅ INDICADORES de DIVIDENDOS (críticos para Utilities)
  */
 export const UTILITIES_DIVIDEND_INDICATORS: (keyof UtilitiesComplementares)[] = [
   'dividendYield',
   'payoutRatio',
   'dividendCagr5y',
+  'dividendConsistency',
 ]
 
 /**
- * Indicadores de estrutura financeira para Utilities
+ * ✅ INDICADORES de SEGURANÇA FINANCEIRA
  */
-export const UTILITIES_FINANCIAL_INDICATORS: (keyof UtilitiesComplementares)[] = [
-  'endividamento',
-  'debtToEbitda',
+export const UTILITIES_FINANCIAL_SAFETY_INDICATORS: (keyof UtilitiesComplementares)[] = [
   'coberturaJuros',
+  'debtToEbitda',
+  'endividamento',
   'liquidezCorrente',
 ]
 
 /**
- * Indicadores de eficiência para Utilities
+ * ✅ INDICADORES REGULATÓRIOS específicos
  */
-export const UTILITIES_EFFICIENCY_INDICATORS: (keyof UtilitiesComplementares)[] = [
-  'giroAtivo',
-  'margemOperacional',
-  'capexOverRevenue',
+export const UTILITIES_REGULATORY_INDICATORS: (keyof UtilitiesComplementares)[] = [
+  'regulatoryROE',
+  'roe',
+  'roic',
+  'rateBaseGrowth',
 ]
 
 /**
- * Indicadores de crescimento para Utilities
+ * ✅ INDICADORES de SUSTENTABILIDADE/ESG
+ */
+export const UTILITIES_ESG_INDICATORS: (keyof UtilitiesComplementares)[] = [
+  'renewablePercentage',
+  'capacityFactor',
+  'assetAge',
+]
+
+/**
+ * ✅ INDICADORES de EFICIÊNCIA OPERACIONAL
+ */
+export const UTILITIES_OPERATIONAL_INDICATORS: (keyof UtilitiesComplementares)[] = [
+  'giroAtivo',
+  'margemEbitda',
+  'margemOperacional',
+  'capexOverRevenue',
+  'capacityFactor',
+]
+
+/**
+ * ✅ INDICADORES de CRESCIMENTO (moderado para Utilities)
  */
 export const UTILITIES_GROWTH_INDICATORS: (keyof UtilitiesComplementares)[] = [
   'crescimentoReceita',
   'crescimentoEps',
+  'rateBaseGrowth',
   'dividendCagr5y',
-]
-
-/**
- * Indicadores de avaliação para Utilities
- */
-export const UTILITIES_VALUATION_INDICATORS: (keyof UtilitiesComplementares)[] = [
-  'pl',
-  'pb',
-  'ps',
-  'earningsYield',
-  'leveredDcf',
-]
-
-/**
- * Indicadores de fluxo de caixa para Utilities
- */
-export const UTILITIES_CASHFLOW_INDICATORS: (keyof UtilitiesComplementares)[] = [
-  'fcf',
-  'capexOverRevenue',
-  'dividendYield',
-]
-
-/**
- * Indicadores de estabilidade para Utilities (setor defensivo)
- */
-export const UTILITIES_STABILITY_INDICATORS: (keyof UtilitiesComplementares)[] = [
-  'dividendYield',
-  'payoutRatio',
-  'coberturaJuros',
-  'debtToEbitda',
-  'margemEbitda',
-]
-
-/**
- * Indicadores regulatórios para Utilities
- */
-export const UTILITIES_REGULATORY_INDICATORS: (keyof UtilitiesComplementares)[] = [
-  'roe',
-  'roic',
-  'capexOverRevenue',
-  'debtToEbitda',
-]
-
-/**
- * Indicadores de capital intensivo para Utilities
- */
-export const UTILITIES_CAPITAL_INTENSIVE_INDICATORS: (keyof UtilitiesComplementares)[] = [
-  'capexOverRevenue',
-  'giroAtivo',
-  'roic',
-  'debtToEbitda',
-  'fcf',
 ]

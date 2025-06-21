@@ -1,75 +1,6 @@
+import { buildBasicMaterialsComplementares, RatingsBasicMaterialsProps } from "../../../utils/complementares/basicMaterialsComplementares"
 import { avaliarIndicadorComContexto } from "../hooks/avaliarIndicadorComContexto"
 import { IndicatorValuePro } from "../quickAnalysis/IndicatorValuePro"
-
-interface RatingsBasicMaterialsProps {
-  // Rentabilidade e Retorno
-  pe: string
-  peAnoAnterior?: string
-  pb: string
-  pbAnoAnterior?: string
-  roe: string
-  roeAnoAnterior?: string
-  roic: string
-  roicAnoAnterior?: string
-
-  // Margens e Eficiência
-  margemEbitda: string
-  margemEbitdaAnoAnterior?: string
-  margemBruta: string
-  margemBrutaAnoAnterior?: string
-  margemLiquida: string
-  margemLiquidaAnoAnterior?: string
-  margemOperacional: string
-  margemOperacionalAnoAnterior?: string
-
-  // Estrutura de Capital e Solvência
-  dividaEbitda: string
-  dividaEbitdaAnoAnterior?: string
-  coberturaJuros: string
-  coberturaJurosAnoAnterior?: string
-  liquidezCorrente: string
-  liquidezCorrenteAnoAnterior?: string
-  debtEquity: string
-  debtEquityAnoAnterior?: string
-
-  // Fluxo de Caixa e Investimentos
-  freeCashFlow: string
-  freeCashFlowAnoAnterior?: string
-  capexRevenue: string
-  capexRevenueAnoAnterior?: string
-  fcfYield: string
-  fcfYieldAnoAnterior?: string
-  workingCapitalTurnover: string
-  workingCapitalTurnoverAnoAnterior?: string
-
-  // Crescimento e Performance
-  crescimentoReceita: string
-  crescimentoReceitaAnoAnterior?: string
-  crescimentoEbitda: string
-  crescimentoEbitdaAnoAnterior?: string
-
-  // Dividendos e Retorno ao Acionista
-  dividendYield: string
-  dividendYieldAnoAnterior?: string
-  payoutRatio: string
-  payoutRatioAnoAnterior?: string
-
-  // Volatilidade e Avaliação
-  beta: string
-  betaAnoAnterior?: string
-  leveredDcf: string
-  leveredDcfAnoAnterior?: string
-  precoAtual: string
-  precoAtualAnoAnterior?: string
-
-  // Métricas Específicas de Basic Materials
-  inventoryTurnover?: string
-  inventoryTurnoverAnoAnterior?: string
-  assetTurnover?: string
-  assetTurnoverAnoAnterior?: string
-  capacityUtilization?: string
-  capacityUtilizationAnoAnterior?: string
-}
 
 interface Categoria {
   label: string
@@ -81,6 +12,11 @@ interface Categoria {
 }
 
 export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
+  // ✅ NOVO: Constrói complementares específicos para Basic Materials
+  const complementares = buildBasicMaterialsComplementares(props)
+
+  console.log('🔧 Basic Materials Complementares:', complementares)
+
   // Calcular métricas específicas de basic materials
   const calculateBasicMaterialsMetrics = () => {
     const roicNum = parseFloat(props.roic) || 0
@@ -353,70 +289,6 @@ export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
     ],
   };
 
-  // Complementares incluindo métricas calculadas e dados base
-  const complementares = {
-    // Métricas calculadas
-    eficienciaOperacional: parseFloat(calculatedMetrics.eficienciaOperacional || "0"),
-    gestaoCapital: parseFloat(calculatedMetrics.gestaoCapital || "0"),
-    geracaoValor: parseFloat(calculatedMetrics.geracaoValor || "0"),
-
-    // Dados originais (valores atuais)
-    pe: parseFloat(props.pe ?? "NaN"),
-    pb: parseFloat(props.pb ?? "NaN"),
-    roe: parseFloat(props.roe ?? "NaN"),
-    roic: parseFloat(props.roic ?? "NaN"),
-    margemEbitda: parseFloat(props.margemEbitda ?? "NaN"),
-    margemBruta: parseFloat(props.margemBruta ?? "NaN"),
-    margemLiquida: parseFloat(props.margemLiquida ?? "NaN"),
-    margemOperacional: parseFloat(props.margemOperacional ?? "NaN"),
-    dividaEbitda: parseFloat(props.dividaEbitda ?? "NaN"),
-    coberturaJuros: parseFloat(props.coberturaJuros ?? "NaN"),
-    liquidezCorrente: parseFloat(props.liquidezCorrente ?? "NaN"),
-    debtEquity: parseFloat(props.debtEquity ?? "NaN"),
-    freeCashFlow: parseFloat(props.freeCashFlow ?? "NaN"),
-    capexRevenue: parseFloat(props.capexRevenue ?? "NaN"),
-    fcfYield: parseFloat(props.fcfYield ?? "NaN"),
-    workingCapitalTurnover: parseFloat(props.workingCapitalTurnover ?? "NaN"),
-    crescimentoReceita: parseFloat(props.crescimentoReceita ?? "NaN"),
-    crescimentoEbitda: parseFloat(props.crescimentoEbitda ?? "NaN"),
-    dividendYield: parseFloat(props.dividendYield ?? "NaN"),
-    payoutRatio: parseFloat(props.payoutRatio ?? "NaN"),
-    beta: parseFloat(props.beta ?? "NaN"),
-    leveredDcf: parseFloat(props.leveredDcf ?? "NaN"),
-    precoAtual: parseFloat(props.precoAtual ?? "NaN"),
-    inventoryTurnover: parseFloat(props.inventoryTurnover ?? "NaN"),
-    assetTurnover: parseFloat(props.assetTurnover ?? "NaN"),
-    capacityUtilization: parseFloat(props.capacityUtilization ?? "NaN"),
-
-    // Dados anteriores
-    peAnoAnterior: parseFloat(props.peAnoAnterior ?? "NaN"),
-    pbAnoAnterior: parseFloat(props.pbAnoAnterior ?? "NaN"),
-    roeAnoAnterior: parseFloat(props.roeAnoAnterior ?? "NaN"),
-    roicAnoAnterior: parseFloat(props.roicAnoAnterior ?? "NaN"),
-    margemEbitdaAnoAnterior: parseFloat(props.margemEbitdaAnoAnterior ?? "NaN"),
-    margemBrutaAnoAnterior: parseFloat(props.margemBrutaAnoAnterior ?? "NaN"),
-    margemLiquidaAnoAnterior: parseFloat(props.margemLiquidaAnoAnterior ?? "NaN"),
-    margemOperacionalAnoAnterior: parseFloat(props.margemOperacionalAnoAnterior ?? "NaN"),
-    dividaEbitdaAnoAnterior: parseFloat(props.dividaEbitdaAnoAnterior ?? "NaN"),
-    coberturaJurosAnoAnterior: parseFloat(props.coberturaJurosAnoAnterior ?? "NaN"),
-    liquidezCorrenteAnoAnterior: parseFloat(props.liquidezCorrenteAnoAnterior ?? "NaN"),
-    debtEquityAnoAnterior: parseFloat(props.debtEquityAnoAnterior ?? "NaN"),
-    freeCashFlowAnoAnterior: parseFloat(props.freeCashFlowAnoAnterior ?? "NaN"),
-    capexRevenueAnoAnterior: parseFloat(props.capexRevenueAnoAnterior ?? "NaN"),
-    fcfYieldAnoAnterior: parseFloat(props.fcfYieldAnoAnterior ?? "NaN"),
-    workingCapitalTurnoverAnoAnterior: parseFloat(props.workingCapitalTurnoverAnoAnterior ?? "NaN"),
-    crescimentoReceitaAnoAnterior: parseFloat(props.crescimentoReceitaAnoAnterior ?? "NaN"),
-    crescimentoEbitdaAnoAnterior: parseFloat(props.crescimentoEbitdaAnoAnterior ?? "NaN"),
-    dividendYieldAnoAnterior: parseFloat(props.dividendYieldAnoAnterior ?? "NaN"),
-    payoutRatioAnoAnterior: parseFloat(props.payoutRatioAnoAnterior ?? "NaN"),
-    betaAnoAnterior: parseFloat(props.betaAnoAnterior ?? "NaN"),
-    leveredDcfAnoAnterior: parseFloat(props.leveredDcfAnoAnterior ?? "NaN"),
-    precoAtualAnoAnterior: parseFloat(props.precoAtualAnoAnterior ?? "NaN"),
-    inventoryTurnoverAnoAnterior: parseFloat(props.inventoryTurnoverAnoAnterior ?? "NaN"),
-    assetTurnoverAnoAnterior: parseFloat(props.assetTurnoverAnoAnterior ?? "NaN"),
-    capacityUtilizationAnoAnterior: parseFloat(props.capacityUtilizationAnoAnterior ?? "NaN"),
-  }
-
   // Formatação adequada para basic materials
   const formatValue = (valor: string, chave: string) => {
     const num = parseFloat(valor)
@@ -429,6 +301,9 @@ export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
 
     // Valores monetários (DCF, FCF)
     if (['leveredDcf', 'precoAtual', 'freeCashFlow'].includes(chave)) {
+      if (Math.abs(num) > 1000000) {
+        return `${(num / 1000000).toFixed(1)}M`
+      }
       return `${num.toFixed(2)}`
     }
 
@@ -444,20 +319,18 @@ export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
   return (
     <div className="mt-6 space-y-8">
       {Object.entries(categorias).map(([categoria, indicadores]) => {
-        // Filtrar indicadores válidos
-        const indicadoresValidos = indicadores.filter(({ label, valor, anterior }) => {
+        // Filtrar indicadores válidos antes de renderizar a categoria
+        const indicadoresValidos = indicadores.filter(({ label, valor }) => {
           const numeric = parseFloat(valor)
-          if (isNaN(numeric)) return false
 
-          const prev = anterior ? parseFloat(anterior) : undefined
-
+          // ✅ NOVO: Usar complementares específicos de Basic Materials
           const { apenasInformativo } = avaliarIndicadorComContexto(
             "Basic Materials",
             label,
             numeric,
             {
-              valorAnterior: prev,
-              complementares,
+              valorAnterior: undefined,
+              complementares, // ✅ Agora só contém indicadores de Basic Materials
             }
           )
           return !apenasInformativo
@@ -484,13 +357,14 @@ export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
                   const numeric = parseFloat(valor)
                   const prev = anterior ? parseFloat(anterior) : undefined
 
+                  // ✅ NOVO: Usar complementares específicos de Basic Materials
                   const { score, explicacaoCustom } = avaliarIndicadorComContexto(
                     "Basic Materials",
                     label,
                     numeric,
                     {
                       valorAnterior: prev,
-                      complementares,
+                      complementares, // ✅ Agora só contém indicadores de Basic Materials
                     }
                   )
 

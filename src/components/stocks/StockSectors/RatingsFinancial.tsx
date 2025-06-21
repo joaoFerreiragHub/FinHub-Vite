@@ -1,61 +1,6 @@
 import { avaliarIndicadorComContexto } from "../hooks/avaliarIndicadorComContexto"
 import { IndicatorValuePro } from "../quickAnalysis/IndicatorValuePro"
-
-interface RatingsFinancialsProps {
-  // Rentabilidade e Eficiência
-  roe: string
-  roeAnoAnterior?: string
-  eficiencia: string
-  eficienciaAnoAnterior?: string
-  nim: string // Net Interest Margin
-  nimAnoAnterior?: string
-
-  // Solidez e Capitalização
-  basileia: string
-  basileiaAnoAnterior?: string
-  tier1: string
-  tier1AnoAnterior?: string
-
-  // Estrutura de Capital e Risco
-  alavancagem: string
-  alavancagemAnoAnterior?: string
-  liquidez: string
-  liquidezAnoAnterior?: string
-  inadimplencia: string
-  inadimplenciaAnoAnterior?: string
-  cobertura: string
-  coberturaAnoAnterior?: string
-
-  // Múltiplos de Avaliação
-  pl: string
-  plAnoAnterior?: string
-  pvpa: string
-  pvpaAnoAnterior?: string
-
-  // Dividendos e Retorno
-  dividendYield: string
-  dividendYieldAnoAnterior?: string
-  payoutRatio: string
-  payoutRatioAnoAnterior?: string
-
-  // Métricas Específicas de Bancos
-  ldr: string // Loan-to-Deposit Ratio
-  ldrAnoAnterior?: string
-  beta: string
-  betaAnoAnterior?: string
-  leveredDcf: string
-  leveredDcfAnoAnterior?: string
-  precoAtual: string
-  precoAtualAnoAnterior?: string
-
-  // Métricas Adicionais Opcionais
-  roa?: string // Return on Assets
-  roaAnoAnterior?: string
-  custoCredito?: string
-  custoCreditoAnoAnterior?: string
-  crescimentoCarteira?: string
-  crescimentoCarteiraAnoAnterior?: string
-}
+import { buildFinancialComplementares, RatingsFinancialsProps } from "../../../utils/complementares/financialComplementares"
 
 interface Categoria {
   label: string
@@ -67,33 +12,81 @@ interface Categoria {
 }
 
 export function RatingsFinancials(props: RatingsFinancialsProps) {
-  // Calcular métricas específicas de bancos
-  const calculateBankingMetrics = () => {
+  // ✅ UNIVERSAL: Detectar tipo de instituição financeira
+  const detectFinancialType = () => {
+    const hasBasileia = props.basileia && parseFloat(props.basileia) > 0
+    const hasNIM = props.nim && parseFloat(props.nim) > 0 && props.nim !== 'N/A'
+    const hasInadimplencia = props.inadimplencia && parseFloat(props.inadimplencia) > 0 && props.inadimplencia !== 'N/A'
+    const roeNum = parseFloat(props.roe || '0')
+
+    return {
+      isBanco: hasBasileia || hasNIM || hasInadimplencia,
+      isPaymentProcessor: !hasBasileia && !hasNIM && roeNum > 30,
+      isFintech: true // Todos podem usar métricas básicas
+    }
+  }
+
+  const financialType = detectFinancialType()
+
+  // ✅ UNIVERSAL: Métricas calculadas adaptáveis
+  const calculateUniversalMetrics = () => {
     const roeNum = parseFloat(props.roe) || 0
     const eficienciaNum = parseFloat(props.eficiencia) || 0
     const basileiaNum = parseFloat(props.basileia) || 0
     const inadimplenciaNum = parseFloat(props.inadimplencia) || 0
     const coberturaNum = parseFloat(props.cobertura) || 0
+    const liquidezNum = parseFloat(props.liquidez) || 0
 
     return {
-      // Score de Qualidade de Crédito
-      qualidadeCredito: inadimplenciaNum < 2 && coberturaNum > 120 ? "90" :
-                       inadimplenciaNum < 3.5 && coberturaNum > 100 ? "75" : "50",
+      // Score de Rentabilidade Universal
+      rentabilidadeScore: roeNum > 25 ? "95" :
+                         roeNum > 20 ? "90" :
+                         roeNum > 15 ? "80" :
+                         roeNum > 10 ? "65" : "45",
 
-      // Eficiência Operacional Ajustada
-      eficienciaAjustada: eficienciaNum < 45 ? "85" :
-                         eficienciaNum < 55 ? "70" : "45",
+      // Score de Eficiência Adaptável
+      eficienciaScore: financialType.isBanco
+        ? (eficienciaNum > 0 && eficienciaNum < 45 ? "90" :
+           eficienciaNum < 55 ? "75" :
+           eficienciaNum < 70 ? "60" : "40")
+        : (eficienciaNum > 0 && eficienciaNum < 35 ? "95" :
+           eficienciaNum < 45 ? "85" :
+           eficienciaNum < 55 ? "70" : "50"),
 
-      // Score de Solidez Patrimonial
-      solidezPatrimonial: basileiaNum > 14 && roeNum > 15 ? "95" :
-                         basileiaNum > 11 && roeNum > 12 ? "80" : "60",
+      // Score de Solidez Universal
+      solidezScore: financialType.isBanco
+        ? (basileiaNum > 14 && roeNum > 15 ? "95" :
+           basileiaNum > 11 && roeNum > 12 ? "85" :
+           basileiaNum > 8 ? "70" : "50")
+        : (roeNum > 25 && liquidezNum > 1 ? "95" :
+           roeNum > 15 && liquidezNum > 0.8 ? "85" :
+           roeNum > 10 ? "70" : "55"),
+
+      // Score de Qualidade de Ativos
+      qualidadeAtivos: financialType.isBanco
+        ? (inadimplenciaNum > 0 && inadimplenciaNum < 2 && coberturaNum > 120 ? "95" :
+           inadimplenciaNum < 3.5 && coberturaNum > 100 ? "80" :
+           inadimplenciaNum < 5 ? "65" : "45")
+        : (roeNum > 20 && liquidezNum > 1 ? "90" :
+           roeNum > 15 ? "80" : "70")
     }
   }
 
-  const calculatedMetrics = calculateBankingMetrics()
+  const calculatedMetrics = calculateUniversalMetrics()
+
+  // ✅ Build complementares universal
+  const baseComplementares = buildFinancialComplementares(props)
+  const complementares = {
+    ...baseComplementares,
+    rentabilidadeScore: parseFloat(calculatedMetrics.rentabilidadeScore),
+    eficienciaScore: parseFloat(calculatedMetrics.eficienciaScore),
+    solidezScore: parseFloat(calculatedMetrics.solidezScore),
+    qualidadeAtivos: parseFloat(calculatedMetrics.qualidadeAtivos),
+  }
 
   const categorias: Record<string, Categoria[]> = {
-    "Rentabilidade e Eficiência": [
+    // 🏦 CATEGORIA UNIVERSAL - Rentabilidade (todos)
+    "Rentabilidade e Performance": [
       {
         label: "ROE",
         chave: "roe",
@@ -102,23 +95,7 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
         icon: "📈",
         description: "Retorno sobre Patrimônio Líquido"
       },
-      {
-        label: "Eficiência",
-        chave: "eficiencia",
-        valor: props.eficiencia,
-        anterior: props.eficienciaAnoAnterior,
-        icon: "⚙️",
-        description: "Índice de Eficiência (quanto menor, melhor)"
-      },
-      {
-        label: "NIM",
-        chave: "nim",
-        valor: props.nim,
-        anterior: props.nimAnoAnterior,
-        icon: "💰",
-        description: "Margem Financeira Líquida"
-      },
-      ...(props.roa ? [{
+      ...(props.roa && props.roa !== 'N/A' ? [{
         label: "ROA",
         chave: "roa",
         valor: props.roa,
@@ -126,36 +103,62 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
         icon: "🎯",
         description: "Retorno sobre Ativos"
       }] : []),
+      ...(props.nim && props.nim !== 'N/A' && parseFloat(props.nim) > 0 ? [{
+        label: financialType.isBanco ? "NIM" : "Margem Financeira",
+        chave: "nim",
+        valor: props.nim,
+        anterior: props.nimAnoAnterior,
+        icon: "💰",
+        description: financialType.isBanco ? "Margem Financeira Líquida" : "Margem Financeira (proxy)"
+      }] : []),
+      ...(props.eficiencia && props.eficiencia !== 'N/A' && parseFloat(props.eficiencia) > 0 ? [{
+        label: "Eficiência Operacional",
+        chave: "eficiencia",
+        valor: props.eficiencia,
+        anterior: props.eficienciaAnoAnterior,
+        icon: "⚙️",
+        description: "Índice de Eficiência (quanto menor, melhor)"
+      }] : []),
+      {
+        label: "Score de Rentabilidade",
+        chave: "rentabilidadeScore",
+        valor: calculatedMetrics.rentabilidadeScore,
+        icon: "🏆",
+        description: "Score geral de rentabilidade"
+      },
     ],
 
-    "Solidez e Capitalização": [
-      {
-        label: "Basileia",
-        chave: "basileia",
-        valor: props.basileia,
-        anterior: props.basileiaAnoAnterior,
-        icon: "🏛️",
-        description: "Índice de Basileia"
-      },
-      {
-        label: "Tier 1",
-        chave: "tier1",
-        valor: props.tier1,
-        anterior: props.tier1AnoAnterior,
-        icon: "🛡️",
-        description: "Capital Principal"
-      },
-    ],
+    // 🛡️ CATEGORIA CONDICIONAL - Solidez (bancos e seguradoras)
+    ...(financialType.isBanco ? {
+      "Solidez e Capitalização": [
+        ...(props.basileia && props.basileia !== 'N/A' && parseFloat(props.basileia) > 0 ? [{
+          label: "Basileia",
+          chave: "basileia",
+          valor: props.basileia,
+          anterior: props.basileiaAnoAnterior,
+          icon: "🏛️",
+          description: "Índice de Basileia"
+        }] : []),
+        ...(props.tier1 && props.tier1 !== 'N/A' && parseFloat(props.tier1) > 0 ? [{
+          label: "Tier 1",
+          chave: "tier1",
+          valor: props.tier1,
+          anterior: props.tier1AnoAnterior,
+          icon: "🛡️",
+          description: "Capital Principal"
+        }] : []),
+        {
+          label: "Score de Solidez",
+          chave: "solidezScore",
+          valor: calculatedMetrics.solidezScore,
+          icon: "🏛️",
+          description: "Score de solidez patrimonial"
+        },
+      ]
+    } : {}),
 
-    "Estrutura de Capital e Risco": [
-      {
-        label: "Alavancagem",
-        chave: "alavancagem",
-        valor: props.alavancagem,
-        anterior: props.alavancagemAnoAnterior,
-        icon: "⚖️",
-        description: "Índice de Alavancagem"
-      },
+    // ⚖️ CATEGORIA UNIVERSAL - Estrutura de Capital
+    "Estrutura de Capital e Liquidez": [
       {
         label: "Liquidez",
         chave: "liquidez",
@@ -164,33 +167,63 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
         icon: "💧",
         description: "Liquidez Corrente"
       },
-      {
-        label: "Inadimplência",
-        chave: "inadimplencia",
-        valor: props.inadimplencia,
-        anterior: props.inadimplenciaAnoAnterior,
-        icon: "⚠️",
-        description: "Taxa de Inadimplência"
-      },
-      {
-        label: "Cobertura",
-        chave: "cobertura",
-        valor: props.cobertura,
-        anterior: props.coberturaAnoAnterior,
-        icon: "🛡️",
-        description: "Cobertura de Provisões"
-      },
-      ...(props.custoCredito ? [{
-        label: "Custo do Crédito",
-        chave: "custoCredito",
-        valor: props.custoCredito,
-        anterior: props.custoCreditoAnoAnterior,
-        icon: "💸",
-        description: "Custo do Risco de Crédito"
+      ...(props.alavancagem && props.alavancagem !== 'N/A' && parseFloat(props.alavancagem) > 0 ? [{
+        label: "Alavancagem",
+        chave: "alavancagem",
+        valor: props.alavancagem,
+        anterior: props.alavancagemAnoAnterior,
+        icon: "⚖️",
+        description: "Índice de Alavancagem"
       }] : []),
+      {
+        label: "Beta",
+        chave: "beta",
+        valor: props.beta,
+        anterior: props.betaAnoAnterior,
+        icon: "📉",
+        description: "Volatilidade vs. mercado"
+      },
     ],
 
-    "Múltiplos de Avaliação": [
+    // ⚠️ CATEGORIA CONDICIONAL - Risco (bancos principalmente)
+    ...(financialType.isBanco ? {
+      "Gestão de Risco": [
+        ...(props.inadimplencia && props.inadimplencia !== 'N/A' && parseFloat(props.inadimplencia) > 0 ? [{
+          label: "Inadimplência",
+          chave: "inadimplencia",
+          valor: props.inadimplencia,
+          anterior: props.inadimplenciaAnoAnterior,
+          icon: "⚠️",
+          description: "Taxa de Inadimplência"
+        }] : []),
+        ...(props.cobertura && props.cobertura !== 'N/A' && parseFloat(props.cobertura) > 0 ? [{
+          label: "Cobertura",
+          chave: "cobertura",
+          valor: props.cobertura,
+          anterior: props.coberturaAnoAnterior,
+          icon: "🛡️",
+          description: "Cobertura de Provisões"
+        }] : []),
+        ...(props.custoCredito && props.custoCredito !== 'N/A' ? [{
+          label: "Custo do Crédito",
+          chave: "custoCredito",
+          valor: props.custoCredito,
+          anterior: props.custoCreditoAnoAnterior,
+          icon: "💸",
+          description: "Custo do Risco de Crédito"
+        }] : []),
+        {
+          label: "Qualidade de Ativos",
+          chave: "qualidadeAtivos",
+          valor: calculatedMetrics.qualidadeAtivos,
+          icon: "🏅",
+          description: "Score de qualidade da carteira"
+        },
+      ]
+    } : {}),
+
+    // 💲 CATEGORIA UNIVERSAL - Avaliação
+    "Múltiplos e Avaliação": [
       {
         label: "P/L",
         chave: "pl",
@@ -199,33 +232,34 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
         icon: "💲",
         description: "Preço sobre Lucro"
       },
-      {
-        label: "P/VPA",
+      ...(props.pvpa && props.pvpa !== 'N/A' && parseFloat(props.pvpa) > 0 ? [{
+        label: financialType.isBanco ? "P/VPA" : "P/S (proxy)",
         chave: "pvpa",
         valor: props.pvpa,
         anterior: props.pvpaAnoAnterior,
-        icon: "🏦",
-        description: "Preço sobre Valor Patrimonial"
-      },
-      {
+        icon: financialType.isBanco ? "🏦" : "📊",
+        description: financialType.isBanco ? "Preço sobre Valor Patrimonial" : "Múltiplo de receita (proxy P/VPA)"
+      }] : []),
+      ...(props.leveredDcf && props.leveredDcf !== 'N/A' && parseFloat(props.leveredDcf) > 0 ? [{
         label: "Valuation (DCF)",
         chave: "leveredDcf",
         valor: props.leveredDcf,
         anterior: props.leveredDcfAnoAnterior,
         icon: "📊",
         description: "Fluxo de Caixa Descontado"
-      },
+      }] : []),
     ],
 
-    "Dividendos e Retorno": [
-      {
+    // 💰 CATEGORIA UNIVERSAL - Dividendos
+    "Dividendos e Distribuição": [
+      ...(props.dividendYield && props.dividendYield !== 'N/A' && parseFloat(props.dividendYield) > 0 ? [{
         label: "Dividend Yield",
         chave: "dividendYield",
         valor: props.dividendYield,
         anterior: props.dividendYieldAnoAnterior,
         icon: "💰",
         description: "Rendimento de Dividendos"
-      },
+      }] : []),
       {
         label: "Payout Ratio",
         chave: "payoutRatio",
@@ -236,138 +270,72 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
       },
     ],
 
-    "Métricas Específicas Bancárias": [
-      {
-        label: "LDR",
-        chave: "ldr",
-        valor: props.ldr,
-        anterior: props.ldrAnoAnterior,
-        icon: "🔄",
-        description: "Loan-to-Deposit Ratio"
-      },
-      {
-        label: "Beta",
-        chave: "beta",
-        valor: props.beta,
-        anterior: props.betaAnoAnterior,
-        icon: "📉",
-        description: "Volatilidade vs. mercado"
-      },
-      ...(props.crescimentoCarteira ? [{
-        label: "Crescimento Carteira",
-        chave: "crescimentoCarteira",
-        valor: props.crescimentoCarteira,
-        anterior: props.crescimentoCarteiraAnoAnterior,
-        icon: "📈",
-        description: "Crescimento da carteira de crédito"
-      }] : []),
-      {
-        label: "Qualidade de Crédito",
-        chave: "qualidadeCredito",
-        valor: calculatedMetrics.qualidadeCredito,
-        icon: "🏅",
-        description: "Score de qualidade da carteira"
-      },
-      {
-        label: "Solidez Patrimonial",
-        chave: "solidezPatrimonial",
-        valor: calculatedMetrics.solidezPatrimonial,
-        icon: "🏛️",
-        description: "Score de solidez do patrimônio"
-      },
-      {
-        label: "Eficiência Ajustada",
-        chave: "eficienciaAjustada",
-        valor: calculatedMetrics.eficienciaAjustada,
-        icon: "⚙️",
-        description: "Score de eficiência operacional ajustado"
-      },
-    ],
+    // 🔄 CATEGORIA CONDICIONAL - Métricas Específicas
+    ...(props.ldr || props.crescimentoCarteira || props.eficiencia ? {
+      "Métricas Operacionais": [
+        ...(props.ldr && props.ldr !== 'N/A' && parseFloat(props.ldr) > 0 ? [{
+          label: "LDR",
+          chave: "ldr",
+          valor: props.ldr,
+          anterior: props.ldrAnoAnterior,
+          icon: "🔄",
+          description: "Loan-to-Deposit Ratio"
+        }] : []),
+        ...(props.crescimentoCarteira && props.crescimentoCarteira !== 'N/A' ? [{
+          label: financialType.isBanco ? "Crescimento Carteira" : "Crescimento Receita",
+          chave: "crescimentoCarteira",
+          valor: props.crescimentoCarteira,
+          anterior: props.crescimentoCarteiraAnoAnterior,
+          icon: "📈",
+          description: financialType.isBanco ? "Crescimento da carteira de crédito" : "Crescimento da receita (proxy)"
+        }] : []),
+        {
+          label: "Score de Eficiência",
+          chave: "eficienciaScore",
+          valor: calculatedMetrics.eficienciaScore,
+          icon: "⚙️",
+          description: "Score de eficiência operacional"
+        },
+      ]
+    } : {})
   };
 
-  // Complementares incluindo métricas calculadas e dados base
-  const complementares = {
-    // Métricas calculadas
-    qualidadeCredito: parseFloat(calculatedMetrics.qualidadeCredito || "0"),
-    eficienciaAjustada: parseFloat(calculatedMetrics.eficienciaAjustada || "0"),
-    solidezPatrimonial: parseFloat(calculatedMetrics.solidezPatrimonial || "0"),
-
-    // Dados originais (valores atuais)
-    roe: parseFloat(props.roe ?? "NaN"),
-    eficiencia: parseFloat(props.eficiencia ?? "NaN"),
-    nim: parseFloat(props.nim ?? "NaN"),
-    basileia: parseFloat(props.basileia ?? "NaN"),
-    tier1: parseFloat(props.tier1 ?? "NaN"),
-    alavancagem: parseFloat(props.alavancagem ?? "NaN"),
-    liquidez: parseFloat(props.liquidez ?? "NaN"),
-    inadimplencia: parseFloat(props.inadimplencia ?? "NaN"),
-    cobertura: parseFloat(props.cobertura ?? "NaN"),
-    pl: parseFloat(props.pl ?? "NaN"),
-    pvpa: parseFloat(props.pvpa ?? "NaN"),
-    dividendYield: parseFloat(props.dividendYield ?? "NaN"),
-    payoutRatio: parseFloat(props.payoutRatio ?? "NaN"),
-    ldr: parseFloat(props.ldr ?? "NaN"),
-    beta: parseFloat(props.beta ?? "NaN"),
-    leveredDcf: parseFloat(props.leveredDcf ?? "NaN"),
-    precoAtual: parseFloat(props.precoAtual ?? "NaN"),
-    roa: parseFloat(props.roa ?? "NaN"),
-    custoCredito: parseFloat(props.custoCredito ?? "NaN"),
-    crescimentoCarteira: parseFloat(props.crescimentoCarteira ?? "NaN"),
-
-    // Dados anteriores
-    roeAnoAnterior: parseFloat(props.roeAnoAnterior ?? "NaN"),
-    eficienciaAnoAnterior: parseFloat(props.eficienciaAnoAnterior ?? "NaN"),
-    nimAnoAnterior: parseFloat(props.nimAnoAnterior ?? "NaN"),
-    basileiaAnoAnterior: parseFloat(props.basileiaAnoAnterior ?? "NaN"),
-    tier1AnoAnterior: parseFloat(props.tier1AnoAnterior ?? "NaN"),
-    alavancagemAnoAnterior: parseFloat(props.alavancagemAnoAnterior ?? "NaN"),
-    liquidezAnoAnterior: parseFloat(props.liquidezAnoAnterior ?? "NaN"),
-    inadimplenciaAnoAnterior: parseFloat(props.inadimplenciaAnoAnterior ?? "NaN"),
-    coberturaAnoAnterior: parseFloat(props.coberturaAnoAnterior ?? "NaN"),
-    plAnoAnterior: parseFloat(props.plAnoAnterior ?? "NaN"),
-    pvpaAnoAnterior: parseFloat(props.pvpaAnoAnterior ?? "NaN"),
-    dividendYieldAnoAnterior: parseFloat(props.dividendYieldAnoAnterior ?? "NaN"),
-    payoutRatioAnoAnterior: parseFloat(props.payoutRatioAnoAnterior ?? "NaN"),
-    ldrAnoAnterior: parseFloat(props.ldrAnoAnterior ?? "NaN"),
-    betaAnoAnterior: parseFloat(props.betaAnoAnterior ?? "NaN"),
-    leveredDcfAnoAnterior: parseFloat(props.leveredDcfAnoAnterior ?? "NaN"),
-    precoAtualAnoAnterior: parseFloat(props.precoAtualAnoAnterior ?? "NaN"),
-    roaAnoAnterior: parseFloat(props.roaAnoAnterior ?? "NaN"),
-    custoCreditoAnoAnterior: parseFloat(props.custoCreditoAnoAnterior ?? "NaN"),
-    crescimentoCarteiraAnoAnterior: parseFloat(props.crescimentoCarteiraAnoAnterior ?? "NaN"),
-  }
-
-  // Formatação adequada para bancos
+  // ✅ FORMATAÇÃO UNIVERSAL
   const formatValue = (valor: string, chave: string) => {
     const num = parseFloat(valor)
     if (isNaN(num)) return valor
 
     // Percentuais
-    if (['roe', 'eficiencia', 'nim', 'basileia', 'tier1', 'inadimplencia', 'cobertura', 'dividendYield', 'payoutRatio', 'ldr', 'roa', 'custoCredito', 'crescimentoCarteira', 'qualidadeCredito', 'eficienciaAjustada', 'solidezPatrimonial'].includes(chave)) {
+    if ([
+      'roe', 'roa', 'eficiencia', 'nim', 'basileia', 'tier1',
+      'inadimplencia', 'cobertura', 'dividendYield', 'payoutRatio',
+      'ldr', 'custoCredito', 'crescimentoCarteira',
+      'rentabilidadeScore', 'eficienciaScore', 'solidezScore', 'qualidadeAtivos'
+    ].includes(chave)) {
       return `${num.toFixed(2)}%`
     }
 
-    // Valores monetários (DCF)
+    // Valores monetários
     if (['leveredDcf', 'precoAtual'].includes(chave)) {
       return `${num.toFixed(2)}`
     }
 
-    // Ratios gerais
+    // Ratios
     return num.toFixed(2)
   }
 
   return (
     <div className="mt-6 space-y-8">
       {Object.entries(categorias).map(([categoria, indicadores]) => {
-        // Filtrar indicadores válidos passando o valorAnterior correto
+        // Filtrar indicadores válidos
         const indicadoresValidos = indicadores.filter(({ label, valor, anterior }) => {
           const numeric = parseFloat(valor)
-          if (isNaN(numeric)) return false
+          if (isNaN(numeric) || numeric === 0) return false
 
           const prev = anterior ? parseFloat(anterior) : undefined
 
           const { apenasInformativo } = avaliarIndicadorComContexto(
-            "Financial Services", // ou "banking"
+            "Financial Services",
             label,
             numeric,
             {
@@ -400,7 +368,7 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
                   const prev = anterior ? parseFloat(anterior) : undefined
 
                   const { score, explicacaoCustom } = avaliarIndicadorComContexto(
-                    "Financial Services", // ou "banking"
+                    "Financial Services",
                     label,
                     numeric,
                     {

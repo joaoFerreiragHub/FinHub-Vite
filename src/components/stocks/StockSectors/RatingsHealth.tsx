@@ -1,5 +1,4 @@
-// src/components/ratings/RatingsHealthcare.tsx
-
+// ✅ COMPONENTE RATINGSHEALTHCARE OTIMIZADO
 import { buildHealthcareComplementares, RatingsHealthcareProps } from "../../../utils/complementares/healthcareComplementares"
 import { avaliarIndicadorComContexto } from "../hooks/avaliarIndicadorComContexto"
 import { IndicatorValuePro } from "../quickAnalysis/IndicatorValuePro"
@@ -10,18 +9,51 @@ export function RatingsHealthcare(props: RatingsHealthcareProps) {
 
   console.log('🩺 Healthcare Complementares:', complementares)
 
-  const categorias: Record<
-    string,
-    {
-      label: string
-      chave: string
-      valor: string
-      anterior?: string
-      icon?: string
-      description?: string
-    }[]
-  > = {
-    "Crescimento": [
+  const categorias: Record<string, {
+    label: string
+    chave: string
+    valor: string
+    anterior?: string
+    icon?: string
+    description?: string
+  }[]> = {
+
+    "Core Farmacêutico": [
+      {
+        label: "P&D / Receita",
+        chave: "investimentoPD",
+        valor: props.investimentoPD,
+        anterior: props.investimentoPDAnoAnterior,
+        icon: "🔬",
+        description: "Investimento em pesquisa e desenvolvimento"
+      },
+      {
+        label: "Eficiência de P&D",
+        chave: "rAnddEfficiency",
+        valor: props.rAnddEfficiency,
+        anterior: props.rAnddEfficiencyAnoAnterior,
+        icon: "🧪",
+        description: "ROI dos investimentos em inovação"
+      },
+      {
+        label: "Free Cash Flow",
+        chave: "fcf",
+        valor: props.fcf,
+        anterior: props.fcfAnoAnterior,
+        icon: "💵",
+        description: "Fluxo de caixa livre para investimentos"
+      },
+      {
+        label: "Cash Flow / CapEx",
+        chave: "cashFlowOverCapex",
+        valor: props.cashFlowOverCapex,
+        anterior: props.cashFlowOverCapexAnoAnterior,
+        icon: "🔄",
+        description: "Eficiência do capital investido"
+      },
+    ],
+
+    "Crescimento e Performance": [
       {
         label: "Crescimento Receita",
         chave: "crescimentoReceita",
@@ -36,7 +68,7 @@ export function RatingsHealthcare(props: RatingsHealthcareProps) {
         valor: props.cagrEps,
         anterior: props.cagrEpsAnoAnterior,
         icon: "📊",
-        description: "Taxa de Crescimento Anual Composta do EPS"
+        description: "Crescimento anual composto do EPS"
       },
       {
         label: "EPS",
@@ -44,47 +76,18 @@ export function RatingsHealthcare(props: RatingsHealthcareProps) {
         valor: props.eps,
         anterior: props.epsAnoAnterior,
         icon: "🏆",
-        description: "Lucro por Ação"
+        description: "Lucro por ação"
       },
     ],
+
     "Rentabilidade": [
-      {
-        label: "Margem Bruta",
-        chave: "margemBruta",
-        valor: props.margemBruta,
-        anterior: props.margemBrutaAnoAnterior,
-        icon: "💰"
-      },
-      {
-        label: "Margem EBITDA",
-        chave: "margemEbitda",
-        valor: props.margemEbitda,
-        anterior: props.margemEbitdaAnoAnterior,
-        icon: "📊"
-      },
-      {
-        label: "Margem Líquida",
-        chave: "margemLiquida",
-        valor: props.margemLiquida,
-        anterior: props.margemLiquidaAnoAnterior,
-        icon: "💎"
-      },
-      {
-        label: "Margem Operacional",
-        chave: "margemOperacional",
-        valor: props.margemOperacional,
-        anterior: props.margemOperacionalAnoAnterior,
-        icon: "⚙️"
-      },
-    ],
-    "Retorno sobre Capital": [
       {
         label: "ROIC",
         chave: "roic",
         valor: props.roic,
         anterior: props.roicAnoAnterior,
         icon: "🎯",
-        description: "Retorno sobre Capital Investido"
+        description: "Retorno sobre capital investido"
       },
       {
         label: "ROE",
@@ -92,9 +95,42 @@ export function RatingsHealthcare(props: RatingsHealthcareProps) {
         valor: props.roe,
         anterior: props.roeAnoAnterior,
         icon: "📈",
-        description: "Retorno sobre Patrimônio Líquido"
+        description: "Retorno sobre patrimônio líquido"
+      },
+      {
+        label: "Margem Bruta",
+        chave: "margemBruta",
+        valor: props.margemBruta,
+        anterior: props.margemBrutaAnoAnterior,
+        icon: "💰",
+        description: "Margem bruta (pricing power)"
+      },
+      {
+        label: "Margem EBITDA",
+        chave: "margemEbitda",
+        valor: props.margemEbitda,
+        anterior: props.margemEbitdaAnoAnterior,
+        icon: "📊",
+        description: "Margem EBITDA operacional"
+      },
+      {
+        label: "Margem Líquida",
+        chave: "margemLiquida",
+        valor: props.margemLiquida,
+        anterior: props.margemLiquidaAnoAnterior,
+        icon: "💎",
+        description: "Margem líquida final"
+      },
+      {
+        label: "Margem Operacional",
+        chave: "margemOperacional",
+        valor: props.margemOperacional,
+        anterior: props.margemOperacionalAnoAnterior,
+        icon: "⚙️",
+        description: "Eficiência operacional"
       },
     ],
+
     "Múltiplos de Avaliação": [
       {
         label: "P/L",
@@ -102,7 +138,7 @@ export function RatingsHealthcare(props: RatingsHealthcareProps) {
         valor: props.pl,
         anterior: props.plAnoAnterior,
         icon: "💲",
-        description: "Preço sobre Lucro"
+        description: "Preço sobre lucro"
       },
       {
         label: "P/S",
@@ -110,7 +146,7 @@ export function RatingsHealthcare(props: RatingsHealthcareProps) {
         valor: props.ps,
         anterior: props.psAnoAnterior,
         icon: "💰",
-        description: "Preço sobre Vendas"
+        description: "Preço sobre vendas"
       },
       {
         label: "PEG",
@@ -121,14 +157,15 @@ export function RatingsHealthcare(props: RatingsHealthcareProps) {
         description: "P/L ajustado pelo crescimento"
       },
     ],
-    "Estrutura de Capital e Liquidez": [
+
+    "Estrutura Financeira": [
       {
         label: "Dívida/EBITDA",
         chave: "debtToEbitda",
         valor: props.debtToEbitda,
         anterior: props.debtToEbitdaAnoAnterior,
         icon: "⚠️",
-        description: "Endividamento em relação ao EBITDA"
+        description: "Endividamento vs geração operacional"
       },
       {
         label: "Liquidez Corrente",
@@ -136,65 +173,26 @@ export function RatingsHealthcare(props: RatingsHealthcareProps) {
         valor: props.liquidezCorrente,
         anterior: props.liquidezCorrenteAnoAnterior,
         icon: "💧",
-        description: "Capacidade de pagamento a curto prazo"
+        description: "Capacidade de pagamento curto prazo"
       },
       {
-        label: "Dívida / Capitais Próprios",
+        label: "Dívida / Patrimônio",
         chave: "debtEquity",
         valor: props.debtEquity,
         anterior: props.debtEquityAnoAnterior,
         icon: "⚖️",
-        description: "Dívida sobre Patrimônio"
+        description: "Alavancagem financeira"
       },
     ],
-    "Risco e Volatilidade": [
-      {
-        label: "Beta",
-        chave: "beta",
-        valor: props.beta,
-        anterior: props.betaAnoAnterior,
-        icon: "📉",
-        description: "Volatilidade em relação ao mercado"
-      },
-    ],
-    "Métricas Específicas de Healthcare": [
-      {
-        label: "P&D / Receita",
-        chave: "investimentoPD",
-        valor: props.investimentoPD,
-        anterior: props.investimentoPDAnoAnterior,
-        icon: "🔬",
-        description: "Investimento em Pesquisa e Desenvolvimento"
-      },
-      {
-        label: "Eficiência de P&D",
-        chave: "rAnddEfficiency",
-        valor: props.rAnddEfficiency,
-        anterior: props.rAnddEfficiencyAnoAnterior,
-        icon: "🧪",
-        description: "Eficiência dos investimentos em P&D"
-      },
-      {
-        label: "Cash Flow / CapEx",
-        chave: "cashFlowOverCapex",
-        valor: props.cashFlowOverCapex,
-        anterior: props.cashFlowOverCapexAnoAnterior,
-        icon: "🔄"
-      },
-      {
-        label: "Free Cash Flow",
-        chave: "fcf",
-        valor: props.fcf,
-        anterior: props.fcfAnoAnterior,
-        icon: "💵",
-        description: "Fluxo de Caixa Livre"
-      },
+
+    "Eficiência Operacional": [
       {
         label: "SG&A / Receita",
         chave: "sgaOverRevenue",
         valor: props.sgaOverRevenue,
         anterior: props.sgaOverRevenueAnoAnterior,
-        icon: "🏢"
+        icon: "🏢",
+        description: "Eficiência em vendas e administração"
       },
       {
         label: "Payout Ratio",
@@ -202,21 +200,33 @@ export function RatingsHealthcare(props: RatingsHealthcareProps) {
         valor: props.payoutRatio,
         anterior: props.payoutRatioAnoAnterior,
         icon: "💸",
-        description: "Percentual de lucros distribuídos"
+        description: "% dos lucros distribuídos aos acionistas"
+      },
+    ],
+
+    "Risco e Volatilidade": [
+      {
+        label: "Beta",
+        chave: "beta",
+        valor: props.beta,
+        anterior: props.betaAnoAnterior,
+        icon: "📉",
+        description: "Volatilidade vs. mercado"
       },
     ],
   }
 
   // Função para formatar valores
   const formatValue = (valor: string, chave: string) => {
-    // Limpar o valor primeiro (remover % se existir)
-    const cleanValue = valor.replace('%', '').trim()
+    const cleanValue = valor.replace('%', '').replace('$', '').replace(',', '').trim()
     const num = parseFloat(cleanValue)
 
     if (isNaN(num)) return valor
 
     // Valores em percentual
-    if (['margemBruta', 'margemEbitda', 'margemLiquida', 'margemOperacional', 'roic', 'roe', 'cagrEps', 'crescimentoReceita', 'investimentoPD', 'sgaOverRevenue', 'payoutRatio', 'rAnddEfficiency'].includes(chave)) {
+    if (['margemBruta', 'margemEbitda', 'margemLiquida', 'margemOperacional', 'roic', 'roe',
+         'cagrEps', 'crescimentoReceita', 'investimentoPD', 'sgaOverRevenue', 'payoutRatio',
+         'rAnddEfficiency'].includes(chave)) {
       return `${num.toFixed(2)}%`
     }
 
@@ -254,9 +264,9 @@ export function RatingsHealthcare(props: RatingsHealthcareProps) {
 
         return (
           <div key={categoria} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-4 border-b border-gray-200">
+            <div className="bg-gradient-to-r from-emerald-50 to-green-50 px-6 py-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
                 {categoria}
                 <span className="text-sm font-normal text-gray-500 ml-2">
                   ({indicadoresValidos.length} indicador{indicadoresValidos.length !== 1 ? 'es' : ''})
