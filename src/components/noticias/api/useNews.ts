@@ -1,185 +1,210 @@
-// hooks/useNews.ts
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { NewsArticle, NewsFilters } from '../../../types/news'
-import { mockNews } from './mockNews'
+import { newsApi } from './newsApi'
 
+interface NewsStats {
+  totalNews: number
+  filteredCount: number
+  categories: Record<string, number>
+  sources: number
+  sentiments: {
+    positive: number
+    negative: number
+    neutral: number
+  }
+}
 
-export const useNews = () => {
+interface GetNewsParams {
+  limit: number
+  offset: number
+  sortBy: 'publishedDate'
+  sortOrder: 'desc'
+  category?: string
+  search?: string
+  sources?: string[]
+}
+
+interface UseNewsOptions {
+  autoRefresh?: boolean
+  refreshInterval?: number
+}
+
+export const useNews = ({ autoRefresh = false, refreshInterval = 5 * 60 * 1000 }: UseNewsOptions = {}) => {
   const [news, setNews] = useState<NewsArticle[]>([])
-  const [filteredNews, setFilteredNews] = useState<NewsArticle[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
+  const [totalCount, setTotalCount] = useState(0)
+  const [stats, setStats] = useState<NewsStats>({
+    totalNews: 0,
+    filteredCount: 0,
+    categories: {},
+    sources: 0,
+    sentiments: { positive: 0, negative: 0, neutral: 0 }
+  })
 
-  // Estados dos filtros
   const [filters, setFilters] = useState<NewsFilters>({
     category: 'all',
     searchTerm: ''
   })
 
-  // Carregar notícias (por agora usa dados mock)
-  const loadNews = useCallback(async (useMockData: boolean = true) => {
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(20)
+
+  const isLoadingRef = useRef(false)
+  const hasInitialLoadRef = useRef(false)
+
+  const calculateLocalStats = useCallback((articles: NewsArticle[]): NewsStats => {
+    const categories = articles.reduce((acc, article) => {
+      acc[article.category] = (acc[article.category] || 0) + 1
+      return acc
+    }, {} as Record<string, number>)
+
+    const sentiments = articles.reduce((acc, article) => {
+      const sentiment = article.sentiment || 'neutral'
+      acc[sentiment as keyof typeof acc] = (acc[sentiment as keyof typeof acc] || 0) + 1
+      return acc
+    }, { positive: 0, negative: 0, neutral: 0 })
+
+    const uniqueSources = new Set(articles.map(a => a.source)).size
+
+    return {
+      totalNews: articles.length,
+      filteredCount: articles.length,
+      categories,
+      sources: uniqueSources,
+      sentiments
+    }
+  }, [])
+
+  const loadNews = useCallback(async (forceRefresh = false) => {
+    if (isLoadingRef.current && !forceRefresh) return
+
+    isLoadingRef.current = true
     setLoading(true)
     setError(null)
 
     try {
-      if (useMockData) {
-        // Simular delay da API
-        await new Promise(resolve => setTimeout(resolve, 800))
-        setNews(mockNews)
-        setLastUpdate(new Date())
-      } else {
-        // TODO: Implementar chamada à API FMP
-        // const fmpNews = await fetchFMPNews()
-        // setNews(fmpNews)
-        throw new Error('API FMP ainda não implementada')
+      const offset = (currentPage - 1) * itemsPerPage
+
+      const apiParams: GetNewsParams = {
+        limit: itemsPerPage,
+        offset,
+        sortBy: 'publishedDate',
+        sortOrder: 'desc'
       }
+
+      if (filters.category && filters.category !== 'all') {
+        apiParams.category = filters.category
+      }
+
+      if (filters.searchTerm) {
+        apiParams.search = filters.searchTerm
+      }
+
+      if (filters.source) {
+        apiParams.sources = [filters.source]
+      }
+
+      const result = await newsApi.getNews(apiParams)
+
+      if (result && result.articles) {
+        setNews(result.articles)
+        setTotalCount(result.total || 0)
+        setLastUpdate(new Date())
+
+        const localStats = calculateLocalStats(result.articles)
+        localStats.filteredCount = result.total || 0
+        setStats(localStats)
+
+        hasInitialLoadRef.current = true
+      } else {
+        setError('Formato de resposta inválido da API')
+      }
+
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
       setError(errorMessage)
-      console.error('Erro ao carregar notícias:', error)
-
-      // Fallback para dados mock em caso de erro
-      setNews(mockNews)
-      setLastUpdate(new Date())
     } finally {
       setLoading(false)
+      isLoadingRef.current = false
     }
-  }, [])
+  }, [filters, currentPage, itemsPerPage, calculateLocalStats])
 
-  // Filtrar notícias baseado nos filtros atuais
-  const applyFilters = useCallback((newsToFilter: NewsArticle[], currentFilters: NewsFilters) => {
-    let filtered = [...newsToFilter]
-
-    // Filtrar por categoria
-    if (currentFilters.category !== 'all') {
-      filtered = filtered.filter(article => article.category === currentFilters.category)
-    }
-
-    // Filtrar por termo de pesquisa
-    if (currentFilters.searchTerm) {
-      const searchLower = currentFilters.searchTerm.toLowerCase()
-      filtered = filtered.filter(article =>
-        article.title.toLowerCase().includes(searchLower) ||
-        article.summary.toLowerCase().includes(searchLower) ||
-        article.source.toLowerCase().includes(searchLower) ||
-        article.tickers?.some(ticker => ticker.toLowerCase().includes(searchLower))
-      )
-    }
-
-    // Filtrar por fonte
-    if (currentFilters.source) {
-      filtered = filtered.filter(article =>
-        article.source.toLowerCase().includes(currentFilters.source!.toLowerCase())
-      )
-    }
-
-    // Filtrar por data (se implementado)
-    if (currentFilters.dateRange) {
-      filtered = filtered.filter(article => {
-        const articleDate = new Date(article.publishedDate)
-        return articleDate >= currentFilters.dateRange!.from &&
-               articleDate <= currentFilters.dateRange!.to
-      })
-    }
-
-    // Ordenar por data (mais recente primeiro)
-    filtered.sort((a, b) =>
-      new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()
-    )
-
-    return filtered
-  }, [])
-
-  // Atualizar filtros
-  const updateFilters = useCallback((newFilters: Partial<NewsFilters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }))
-  }, [])
-
-  // Aplicar filtros quando news ou filters mudarem
-  useEffect(() => {
-    const filtered = applyFilters(news, filters)
-    setFilteredNews(filtered)
-  }, [news, filters, applyFilters])
-
-  // Carregar notícias na inicialização
-  useEffect(() => {
-    loadNews(true) // Usar dados mock por padrão
-  }, [loadNews])
-
-  // Funções helper para atualizar filtros específicos
-  const setSearchTerm = useCallback((searchTerm: string) => {
-    updateFilters({ searchTerm })
-  }, [updateFilters])
-
-  const setCategory = useCallback((category: string) => {
-    updateFilters({ category })
-  }, [updateFilters])
-
-  const setSource = useCallback((source: string) => {
-    updateFilters({ source })
-  }, [updateFilters])
-
-  // Função para refrescar notícias
   const refreshNews = useCallback(() => {
     loadNews(true)
   }, [loadNews])
 
-  // Função para buscar notícias por ticker específico
-  const searchByTicker = useCallback((ticker: string) => {
-    setSearchTerm(ticker)
-  }, [setSearchTerm])
+  const setSearchTerm = useCallback((searchTerm: string) => {
+    setFilters(prev => ({ ...prev, searchTerm }))
+    setCurrentPage(1)
+  }, [])
 
-  // Função para limpar todos os filtros
+  const setCategory = useCallback((category: string) => {
+    setFilters(prev => ({ ...prev, category }))
+    setCurrentPage(1)
+  }, [])
+
+  const setSource = useCallback((source: string) => {
+    setFilters(prev => ({ ...prev, source }))
+    setCurrentPage(1)
+  }, [])
+
   const clearFilters = useCallback(() => {
     setFilters({
       category: 'all',
       searchTerm: ''
     })
+    setCurrentPage(1)
   }, [])
 
-  // Estatísticas
-  const stats = {
-    totalNews: news.length,
-    filteredCount: filteredNews.length,
-    categories: {
-      market: news.filter(n => n.category === 'market').length,
-      crypto: news.filter(n => n.category === 'crypto').length,
-      economy: news.filter(n => n.category === 'economy').length,
-      earnings: news.filter(n => n.category === 'earnings').length,
-      general: news.filter(n => n.category === 'general').length
-    },
-    sources: [...new Set(news.map(n => n.source))].length,
-    sentiments: {
-      positive: news.filter(n => n.sentiment === 'positive').length,
-      negative: news.filter(n => n.sentiment === 'negative').length,
-      neutral: news.filter(n => n.sentiment === 'neutral').length
+  useEffect(() => {
+    if (!hasInitialLoadRef.current) {
+      const timer = setTimeout(() => {
+        loadNews(false)
+      }, 3000)
+      return () => clearTimeout(timer)
     }
-  }
+  }, [loadNews])
+
+  useEffect(() => {
+    if (hasInitialLoadRef.current) {
+      loadNews(false)
+    }
+  }, [filters, currentPage, loadNews])
+
+  useEffect(() => {
+    if (!autoRefresh) return
+    const interval = setInterval(() => {
+      loadNews(true)
+    }, refreshInterval)
+    return () => clearInterval(interval)
+  }, [autoRefresh, refreshInterval, loadNews])
 
   return {
-    // Data
-    news: filteredNews,
-    allNews: news,
+    news,
     loading,
     error,
     lastUpdate,
+    totalCount,
+    stats,
 
-    // Filters
+    currentPage,
+    totalPages: Math.ceil(totalCount / itemsPerPage),
+    itemsPerPage,
+    hasNextPage: currentPage * itemsPerPage < totalCount,
+    hasPrevPage: currentPage > 1,
+
     filters,
-    updateFilters,
     setSearchTerm,
     setCategory,
     setSource,
     clearFilters,
 
-    // Actions
     loadNews,
     refreshNews,
-    searchByTicker,
 
-    // Stats
-    stats
+    testAPI: () => loadNews(true)
   }
 }

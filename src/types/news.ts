@@ -4,26 +4,18 @@ export interface NewsArticle {
   id: string
   title: string
   summary: string
-  content: string
-  publishedDate: string
-  source: string
+  content?: string
   url: string
   image?: string
+  source: string
   category: 'market' | 'crypto' | 'economy' | 'earnings' | 'general'
-  tickers?: string[]
   sentiment?: 'positive' | 'negative' | 'neutral'
+  publishedDate: string
+  tickers?: string[]
   views?: number
-}
-
-export interface FMPNewsResponse {
-  title: string
-  date: string
-  content: string
-  tickers: string
-  image: string
-  link: string
-  author: string
-  site: string
+  tags?: string[]
+  author?: string
+  readTime?: number
 }
 
 export interface NewsFilters {
@@ -34,14 +26,34 @@ export interface NewsFilters {
     from: Date
     to: Date
   }
+  sentiment?: string
+  tickers?: string[]
 }
 
 export interface NewsSource {
   id: string
   name: string
-  description: string
+  url: string
+  type: 'rss' | 'api' | 'scraper'
   enabled: boolean
-  category: string
-  apiEndpoint?: string
-  icon: React.ReactNode
+  lastCheck?: string
+  status: 'healthy' | 'error' | 'warning'
+  categories: string[]
+}
+
+export interface NewsCategory {
+  key: string
+  label: string
+  description?: string
+  color?: string
+  icon?: string
+}
+
+export interface NewsStats {
+  totalArticles: number
+  categoriesBreakdown: Record<string, number>
+  sentimentBreakdown: Record<string, number>
+  topSources: Array<{ source: string; count: number }>
+  topTickers: Array<{ ticker: string; count: number }>
+  dateRange: { from: string; to: string }
 }
