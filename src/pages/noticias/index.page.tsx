@@ -1,6 +1,6 @@
-// pages/noticias/index.page.tsx
-
-import { useState } from 'react'
+// src/pages/noticias/index.page.tsx (ATUALIZADA)
+import { useState, useEffect } from 'react'
+import { RefreshCcw, Settings } from 'lucide-react'
 
 import SidebarLayout from '../../components/layout/SidebarLayout'
 import { NewsHeader } from '../../components/noticias/NewsHeader'
@@ -8,56 +8,91 @@ import { NewsFilters } from '../../components/noticias/NewsFilters'
 import { NewsGrid } from '../../components/noticias/NewsGrid'
 import { NewsStats } from '../../components/noticias/NewsStats'
 import { Button } from '../../components/ui/button'
-
+import { Alert, AlertDescription } from '../../components/ui/alert'
 import { NewsArticle } from '../../types/news'
 import { useNews } from '../../components/noticias/api/useNews'
-import { RefreshCcw } from 'lucide-react'
 
 export function Page() {
   const {
     news,
-    loading,
+    isLoading,
+    isInitialLoading,
+    hasError,
     error,
+    hasNews,
+    isEmpty,
+    isDataFresh,
+    needsRefresh,
     lastUpdate,
+    stats,
+
+    // Filtros
     filters,
     setSearchTerm,
     setCategory,
-    refreshNews,
-    stats
-  } = useNews()
+    clearFilters,
+    hasActiveFilters,
+
+    // Paginação
+    currentPage,
+    totalPages,
+    hasNextPage,
+    hasPrevPage,
+    nextPage,
+    prevPage,
+
+    // Actions
+    forceRefresh,
+    clearError,
+  } = useNews({
+    autoLoad: true,
+    autoRefresh: true,
+    refreshInterval: 10 * 60 * 1000, // 10 minutos
+  })
 
   const [showSettings, setShowSettings] = useState(false)
 
-  // Debug: Adicionar logs para identificar o problema
-  console.log('Page render:', { loading, error, newsCount: news?.length, stats })
-
+  // === HANDLERS ===
   const handleReadMore = (article: NewsArticle) => {
     if (!article?.url) {
-      console.warn('Artigo sem URL:', article)
+      console.warn('❌ Artigo sem URL:', article)
       return
     }
 
-    // Abrir artigo em nova janela
+    // Abrir em nova janela
     window.open(article.url, '_blank', 'noopener,noreferrer')
 
-    // TODO: Implementar tracking de cliques se necessário
-    console.log('Artigo clicado:', article.title)
+    // Log para analytics (opcional)
+    console.log('📰 Artigo aberto:', article.title)
   }
 
   const handleRefresh = () => {
-    console.log('Refresh solicitado')
-    refreshNews()
+    console.log('🔄 Refresh manual solicitado')
+    forceRefresh()
   }
 
   const handleSettings = () => {
     setShowSettings(!showSettings)
-    // TODO: Implementar página de configurações
-    console.log('Abrir configurações')
+    console.log('⚙️ Configurações:', showSettings ? 'fechadas' : 'abertas')
   }
 
-  // Verificação mais robusta de erro
-  if (error) {
-    console.error('Erro na página:', error)
+  // === DEBUG (apenas em desenvolvimento) ===
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📰 News Page State:', {
+        newsCount: news?.length,
+        isLoading,
+        hasError,
+        isDataFresh,
+        needsRefresh,
+        lastUpdate: lastUpdate?.toISOString(),
+        filters,
+      })
+    }
+  }, [news?.length, isLoading, hasError, isDataFresh, needsRefresh, lastUpdate, filters])
+
+  // === ERROR STATE ===
+  if (hasError) {
     return (
       <SidebarLayout>
         <div className="max-w-7xl mx-auto px-4 py-10">
@@ -67,228 +102,237 @@ export function Page() {
             </div>
             <h3 className="text-lg font-medium mb-2">Erro ao Carregar Notícias</h3>
             <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={handleRefresh}>
-              <RefreshCcw className="w-4 h-4 mr-2" />
-              Tentar Novamente
-            </Button>
+            <div className="flex gap-2 justify-center">
+              <Button onClick={handleRefresh}>
+                <RefreshCcw className="w-4 h-4 mr-2" />
+                Tentar Novamente
+              </Button>
+              <Button variant="outline" onClick={clearError}>
+                Limpar Erro
+              </Button>
+            </div>
           </div>
         </div>
       </SidebarLayout>
     )
   }
 
-  // Loading state mais específico
-  if (loading && (!news || news.length === 0)) {
+  // === INITIAL LOADING STATE ===
+  if (isInitialLoading) {
     return (
       <SidebarLayout>
         <div className="max-w-7xl mx-auto px-4 py-10">
           <div className="text-center py-20">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center animate-pulse">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
               <RefreshCcw className="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400" />
             </div>
-            <h3 className="text-lg font-medium mb-2">Carregando Notícias...</h3>
-            <p className="text-muted-foreground">Por favor aguarde enquanto buscamos as últimas notícias.</p>
+            <h3 className="text-lg font-medium mb-2">Carregando Notícias</h3>
+            <p className="text-muted-foreground">A buscar as últimas notícias financeiras...</p>
           </div>
         </div>
       </SidebarLayout>
     )
   }
 
-  // Verificações de segurança
-  const safeNews = news || []
-  const safeStats = stats || {
-    totalNews: 0,
-    filteredCount: 0,
-    sources: 0,
-    sentiments: { positive: 0, negative: 0, neutral: 0 }
-  }
-  const safeFilters = filters || { category: 'all', searchTerm: '' }
+  // === EMPTY STATE ===
+  if (isEmpty) {
+    return (
+      <SidebarLayout>
+        <div className="max-w-7xl mx-auto px-4 py-10">
+          <NewsHeader
+            lastUpdate={lastUpdate}
+            onRefresh={handleRefresh}
+            onSettings={handleSettings}
+            isLoading={isLoading}
+            isDataFresh={isDataFresh}
+          />
 
-  const featuredArticle = safeNews[0]
-  const secondaryArticles = safeNews.slice(1, 4)
-
-  return (
-    <SidebarLayout>
-      <div className="max-w-7xl mx-auto px-4 py-10 space-y-8">
-        {/* Header */}
-        <NewsHeader
-          onRefresh={handleRefresh}
-          onSettings={handleSettings}
-          lastUpdate={lastUpdate}
-        />
-
-        {/* Filtros */}
-        <NewsFilters
-          searchTerm={safeFilters.searchTerm || ''}
-          setSearchTerm={setSearchTerm}
-          selectedCategory={safeFilters.category || 'all'}
-          setSelectedCategory={setCategory}
-        />
-
-        {/* Estatísticas */}
-        <NewsStats
-          totalNews={safeStats.filteredCount}
-          selectedCategory={safeFilters.category}
-          searchTerm={safeFilters.searchTerm}
-          activeSources={safeStats.sources}
-          lastUpdateMinutes={lastUpdate ? Math.floor((Date.now() - lastUpdate.getTime()) / (1000 * 60)) : undefined}
-        />
-
-        {/* Estado vazio */}
-        {!loading && safeNews.length === 0 && (
           <div className="text-center py-12">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
               <span className="text-2xl">📰</span>
             </div>
-            <h3 className="text-lg font-medium mb-2">Nenhuma notícia encontrada</h3>
+            <h3 className="text-lg font-medium mb-2">Nenhuma Notícia Encontrada</h3>
             <p className="text-muted-foreground mb-4">
-              {safeFilters.searchTerm || safeFilters.category !== 'all'
-                ? 'Tente ajustar os filtros ou fazer uma nova pesquisa.'
-                : 'Não foi possível carregar as notícias no momento.'
-              }
+              Não foi possível encontrar notícias no momento.
             </p>
             <Button onClick={handleRefresh}>
               <RefreshCcw className="w-4 h-4 mr-2" />
-              Recarregar
+              Carregar Notícias
             </Button>
           </div>
-        )}
+        </div>
+      </SidebarLayout>
+    )
+  }
 
-        {/* Notícias em Destaque (só mostra se há notícias e não há filtros ativos) */}
-        {safeFilters.category === 'all' && !safeFilters.searchTerm && safeNews.length > 0 && (
-          <section className="space-y-4">
-            <h2 className="text-xl font-semibold flex items-center gap-2">
-              🔥 Notícias em Destaque
-            </h2>
+  // === MAIN CONTENT ===
+  return (
+    <SidebarLayout>
+      <div className="max-w-7xl mx-auto px-4 py-10 space-y-8">
+        {/* === HEADER === */}
+        <NewsHeader
+          lastUpdate={lastUpdate}
+          onRefresh={handleRefresh}
+          onSettings={handleSettings}
+          isLoading={isLoading}
+          isDataFresh={isDataFresh}
+        />
 
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Primeira notícia em destaque */}
-              {featuredArticle && (
-                <div className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-                  {featuredArticle.image && (
-                    <img
-                      src={featuredArticle.image}
-                      alt={featuredArticle.title}
-                      className="w-full h-48 object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement
-                        target.style.display = 'none'
-                      }}
-                    />
-                  )}
-                  <div className="p-6">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="px-2 py-1 bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 text-xs font-semibold rounded">
-                        DESTAQUE
-                      </span>
-                      {featuredArticle.source && (
-                        <span className="px-2 py-1 bg-muted text-muted-foreground text-xs rounded">
-                          {featuredArticle.source}
-                        </span>
-                      )}
-                    </div>
-                    <h3 className="text-xl font-bold mb-2 line-clamp-2">{featuredArticle.title}</h3>
-                    {featuredArticle.summary && (
-                      <p className="text-muted-foreground mb-4 line-clamp-3">{featuredArticle.summary}</p>
-                    )}
-                    <Button onClick={() => handleReadMore(featuredArticle)}>
-                      Ler Artigo Completo
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Notícias secundárias */}
-              {secondaryArticles.length > 0 && (
-                <div className="space-y-4">
-                  {secondaryArticles.map(article => (
-                    <div
-                      key={article.id}
-                      className="flex gap-4 p-4 bg-card border border-border rounded-lg hover:shadow-md transition-shadow cursor-pointer"
-                      onClick={() => handleReadMore(article)}
-                    >
-                      {article.image && (
-                        <img
-                          src={article.image}
-                          alt={article.title}
-                          className="w-20 h-16 object-cover rounded flex-shrink-0"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement
-                            target.style.display = 'none'
-                          }}
-                        />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm line-clamp-2 mb-1">{article.title}</h4>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          {article.source && <span>{article.source}</span>}
-                          {article.source && article.publishedDate && <span>•</span>}
-                          {article.publishedDate && (
-                            <span>{new Date(article.publishedDate).toLocaleDateString('pt-PT')}</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </section>
-        )}
-
-        {/* Grid Principal de Notícias */}
-        {safeNews.length > 0 && (
-          <section className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">
-                {safeFilters.category === 'all' && !safeFilters.searchTerm
-                  ? 'Todas as Notícias'
-                  : 'Resultados da Pesquisa'
-                }
-              </h2>
-
-              <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading}>
-                <RefreshCcw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                {loading ? 'Atualizando...' : 'Atualizar'}
+        {/* === ALERT PARA DADOS NÃO FRESCOS === */}
+        {needsRefresh && !isLoading && (
+          <Alert>
+            <RefreshCcw className="h-4 w-4" />
+            <AlertDescription className="flex items-center justify-between">
+              <span>
+                Os dados podem estar desatualizados. Última atualização:{' '}
+                {lastUpdate?.toLocaleString()}
+              </span>
+              <Button size="sm" variant="outline" onClick={handleRefresh}>
+                Atualizar Agora
               </Button>
-            </div>
+            </AlertDescription>
+          </Alert>
+        )}
 
-            <NewsGrid
-              news={safeNews}
-              loading={loading}
-              onReadMore={handleReadMore}
+        {/* === ESTATÍSTICAS === */}
+        <NewsStats stats={stats} isLoading={isLoading} />
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* === SIDEBAR COM FILTROS === */}
+          <div className="lg:col-span-1 space-y-6">
+            <NewsFilters
+              filters={filters}
+              onSearchChange={setSearchTerm}
+              onCategoryChange={setCategory}
+              onClearFilters={clearFilters}
+              hasActiveFilters={hasActiveFilters}
+              isLoading={isLoading}
             />
-          </section>
-        )}
 
-        {/* Load More Button */}
-        {!loading && safeNews.length > 0 && (
-          <div className="text-center pt-8">
-            <Button variant="outline" size="lg" onClick={handleRefresh}>
-              <RefreshCcw className="w-4 h-4 mr-2" />
-              Carregar mais notícias
-            </Button>
+            {/* === CONFIGURAÇÕES RÁPIDAS === */}
+            {showSettings && (
+              <div className="p-4 border rounded-lg space-y-4">
+                <h4 className="font-medium flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  Configurações
+                </h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span>Auto-refresh:</span>
+                    <span className="text-green-600">Ativo</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Dados:</span>
+                    <span className={isDataFresh ? 'text-green-600' : 'text-orange-600'}>
+                      {isDataFresh ? 'Frescos' : 'Desatualizados'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Total:</span>
+                    <span>{stats.totalNews} notícias</span>
+                  </div>
+                  {hasActiveFilters && (
+                    <div className="flex justify-between">
+                      <span>Filtradas:</span>
+                      <span>{news.length} exibidas</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-        )}
 
-        {/* Footer informativo */}
-        <div className="text-center text-sm text-muted-foreground pt-8 border-t border-border">
-          <p>
-            As notícias são atualizadas automaticamente.
-            Última atualização: {lastUpdate ? lastUpdate.toLocaleString('pt-PT') : 'Nunca'}
-          </p>
-          <p className="mt-2">
-            📊 {safeStats.totalNews} notícias | 📰 {safeStats.sources} fontes |
-            ✅ {safeStats.sentiments.positive} positivas |
-            ❌ {safeStats.sentiments.negative} negativas |
-            ➖ {safeStats.sentiments.neutral} neutras
-          </p>
+          {/* === CONTEÚDO PRINCIPAL === */}
+          <div className="lg:col-span-3 space-y-6">
+            {/* === INDICADOR DE LOADING DURANTE REFRESH === */}
+            {isLoading && hasNews && (
+              <div className="flex items-center justify-center py-4">
+                <RefreshCcw className="w-4 h-4 animate-spin mr-2" />
+                <span className="text-sm text-muted-foreground">Atualizando notícias...</span>
+              </div>
+            )}
+
+            {/* === GRID DE NOTÍCIAS === */}
+            <NewsGrid
+              articles={news}
+              onReadMore={handleReadMore}
+              loading={isLoading}
+              className="min-h-[600px]" // Altura mínima para evitar layout shift
+            />
+
+            {/* === PAGINAÇÃO === */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between pt-6">
+                <div className="text-sm text-muted-foreground">
+                  Página {currentPage} de {totalPages}
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={prevPage}
+                    disabled={!hasPrevPage || isLoading}
+                  >
+                    Anterior
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={nextPage}
+                    disabled={!hasNextPage || isLoading}
+                  >
+                    Próxima
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* === FOOTER INFORMATIVO === */}
+            <div className="text-center pt-8 border-t">
+              <p className="text-sm text-muted-foreground">
+                {lastUpdate && (
+                  <>
+                    Última atualização: {lastUpdate.toLocaleString('pt-PT')}
+                    {!isDataFresh && (
+                      <span className="ml-2 text-orange-600">
+                        (dados podem estar desatualizados)
+                      </span>
+                    )}
+                  </>
+                )}
+              </p>
+
+              {process.env.NODE_ENV === 'development' && (
+                <div className="mt-2 text-xs text-gray-500">
+                  <details>
+                    <summary className="cursor-pointer">Debug Info</summary>
+                    <div className="mt-2 p-2 bg-gray-100 dark:bg-gray-800 rounded text-left">
+                      <pre className="text-xs">
+                        {JSON.stringify(
+                          {
+                            newsCount: news.length,
+                            totalCount: stats.totalNews,
+                            isLoading,
+                            isDataFresh,
+                            needsRefresh,
+                            hasActiveFilters,
+                            currentPage,
+                            totalPages,
+                          },
+                          null,
+                          2,
+                        )}
+                      </pre>
+                    </div>
+                  </details>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </SidebarLayout>
   )
-}
-
-export default {
-  Page
 }

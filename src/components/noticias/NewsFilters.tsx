@@ -1,60 +1,111 @@
 // components/noticias/NewsFilters.tsx
 
 import React from 'react'
-import { Search, TrendingUp, Globe } from 'lucide-react'
+import { Search, Filter, X } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+import { NewsFilters as NewsFiltersType } from '../../types/news'
 
 interface NewsFiltersProps {
-  searchTerm: string
-  setSearchTerm: (term: string) => void
-  selectedCategory: string
-  setSelectedCategory: (category: string) => void
+  filters: NewsFiltersType // ✅ Adicionado
+  onSearchChange: (searchTerm: string) => void // ✅ Adicionado
+  onCategoryChange: (category: string) => void // ✅ Adicionado
+  onClearFilters: () => void // ✅ Adicionado
+  hasActiveFilters: boolean // ✅ Adicionado
+  isLoading?: boolean // ✅ Adicionado
 }
 
 const categories = [
-  { key: 'all', label: 'Todas', icon: Globe },
-  { key: 'market', label: 'Mercados', icon: TrendingUp },
-  { key: 'crypto', label: 'Crypto', icon: TrendingUp },
-  { key: 'economy', label: 'Economia', icon: TrendingUp },
-  { key: 'earnings', label: 'Resultados', icon: TrendingUp },
-  { key: 'general', label: 'Geral', icon: Globe }
+  { value: 'all', label: 'Todas as Categorias' },
+  { value: 'market', label: 'Mercados' },
+  { value: 'crypto', label: 'Criptomoedas' },
+  { value: 'economy', label: 'Economia' },
+  { value: 'earnings', label: 'Resultados' },
+  { value: 'general', label: 'Geral' },
 ]
 
 export const NewsFilters: React.FC<NewsFiltersProps> = ({
-  searchTerm,
-  setSearchTerm,
-  selectedCategory,
-  setSelectedCategory
+  filters,
+  onSearchChange,
+  onCategoryChange,
+  onClearFilters,
+  hasActiveFilters,
+  isLoading = false,
 }) => {
   return (
-    <div className="flex flex-col sm:flex-row gap-4">
-      {/* Barra de Pesquisa */}
-      <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <Filter className="h-4 w-4" />
+        <h3 className="font-medium">Filtros</h3>
+        {hasActiveFilters && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClearFilters}
+            className="ml-auto text-xs"
+            disabled={isLoading}
+          >
+            <X className="h-3 w-3 mr-1" />
+            Limpar
+          </Button>
+        )}
+      </div>
+
+      {/* Pesquisa */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Pesquisar notícias..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          value={filters.searchTerm}
+          onChange={(e) => onSearchChange(e.target.value)}
           className="pl-10"
+          disabled={isLoading}
         />
       </div>
 
-      {/* Filtros de Categoria */}
-      <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0">
-        {categories.map(({ key, label, icon: Icon }) => (
-          <Button
-            key={key}
-            variant={selectedCategory === key ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedCategory(key)}
-            className="whitespace-nowrap flex items-center gap-2"
-          >
-            <Icon className="w-4 h-4" />
-            {label}
-          </Button>
-        ))}
+      {/* Categoria */}
+      <div>
+        <label className="text-sm font-medium mb-2 block">Categoria</label>
+        <Select value={filters.category} onValueChange={onCategoryChange} disabled={isLoading}>
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione uma categoria" />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map((category) => (
+              <SelectItem key={category.value} value={category.value}>
+                {category.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
+
+      {/* Indicador de filtros ativos */}
+      {hasActiveFilters && (
+        <div className="text-xs text-muted-foreground p-2 bg-muted rounded">
+          <div className="flex items-center gap-1">
+            <Filter className="h-3 w-3" />
+            <span>Filtros ativos:</span>
+          </div>
+          <div className="mt-1 space-y-1">
+            {filters.category !== 'all' && (
+              <div className="flex justify-between">
+                <span>Categoria:</span>
+                <span className="font-medium">
+                  {categories.find((c) => c.value === filters.category)?.label}
+                </span>
+              </div>
+            )}
+            {filters.searchTerm && (
+              <div className="flex justify-between">
+                <span>Pesquisa:</span>
+                <span className="font-medium truncate max-w-20">"{filters.searchTerm}"</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

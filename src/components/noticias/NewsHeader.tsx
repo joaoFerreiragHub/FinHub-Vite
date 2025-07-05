@@ -8,12 +8,16 @@ interface NewsHeaderProps {
   onRefresh?: () => void
   onSettings?: () => void
   lastUpdate?: Date | null | undefined
+  isLoading?: boolean // ✅ Adicionado
+  isDataFresh?: boolean // ✅ Adicionado
 }
 
 export const NewsHeader: React.FC<NewsHeaderProps> = ({
   onRefresh,
   onSettings,
-  lastUpdate
+  lastUpdate,
+  isLoading = false, // ✅ Valor padrão
+  isDataFresh = true, // ✅ Valor padrão
 }) => {
   const formatLastUpdate = (date: Date | null | undefined) => {
     if (!date) return 'Nunca atualizado'
@@ -45,7 +49,9 @@ export const NewsHeader: React.FC<NewsHeaderProps> = ({
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
             <Calendar className="w-4 h-4" />
-            <span>{formatLastUpdate(lastUpdate)}</span>
+            <span className={!isDataFresh ? 'text-orange-600' : ''}>
+              {formatLastUpdate(lastUpdate)}
+            </span>
           </div>
 
           <div className="flex gap-2">
@@ -54,10 +60,13 @@ export const NewsHeader: React.FC<NewsHeaderProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={onRefresh}
+                disabled={isLoading}
                 className="flex items-center gap-2"
               >
-                <RefreshCcw className="w-4 h-4" />
-                <span className="hidden sm:inline">Atualizar</span>
+                <RefreshCcw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">
+                  {isLoading ? 'Atualizando...' : 'Atualizar'}
+                </span>
               </Button>
             )}
 

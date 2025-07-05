@@ -1,210 +1,204 @@
-
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { NewsArticle, NewsFilters } from '../../../types/news'
-import { newsApi } from './newsApi'
-
-interface NewsStats {
-  totalNews: number
-  filteredCount: number
-  categories: Record<string, number>
-  sources: number
-  sentiments: {
-    positive: number
-    negative: number
-    neutral: number
-  }
-}
-
-interface GetNewsParams {
-  limit: number
-  offset: number
-  sortBy: 'publishedDate'
-  sortOrder: 'desc'
-  category?: string
-  search?: string
-  sources?: string[]
-}
+// src/components/noticias/api/useNews.ts (REFATORADO)
+import { useEffect } from 'react'
+import {
+  useNewsStore,
+  useNewsSelectors,
+  type NewsStats,
+  type HealthCheckResponse,
+} from '../../../stores/useNewsStore'
 
 interface UseNewsOptions {
+  autoLoad?: boolean
   autoRefresh?: boolean
   refreshInterval?: number
 }
 
-export const useNews = ({ autoRefresh = false, refreshInterval = 5 * 60 * 1000 }: UseNewsOptions = {}) => {
-  const [news, setNews] = useState<NewsArticle[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
-  const [totalCount, setTotalCount] = useState(0)
-  const [stats, setStats] = useState<NewsStats>({
-    totalNews: 0,
-    filteredCount: 0,
-    categories: {},
-    sources: 0,
-    sentiments: { positive: 0, negative: 0, neutral: 0 }
-  })
+/**
+ * Hook simplificado que usa o store global
+ * Mantém compatibilidade com a implementação anterior
+ */
+export const useNews = (options: UseNewsOptions = {}) => {
+  const {
+    autoLoad = true,
+    autoRefresh = true,
+    refreshInterval = 10 * 60 * 1000, // 10 minutos
+  } = options
 
-  const [filters, setFilters] = useState<NewsFilters>({
-    category: 'all',
-    searchTerm: ''
-  })
-
-  const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage] = useState(20)
-
-  const isLoadingRef = useRef(false)
-  const hasInitialLoadRef = useRef(false)
-
-  const calculateLocalStats = useCallback((articles: NewsArticle[]): NewsStats => {
-    const categories = articles.reduce((acc, article) => {
-      acc[article.category] = (acc[article.category] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
-
-    const sentiments = articles.reduce((acc, article) => {
-      const sentiment = article.sentiment || 'neutral'
-      acc[sentiment as keyof typeof acc] = (acc[sentiment as keyof typeof acc] || 0) + 1
-      return acc
-    }, { positive: 0, negative: 0, neutral: 0 })
-
-    const uniqueSources = new Set(articles.map(a => a.source)).size
-
-    return {
-      totalNews: articles.length,
-      filteredCount: articles.length,
-      categories,
-      sources: uniqueSources,
-      sentiments
-    }
-  }, [])
-
-  const loadNews = useCallback(async (forceRefresh = false) => {
-    if (isLoadingRef.current && !forceRefresh) return
-
-    isLoadingRef.current = true
-    setLoading(true)
-    setError(null)
-
-    try {
-      const offset = (currentPage - 1) * itemsPerPage
-
-      const apiParams: GetNewsParams = {
-        limit: itemsPerPage,
-        offset,
-        sortBy: 'publishedDate',
-        sortOrder: 'desc'
-      }
-
-      if (filters.category && filters.category !== 'all') {
-        apiParams.category = filters.category
-      }
-
-      if (filters.searchTerm) {
-        apiParams.search = filters.searchTerm
-      }
-
-      if (filters.source) {
-        apiParams.sources = [filters.source]
-      }
-
-      const result = await newsApi.getNews(apiParams)
-
-      if (result && result.articles) {
-        setNews(result.articles)
-        setTotalCount(result.total || 0)
-        setLastUpdate(new Date())
-
-        const localStats = calculateLocalStats(result.articles)
-        localStats.filteredCount = result.total || 0
-        setStats(localStats)
-
-        hasInitialLoadRef.current = true
-      } else {
-        setError('Formato de resposta inválido da API')
-      }
-
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
-      setError(errorMessage)
-    } finally {
-      setLoading(false)
-      isLoadingRef.current = false
-    }
-  }, [filters, currentPage, itemsPerPage, calculateLocalStats])
-
-  const refreshNews = useCallback(() => {
-    loadNews(true)
-  }, [loadNews])
-
-  const setSearchTerm = useCallback((searchTerm: string) => {
-    setFilters(prev => ({ ...prev, searchTerm }))
-    setCurrentPage(1)
-  }, [])
-
-  const setCategory = useCallback((category: string) => {
-    setFilters(prev => ({ ...prev, category }))
-    setCurrentPage(1)
-  }, [])
-
-  const setSource = useCallback((source: string) => {
-    setFilters(prev => ({ ...prev, source }))
-    setCurrentPage(1)
-  }, [])
-
-  const clearFilters = useCallback(() => {
-    setFilters({
-      category: 'all',
-      searchTerm: ''
-    })
-    setCurrentPage(1)
-  }, [])
-
-  useEffect(() => {
-    if (!hasInitialLoadRef.current) {
-      const timer = setTimeout(() => {
-        loadNews(false)
-      }, 3000)
-      return () => clearTimeout(timer)
-    }
-  }, [loadNews])
-
-  useEffect(() => {
-    if (hasInitialLoadRef.current) {
-      loadNews(false)
-    }
-  }, [filters, currentPage, loadNews])
-
-  useEffect(() => {
-    if (!autoRefresh) return
-    const interval = setInterval(() => {
-      loadNews(true)
-    }, refreshInterval)
-    return () => clearInterval(interval)
-  }, [autoRefresh, refreshInterval, loadNews])
-
-  return {
+  // === ESTADO DO STORE ===
+  const {
     news,
-    loading,
+    filteredNews,
+    error,
+    stats,
+    cache,
+    filters,
+    currentPage,
+    totalCount,
+    itemsPerPage,
+    hasNews,
+
+    // Actions
+    loadNews,
+    refreshNews,
+    setSearchTerm,
+    setCategory,
+    setFilters,
+    clearFilters,
+    setPage,
+    nextPage,
+    prevPage,
+    setAutoRefresh,
+    setRefreshInterval,
+    clearError,
+    testConnection,
+  } = useNewsStore()
+
+  // === COMPUTED VALUES ===
+  const {
+    isLoading,
+    isInitialLoading,
+    hasError,
+    isDataFresh,
+    totalPages,
+    hasNextPage,
+    hasPrevPage,
+    hasActiveFilters,
+    isEmpty,
+    needsRefresh,
+  } = useNewsSelectors()
+
+  // === SETUP INICIAL ===
+  useEffect(() => {
+    // Configurar auto-refresh
+    setAutoRefresh(autoRefresh)
+    if (refreshInterval) {
+      setRefreshInterval(refreshInterval)
+    }
+  }, [autoRefresh, refreshInterval, setAutoRefresh, setRefreshInterval])
+
+  // === AUTO-LOAD ===
+  useEffect(() => {
+    if (autoLoad && (!hasNews || needsRefresh)) {
+      console.log('🚀 Auto-load ativado')
+      loadNews()
+    }
+  }, [autoLoad, hasNews, needsRefresh, loadNews])
+
+  // === VISIBILITY CHANGE (reload quando volta à aba) ===
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && needsRefresh) {
+        console.log('👁️ Página voltou a ser visível - refresh automático')
+        loadNews(true)
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [needsRefresh, loadNews])
+
+  // === COMPUTED PROPERTIES PARA COMPATIBILIDADE ===
+  const lastUpdate = cache.lastUpdate ? new Date(cache.lastUpdate) : null
+
+  // === RETURN INTERFACE (compatível com implementação anterior + página) ===
+  return {
+    // === DADOS ===
+    news: filteredNews, // Retorna dados filtrados por padrão
+    allNews: news, // Todos os dados sem filtro
+    loading: isLoading,
     error,
     lastUpdate,
     totalCount,
     stats,
 
+    // === PAGINAÇÃO ===
     currentPage,
-    totalPages: Math.ceil(totalCount / itemsPerPage),
+    totalPages,
     itemsPerPage,
-    hasNextPage: currentPage * itemsPerPage < totalCount,
-    hasPrevPage: currentPage > 1,
+    hasNextPage,
+    hasPrevPage,
 
+    // === STATUS (propriedades que a página precisa) ===
+    isLoading,
+    isInitialLoading,
+    hasError,
+    hasNews,
+    isDataFresh,
+    isEmpty,
+    needsRefresh,
+    hasActiveFilters,
+
+    // === FILTROS ===
     filters,
     setSearchTerm,
     setCategory,
-    setSource,
+    setFilters,
     clearFilters,
 
+    // === PAGINAÇÃO ACTIONS ===
+    setPage,
+    nextPage,
+    prevPage,
+
+    // === LOADING ACTIONS ===
     loadNews,
     refreshNews,
+    clearError,
 
-    testAPI: () => loadNews(true)
+    // === UTILITIES (propriedades que a página precisa) ===
+    forceRefresh: () => loadNews(true), // Alias para loadNews(true)
+    testAPI: (): Promise<HealthCheckResponse> => testConnection(),
+
+    // === CONFIGURAÇÕES ===
+    setAutoRefresh,
+    setRefreshInterval,
+  }
+}
+
+/**
+ * Hook especializado para estatísticas apenas
+ */
+export const useNewsStats = (): NewsStats => {
+  const { stats, loadNews } = useNewsStore()
+  const { hasNews } = useNewsSelectors()
+
+  useEffect(() => {
+    if (!hasNews) {
+      loadNews()
+    }
+  }, [hasNews, loadNews])
+
+  return stats
+}
+
+/**
+ * Hook para controle de loading específico
+ */
+export const useNewsLoading = () => {
+  const { loading } = useNewsStore()
+  const selectors = useNewsSelectors()
+
+  return {
+    ...loading,
+    ...selectors,
+    isAnyLoading: selectors.isLoading,
+  }
+}
+
+/**
+ * Hook para filtros apenas
+ */
+export const useNewsFilters = () => {
+  const { filters, setSearchTerm, setCategory, setFilters, clearFilters } = useNewsStore()
+
+  const { hasActiveFilters } = useNewsSelectors()
+
+  return {
+    filters,
+    hasActiveFilters,
+    setSearchTerm,
+    setCategory,
+    setFilters,
+    clearFilters,
   }
 }
