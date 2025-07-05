@@ -1,4 +1,4 @@
-// src/components/noticias/api/useNews.ts - VERSÃO CORRIGIDA
+// src/components/noticias/api/useNews.ts - VERSÃO COMPLETA MELHORADA
 import { useEffect } from 'react'
 import {
   useNewsStore,
@@ -14,8 +14,8 @@ interface UseNewsOptions {
 }
 
 /**
- * Hook principal para notícias
- * Usa o store global com fallback para mock data
+ * Hook principal para notícias com funcionalidades melhoradas
+ * Inclui carregamento incremental, filtros por categoria e paginação configurável
  */
 export const useNews = (options: UseNewsOptions = {}) => {
   const {
@@ -35,9 +35,12 @@ export const useNews = (options: UseNewsOptions = {}) => {
     currentPage,
     totalCount,
     itemsPerPage,
-    // ❌ REMOVER: hasNews, - já não existe no store
+    // 🆕 Novos campos do store
+    hasMore,
+    loadedItems,
+    isLoadingMore,
 
-    // Actions
+    // Actions existentes
     loadNews,
     refreshNews,
     setSearchTerm,
@@ -51,14 +54,19 @@ export const useNews = (options: UseNewsOptions = {}) => {
     setRefreshInterval,
     clearError,
     testConnection,
+
+    // 🆕 Novas actions
+    loadMoreNews,
+    setItemsPerPage,
+    loadNewsByCategory,
   } = useNewsStore()
 
-  // === COMPUTED VALUES (inclui hasNews correto) ===
+  // === COMPUTED VALUES (inclui novos selectors) ===
   const {
     isLoading,
     isInitialLoading,
     hasError,
-    hasNews, // ✅ AGORA vem do selector correto
+    hasNews,
     isDataFresh,
     totalPages,
     hasNextPage,
@@ -66,6 +74,9 @@ export const useNews = (options: UseNewsOptions = {}) => {
     hasActiveFilters,
     isEmpty,
     needsRefresh,
+    // 🆕 Novos selectors
+    canLoadMore,
+    loadingStats,
   } = useNewsSelectors()
 
   // === SETUP INICIAL ===
@@ -101,7 +112,79 @@ export const useNews = (options: UseNewsOptions = {}) => {
   // === COMPUTED PROPERTIES PARA COMPATIBILIDADE ===
   const lastUpdate = cache.lastUpdate ? new Date(cache.lastUpdate) : null
 
-  // === RETURN INTERFACE (compatível com página existente) ===
+  // === 🆕 HANDLERS MELHORADOS ===
+
+  /**
+   * Carrega mais notícias (append às existentes)
+   */
+  const handleLoadMore = async () => {
+    console.log('🔄 Carregando mais notícias...')
+    try {
+      await loadMoreNews()
+    } catch (error) {
+      console.error('❌ Erro ao carregar mais notícias:', error)
+    }
+  }
+
+  /**
+   * Muda para uma categoria específica e recarrega
+   */
+  const handleCategoryChange = async (category: string) => {
+    console.log(`🏷️ Mudando para categoria: ${category}`)
+    try {
+      await loadNewsByCategory(category, true)
+    } catch (error) {
+      console.error('❌ Erro ao mudar categoria:', error)
+    }
+  }
+
+  /**
+   * Carrega mais notícias da categoria atual
+   */
+  const handleLoadMoreFromCategory = async (category?: string) => {
+    const targetCategory = category || filters.category
+    console.log(`🏷️ Carregando mais da categoria: ${targetCategory}`)
+    try {
+      await loadNewsByCategory(targetCategory, false)
+    } catch (error) {
+      console.error('❌ Erro ao carregar mais da categoria:', error)
+    }
+  }
+
+  /**
+   * Altera quantas notícias carregar por vez
+   */
+  const handleItemsPerPageChange = (count: number) => {
+    console.log(`📊 Alterando items per page para: ${count}`)
+    setItemsPerPage(count)
+  }
+
+  /**
+   * Refresh completo das notícias
+   */
+  const handleRefresh = async () => {
+    console.log('🔄 Refresh completo solicitado')
+    try {
+      await loadNews(true)
+    } catch (error) {
+      console.error('❌ Erro no refresh:', error)
+    }
+  }
+
+  /**
+   * Refresh de uma categoria específica
+   */
+  const handleRefreshCategory = async (category?: string) => {
+    const targetCategory = category || filters.category
+    console.log(`🔄 Refresh da categoria: ${targetCategory}`)
+    try {
+      await loadNewsByCategory(targetCategory, true)
+    } catch (error) {
+      console.error('❌ Erro no refresh da categoria:', error)
+    }
+  }
+
+  // === RETURN INTERFACE COMPLETA ===
   return {
     // === DADOS ===
     news: filteredNews, // Retorna dados filtrados por padrão
@@ -123,11 +206,18 @@ export const useNews = (options: UseNewsOptions = {}) => {
     isLoading,
     isInitialLoading,
     hasError,
-    hasNews, // ✅ AGORA vem do selector correto
+    hasNews,
     isDataFresh,
     isEmpty,
     needsRefresh,
     hasActiveFilters,
+
+    // === 🆕 NOVOS STATUS ===
+    hasMore,
+    isLoadingMore,
+    loadedItems,
+    canLoadMore,
+    loadingStats,
 
     // === FILTROS ===
     filters,
@@ -146,6 +236,19 @@ export const useNews = (options: UseNewsOptions = {}) => {
     refreshNews,
     clearError,
 
+    // === 🆕 NOVAS ACTIONS ===
+    loadMoreNews,
+    setItemsPerPage,
+    loadNewsByCategory,
+
+    // === 🆕 HANDLERS MELHORADOS ===
+    handleLoadMore,
+    handleCategoryChange,
+    handleLoadMoreFromCategory,
+    handleItemsPerPageChange,
+    handleRefresh,
+    handleRefreshCategory,
+
     // === UTILITIES (propriedades que a página precisa) ===
     forceRefresh: () => loadNews(true), // Alias para loadNews(true)
     testAPI: (): Promise<HealthCheckResponse> => testConnection(),
@@ -153,6 +256,51 @@ export const useNews = (options: UseNewsOptions = {}) => {
     // === CONFIGURAÇÕES ===
     setAutoRefresh,
     setRefreshInterval,
+
+    // === 🆕 UTILITIES AVANÇADAS ===
+
+    /**
+     * Carrega uma quantidade específica de notícias
+     */
+    loadSpecificAmount: async (count: number) => {
+      const originalCount = itemsPerPage
+      setItemsPerPage(count)
+      await loadNews(true)
+      setItemsPerPage(originalCount) // Restaurar valor original
+    },
+
+    /**
+     * Verifica se pode carregar mais de uma categoria específica
+     */
+    canLoadMoreFromCategory: (category: string) => {
+      return filters.category === category && canLoadMore
+    },
+
+    /**
+     * Retorna estatísticas da categoria atual
+     */
+    getCurrentCategoryStats: () => {
+      const currentCategory = filters.category
+      return {
+        category: currentCategory,
+        loaded: loadedItems,
+        total: totalCount,
+        hasMore,
+        percentage: loadingStats.percentage,
+      }
+    },
+
+    /**
+     * Retorna informações de progresso para UI
+     */
+    getProgressInfo: () => ({
+      current: loadedItems,
+      total: totalCount,
+      remaining: loadingStats.remaining,
+      percentage: loadingStats.percentage,
+      isComplete: !hasMore,
+      canLoadMore,
+    }),
   }
 }
 
@@ -161,7 +309,7 @@ export const useNews = (options: UseNewsOptions = {}) => {
  */
 export const useNewsStats = (): NewsStats => {
   const { stats, loadNews } = useNewsStore()
-  const { hasNews } = useNewsSelectors() // ✅ CORRETO - vem do selector
+  const { hasNews } = useNewsSelectors()
 
   useEffect(() => {
     if (!hasNews) {
@@ -176,13 +324,20 @@ export const useNewsStats = (): NewsStats => {
  * Hook para controle de loading específico
  */
 export const useNewsLoading = () => {
-  const { loading } = useNewsStore()
+  const { loading, isLoadingMore } = useNewsStore()
   const selectors = useNewsSelectors()
 
   return {
     ...loading,
     ...selectors,
-    isAnyLoading: selectors.isLoading,
+    isAnyLoading: selectors.isLoading || isLoadingMore,
+    loadingStates: {
+      initial: loading.initial,
+      refresh: loading.refresh,
+      pagination: loading.pagination,
+      filter: loading.filter,
+      loadingMore: isLoadingMore,
+    },
   }
 }
 
@@ -190,8 +345,8 @@ export const useNewsLoading = () => {
  * Hook para filtros apenas
  */
 export const useNewsFilters = () => {
-  const { filters, setSearchTerm, setCategory, setFilters, clearFilters } = useNewsStore()
-
+  const { filters, setSearchTerm, setCategory, setFilters, clearFilters, loadNewsByCategory } =
+    useNewsStore()
   const { hasActiveFilters } = useNewsSelectors()
 
   return {
@@ -201,5 +356,81 @@ export const useNewsFilters = () => {
     setCategory,
     setFilters,
     clearFilters,
+    // 🆕 Função melhorada para mudança de categoria
+    changeCategory: (category: string) => loadNewsByCategory(category, true),
+  }
+}
+
+/**
+ * 🆕 Hook especializado para carregamento incremental
+ */
+export const useInfiniteNews = () => {
+  const { loadMoreNews, hasMore, isLoadingMore } = useNewsStore()
+  const { canLoadMore, loadingStats } = useNewsSelectors()
+
+  return {
+    loadMore: loadMoreNews,
+    hasMore,
+    isLoading: isLoadingMore,
+    canLoadMore,
+    progress: loadingStats,
+
+    /**
+     * Hook para scroll infinito
+     */
+    useScrollTrigger: (threshold = 300) => {
+      useEffect(() => {
+        if (!canLoadMore) return
+
+        const handleScroll = () => {
+          const scrollTop = document.documentElement.scrollTop
+          const scrollHeight = document.documentElement.scrollHeight
+          const clientHeight = document.documentElement.clientHeight
+
+          if (scrollTop + clientHeight >= scrollHeight - threshold) {
+            loadMoreNews()
+          }
+        }
+
+        window.addEventListener('scroll', handleScroll)
+        return () => window.removeEventListener('scroll', handleScroll)
+      }, [canLoadMore, threshold])
+    },
+  }
+}
+
+/**
+ * 🆕 Hook para gestão de categorias
+ */
+export const useCategoryManager = () => {
+  const { filters, loadNewsByCategory, stats } = useNewsStore()
+  const { loadingStats } = useNewsSelectors()
+
+  const categories = [
+    { value: 'all', label: 'Todas as Categorias' },
+    { value: 'market', label: 'Mercados' },
+    { value: 'crypto', label: 'Criptomoedas' },
+    { value: 'economy', label: 'Economia' },
+    { value: 'earnings', label: 'Resultados' },
+    { value: 'general', label: 'Geral' },
+  ]
+
+  return {
+    currentCategory: filters.category,
+    categories: categories.map((cat) => ({
+      ...cat,
+      count: stats.categories[cat.value] || 0,
+      isActive: filters.category === cat.value,
+    })),
+
+    changeCategory: (category: string) => loadNewsByCategory(category, true),
+    loadMoreFromCategory: (category: string) => loadNewsByCategory(category, false),
+
+    categoryStats: {
+      current: filters.category,
+      loaded: loadingStats.loaded,
+      total: loadingStats.total,
+      percentage: loadingStats.percentage,
+    },
   }
 }

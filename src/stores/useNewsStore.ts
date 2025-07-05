@@ -1,4 +1,4 @@
-// src/stores/useNewsStore.ts - VERSÃO COM LOGS COMPLETOS DE DEBUG
+// src/stores/useNewsStore.ts - VERSÃO COMPLETA COM FUNCIONALIDADES MELHORADAS
 
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
@@ -229,7 +229,10 @@ interface NewsStore {
   autoRefresh: boolean
   refreshInterval: number
 
-  // === COMPUTED PROPERTIES ===
+  // === 🆕 NOVAS PROPRIEDADES ===
+  hasMore: boolean
+  loadedItems: number
+  isLoadingMore: boolean
 
   // === ACTIONS PRINCIPAIS ===
   loadNews: (forceRefresh?: boolean) => Promise<void>
@@ -255,6 +258,11 @@ interface NewsStore {
   clearCache: () => void
   isDataFresh: () => boolean
   testConnection: () => Promise<HealthCheckResponse>
+
+  // === 🆕 NOVAS AÇÕES ===
+  loadMoreNews: () => Promise<void>
+  setItemsPerPage: (count: number) => void
+  loadNewsByCategory: (category: string, reset?: boolean) => Promise<void>
 }
 
 // ===== CONSTANTES =====
@@ -380,9 +388,12 @@ export const useNewsStore = create<NewsStore>()(
       autoRefresh: true,
       refreshInterval: DEFAULT_REFRESH_INTERVAL,
 
-      // === COMPUTED PROPERTIES ===
+      // === 🆕 NOVO ESTADO ===
+      hasMore: true,
+      loadedItems: 0,
+      isLoadingMore: false,
 
-      // === LOAD NEWS ===
+      // === LOAD NEWS MELHORADO ===
       loadNews: async (forceRefresh = false) => {
         console.log('🔥 DEBUG loadNews INICIADA')
         const state = get()
@@ -418,7 +429,7 @@ export const useNewsStore = create<NewsStore>()(
         try {
           console.log('📰 Carregando notícias...')
 
-          const offset = (state.currentPage - 1) * state.itemsPerPage
+          const offset = 0 // Reset para início nas novas implementações
 
           // Parâmetros para o newsApi
           const params: GetNewsParams = {
@@ -490,16 +501,22 @@ export const useNewsStore = create<NewsStore>()(
 
             const now = new Date().toISOString()
 
+            // 🆕 Calcular se há mais itens
+            const hasMore = total > validArticles.length
+
             console.log('🔥 DEBUG dados finais a serem salvos no store:')
             console.log('🔥 DEBUG validArticles:', validArticles.length)
             console.log('🔥 DEBUG filteredArticles:', filteredArticles.length)
             console.log('🔥 DEBUG total:', total)
+            console.log('🔥 DEBUG hasMore:', hasMore)
             console.log('🔥 DEBUG newStats:', newStats)
 
             const newState = {
               news: validArticles,
               filteredNews: filteredArticles,
               totalCount: total,
+              loadedItems: validArticles.length, // 🆕 NOVA LINHA
+              hasMore, // 🆕 NOVA LINHA
               stats: newStats,
               cache: {
                 lastUpdate: now,
@@ -519,10 +536,14 @@ export const useNewsStore = create<NewsStore>()(
             console.log('🔥 DEBUG estado final do store após set():')
             console.log('🔥 DEBUG finalState.news.length:', finalState.news.length)
             console.log('🔥 DEBUG finalState.filteredNews.length:', finalState.filteredNews.length)
+            console.log('🔥 DEBUG finalState.hasMore:', finalState.hasMore)
+            console.log('🔥 DEBUG finalState.loadedItems:', finalState.loadedItems)
             console.log('🔥 DEBUG finalState.loading:', finalState.loading)
             console.log('🔥 DEBUG finalState.error:', finalState.error)
 
-            console.log(`✅ ${validArticles.length} notícias carregadas com sucesso`)
+            console.log(
+              `✅ ${validArticles.length} notícias carregadas com sucesso. HasMore: ${hasMore}`,
+            )
             console.log('📊 Stats:', newStats)
             console.log('🔍 Primeira notícia:', validArticles[0])
           } else {
@@ -534,6 +555,8 @@ export const useNewsStore = create<NewsStore>()(
               news: [],
               filteredNews: [],
               totalCount: 0,
+              loadedItems: 0, // 🆕 NOVA LINHA
+              hasMore: false, // 🆕 NOVA LINHA
               stats: initialStats,
               loading: initialLoadingState,
               error: null,
@@ -551,6 +574,116 @@ export const useNewsStore = create<NewsStore>()(
         }
 
         console.log('🔥 DEBUG loadNews FINALIZADA')
+      },
+
+      // === 🆕 NOVA FUNÇÃO: CARREGAR MAIS ===
+      loadMoreNews: async () => {
+        console.log('🔥 DEBUG loadMoreNews INICIADA')
+        const state = get()
+
+        if (state.isLoadingMore || !state.hasMore) {
+          console.log('🚫 Já está a carregar ou não há mais itens')
+          return
+        }
+
+        set({ isLoadingMore: true, error: null })
+
+        try {
+          const params: GetNewsParams = {
+            limit: state.itemsPerPage,
+            offset: state.loadedItems, // Começar onde parámos
+            sortBy: 'publishedDate',
+            sortOrder: 'desc',
+          }
+
+          // Aplicar filtros atuais
+          if (state.filters.category && state.filters.category !== 'all') {
+            params.category = state.filters.category
+          }
+          if (state.filters.searchTerm) {
+            params.searchTerm = state.filters.searchTerm
+          }
+
+          console.log('📡 loadMoreNews params:', params)
+          const result = await newsApi.getNews(params)
+          const { articles, total } = extractArticlesFromResponse(result)
+          const validArticles = articles.filter(isValidNewsArticle)
+
+          if (validArticles.length > 0) {
+            // APPEND às notícias existentes
+            const newAllNews = [...state.news, ...validArticles]
+            const newFilteredNews = applyFilters(newAllNews, state.filters)
+            const newStats = calculateStats(newAllNews)
+            newStats.filteredCount = newFilteredNews.length
+
+            // Verificar se ainda há mais
+            const newLoadedItems = state.loadedItems + validArticles.length
+            const hasMore = total > newLoadedItems
+
+            set(() => ({
+              news: newAllNews,
+              filteredNews: newFilteredNews,
+              loadedItems: newLoadedItems,
+              hasMore,
+              stats: newStats,
+              isLoadingMore: false,
+              cache: {
+                ...state.cache,
+                lastUpdate: new Date().toISOString(),
+              },
+            }))
+
+            console.log(
+              `✅ +${validArticles.length} notícias adicionadas. Total: ${newLoadedItems}/${total}`,
+            )
+          } else {
+            // Não há mais artigos
+            set({ isLoadingMore: false, hasMore: false })
+            console.log('✅ Não há mais notícias para carregar')
+          }
+        } catch (error) {
+          console.error('❌ Erro ao carregar mais notícias:', error)
+          set({
+            isLoadingMore: false,
+            error: error instanceof Error ? error.message : 'Erro ao carregar mais notícias',
+          })
+        }
+      },
+
+      // === 🆕 NOVA FUNÇÃO: ALTERAR ITEMS PER PAGE ===
+      setItemsPerPage: (count: number) => {
+        console.log(`📊 Alterando items per page para: ${count}`)
+        set({ itemsPerPage: count })
+        // Recarregar com novo limite
+        get().loadNews(true)
+      },
+
+      // === 🆕 NOVA FUNÇÃO: CARREGAR POR CATEGORIA ===
+      loadNewsByCategory: async (category: string, reset = true) => {
+        console.log(`🏷️ Carregando notícias da categoria: ${category}`)
+
+        const state = get()
+
+        if (reset) {
+          // Reset e carregar nova categoria
+          set({
+            filters: { ...state.filters, category },
+            loading: { ...state.loading, filter: true },
+            error: null,
+          })
+
+          // Carregar notícias da nova categoria
+          await get().loadNews(true)
+        } else {
+          // Carregar mais da categoria atual
+          if (state.filters.category !== category) {
+            console.log('🔄 Categoria mudou, fazendo reset')
+            return get().loadNewsByCategory(category, true)
+          }
+
+          // Carregar mais da mesma categoria
+          await get().loadMoreNews()
+        }
       },
 
       // === REFRESH NEWS ===
@@ -663,6 +796,10 @@ export const useNewsStore = create<NewsStore>()(
             nextRefresh: 0,
           },
           stats: initialStats,
+          // 🆕 Reset dos novos campos
+          hasMore: true,
+          loadedItems: 0,
+          isLoadingMore: false,
         })
       },
 
@@ -706,6 +843,9 @@ export const useNewsStore = create<NewsStore>()(
         cache: state.cache,
         autoRefresh: state.autoRefresh,
         refreshInterval: state.refreshInterval,
+        // 🆕 Adicionar novos campos ao persist
+        hasMore: state.hasMore,
+        loadedItems: state.loadedItems,
       }),
       onRehydrateStorage: () => (state) => {
         console.log('🔥 DEBUG onRehydrateStorage executado com state:', state)
@@ -741,36 +881,52 @@ export const useNewsStore = create<NewsStore>()(
 )
 
 // ===== COMPUTED VALUES (SELECTORS) =====
-// ===== COMPUTED VALUES (SELECTORS) - VERSÃO CORRIGIDA =====
 export const useNewsSelectors = () => {
   const store = useNewsStore()
 
   const selectors = {
-    // Status helpers
+    // Status helpers existentes
     isLoading: Object.values(store.loading).some(Boolean),
     isInitialLoading: store.loading.initial,
     hasError: !!store.error,
-    hasNews: store.news.length > 0, // ✅ ADICIONAR ESTA LINHA
+    hasNews: store.news.length > 0,
     isDataFresh: store.isDataFresh(),
 
-    // Pagination helpers
+    // Pagination helpers existentes
     totalPages: Math.ceil(store.totalCount / store.itemsPerPage),
     hasNextPage: store.currentPage * store.itemsPerPage < store.totalCount,
     hasPrevPage: store.currentPage > 1,
 
-    // Filter status
+    // Filter status existentes
     hasActiveFilters:
       store.filters.category !== 'all' || !!store.filters.searchTerm || !!store.filters.source,
 
-    // Data helpers
-    isEmpty: store.news.length === 0 && !Object.values(store.loading).some(Boolean), // ✅ CORRIGIDO
+    // Data helpers existentes
+    isEmpty: store.news.length === 0 && !Object.values(store.loading).some(Boolean),
     needsRefresh: isDataStale(store.cache.lastUpdate),
+
+    // === 🆕 NOVOS SELECTORS ===
+    hasMore: store.hasMore,
+    isLoadingMore: store.isLoadingMore,
+    loadedItems: store.loadedItems,
+    canLoadMore:
+      store.hasMore && !store.isLoadingMore && !Object.values(store.loading).some(Boolean),
+
+    // Stats de carregamento
+    loadingStats: {
+      loaded: store.loadedItems,
+      total: store.totalCount,
+      remaining: store.totalCount - store.loadedItems,
+      percentage:
+        store.totalCount > 0 ? Math.round((store.loadedItems / store.totalCount) * 100) : 0,
+    },
   }
 
   console.log('🔥 DEBUG useNewsSelectors resultado:', selectors)
   return selectors
 }
 
+// Adicionar store ao window para debug
 if (typeof window !== 'undefined') {
   window.useNewsStore = useNewsStore
 }

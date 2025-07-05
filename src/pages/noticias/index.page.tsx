@@ -8,7 +8,6 @@ import { NewsHeader } from '../../components/noticias/NewsHeader'
 import { NewsGrid } from '../../components/noticias/NewsGrid'
 import { NewsStats } from '../../components/noticias/NewsStats'
 import { Button } from '../../components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
 import { NewsArticle } from '../../types/news'
 import { useNews } from '../../components/noticias/api/useNews'
 
@@ -30,7 +29,6 @@ export function Page() {
 
     // Filtros
     filters,
-    hasActiveFilters,
 
     // Paginação
     currentPage,

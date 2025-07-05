@@ -160,7 +160,7 @@ class NewsApiService {
 
     console.log('📡 Final endpoint:', endpoint)
 
-    const response = await this.makeRequest<any>(endpoint) // Mudança aqui: any em vez de NewsListResponse
+    const response = await this.makeRequest<NewsListResponse>(endpoint)
 
     console.log('🔍 Raw response structure:', response)
 
