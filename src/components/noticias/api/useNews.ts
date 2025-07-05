@@ -1,4 +1,4 @@
-// src/components/noticias/api/useNews.ts (REFATORADO)
+// src/components/noticias/api/useNews.ts (SUBSTITUIR COMPLETAMENTE)
 import { useEffect } from 'react'
 import {
   useNewsStore,
@@ -14,8 +14,8 @@ interface UseNewsOptions {
 }
 
 /**
- * Hook simplificado que usa o store global
- * Mantém compatibilidade com a implementação anterior
+ * Hook principal para notícias
+ * Usa o store global com fallback para mock data
  */
 export const useNews = (options: UseNewsOptions = {}) => {
   const {
@@ -76,10 +76,10 @@ export const useNews = (options: UseNewsOptions = {}) => {
     }
   }, [autoRefresh, refreshInterval, setAutoRefresh, setRefreshInterval])
 
-  // === AUTO-LOAD ===
+  // === AUTO-LOAD (SEM DELAY!) ===
   useEffect(() => {
     if (autoLoad && (!hasNews || needsRefresh)) {
-      console.log('🚀 Auto-load ativado')
+      console.log('🚀 Auto-load ativado - carregando imediatamente')
       loadNews()
     }
   }, [autoLoad, hasNews, needsRefresh, loadNews])
@@ -100,12 +100,12 @@ export const useNews = (options: UseNewsOptions = {}) => {
   // === COMPUTED PROPERTIES PARA COMPATIBILIDADE ===
   const lastUpdate = cache.lastUpdate ? new Date(cache.lastUpdate) : null
 
-  // === RETURN INTERFACE (compatível com implementação anterior + página) ===
+  // === RETURN INTERFACE (compatível com página existente) ===
   return {
     // === DADOS ===
     news: filteredNews, // Retorna dados filtrados por padrão
     allNews: news, // Todos os dados sem filtro
-    loading: isLoading,
+    loading: isLoading, // ✅ Para compatibilidade com página atual
     error,
     lastUpdate,
     totalCount,

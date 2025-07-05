@@ -1,59 +1,112 @@
 // components/noticias/NewsHeader.tsx
 
 import React from 'react'
-import { Calendar, RefreshCcw, Settings } from 'lucide-react'
+import { Calendar, RefreshCcw, Settings, AlertTriangle, CheckCircle } from 'lucide-react'
 import { Button } from '../ui/button'
+import { Badge } from '../ui/badge'
 
 interface NewsHeaderProps {
+  lastUpdate?: Date | null | undefined
   onRefresh?: () => void
   onSettings?: () => void
-  lastUpdate?: Date | null | undefined
-  isLoading?: boolean // ✅ Adicionado
-  isDataFresh?: boolean // ✅ Adicionado
+  isLoading?: boolean
+  isDataFresh?: boolean
+  totalNews?: number // ✅ Adicionado
+  filteredNews?: number // ✅ Adicionado
 }
 
 export const NewsHeader: React.FC<NewsHeaderProps> = ({
+  lastUpdate,
   onRefresh,
   onSettings,
-  lastUpdate,
-  isLoading = false, // ✅ Valor padrão
-  isDataFresh = true, // ✅ Valor padrão
+  isLoading = false,
+  isDataFresh = true,
+  totalNews = 0, // ✅ Adicionado
+  filteredNews = 0, // ✅ Adicionado
 }) => {
   const formatLastUpdate = (date: Date | null | undefined) => {
     if (!date) return 'Nunca atualizado'
 
-    const now = new Date()
-    const diffMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
+    try {
+      const now = new Date()
+      const diffMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
 
-    if (diffMinutes < 1) return 'Atualizado agora mesmo'
-    if (diffMinutes === 1) return 'Atualizado há 1 minuto'
-    if (diffMinutes < 60) return `Atualizado há ${diffMinutes} minutos`
+      if (diffMinutes < 1) return 'Atualizado agora mesmo'
+      if (diffMinutes === 1) return 'Atualizado há 1 minuto'
+      if (diffMinutes < 60) return `Atualizado há ${diffMinutes} minutos`
 
-    const diffHours = Math.floor(diffMinutes / 60)
-    if (diffHours === 1) return 'Atualizado há 1 hora'
-    if (diffHours < 24) return `Atualizado há ${diffHours} horas`
+      const diffHours = Math.floor(diffMinutes / 60)
+      if (diffHours === 1) return 'Atualizado há 1 hora'
+      if (diffHours < 24) return `Atualizado há ${diffHours} horas`
 
-    return `Atualizado em ${date.toLocaleDateString('pt-PT')}`
+      return `Atualizado em ${date.toLocaleDateString('pt-PT')}`
+    } catch {
+      return 'Data inválida'
+    }
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">📰 Notícias Financeiras</h1>
-          <p className="text-muted-foreground mt-2">
-            Mantém-te atualizado com as últimas notícias dos mercados financeiros
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        {/* Título e informações */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold">📰 Notícias Financeiras</h1>
+
+            {/* Status badge */}
+            <Badge
+              variant={isDataFresh ? 'default' : 'secondary'}
+              className="flex items-center gap-1"
+            >
+              {isDataFresh ? (
+                <CheckCircle className="w-3 h-3" />
+              ) : (
+                <AlertTriangle className="w-3 h-3" />
+              )}
+              {isDataFresh ? 'Atualizado' : 'Desatualizado'}
+            </Badge>
+
+            {/* Loading indicator */}
+            {isLoading && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <RefreshCcw className="w-4 h-4 animate-spin" />
+                <span>Atualizando...</span>
+              </div>
+            )}
+          </div>
+
+          {/* Descrição e metadados */}
+          <div className="space-y-1">
+            <p className="text-muted-foreground">
+              Mantém-te atualizado com as últimas notícias dos mercados financeiros
+            </p>
+
+            {/* Contadores de notícias */}
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <span>
+                {totalNews > 0 ? `${totalNews.toLocaleString()} notícias` : 'Sem notícias'}
+              </span>
+
+              {filteredNews !== totalNews && totalNews > 0 && (
+                <span>• {filteredNews.toLocaleString()} filtradas</span>
+              )}
+
+              <span>• {formatLastUpdate(lastUpdate)}</span>
+            </div>
+          </div>
         </div>
 
+        {/* Ações */}
         <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
+          {/* Info de última atualização (desktop) */}
+          <div className="hidden lg:flex items-center gap-2 text-sm text-muted-foreground">
             <Calendar className="w-4 h-4" />
             <span className={!isDataFresh ? 'text-orange-600' : ''}>
               {formatLastUpdate(lastUpdate)}
             </span>
           </div>
 
+          {/* Botões de ação */}
           <div className="flex gap-2">
             {onRefresh && (
               <Button

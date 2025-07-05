@@ -1,20 +1,21 @@
-// src/pages/noticias/index.page.tsx (ATUALIZADA)
+// pages/noticias/index.page.tsx - VERSÃO DEBUG
+
 import { useState, useEffect } from 'react'
-import { RefreshCcw, Settings } from 'lucide-react'
+import { RefreshCcw, AlertCircle } from 'lucide-react'
 
 import SidebarLayout from '../../components/layout/SidebarLayout'
 import { NewsHeader } from '../../components/noticias/NewsHeader'
-import { NewsFilters } from '../../components/noticias/NewsFilters'
 import { NewsGrid } from '../../components/noticias/NewsGrid'
 import { NewsStats } from '../../components/noticias/NewsStats'
 import { Button } from '../../components/ui/button'
-import { Alert, AlertDescription } from '../../components/ui/alert'
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
 import { NewsArticle } from '../../types/news'
 import { useNews } from '../../components/noticias/api/useNews'
 
 export function Page() {
   const {
     news,
+    allNews,
     isLoading,
     isInitialLoading,
     hasError,
@@ -25,12 +26,10 @@ export function Page() {
     needsRefresh,
     lastUpdate,
     stats,
+    totalCount,
 
     // Filtros
     filters,
-    setSearchTerm,
-    setCategory,
-    clearFilters,
     hasActiveFilters,
 
     // Paginação
@@ -44,6 +43,7 @@ export function Page() {
     // Actions
     forceRefresh,
     clearError,
+    testAPI,
   } = useNews({
     autoLoad: true,
     autoRefresh: true,
@@ -51,6 +51,7 @@ export function Page() {
   })
 
   const [showSettings, setShowSettings] = useState(false)
+  const [showDebug, setShowDebug] = useState(process.env.NODE_ENV === 'development')
 
   // === HANDLERS ===
   const handleReadMore = (article: NewsArticle) => {
@@ -76,20 +77,46 @@ export function Page() {
     console.log('⚙️ Configurações:', showSettings ? 'fechadas' : 'abertas')
   }
 
-  // === DEBUG (apenas em desenvolvimento) ===
+  const handleTestAPI = async () => {
+    console.log('🧪 Testando API...')
+    const result = await testAPI()
+    console.log('📊 Resultado do teste:', result)
+  }
+
+  // === DEBUG LOGS ===
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('📰 News Page State:', {
+      console.log('📰 News Page State Update:', {
         newsCount: news?.length,
+        allNewsCount: allNews?.length,
+        totalCount,
         isLoading,
         hasError,
+        error,
         isDataFresh,
         needsRefresh,
         lastUpdate: lastUpdate?.toISOString(),
         filters,
+        stats,
+        hasNews,
+        isEmpty,
       })
     }
-  }, [news?.length, isLoading, hasError, isDataFresh, needsRefresh, lastUpdate, filters])
+  }, [
+    news,
+    allNews,
+    totalCount,
+    isLoading,
+    hasError,
+    error,
+    isDataFresh,
+    needsRefresh,
+    lastUpdate,
+    filters,
+    stats,
+    hasNews,
+    isEmpty,
+  ])
 
   // === ERROR STATE ===
   if (hasError) {
@@ -98,7 +125,7 @@ export function Page() {
         <div className="max-w-7xl mx-auto px-4 py-10">
           <div className="text-center py-12">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center">
-              <span className="text-2xl">⚠️</span>
+              <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
             </div>
             <h3 className="text-lg font-medium mb-2">Erro ao Carregar Notícias</h3>
             <p className="text-muted-foreground mb-4">{error}</p>
@@ -109,6 +136,9 @@ export function Page() {
               </Button>
               <Button variant="outline" onClick={clearError}>
                 Limpar Erro
+              </Button>
+              <Button variant="outline" onClick={handleTestAPI}>
+                Testar API
               </Button>
             </div>
           </div>
@@ -134,19 +164,89 @@ export function Page() {
     )
   }
 
-  // === EMPTY STATE ===
-  if (isEmpty) {
-    return (
-      <SidebarLayout>
-        <div className="max-w-7xl mx-auto px-4 py-10">
-          <NewsHeader
-            lastUpdate={lastUpdate}
-            onRefresh={handleRefresh}
-            onSettings={handleSettings}
-            isLoading={isLoading}
-            isDataFresh={isDataFresh}
-          />
+  return (
+    <SidebarLayout>
+      <div className="max-w-7xl mx-auto px-4 py-10">
+        {/* === CABEÇALHO === */}
+        <NewsHeader
+          lastUpdate={lastUpdate}
+          onRefresh={handleRefresh}
+          onSettings={handleSettings}
+          isLoading={isLoading}
+          isDataFresh={isDataFresh}
+          totalNews={totalCount}
+          filteredNews={news.length}
+        />
 
+        {/* === DEBUG PANEL (só em desenvolvimento) === */}
+        {showDebug && (
+          <Card className="mb-6 border-orange-200 bg-orange-50 dark:bg-orange-950">
+            <CardHeader>
+              <CardTitle className="text-sm text-orange-800 dark:text-orange-200">
+                🐛 Debug Panel (Desenvolvimento)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-xs">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <strong>Estados:</strong>
+                  <br />• isLoading: {String(isLoading)}
+                  <br />• hasError: {String(hasError)}
+                  <br />• hasNews: {String(hasNews)}
+                  <br />• isEmpty: {String(isEmpty)}
+                </div>
+                <div>
+                  <strong>Dados:</strong>
+                  <br />• news: {news?.length || 0}
+                  <br />• allNews: {allNews?.length || 0}
+                  <br />• totalCount: {totalCount}
+                  <br />• filteredCount: {stats.filteredCount}
+                </div>
+                <div>
+                  <strong>Status:</strong>
+                  <br />• isDataFresh: {String(isDataFresh)}
+                  <br />• needsRefresh: {String(needsRefresh)}
+                  <br />• lastUpdate: {lastUpdate ? 'Sim' : 'Não'}
+                  <br />• hasActiveFilters: {String(hasActiveFilters)}
+                </div>
+                <div>
+                  <strong>Filtros:</strong>
+                  <br />• category: {filters.category}
+                  <br />• searchTerm: {filters.searchTerm || 'Vazio'}
+                  <br />• source: {filters.source || 'Vazio'}
+                </div>
+              </div>
+
+              <div className="flex gap-2 mt-4">
+                <Button size="sm" variant="outline" onClick={handleTestAPI}>
+                  Testar API
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => console.log('news:', news)}>
+                  Log News
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setShowDebug(false)}>
+                  Ocultar Debug
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* === ESTATÍSTICAS === */}
+        <div className="mb-6">
+          <NewsStats stats={stats} isLoading={isLoading} />
+        </div>
+
+        {/* === INDICADOR DE LOADING DURANTE REFRESH === */}
+        {isLoading && hasNews && (
+          <div className="flex items-center justify-center py-4 mb-6 bg-blue-50 dark:bg-blue-950 rounded-lg">
+            <RefreshCcw className="w-4 h-4 animate-spin mr-2" />
+            <span className="text-sm text-muted-foreground">Atualizando notícias...</span>
+          </div>
+        )}
+
+        {/* === EMPTY STATE === */}
+        {isEmpty && (
           <div className="text-center py-12">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
               <span className="text-2xl">📰</span>
@@ -155,109 +255,26 @@ export function Page() {
             <p className="text-muted-foreground mb-4">
               Não foi possível encontrar notícias no momento.
             </p>
-            <Button onClick={handleRefresh}>
-              <RefreshCcw className="w-4 h-4 mr-2" />
-              Carregar Notícias
-            </Button>
-          </div>
-        </div>
-      </SidebarLayout>
-    )
-  }
-
-  // === MAIN CONTENT ===
-  return (
-    <SidebarLayout>
-      <div className="max-w-7xl mx-auto px-4 py-10 space-y-8">
-        {/* === HEADER === */}
-        <NewsHeader
-          lastUpdate={lastUpdate}
-          onRefresh={handleRefresh}
-          onSettings={handleSettings}
-          isLoading={isLoading}
-          isDataFresh={isDataFresh}
-        />
-
-        {/* === ALERT PARA DADOS NÃO FRESCOS === */}
-        {needsRefresh && !isLoading && (
-          <Alert>
-            <RefreshCcw className="h-4 w-4" />
-            <AlertDescription className="flex items-center justify-between">
-              <span>
-                Os dados podem estar desatualizados. Última atualização:{' '}
-                {lastUpdate?.toLocaleString()}
-              </span>
-              <Button size="sm" variant="outline" onClick={handleRefresh}>
-                Atualizar Agora
+            <div className="flex gap-2 justify-center">
+              <Button onClick={handleRefresh}>
+                <RefreshCcw className="w-4 h-4 mr-2" />
+                Tentar Carregar
               </Button>
-            </AlertDescription>
-          </Alert>
+              <Button variant="outline" onClick={handleTestAPI}>
+                Testar Conexão
+              </Button>
+            </div>
+          </div>
         )}
 
-        {/* === ESTATÍSTICAS === */}
-        <NewsStats stats={stats} isLoading={isLoading} />
-
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* === SIDEBAR COM FILTROS === */}
-          <div className="lg:col-span-1 space-y-6">
-            <NewsFilters
-              filters={filters}
-              onSearchChange={setSearchTerm}
-              onCategoryChange={setCategory}
-              onClearFilters={clearFilters}
-              hasActiveFilters={hasActiveFilters}
-              isLoading={isLoading}
-            />
-
-            {/* === CONFIGURAÇÕES RÁPIDAS === */}
-            {showSettings && (
-              <div className="p-4 border rounded-lg space-y-4">
-                <h4 className="font-medium flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  Configurações
-                </h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Auto-refresh:</span>
-                    <span className="text-green-600">Ativo</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Dados:</span>
-                    <span className={isDataFresh ? 'text-green-600' : 'text-orange-600'}>
-                      {isDataFresh ? 'Frescos' : 'Desatualizados'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Total:</span>
-                    <span>{stats.totalNews} notícias</span>
-                  </div>
-                  {hasActiveFilters && (
-                    <div className="flex justify-between">
-                      <span>Filtradas:</span>
-                      <span>{news.length} exibidas</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* === CONTEÚDO PRINCIPAL === */}
-          <div className="lg:col-span-3 space-y-6">
-            {/* === INDICADOR DE LOADING DURANTE REFRESH === */}
-            {isLoading && hasNews && (
-              <div className="flex items-center justify-center py-4">
-                <RefreshCcw className="w-4 h-4 animate-spin mr-2" />
-                <span className="text-sm text-muted-foreground">Atualizando notícias...</span>
-              </div>
-            )}
-
-            {/* === GRID DE NOTÍCIAS === */}
+        {/* === GRID DE NOTÍCIAS === */}
+        {hasNews && (
+          <>
             <NewsGrid
               articles={news}
               onReadMore={handleReadMore}
               loading={isLoading}
-              className="min-h-[600px]" // Altura mínima para evitar layout shift
+              className="min-h-[600px]"
             />
 
             {/* === PAGINAÇÃO === */}
@@ -288,49 +305,27 @@ export function Page() {
                 </div>
               </div>
             )}
+          </>
+        )}
 
-            {/* === FOOTER INFORMATIVO === */}
-            <div className="text-center pt-8 border-t">
-              <p className="text-sm text-muted-foreground">
-                {lastUpdate && (
-                  <>
-                    Última atualização: {lastUpdate.toLocaleString('pt-PT')}
-                    {!isDataFresh && (
-                      <span className="ml-2 text-orange-600">
-                        (dados podem estar desatualizados)
-                      </span>
-                    )}
-                  </>
+        {/* === FOOTER INFORMATIVO === */}
+        <div className="text-center pt-8 border-t mt-8">
+          <p className="text-sm text-muted-foreground">
+            {lastUpdate && (
+              <>
+                Última atualização: {lastUpdate.toLocaleString('pt-PT')}
+                {!isDataFresh && (
+                  <span className="ml-2 text-orange-600">(dados podem estar desatualizados)</span>
                 )}
-              </p>
+              </>
+            )}
+          </p>
 
-              {process.env.NODE_ENV === 'development' && (
-                <div className="mt-2 text-xs text-gray-500">
-                  <details>
-                    <summary className="cursor-pointer">Debug Info</summary>
-                    <div className="mt-2 p-2 bg-gray-100 dark:bg-gray-800 rounded text-left">
-                      <pre className="text-xs">
-                        {JSON.stringify(
-                          {
-                            newsCount: news.length,
-                            totalCount: stats.totalNews,
-                            isLoading,
-                            isDataFresh,
-                            needsRefresh,
-                            hasActiveFilters,
-                            currentPage,
-                            totalPages,
-                          },
-                          null,
-                          2,
-                        )}
-                      </pre>
-                    </div>
-                  </details>
-                </div>
-              )}
-            </div>
-          </div>
+          {!showDebug && process.env.NODE_ENV === 'development' && (
+            <Button variant="ghost" size="sm" onClick={() => setShowDebug(true)} className="mt-2">
+              Mostrar Debug
+            </Button>
+          )}
         </div>
       </div>
     </SidebarLayout>

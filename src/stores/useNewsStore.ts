@@ -1,4 +1,5 @@
-// src/stores/useNewsStore.ts
+// src/stores/useNewsStore.ts - VERSÃO CORRIGIDA FINAL
+
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { NewsArticle, NewsFilters } from '../types/news'
@@ -24,10 +25,10 @@ export interface CacheInfo {
 }
 
 export interface LoadingStates {
-  initial: boolean // Primeiro carregamento
-  refresh: boolean // Refresh manual
-  pagination: boolean // Mudança de página
-  filter: boolean // Mudança de filtros
+  initial: boolean
+  refresh: boolean
+  pagination: boolean
+  filter: boolean
 }
 
 // Interface para os parâmetros do newsApi.getNews
@@ -37,7 +38,7 @@ export interface GetNewsParams {
   sortBy?: string
   sortOrder?: string
   category?: string
-  searchTerm?: string // Mudança: era 'search', agora é 'searchTerm' como no NewsFilters
+  searchTerm?: string
   sources?: string[]
 }
 
@@ -48,6 +49,135 @@ export interface HealthCheckResponse {
   latency?: number
   error?: string
   endpoint?: string
+}
+
+// Type guards para validação de resposta da API
+interface ApiResponseWithArticles {
+  articles: NewsArticle[]
+  total?: number
+}
+
+interface ApiResponseWithData {
+  data: {
+    articles: NewsArticle[]
+    total?: number
+  }
+}
+
+interface ApiResponseWithSuccess {
+  success: boolean
+  data: NewsArticle[] | { articles: NewsArticle[]; total?: number }
+}
+
+// Helper para verificar se valor é object não-null
+function isObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && value !== undefined && typeof value === 'object'
+}
+
+function isArrayResponse(response: unknown): response is NewsArticle[] {
+  return Array.isArray(response)
+}
+
+function hasArticlesProperty(response: unknown): response is ApiResponseWithArticles {
+  if (!isObject(response) || !('articles' in response)) {
+    return false
+  }
+
+  const obj = response as Record<string, unknown>
+  return Array.isArray(obj.articles)
+}
+
+function hasDataProperty(response: unknown): response is ApiResponseWithData {
+  if (!isObject(response) || !('data' in response)) {
+    return false
+  }
+
+  const obj = response as Record<string, unknown>
+  const data = obj.data
+
+  if (!isObject(data) || !('articles' in data)) {
+    return false
+  }
+
+  const dataObj = data as Record<string, unknown>
+  return Array.isArray(dataObj.articles)
+}
+
+function hasSuccessProperty(response: unknown): response is ApiResponseWithSuccess {
+  if (!isObject(response) || !('success' in response) || !('data' in response)) {
+    return false
+  }
+
+  const obj = response as Record<string, unknown>
+  return obj.success === true
+}
+
+function extractArticlesFromResponse(response: unknown): {
+  articles: NewsArticle[]
+  total: number
+} {
+  console.log('🔍 Extracting articles from response:', response)
+
+  // Formato 1: Array direto
+  if (isArrayResponse(response)) {
+    console.log('✅ Formato: Array direto')
+    return { articles: response, total: response.length }
+  }
+
+  // Formato 2: { articles: [...], total?: number }
+  if (hasArticlesProperty(response)) {
+    console.log('✅ Formato: { articles: [...] }')
+    const obj = response as unknown as Record<string, unknown>
+    const articles = obj.articles as NewsArticle[]
+    const total = typeof obj.total === 'number' ? obj.total : articles.length
+    return { articles, total }
+  }
+
+  // Formato 3: { data: { articles: [...] } }
+  if (hasDataProperty(response)) {
+    console.log('✅ Formato: { data: { articles: [...] } }')
+    const obj = response as unknown as Record<string, unknown>
+    const data = obj.data as Record<string, unknown>
+    const articles = data.articles as NewsArticle[]
+    const total = typeof data.total === 'number' ? data.total : articles.length
+    return { articles, total }
+  }
+
+  // Formato 4: { success: true, data: [...] }
+  if (hasSuccessProperty(response)) {
+    console.log('✅ Formato: { success: true, data: [...] }')
+    const obj = response as unknown as Record<string, unknown>
+    const data = obj.data
+
+    if (Array.isArray(data)) {
+      return { articles: data as NewsArticle[], total: data.length }
+    }
+    if (isObject(data) && 'articles' in data) {
+      const dataObj = data as Record<string, unknown>
+      if (Array.isArray(dataObj.articles)) {
+        const articles = dataObj.articles as NewsArticle[]
+        const total = typeof dataObj.total === 'number' ? dataObj.total : articles.length
+        return { articles, total }
+      }
+    }
+  }
+
+  console.warn('⚠️ Formato de resposta não reconhecido:', response)
+  return { articles: [], total: 0 }
+}
+
+function isValidNewsArticle(article: unknown): article is NewsArticle {
+  if (!isObject(article)) {
+    return false
+  }
+
+  const obj = article as unknown as NewsArticle
+  return (
+    typeof obj.id === 'string' &&
+    typeof obj.title === 'string' &&
+    obj.id.length > 0 &&
+    obj.title.length > 0
+  )
 }
 
 interface NewsStore {
@@ -67,7 +197,7 @@ interface NewsStore {
 
   // === CONFIGURAÇÕES ===
   autoRefresh: boolean
-  refreshInterval: number // em ms
+  refreshInterval: number
 
   // === COMPUTED PROPERTIES ===
   hasNews: boolean
@@ -156,7 +286,7 @@ const applyFilters = (articles: NewsArticle[], filters: NewsFilters): NewsArticl
       return false
     }
 
-    // Filtro de pesquisa - usar 'summary' em vez de 'description'
+    // Filtro de pesquisa
     if (filters.searchTerm) {
       const searchLower = filters.searchTerm.toLowerCase()
       const titleMatch = article.title.toLowerCase().includes(searchLower)
@@ -238,7 +368,7 @@ export const useNewsStore = create<NewsStore>()(
 
           const offset = (state.currentPage - 1) * state.itemsPerPage
 
-          // Parâmetros corretos baseados na interface do newsApi
+          // Parâmetros para o newsApi
           const params: GetNewsParams = {
             limit: state.itemsPerPage,
             offset,
@@ -255,20 +385,38 @@ export const useNewsStore = create<NewsStore>()(
             params.searchTerm = state.filters.searchTerm
           }
 
+          console.log('📡 Chamando newsApi.getNews com params:', params)
           const result = await newsApi.getNews(params)
 
-          if (result?.articles) {
-            const newArticles = result.articles
-            const filteredArticles = applyFilters(newArticles, state.filters)
-            const newStats = calculateStats(newArticles)
+          console.log('📡 Resposta da API:', result)
+
+          // Extrair artigos usando função type-safe
+          const { articles, total } = extractArticlesFromResponse(result)
+
+          console.log(`🔍 Processando resposta: ${articles.length} artigos encontrados`)
+
+          // Validar se temos artigos válidos
+          if (!Array.isArray(articles)) {
+            console.error('❌ articles não é um array:', articles)
+            throw new Error('Formato de resposta inválido: articles não é array')
+          }
+
+          // Filtrar artigos válidos usando type guard
+          const validArticles = articles.filter(isValidNewsArticle)
+
+          console.log(`✅ ${validArticles.length} artigos válidos de ${articles.length} totais`)
+
+          if (validArticles.length > 0) {
+            const filteredArticles = applyFilters(validArticles, state.filters)
+            const newStats = calculateStats(validArticles)
             newStats.filteredCount = filteredArticles.length
 
             const now = new Date().toISOString()
 
             set(() => ({
-              news: newArticles,
+              news: validArticles,
               filteredNews: filteredArticles,
-              totalCount: result.total || 0,
+              totalCount: total,
               stats: newStats,
               cache: {
                 lastUpdate: now,
@@ -279,9 +427,20 @@ export const useNewsStore = create<NewsStore>()(
               error: null,
             }))
 
-            console.log(`✅ ${newArticles.length} notícias carregadas`)
+            console.log(`✅ ${validArticles.length} notícias carregadas com sucesso`)
+            console.log('📊 Stats:', newStats)
+            console.log('🔍 Primeira notícia:', validArticles[0])
           } else {
-            throw new Error('Formato de resposta inválido')
+            console.warn('⚠️ Nenhum artigo válido encontrado')
+            // Não tratar como erro, mas definir estado vazio
+            set(() => ({
+              news: [],
+              filteredNews: [],
+              totalCount: 0,
+              stats: initialStats,
+              loading: initialLoadingState,
+              error: null,
+            }))
           }
         } catch (error) {
           console.error('❌ Erro ao carregar notícias:', error)
@@ -308,7 +467,7 @@ export const useNewsStore = create<NewsStore>()(
           return {
             filters: updatedFilters,
             filteredNews: filteredArticles,
-            currentPage: 1, // Reset page when filters change
+            currentPage: 1,
             stats: {
               ...state.stats,
               filteredCount: filteredArticles.length,
@@ -344,7 +503,6 @@ export const useNewsStore = create<NewsStore>()(
       // === PAGINAÇÃO ===
       setPage: (page) => {
         set({ currentPage: page })
-        // Carregar nova página se necessário
         get().loadNews()
       },
 
@@ -397,25 +555,10 @@ export const useNewsStore = create<NewsStore>()(
 
       testConnection: async (): Promise<HealthCheckResponse> => {
         try {
-          // Usar método existente do newsApi se disponível
-          if (typeof newsApi.testConnection === 'function') {
-            const result = await newsApi.testConnection()
-
-            // Garantir que o resultado está no formato correto usando type assertion
-            if (typeof result === 'object' && result !== null) {
-              const healthResult = result as Record<string, unknown>
-              return {
-                status: (healthResult.status as 'healthy' | 'error' | 'degraded') || 'healthy',
-                timestamp: (healthResult.timestamp as string) || new Date().toISOString(),
-                latency: healthResult.latency as number | undefined,
-                error: healthResult.error as string | undefined,
-                endpoint: healthResult.endpoint as string | undefined,
-              }
-            }
-          }
-
-          // Fallback: fazer uma chamada simples para testar conectividade
+          console.log('🧪 Testando conexão com API...')
           const startTime = Date.now()
+
+          // Fazer um teste simples
           await newsApi.getNews({ limit: 1 })
           const latency = Date.now() - startTime
 
@@ -436,7 +579,6 @@ export const useNewsStore = create<NewsStore>()(
     {
       name: 'finhub-news-storage',
       storage: createJSONStorage(() => localStorage),
-      // Não persistir loading states e alguns dados temporários
       partialize: (state) => ({
         news: state.news,
         filters: state.filters,
@@ -447,55 +589,30 @@ export const useNewsStore = create<NewsStore>()(
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {
-          // Verificar se dados precisam refresh após hidratação
           const needsRefresh = isDataStale(state.cache.lastUpdate)
 
-          // Corrigir: usar set da store em vez de função externa
-          const { setState } = useNewsStore
-          setState((currentState: NewsStore) => ({
-            ...currentState,
-            cache: {
-              ...state.cache,
-              isStale: needsRefresh,
-            },
-            filteredNews: applyFilters(state.news, state.filters),
-          }))
+          setTimeout(() => {
+            const { setState } = useNewsStore
+            setState((currentState: NewsStore) => ({
+              ...currentState,
+              cache: {
+                ...state.cache,
+                isStale: needsRefresh,
+              },
+              filteredNews: applyFilters(state.news, state.filters),
+            }))
 
-          // Auto-refresh se dados estão stale
-          if (needsRefresh && state.autoRefresh) {
-            setTimeout(() => {
-              useNewsStore.getState().loadNews(true)
-            }, 1000) // Delay pequeno para evitar race conditions
-          }
+            if (needsRefresh && state.autoRefresh) {
+              setTimeout(() => {
+                useNewsStore.getState().loadNews(true)
+              }, 1000)
+            }
+          }, 100)
         }
       },
     },
   ),
 )
-
-// ===== AUTO-REFRESH SYSTEM =====
-let refreshIntervalId: NodeJS.Timeout | null = null
-
-// Configurar auto-refresh quando store é inicializado
-if (typeof window !== 'undefined') {
-  // Corrigir: usar API correta do Zustand para subscriptions
-  useNewsStore.subscribe((state) => {
-    if (refreshIntervalId) {
-      clearInterval(refreshIntervalId)
-      refreshIntervalId = null
-    }
-
-    if (state.autoRefresh) {
-      refreshIntervalId = setInterval(() => {
-        const currentState = useNewsStore.getState()
-        if (isDataStale(currentState.cache.lastUpdate)) {
-          console.log('🔄 Auto-refresh ativado')
-          currentState.loadNews(true)
-        }
-      }, state.refreshInterval)
-    }
-  })
-}
 
 // ===== COMPUTED VALUES (SELECTORS) =====
 export const useNewsSelectors = () => {
