@@ -179,7 +179,7 @@ export function Page() {
         />
 
         {/* === DEBUG PANEL (só em desenvolvimento) === */}
-        {showDebug && (
+        {/* {showDebug && (
           <Card className="mb-6 border-orange-200 bg-orange-50 dark:bg-orange-950">
             <CardHeader>
               <CardTitle className="text-sm text-orange-800 dark:text-orange-200">
@@ -230,7 +230,7 @@ export function Page() {
               </div>
             </CardContent>
           </Card>
-        )}
+        )} */}
 
         {/* === ESTATÍSTICAS === */}
         <div className="mb-6">

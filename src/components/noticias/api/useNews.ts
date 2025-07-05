@@ -1,4 +1,4 @@
-// src/components/noticias/api/useNews.ts (SUBSTITUIR COMPLETAMENTE)
+// src/components/noticias/api/useNews.ts - VERSÃO CORRIGIDA
 import { useEffect } from 'react'
 import {
   useNewsStore,
@@ -35,7 +35,7 @@ export const useNews = (options: UseNewsOptions = {}) => {
     currentPage,
     totalCount,
     itemsPerPage,
-    hasNews,
+    // ❌ REMOVER: hasNews, - já não existe no store
 
     // Actions
     loadNews,
@@ -53,11 +53,12 @@ export const useNews = (options: UseNewsOptions = {}) => {
     testConnection,
   } = useNewsStore()
 
-  // === COMPUTED VALUES ===
+  // === COMPUTED VALUES (inclui hasNews correto) ===
   const {
     isLoading,
     isInitialLoading,
     hasError,
+    hasNews, // ✅ AGORA vem do selector correto
     isDataFresh,
     totalPages,
     hasNextPage,
@@ -122,7 +123,7 @@ export const useNews = (options: UseNewsOptions = {}) => {
     isLoading,
     isInitialLoading,
     hasError,
-    hasNews,
+    hasNews, // ✅ AGORA vem do selector correto
     isDataFresh,
     isEmpty,
     needsRefresh,
@@ -160,7 +161,7 @@ export const useNews = (options: UseNewsOptions = {}) => {
  */
 export const useNewsStats = (): NewsStats => {
   const { stats, loadNews } = useNewsStore()
-  const { hasNews } = useNewsSelectors()
+  const { hasNews } = useNewsSelectors() // ✅ CORRETO - vem do selector
 
   useEffect(() => {
     if (!hasNews) {

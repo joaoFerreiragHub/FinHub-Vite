@@ -1,6 +1,6 @@
 // services/newsApi.ts
 
-import { NewsArticle, NewsFilters } from "../../../types/news"
+import { NewsArticle, NewsFilters } from '../../../types/news'
 
 // CORRIGIDO: Base URL da API para porta 3000
 const API_BASE_URL = 'http://localhost:3000/api'
@@ -78,7 +78,10 @@ interface RefreshNewsResponse {
 }
 
 class NewsApiService {
-  private async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
+  private async makeRequest<T>(
+    endpoint: string,
+    options: RequestInit = {},
+  ): Promise<ApiResponse<T>> {
     const fullUrl = `${API_BASE_URL}${endpoint}`
 
     try {
@@ -100,7 +103,7 @@ class NewsApiService {
         throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`)
       }
 
-      const data = await response.json() as ApiResponse<T>
+      const data = (await response.json()) as ApiResponse<T>
       console.log('✅ Response data:', data)
 
       return data
@@ -111,12 +114,17 @@ class NewsApiService {
   }
 
   // GET /api/news - Buscar notícias com filtros
-  async getNews(filters: Partial<NewsFilters> & {
-    limit?: number
-    offset?: number
-    sortBy?: string
-    sortOrder?: string
-  } = {}): Promise<NewsListResponse> {
+  // SUBSTITUIR a função getNews no ficheiro src/components/noticias/api/newsApi.ts
+
+  // GET /api/news - Buscar notícias com filtros
+  async getNews(
+    filters: Partial<NewsFilters> & {
+      limit?: number
+      offset?: number
+      sortBy?: string
+      sortOrder?: string
+    } = {},
+  ): Promise<NewsListResponse> {
     console.log('📰 getNews called with filters:', filters)
 
     const params = new URLSearchParams()
@@ -152,37 +160,69 @@ class NewsApiService {
 
     console.log('📡 Final endpoint:', endpoint)
 
-    const response = await this.makeRequest<NewsListResponse>(endpoint)
+    const response = await this.makeRequest<any>(endpoint) // Mudança aqui: any em vez de NewsListResponse
 
     console.log('🔍 Raw response structure:', response)
 
-    // Adaptar para diferentes estruturas de resposta
+    // 🔥 CORREÇÃO PRINCIPAL: Adaptar para diferentes estruturas de resposta
     if (response.success && response.data) {
-      // Formato: {success: true, data: [...], pagination: {...}}
-      const articles = Array.isArray(response.data) ? response.data : []
-      const total = response.pagination?.total || response.meta?.total || articles.length
+      console.log('✅ Resposta tem success=true e data')
+      console.log('🔍 response.data:', response.data)
+      console.log('🔍 response.data.articles:', response.data.articles)
+      console.log('🔍 response.data.total:', response.data.total)
 
-      console.log('✅ Returning adapted data:', { articles: articles.length, total })
+      // Formato esperado: {success: true, data: {articles: [...], total: number}}
+      if (response.data.articles && Array.isArray(response.data.articles)) {
+        console.log('✅ Encontrou articles array com', response.data.articles.length, 'items')
 
-      return {
-        articles,
-        total
+        return {
+          articles: response.data.articles,
+          total: response.data.total || response.data.articles.length,
+        }
       }
-    } else if (response.data) {
-      // Formato: {data: {articles: [...], total: number}}
-      return response.data
-    } else if (Array.isArray(response)) {
-      // Formato: direto array
+
+      // Formato alternativo: {success: true, data: [...]} (array direto)
+      if (Array.isArray(response.data)) {
+        console.log('✅ data é array direto com', response.data.length, 'items')
+
+        return {
+          articles: response.data,
+          total: response.data.length,
+        }
+      }
+
+      console.warn('⚠️ response.data não tem articles nem é array:', response.data)
+    }
+
+    // Fallback para outros formatos
+    if (response.data && response.data.articles) {
+      console.log('✅ Fallback: encontrou data.articles')
+      return {
+        articles: response.data.articles,
+        total: response.data.total || response.data.articles.length,
+      }
+    }
+
+    if (Array.isArray(response.data)) {
+      console.log('✅ Fallback: response.data é array')
+      return {
+        articles: response.data,
+        total: response.data.length,
+      }
+    }
+
+    if (Array.isArray(response)) {
+      console.log('✅ Fallback: response é array direto')
       return {
         articles: response,
-        total: response.length
+        total: response.length,
       }
-    } else {
-      console.warn('⚠️ Unexpected response format:', response)
-      return {
-        articles: [],
-        total: 0
-      }
+    }
+
+    console.error('❌ Formato de resposta não reconhecido:', response)
+    return {
+      articles: [],
+      total: 0,
     }
   }
 
@@ -238,12 +278,15 @@ class NewsApiService {
   }
 
   // GET /api/news/ticker/:symbol - Notícias por ticker
-  async getNewsByTicker(ticker: string, options: {
-    limit?: number
-    offset?: number
-    from?: string
-    to?: string
-  } = {}): Promise<NewsListResponse> {
+  async getNewsByTicker(
+    ticker: string,
+    options: {
+      limit?: number
+      offset?: number
+      from?: string
+      to?: string
+    } = {},
+  ): Promise<NewsListResponse> {
     console.log('📊 getNewsByTicker called:', ticker, options)
     const params = new URLSearchParams()
 
@@ -260,12 +303,15 @@ class NewsApiService {
   }
 
   // GET /api/news/category/:category - Notícias por categoria
-  async getNewsByCategory(category: string, options: {
-    limit?: number
-    offset?: number
-    from?: string
-    to?: string
-  } = {}): Promise<NewsListResponse> {
+  async getNewsByCategory(
+    category: string,
+    options: {
+      limit?: number
+      offset?: number
+      from?: string
+      to?: string
+    } = {},
+  ): Promise<NewsListResponse> {
     console.log('📂 getNewsByCategory called:', category, options)
     const params = new URLSearchParams()
 
@@ -318,23 +364,26 @@ class NewsApiService {
         status: 'healthy',
         latency: Date.now() - startTime,
         timestamp: new Date().toISOString(),
-        endpoint: API_BASE_URL
+        endpoint: API_BASE_URL,
       }
     } catch (error) {
       return {
         status: 'error',
         error: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString(),
-        endpoint: API_BASE_URL
+        endpoint: API_BASE_URL,
       }
     }
   }
 
   // Resto dos métodos...
-  async getNewsBySentiment(sentiment: string, options: {
-    limit?: number
-    offset?: number
-  } = {}): Promise<NewsListResponse> {
+  async getNewsBySentiment(
+    sentiment: string,
+    options: {
+      limit?: number
+      offset?: number
+    } = {},
+  ): Promise<NewsListResponse> {
     const params = new URLSearchParams()
 
     if (options.limit) params.append('limit', options.limit.toString())
@@ -347,10 +396,12 @@ class NewsApiService {
     return response.data
   }
 
-  async getTrendingTopics(options: {
-    timeframe?: string
-    limit?: number
-  } = {}): Promise<TrendingTopicsResponse[]> {
+  async getTrendingTopics(
+    options: {
+      timeframe?: string
+      limit?: number
+    } = {},
+  ): Promise<TrendingTopicsResponse[]> {
     const params = new URLSearchParams()
 
     if (options.timeframe) params.append('timeframe', options.timeframe)
