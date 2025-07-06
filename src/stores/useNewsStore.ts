@@ -1,4 +1,4 @@
-// src/stores/useNewsStore.ts - VERSÃO COMPLETA COM FUNCIONALIDADES MELHORADAS
+// src/stores/useNewsStore.ts - VERSÃO COMPLETA COM CORREÇÃO DA PAGINAÇÃO
 
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
@@ -229,7 +229,7 @@ interface NewsStore {
   autoRefresh: boolean
   refreshInterval: number
 
-  // === 🆕 NOVAS PROPRIEDADES ===
+  // === NOVAS PROPRIEDADES ===
   hasMore: boolean
   loadedItems: number
   isLoadingMore: boolean
@@ -244,7 +244,7 @@ interface NewsStore {
   setCategory: (category: string) => void
   clearFilters: () => void
 
-  // === PAGINAÇÃO ===
+  // === PAGINAÇÃO - CORRIGIDA ===
   setPage: (page: number) => void
   nextPage: () => void
   prevPage: () => void
@@ -259,7 +259,7 @@ interface NewsStore {
   isDataFresh: () => boolean
   testConnection: () => Promise<HealthCheckResponse>
 
-  // === 🆕 NOVAS AÇÕES ===
+  // === NOVAS AÇÕES ===
   loadMoreNews: () => Promise<void>
   setItemsPerPage: (count: number) => void
   loadNewsByCategory: (category: string, reset?: boolean) => Promise<void>
@@ -388,7 +388,7 @@ export const useNewsStore = create<NewsStore>()(
       autoRefresh: true,
       refreshInterval: DEFAULT_REFRESH_INTERVAL,
 
-      // === 🆕 NOVO ESTADO ===
+      // === NOVO ESTADO ===
       hasMore: true,
       loadedItems: 0,
       isLoadingMore: false,
@@ -429,12 +429,13 @@ export const useNewsStore = create<NewsStore>()(
         try {
           console.log('📰 Carregando notícias...')
 
-          const offset = 0 // Reset para início nas novas implementações
+          // 🔧 CORREÇÃO: Calcular offset baseado na página atual
+          const offset = (state.currentPage - 1) * state.itemsPerPage
 
           // Parâmetros para o newsApi
           const params: GetNewsParams = {
             limit: state.itemsPerPage,
-            offset,
+            offset, // ✅ Agora usa offset correto para paginação
             sortBy: 'publishedDate',
             sortOrder: 'desc',
           }
@@ -501,7 +502,7 @@ export const useNewsStore = create<NewsStore>()(
 
             const now = new Date().toISOString()
 
-            // 🆕 Calcular se há mais itens
+            // Calcular se há mais itens
             const hasMore = total > validArticles.length
 
             console.log('🔥 DEBUG dados finais a serem salvos no store:')
@@ -511,12 +512,13 @@ export const useNewsStore = create<NewsStore>()(
             console.log('🔥 DEBUG hasMore:', hasMore)
             console.log('🔥 DEBUG newStats:', newStats)
 
+            // 🔧 CORREÇÃO: Para paginação, substituir os dados da página atual
             const newState = {
-              news: validArticles,
+              news: validArticles, // ✅ Substitui pelos artigos da página atual
               filteredNews: filteredArticles,
               totalCount: total,
-              loadedItems: validArticles.length, // 🆕 NOVA LINHA
-              hasMore, // 🆕 NOVA LINHA
+              loadedItems: validArticles.length,
+              hasMore,
               stats: newStats,
               cache: {
                 lastUpdate: now,
@@ -555,8 +557,8 @@ export const useNewsStore = create<NewsStore>()(
               news: [],
               filteredNews: [],
               totalCount: 0,
-              loadedItems: 0, // 🆕 NOVA LINHA
-              hasMore: false, // 🆕 NOVA LINHA
+              loadedItems: 0,
+              hasMore: false,
               stats: initialStats,
               loading: initialLoadingState,
               error: null,
@@ -576,7 +578,7 @@ export const useNewsStore = create<NewsStore>()(
         console.log('🔥 DEBUG loadNews FINALIZADA')
       },
 
-      // === 🆕 NOVA FUNÇÃO: CARREGAR MAIS ===
+      // === NOVA FUNÇÃO: CARREGAR MAIS ===
       loadMoreNews: async () => {
         console.log('🔥 DEBUG loadMoreNews INICIADA')
         const state = get()
@@ -650,7 +652,7 @@ export const useNewsStore = create<NewsStore>()(
         }
       },
 
-      // === 🆕 NOVA FUNÇÃO: ALTERAR ITEMS PER PAGE ===
+      // === NOVA FUNÇÃO: ALTERAR ITEMS PER PAGE ===
       setItemsPerPage: (count: number) => {
         console.log(`📊 Alterando items per page para: ${count}`)
         set({ itemsPerPage: count })
@@ -658,7 +660,7 @@ export const useNewsStore = create<NewsStore>()(
         get().loadNews(true)
       },
 
-      // === 🆕 NOVA FUNÇÃO: CARREGAR POR CATEGORIA ===
+      // === NOVA FUNÇÃO: CARREGAR POR CATEGORIA ===
       loadNewsByCategory: async (category: string, reset = true) => {
         console.log(`🏷️ Carregando notícias da categoria: ${category}`)
 
@@ -744,10 +746,11 @@ export const useNewsStore = create<NewsStore>()(
         }))
       },
 
-      // === PAGINAÇÃO ===
+      // === 🔧 PAGINAÇÃO CORRIGIDA ===
       setPage: (page) => {
         console.log('🔥 DEBUG setPage:', page)
         set({ currentPage: page })
+        // ✅ Recarregar dados para a nova página
         get().loadNews()
       },
 
@@ -796,7 +799,6 @@ export const useNewsStore = create<NewsStore>()(
             nextRefresh: 0,
           },
           stats: initialStats,
-          // 🆕 Reset dos novos campos
           hasMore: true,
           loadedItems: 0,
           isLoadingMore: false,
@@ -843,7 +845,6 @@ export const useNewsStore = create<NewsStore>()(
         cache: state.cache,
         autoRefresh: state.autoRefresh,
         refreshInterval: state.refreshInterval,
-        // 🆕 Adicionar novos campos ao persist
         hasMore: state.hasMore,
         loadedItems: state.loadedItems,
       }),
@@ -905,7 +906,7 @@ export const useNewsSelectors = () => {
     isEmpty: store.news.length === 0 && !Object.values(store.loading).some(Boolean),
     needsRefresh: isDataStale(store.cache.lastUpdate),
 
-    // === 🆕 NOVOS SELECTORS ===
+    // NOVOS SELECTORS
     hasMore: store.hasMore,
     isLoadingMore: store.isLoadingMore,
     loadedItems: store.loadedItems,
