@@ -1,7 +1,7 @@
 // src/components/noticias/hooks/useNewsStats.ts
-import { useMemo, useCallback, useEffect, useState } from 'react'
-import { NewsStats } from '../../types/news'
+import { useMemo, useCallback, useEffect, useState, useRef } from 'react'
 import { useNewsSelectors, useNewsStore } from '../useNewsStore'
+import { NewsStats } from '../../types/news'
 
 interface ExtendedNewsStats extends NewsStats {
   // Estatísticas estendidas
@@ -35,9 +35,6 @@ interface UseNewsStatsOptions {
   includeFiltered?: boolean
   enableTrends?: boolean
   enableRealTimeUpdates?: boolean
-  groupBySource?: boolean
-  groupByCategory?: boolean
-  groupByTime?: 'hour' | 'day' | 'week' | 'month'
 }
 
 interface StatsTrend {
@@ -53,18 +50,10 @@ interface StatsTrend {
  * Providencia métricas detalhadas, tendências e análises de performance
  */
 export const useNewsStats = (options: UseNewsStatsOptions = {}) => {
-  const {
-    includeFiltered = true,
-    enableTrends = true,
-    enableRealTimeUpdates = false,
-    groupBySource = true,
-    groupByCategory = true,
-    groupByTime = 'day',
-  } = options
+  const { includeFiltered = true, enableTrends = true, enableRealTimeUpdates = false } = options
 
   // === STORE STATE ===
   const { news, filteredNews, stats: basicStats, loadNews, filters } = useNewsStore()
-
   const { hasNews, isLoading } = useNewsSelectors()
 
   // === LOCAL STATE PARA TRENDS ===
@@ -72,12 +61,19 @@ export const useNewsStats = (options: UseNewsStatsOptions = {}) => {
   const [statsHistory, setStatsHistory] = useState<ExtendedNewsStats[]>([])
   const [lastUpdateTime, setLastUpdateTime] = useState<Date>(new Date())
 
-  // === ESCOLHER DATASET ===
+  // ✅ FIX: Use useRef para dados consistentes de engagement
+  const engagementDataRef = useRef({
+    totalClicks: 0,
+    clickThroughRate: 0,
+    lastGenerated: 0,
+  })
+
+  // === DATASET SELECTION ===
   const dataToAnalyze = useMemo(() => {
     return includeFiltered ? filteredNews : news
   }, [includeFiltered, filteredNews, news])
 
-  // === CÁLCULOS BASE ===
+  // === CALCULATIONS ===
   const calculations = useMemo(() => {
     if (dataToAnalyze.length === 0) {
       return {
@@ -91,12 +87,20 @@ export const useNewsStats = (options: UseNewsStatsOptions = {}) => {
 
     const now = new Date()
 
-    // === CÁLCULO DE IDADE MÉDIA ===
-    const ages = dataToAnalyze.map((article) => {
-      const publishedDate = new Date(article.publishedDate)
-      return (now.getTime() - publishedDate.getTime()) / (1000 * 60 * 60) // horas
-    })
-    const averageAge = ages.reduce((sum, age) => sum + age, 0) / ages.length
+    // ✅ FIX: Validação de datas e idades
+    const ages = dataToAnalyze
+      .map((article) => {
+        try {
+          const publishedDate = new Date(article.publishedDate)
+          if (isNaN(publishedDate.getTime())) return 0
+          return Math.max(0, (now.getTime() - publishedDate.getTime()) / (1000 * 60 * 60))
+        } catch {
+          return 0
+        }
+      })
+      .filter((age) => age > 0)
+
+    const averageAge = ages.length > 0 ? ages.reduce((sum, age) => sum + age, 0) / ages.length : 0
 
     // === TOP SOURCES ===
     const sourceCounts = dataToAnalyze.reduce(
@@ -135,33 +139,40 @@ export const useNewsStats = (options: UseNewsStatsOptions = {}) => {
         percentage: Math.round((count / dataToAnalyze.length) * 100),
       }))
 
-    // === DISTRIBUIÇÃO TEMPORAL ===
+    // === TIME DISTRIBUTION ===
     const timeDistribution = dataToAnalyze.reduce(
       (acc, article) => {
-        const publishedDate = new Date(article.publishedDate)
-        const hoursAgo = (now.getTime() - publishedDate.getTime()) / (1000 * 60 * 60)
+        try {
+          const publishedDate = new Date(article.publishedDate)
+          if (isNaN(publishedDate.getTime())) return acc
 
-        if (hoursAgo <= 24) acc.last24h++
-        else if (hoursAgo <= 168)
-          acc.last7days++ // 7 dias
-        else if (hoursAgo <= 720)
-          acc.last30days++ // 30 dias
-        else acc.older++
+          const hoursAgo = (now.getTime() - publishedDate.getTime()) / (1000 * 60 * 60)
 
+          if (hoursAgo <= 24) acc.last24h++
+          else if (hoursAgo <= 168)
+            acc.last7days++ // 7 dias
+          else if (hoursAgo <= 720)
+            acc.last30days++ // 30 dias
+          else acc.older++
+        } catch {
+          acc.older++
+        }
         return acc
       },
       { last24h: 0, last7days: 0, last30days: 0, older: 0 },
     )
 
-    // === TEMPO DE LEITURA ===
+    // === READING TIME ===
     const readingTimes = dataToAnalyze.map((article) => {
-      // Estimativa: 200 palavras por minuto
-      const wordCount = (article.content || article.summary || '').split(' ').length
-      return Math.max(1, Math.ceil(wordCount / 200))
+      const content = article.content || article.summary || article.title || ''
+      const wordCount = content.split(/\s+/).filter((word) => word.length > 0).length
+      return Math.max(1, Math.ceil(wordCount / 200)) // 200 palavras por minuto
     })
 
     const averageReadingTime =
-      readingTimes.reduce((sum, time) => sum + time, 0) / readingTimes.length
+      readingTimes.length > 0
+        ? readingTimes.reduce((sum, time) => sum + time, 0) / readingTimes.length
+        : 0
     const totalReadingTime = readingTimes.reduce((sum, time) => sum + time, 0)
 
     const readingTimeDistribution = readingTimes.reduce(
@@ -187,17 +198,19 @@ export const useNewsStats = (options: UseNewsStatsOptions = {}) => {
     }
   }, [dataToAnalyze])
 
-  // === CÁLCULO DE SENTIMENT TRENDS ===
+  // ✅ FIX: Sentiment trends com acesso correto às propriedades
   const sentimentTrends = useMemo(() => {
-    if (!enableTrends || !previousStats) {
+    const currentSentiments = basicStats?.sentiments || { positive: 0, negative: 0, neutral: 0 }
+
+    if (!enableTrends || !previousStats?.sentimentTrends) {
       return {
-        positive: { count: basicStats.sentiments.positive, trend: 'stable' as const },
-        negative: { count: basicStats.sentiments.negative, trend: 'stable' as const },
-        neutral: { count: basicStats.sentiments.neutral, trend: 'stable' as const },
+        positive: { count: currentSentiments.positive, trend: 'stable' as const },
+        negative: { count: currentSentiments.negative, trend: 'stable' as const },
+        neutral: { count: currentSentiments.neutral, trend: 'stable' as const },
       }
     }
 
-    const getTrend = (current: number, previous: number) => {
+    const getTrend = (current: number, previous: number): 'up' | 'down' | 'stable' => {
       if (current > previous) return 'up'
       if (current < previous) return 'down'
       return 'stable'
@@ -205,55 +218,133 @@ export const useNewsStats = (options: UseNewsStatsOptions = {}) => {
 
     return {
       positive: {
-        count: basicStats.sentiments.positive,
-        trend: getTrend(basicStats.sentiments.positive, previousStats.sentiments.positive),
+        count: currentSentiments.positive,
+        trend: getTrend(currentSentiments.positive, previousStats.sentimentTrends.positive.count),
       },
       negative: {
-        count: basicStats.sentiments.negative,
-        trend: getTrend(basicStats.sentiments.negative, previousStats.sentiments.negative),
+        count: currentSentiments.negative,
+        trend: getTrend(currentSentiments.negative, previousStats.sentimentTrends.negative.count),
       },
       neutral: {
-        count: basicStats.sentiments.neutral,
-        trend: getTrend(basicStats.sentiments.neutral, previousStats.sentiments.neutral),
+        count: currentSentiments.neutral,
+        trend: getTrend(currentSentiments.neutral, previousStats.sentimentTrends.neutral.count),
       },
     }
-  }, [enableTrends, previousStats, basicStats.sentiments])
+  }, [enableTrends, previousStats?.sentimentTrends, basicStats?.sentiments])
 
-  // === CÁLCULO DE ENGAGEMENT (simulado) ===
+  // ✅ FIX: Engagement com dados consistentes (sem Math.random)
   const engagement = useMemo(() => {
-    // Em um cenário real, estes dados viriam de analytics
-    const totalClicks = dataToAnalyze.length * Math.floor(Math.random() * 100) // Simulado
-    const clickThroughRate = Math.random() * 0.1 // 0-10%
+    const now = Date.now()
 
-    // Score baseado em recência, sentimento e fonte
+    // Só regenerar dados a cada 5 minutos para manter consistência
+    if (now - engagementDataRef.current.lastGenerated > 300000) {
+      engagementDataRef.current = {
+        totalClicks: dataToAnalyze.length * 50, // Valor fixo baseado no tamanho
+        clickThroughRate: 0.05, // 5% fixo
+        lastGenerated: now,
+      }
+    }
+
     const popularityScore =
       dataToAnalyze.reduce((score, article) => {
-        const ageInHours =
-          (new Date().getTime() - new Date(article.publishedDate).getTime()) / (1000 * 60 * 60)
-        const recencyBonus = Math.max(0, 100 - ageInHours) // Bonus por recência
+        const ageInHours = (() => {
+          try {
+            const publishedDate = new Date(article.publishedDate)
+            if (isNaN(publishedDate.getTime())) return 100
+            return (now - publishedDate.getTime()) / (1000 * 60 * 60)
+          } catch {
+            return 100
+          }
+        })()
+
+        const recencyBonus = Math.max(0, 100 - ageInHours)
         const sentimentBonus = article.sentiment === 'positive' ? 20 : 0
         return score + recencyBonus + sentimentBonus
-      }, 0) / dataToAnalyze.length
+      }, 0) / Math.max(1, dataToAnalyze.length)
 
     return {
-      totalClicks,
-      clickThroughRate,
+      totalClicks: engagementDataRef.current.totalClicks,
+      clickThroughRate: engagementDataRef.current.clickThroughRate,
       popularityScore: Math.round(popularityScore),
     }
-  }, [dataToAnalyze])
+  }, [dataToAnalyze.length])
 
   // === EXTENDED STATS ===
-  const extendedStats: ExtendedNewsStats = useMemo(
-    () => ({
-      ...basicStats,
-      ...calculations,
+  const extendedStats: ExtendedNewsStats = useMemo(() => {
+    // Construir o objeto base com as propriedades corretas do NewsStats (de types/news.ts)
+    const now = new Date()
+    const dateRange = {
+      from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      to: now.toISOString(),
+    }
+
+    // Mapear basicStats para o formato esperado
+    const totalArticles = basicStats?.totalNews || 0
+    const categoriesBreakdown = basicStats?.categories || {}
+    const sentimentBreakdown = basicStats?.sentiments || { positive: 0, negative: 0, neutral: 0 }
+
+    // ❌ REMOVER ESTA LINHA - topSources duplicado
+    // const topSources = calculations.topSources.map(({ source, count }) => ({ source, count }))
+
+    // ✅ FIX: Extrair tickers apenas se existirem dados
+    const topTickers =
+      dataToAnalyze.length > 0
+        ? (() => {
+            const tickerCounts = dataToAnalyze.reduce(
+              (acc, article) => {
+                const tickers = article.tickers || []
+                tickers.forEach((ticker) => {
+                  if (ticker && ticker.trim()) {
+                    // ✅ Verificar se ticker é válido
+                    acc[ticker] = (acc[ticker] || 0) + 1
+                  }
+                })
+                return acc
+              },
+              {} as Record<string, number>,
+            )
+
+            return Object.entries(tickerCounts)
+              .sort(([, a], [, b]) => b - a)
+              .slice(0, 10)
+              .map(([ticker, count]) => ({ ticker, count }))
+          })()
+        : []
+
+    return {
+      // Propriedades base do NewsStats (de types/news.ts)
+      totalArticles,
+      categoriesBreakdown,
+      sentimentBreakdown,
+      // ❌ REMOVER topSources daqui - será incluído via spread operator
+      topTickers,
+      dateRange,
+
+      // Extensões do ExtendedNewsStats
+      ...calculations, // ✅ Isso já inclui topSources
       sentimentTrends,
       engagement,
-    }),
-    [basicStats, calculations, sentimentTrends, engagement],
-  )
+    }
+  }, [basicStats, calculations, sentimentTrends, engagement, dataToAnalyze])
 
-  // === FUNÇÕES DE ANÁLISE ===
+  // ✅ FIX: useEffect com dependências estáveis
+  const stableStatsRef = useRef<string>('')
+  const currentStatsString = JSON.stringify({
+    totalArticles: extendedStats.totalArticles, // ✅ Mudado de totalNews para totalArticles
+    sentiments: extendedStats.sentimentTrends,
+    topCategories: extendedStats.topCategories.length,
+  })
+
+  useEffect(() => {
+    if (hasNews && !isLoading && currentStatsString !== stableStatsRef.current) {
+      stableStatsRef.current = currentStatsString
+      setPreviousStats((prev) => prev || extendedStats)
+      setStatsHistory((prev) => [...prev.slice(-9), extendedStats])
+      setLastUpdateTime(new Date())
+    }
+  }, [hasNews, isLoading, currentStatsString])
+
+  // === ANALYSIS FUNCTIONS ===
   const getStatsByCategory = useCallback(
     (category: string) => {
       const categoryNews = dataToAnalyze.filter((article) => article.category === category)
@@ -262,23 +353,31 @@ export const useNewsStats = (options: UseNewsStatsOptions = {}) => {
       const sentiments = categoryNews.reduce(
         (acc, article) => {
           const sentiment = article.sentiment || 'neutral'
-          acc[sentiment as keyof typeof acc]++
+          if (sentiment in acc) {
+            acc[sentiment as keyof typeof acc]++
+          }
           return acc
         },
         { positive: 0, negative: 0, neutral: 0 },
       )
 
+      const averageAge =
+        categoryNews.reduce((sum, article) => {
+          try {
+            const age =
+              (new Date().getTime() - new Date(article.publishedDate).getTime()) / (1000 * 60 * 60)
+            return sum + Math.max(0, age)
+          } catch {
+            return sum
+          }
+        }, 0) / Math.max(1, categoryNews.length)
+
       return {
         category,
         count: categoryNews.length,
-        percentage: Math.round((categoryNews.length / dataToAnalyze.length) * 100),
+        percentage: Math.round((categoryNews.length / Math.max(1, dataToAnalyze.length)) * 100),
         sentiments,
-        averageAge:
-          categoryNews.reduce((sum, article) => {
-            const age =
-              (new Date().getTime() - new Date(article.publishedDate).getTime()) / (1000 * 60 * 60)
-            return sum + age
-          }, 0) / categoryNews.length,
+        averageAge,
       }
     },
     [dataToAnalyze],
@@ -292,7 +391,7 @@ export const useNewsStats = (options: UseNewsStatsOptions = {}) => {
       return {
         source,
         count: sourceNews.length,
-        percentage: Math.round((sourceNews.length / dataToAnalyze.length) * 100),
+        percentage: Math.round((sourceNews.length / Math.max(1, dataToAnalyze.length)) * 100),
         categories: sourceNews.reduce(
           (acc, article) => {
             const category = article.category || 'other'
@@ -312,7 +411,7 @@ export const useNewsStats = (options: UseNewsStatsOptions = {}) => {
       const series: Array<{
         time: string
         count: number
-        sentiment: typeof basicStats.sentiments
+        sentiment: { positive: number; negative: number; neutral: number }
       }> = []
 
       for (let i = last - 1; i >= 0; i--) {
@@ -334,14 +433,20 @@ export const useNewsStats = (options: UseNewsStatsOptions = {}) => {
         }
 
         const articlesInPeriod = dataToAnalyze.filter((article) => {
-          const publishedDate = new Date(article.publishedDate)
-          return publishedDate >= timePoint && publishedDate < nextTimePoint
+          try {
+            const publishedDate = new Date(article.publishedDate)
+            return publishedDate >= timePoint && publishedDate < nextTimePoint
+          } catch {
+            return false
+          }
         })
 
         const sentiment = articlesInPeriod.reduce(
           (acc, article) => {
             const s = article.sentiment || 'neutral'
-            acc[s as keyof typeof acc]++
+            if (s in acc) {
+              acc[s as keyof typeof acc]++
+            }
             return acc
           },
           { positive: 0, negative: 0, neutral: 0 },
@@ -359,13 +464,13 @@ export const useNewsStats = (options: UseNewsStatsOptions = {}) => {
     [dataToAnalyze],
   )
 
-  // === COMPARAÇÕES E TRENDS ===
+  // ✅ FIX: getTrendData com validação
   const getTrendData = useCallback(
     (field: keyof ExtendedNewsStats): StatsTrend | null => {
       if (!previousStats || !enableTrends) return null
 
-      const current = extendedStats[field] as number
-      const previous = previousStats[field] as number
+      const current = extendedStats[field]
+      const previous = previousStats[field]
 
       if (typeof current !== 'number' || typeof previous !== 'number') return null
 
@@ -383,28 +488,18 @@ export const useNewsStats = (options: UseNewsStatsOptions = {}) => {
     [extendedStats, previousStats, enableTrends],
   )
 
-  // === ATUALIZAR HISTÓRICO ===
-  useEffect(() => {
-    if (hasNews && !isLoading) {
-      setPreviousStats(extendedStats)
-      setStatsHistory((prev) => [...prev.slice(-9), extendedStats]) // Manter últimos 10
-      setLastUpdateTime(new Date())
-    }
-  }, [extendedStats, hasNews, isLoading])
-
   // === REAL-TIME UPDATES ===
   useEffect(() => {
     if (!enableRealTimeUpdates) return
 
     const interval = setInterval(() => {
       console.log('🔄 Real-time stats update')
-      // Em um cenário real, isto poderia trigger um reload seletivo
-    }, 30000) // 30 segundos
+    }, 30000)
 
     return () => clearInterval(interval)
   }, [enableRealTimeUpdates])
 
-  // === CARREGAR STATS SE NÃO HÁ NEWS ===
+  // === LOAD NEWS IF NEEDED ===
   useEffect(() => {
     if (!hasNews && !isLoading) {
       loadNews()
@@ -415,7 +510,13 @@ export const useNewsStats = (options: UseNewsStatsOptions = {}) => {
   return {
     // Stats principais
     stats: extendedStats,
-    basicStats,
+    basicStats: basicStats || {
+      totalNews: 0,
+      filteredCount: 0,
+      categories: {},
+      sources: 0,
+      sentiments: { positive: 0, negative: 0, neutral: 0 },
+    },
     previousStats,
     statsHistory,
     lastUpdateTime,
@@ -431,18 +532,24 @@ export const useNewsStats = (options: UseNewsStatsOptions = {}) => {
     hasData: dataToAnalyze.length > 0,
     isStale: new Date().getTime() - lastUpdateTime.getTime() > 300000, // 5 minutos
 
-    // Quick stats para dashboards
+    // ✅ FIX: Quick stats com propriedades corretas
     quickStats: {
-      totalArticles: extendedStats.totalNews,
-      newToday: extendedStats.timeDistribution.last24h,
-      avgReadingTime: `${Math.round(extendedStats.readingTime.average)}min`,
-      topCategory: extendedStats.topCategories[0]?.category || 'N/A',
-      dominantSentiment:
-        Object.entries(extendedStats.sentiments).sort(([, a], [, b]) => b - a)[0]?.[0] || 'neutral',
+      totalArticles: extendedStats.totalArticles || 0,
+      newToday: extendedStats.timeDistribution?.last24h || 0,
+      avgReadingTime: `${Math.round(extendedStats.readingTime?.average || 0)}min`,
+      topCategory: extendedStats.topCategories?.[0]?.category || 'N/A',
+      dominantSentiment: (() => {
+        const sentiments = extendedStats.sentimentBreakdown || {
+          positive: 0,
+          negative: 0,
+          neutral: 0,
+        }
+        return Object.entries(sentiments).sort(([, a], [, b]) => b - a)[0]?.[0] || 'neutral'
+      })(),
     },
 
     // Configuração
-    options,
+    options: { includeFiltered, enableTrends, enableRealTimeUpdates },
     dataSource: includeFiltered ? 'filtered' : 'all',
     currentFilters: filters,
 

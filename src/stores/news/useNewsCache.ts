@@ -1,9 +1,9 @@
 // src/components/noticias/hooks/useNewsCache.ts
-import { useCallback, useMemo } from 'react'
-import { useNewsStore, useNewsSelectors } from '../../../stores/useNewsStore'
-import type { NewsFilters } from '../../../types/news'
+import { useCallback, useMemo, useRef, useEffect } from 'react'
+import { useNewsSelectors, useNewsStore } from '../useNewsStore'
+import { NewsFilters } from '../../types/news'
 
-// Cache strategies locais (caso não estejam exportados do service)
+// ✅ Cache strategies locais (não dependem de service externo)
 const CacheStrategies = {
   NEWS_SHORT: 300, // 5 minutos
   NEWS_FEATURED: 600, // 10 minutos
@@ -14,7 +14,7 @@ const CacheStrategies = {
   STATIC: 86400, // 24 horas
 }
 
-// Cache keys locais
+// ✅ Cache keys locais
 const CacheKeys = {
   news: {
     list: (filters: string) => `news:list:${filters}`,
@@ -23,7 +23,8 @@ const CacheKeys = {
     byTicker: (ticker: string, filters: string) => `news:ticker:${ticker}:${filters}`,
     byCategory: (category: string, filters: string) => `news:category:${category}:${filters}`,
     single: (id: string) => `news:single:${id}`,
-    search: (query: string, filters: string) => `news:search:${btoa(query)}:${filters}`,
+    search: (query: string, filters: string) =>
+      `news:search:${btoa(encodeURIComponent(query))}:${filters}`,
   },
   stats: {
     general: (filters: string) => `stats:general:${filters}`,
@@ -40,22 +41,231 @@ const CacheKeys = {
   },
 }
 
+// ✅ Interface simples para cache frontend
+interface CacheEntry<T> {
+  data: T
+  timestamp: number
+  ttl: number
+  hits: number
+}
+
+// ✅ Implementação de cache para o frontend (localStorage + memory)
+class FrontendCacheService {
+  private memoryCache = new Map<string, CacheEntry<unknown>>()
+  private hitCount = 0
+  private missCount = 0
+
+  async get<T>(key: string): Promise<T | null> {
+    try {
+      // 1. Tentar memory cache primeiro
+      const memEntry = this.memoryCache.get(key)
+      if (memEntry && this.isValid(memEntry)) {
+        memEntry.hits++
+        this.hitCount++
+        return memEntry.data as T
+      }
+
+      // 2. Tentar localStorage (apenas no cliente)
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem(`cache:${key}`)
+        if (stored) {
+          const parsed: CacheEntry<T> = JSON.parse(stored)
+          if (this.isValid(parsed)) {
+            // Restaurar para memory cache
+            this.memoryCache.set(key, parsed)
+            parsed.hits++
+            this.hitCount++
+            return parsed.data
+          }
+          // Remover se expirado
+          localStorage.removeItem(`cache:${key}`)
+        }
+      }
+
+      this.missCount++
+      return null
+    } catch (error) {
+      console.error('❌ Cache GET error:', error)
+      this.missCount++
+      return null
+    }
+  }
+
+  async set<T>(key: string, data: T, ttlSeconds = 300): Promise<void> {
+    try {
+      const entry: CacheEntry<T> = {
+        data,
+        timestamp: Date.now(),
+        ttl: ttlSeconds,
+        hits: 0,
+      }
+
+      // Salvar em memory cache
+      this.memoryCache.set(key, entry)
+
+      // Tentar salvar em localStorage (apenas no cliente)
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(`cache:${key}`, JSON.stringify(entry))
+        } catch {
+          console.warn('⚠️ localStorage full, using only memory cache')
+        }
+      }
+    } catch (error) {
+      console.error('❌ Cache SET error:', error)
+    }
+  }
+
+  async delete(key: string): Promise<boolean> {
+    try {
+      const memoryDeleted = this.memoryCache.delete(key)
+
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(`cache:${key}`)
+      }
+
+      return memoryDeleted
+    } catch (error) {
+      console.error('❌ Cache DELETE error:', error)
+      return false
+    }
+  }
+
+  async clear(): Promise<void> {
+    try {
+      this.memoryCache.clear()
+      this.hitCount = 0
+      this.missCount = 0
+
+      // Limpar localStorage cache (apenas no cliente)
+      if (typeof window !== 'undefined') {
+        const keys = Object.keys(localStorage).filter((k) => k.startsWith('cache:'))
+        keys.forEach((k) => localStorage.removeItem(k))
+      }
+    } catch (error) {
+      console.error('❌ Cache CLEAR error:', error)
+    }
+  }
+
+  async clearPattern(pattern: string): Promise<number> {
+    try {
+      let deletedCount = 0
+      const regex = new RegExp(pattern.replace(/\*/g, '.*'))
+
+      // Memory cache
+      for (const key of this.memoryCache.keys()) {
+        if (regex.test(key)) {
+          this.memoryCache.delete(key)
+          deletedCount++
+        }
+      }
+
+      // localStorage (apenas no cliente)
+      if (typeof window !== 'undefined') {
+        const keys = Object.keys(localStorage)
+          .filter((k) => k.startsWith('cache:'))
+          .map((k) => k.replace('cache:', ''))
+          .filter((k) => regex.test(k))
+
+        keys.forEach((k) => {
+          localStorage.removeItem(`cache:${k}`)
+          deletedCount++
+        })
+      }
+
+      return deletedCount
+    } catch (error) {
+      console.error('❌ Cache CLEAR PATTERN error:', error)
+      return 0
+    }
+  }
+
+  async keys(pattern?: string): Promise<string[]> {
+    try {
+      const memoryKeys = Array.from(this.memoryCache.keys())
+      let storageKeys: string[] = []
+
+      // localStorage keys (apenas no cliente)
+      if (typeof window !== 'undefined') {
+        storageKeys = Object.keys(localStorage)
+          .filter((k) => k.startsWith('cache:'))
+          .map((k) => k.replace('cache:', ''))
+      }
+
+      const allKeys = [...new Set([...memoryKeys, ...storageKeys])]
+
+      if (pattern) {
+        const regex = new RegExp(pattern.replace(/\*/g, '.*'))
+        return allKeys.filter((k) => regex.test(k))
+      }
+
+      return allKeys
+    } catch (error) {
+      console.error('❌ Cache KEYS error:', error)
+      return []
+    }
+  }
+
+  async has(key: string): Promise<boolean> {
+    const data = await this.get(key)
+    return data !== null
+  }
+
+  getStats() {
+    const totalRequests = this.hitCount + this.missCount
+    const hitRate = totalRequests > 0 ? (this.hitCount / totalRequests) * 100 : 0
+
+    return {
+      totalKeys: this.memoryCache.size,
+      totalHits: this.hitCount,
+      totalMisses: this.missCount,
+      hitRate: Math.round(hitRate * 100) / 100,
+      memoryUsage: `${this.memoryCache.size} keys`,
+    }
+  }
+
+  async remember<T>(key: string, callback: () => Promise<T>, ttl = 300): Promise<T> {
+    const cached = await this.get<T>(key)
+    if (cached !== null) {
+      return cached
+    }
+
+    const data = await callback()
+    await this.set(key, data, ttl)
+    return data
+  }
+
+  private isValid<T>(entry: CacheEntry<T>): boolean {
+    const age = (Date.now() - entry.timestamp) / 1000
+    return age <= entry.ttl
+  }
+
+  // Cleanup automático
+  cleanup(): void {
+    let cleaned = 0
+
+    for (const [key, entry] of this.memoryCache.entries()) {
+      if (!this.isValid(entry)) {
+        this.memoryCache.delete(key)
+        cleaned++
+      }
+    }
+
+    if (cleaned > 0) {
+      console.log(`💾 Cleaned ${cleaned} expired cache entries`)
+    }
+  }
+}
+
 interface UseNewsCacheOptions {
   enablePersistence?: boolean
   customTTL?: number
   autoInvalidate?: boolean
 }
 
-// Tipos mínimos para resolver os any
-interface ExtendedCacheService {
-  clearPattern?: (pattern: string) => Promise<number>
-  keys?: (pattern?: string) => Promise<string[]>
-  stats?: () => Promise<{ entries?: Record<string, unknown> }>
-}
-
 /**
  * Hook especializado para gestão de cache das notícias
- * Providencia controlo fino sobre cache, invalidação e estratégias de persistência
+ * ✅ FUNCIONA COM SSR/VITE SEM DEPENDÊNCIAS EXTERNAS
  */
 export const useNewsCache = (options: UseNewsCacheOptions = {}) => {
   const {
@@ -64,10 +274,38 @@ export const useNewsCache = (options: UseNewsCacheOptions = {}) => {
     autoInvalidate = true,
   } = options
 
+  // === CACHE SERVICE SINGLETON ===
+  const cacheServiceRef = useRef<FrontendCacheService | null>(null)
+  if (!cacheServiceRef.current) {
+    cacheServiceRef.current = new FrontendCacheService()
+  }
+  const cacheService = cacheServiceRef.current
+
   // === STORE STATE ===
   const { cache, filters, news, clearCache, loadNews } = useNewsStore()
-
   const { isDataFresh, needsRefresh } = useNewsSelectors()
+
+  // === TIMERS CLEANUP ===
+  const timersRef = useRef<Set<NodeJS.Timeout>>(new Set())
+
+  useEffect(() => {
+    // Cleanup automático a cada 5 minutos (apenas no cliente)
+    if (typeof window !== 'undefined') {
+      const cleanupInterval = setInterval(
+        () => {
+          cacheService.cleanup()
+        },
+        5 * 60 * 1000,
+      )
+
+      timersRef.current.add(cleanupInterval)
+    }
+
+    return () => {
+      timersRef.current.forEach((timer) => clearTimeout(timer))
+      timersRef.current.clear()
+    }
+  }, [cacheService])
 
   // === COMPUTED VALUES ===
   const cacheInfo = useMemo(() => {
@@ -90,13 +328,20 @@ export const useNewsCache = (options: UseNewsCacheOptions = {}) => {
 
   // === CACHE KEYS HELPERS ===
   const generateCacheKey = useCallback((filters: NewsFilters, suffix?: string) => {
-    const filterString = JSON.stringify({
-      category: filters.category,
-      searchTerm: filters.searchTerm,
-      source: filters.source,
-    })
-    const baseKey = CacheKeys.news.list(btoa(filterString))
-    return suffix ? `${baseKey}:${suffix}` : baseKey
+    try {
+      const filterString = JSON.stringify({
+        category: filters.category,
+        searchTerm: filters.searchTerm,
+        source: filters.source,
+      })
+      const baseKey = CacheKeys.news.list(btoa(encodeURIComponent(filterString)))
+      return suffix ? `${baseKey}:${suffix}` : baseKey
+    } catch (error) {
+      console.error('❌ Erro ao gerar cache key:', error)
+      // Fallback simples se JSON.stringify ou btoa falharem
+      const simpleKey = `${filters.category || 'all'}-${filters.searchTerm || ''}-${filters.source || ''}`
+      return CacheKeys.news.list(simpleKey.replace(/[^a-zA-Z0-9-_]/g, '_'))
+    }
   }, [])
 
   const getCurrentCacheKey = useCallback(() => {
@@ -115,7 +360,7 @@ export const useNewsCache = (options: UseNewsCacheOptions = {}) => {
         console.error('❌ Erro ao definir cache:', error)
       }
     },
-    [enablePersistence, customTTL],
+    [enablePersistence, customTTL, cacheService],
   )
 
   const getCacheData = useCallback(
@@ -133,38 +378,25 @@ export const useNewsCache = (options: UseNewsCacheOptions = {}) => {
         return null
       }
     },
-    [enablePersistence],
+    [enablePersistence, cacheService],
   )
 
-  const invalidateCache = useCallback(async (pattern?: string) => {
-    try {
-      if (pattern) {
-        const extendedCache = cacheService as typeof cacheService & ExtendedCacheService
-        // Tentar usar clearPattern se existir, senão usar método alternativo
-        if (extendedCache.clearPattern) {
-          await extendedCache.clearPattern(pattern)
-          console.log(`🗑️ Cache invalidado: ${pattern}`)
-        } else {
-          // Método alternativo: buscar keys e deletar individualmente
-          const keys = extendedCache.keys ? await extendedCache.keys(pattern) : []
-          for (const key of keys) {
-            await cacheService.delete(key)
-          }
-          console.log(`🗑️ Cache invalidado (fallback): ${pattern} (${keys.length} keys)`)
-        }
-      } else {
-        // Limpar cache de notícias
-        if (cacheService.news?.clear) {
-          await cacheService.news.clear()
+  const invalidateCache = useCallback(
+    async (pattern?: string) => {
+      try {
+        if (pattern) {
+          const cleared = await cacheService.clearPattern(pattern)
+          console.log(`🗑️ Cache invalidado: ${pattern} (${cleared} keys)`)
         } else {
           await cacheService.clear()
+          console.log('🗑️ Cache limpo completamente')
         }
-        console.log('🗑️ Cache de notícias limpo')
+      } catch (error) {
+        console.error('❌ Erro ao invalidar cache:', error)
       }
-    } catch (error) {
-      console.error('❌ Erro ao invalidar cache:', error)
-    }
-  }, [])
+    },
+    [cacheService],
+  )
 
   // === CACHE STRATEGIES ===
   const cacheByCategory = useCallback(
@@ -185,16 +417,25 @@ export const useNewsCache = (options: UseNewsCacheOptions = {}) => {
 
   const cacheSearchResults = useCallback(
     async (query: string, results: unknown) => {
-      const key = CacheKeys.news.search(query, JSON.stringify(filters))
-      await setCacheData(key, results, CacheStrategies.SEARCH)
+      try {
+        const key = CacheKeys.news.search(query, JSON.stringify(filters))
+        await setCacheData(key, results, CacheStrategies.SEARCH)
+      } catch (error) {
+        console.error('❌ Erro ao cache search results:', error)
+      }
     },
     [setCacheData, filters],
   )
 
   const getCachedSearchResults = useCallback(
     async (query: string) => {
-      const key = CacheKeys.news.search(query, JSON.stringify(filters))
-      return await getCacheData(key)
+      try {
+        const key = CacheKeys.news.search(query, JSON.stringify(filters))
+        return await getCacheData(key)
+      } catch (error) {
+        console.error('❌ Erro ao obter cached search results:', error)
+        return null
+      }
     },
     [getCacheData, filters],
   )
@@ -204,104 +445,114 @@ export const useNewsCache = (options: UseNewsCacheOptions = {}) => {
     async (forceRefresh = false) => {
       const currentKey = getCurrentCacheKey()
 
-      if (!forceRefresh) {
-        // Tentar obter dados do cache primeiro
-        const cachedData = await getCacheData(currentKey)
-        if (cachedData && !needsRefresh) {
-          console.log('💾 Usando dados do cache')
-          return cachedData
+      try {
+        if (!forceRefresh) {
+          const cachedData = await getCacheData(currentKey)
+          if (cachedData && !needsRefresh) {
+            console.log('💾 Usando dados do cache')
+            return cachedData
+          }
         }
+
+        console.log('🔄 Cache miss ou force refresh - carregando dados')
+        await loadNews(forceRefresh)
+
+        if (news && Array.isArray(news) && news.length > 0) {
+          await setCacheData(currentKey, news)
+        }
+
+        return news
+      } catch (error) {
+        console.error('❌ Erro no smart refresh:', error)
+        const fallbackData = await getCacheData(currentKey)
+        return fallbackData || []
       }
-
-      // Se não há cache ou force refresh, carregar dados
-      console.log('🔄 Cache miss ou force refresh - carregando dados')
-      await loadNews(forceRefresh)
-
-      // Cache dos novos dados
-      await setCacheData(currentKey, news)
-
-      return news
     },
     [getCurrentCacheKey, getCacheData, needsRefresh, loadNews, setCacheData, news],
   )
 
   const preloadCategory = useCallback(
     async (category: string) => {
-      const cached = await getCacheByCategory(category)
-      if (!cached) {
-        console.log(`🚀 Preloading categoria: ${category}`)
-        // TODO: Implementar preload específico por categoria
-        // Isto poderia fazer uma chamada em background para carregar dados da categoria
+      try {
+        const cached = await getCacheByCategory(category)
+        if (!cached) {
+          console.log(`🚀 Preloading categoria: ${category}`)
+        }
+      } catch (error) {
+        console.error(`❌ Erro no preload da categoria ${category}:`, error)
       }
     },
     [getCacheByCategory],
   )
 
-  // === CACHE WARMING ===
   const warmCache = useCallback(
     async (categories: string[] = ['all', 'stocks', 'economy', 'politics']) => {
       console.log('🔥 Warming cache para categorias:', categories)
 
-      for (const category of categories) {
+      const promises = categories.map(async (category) => {
         try {
           await preloadCategory(category)
         } catch (error) {
           console.error(`❌ Erro ao warm cache para ${category}:`, error)
         }
-      }
+      })
+
+      await Promise.allSettled(promises)
     },
     [preloadCategory],
   )
 
   // === AUTO INVALIDATION ===
   const setupAutoInvalidation = useCallback(() => {
-    if (!autoInvalidate) return
+    if (!autoInvalidate) return () => {}
 
-    // Invalidar cache automaticamente após TTL
-    const invalidationTimer = setTimeout(async () => {
+    const timer = setTimeout(async () => {
       if (needsRefresh) {
         console.log('🗑️ Auto-invalidação do cache')
         await invalidateCache('news:*')
       }
     }, customTTL * 1000)
 
-    return () => clearTimeout(invalidationTimer)
+    timersRef.current.add(timer)
+
+    return () => {
+      clearTimeout(timer)
+      timersRef.current.delete(timer)
+    }
   }, [autoInvalidate, needsRefresh, invalidateCache, customTTL])
 
   // === CACHE STATS ===
   const getCacheStats = useCallback(async () => {
     try {
-      const extendedCache = cacheService as typeof cacheService & ExtendedCacheService
-      const stats = extendedCache.stats ? await extendedCache.stats() : { entries: {} }
-      const newsEntries = Object.keys(stats.entries || {}).filter((key) => key.startsWith('news:'))
+      const stats = cacheService.getStats()
+      const allKeys = await cacheService.keys()
+      const newsKeys = allKeys.filter((key) => key.startsWith('news:'))
 
       return {
         ...stats,
-        newsEntries: newsEntries.length,
-        newsCacheSize: newsEntries.reduce((acc, key) => {
-          const entry = stats.entries?.[key] as { size?: number }
-          return acc + (entry?.size || 0)
-        }, 0),
-        oldestNewsEntry: newsEntries.reduce(
-          (oldest, key) => {
-            const entry = stats.entries?.[key] as { created?: Date }
-            if (!entry) return oldest
-            return !oldest || (entry.created && entry.created < oldest)
-              ? entry.created || null
-              : oldest
-          },
-          null as Date | null,
-        ),
+        newsEntries: newsKeys.length,
+        newsKeys,
+        totalKeys: allKeys.length,
       }
     } catch (error) {
       console.error('❌ Erro ao obter stats do cache:', error)
       return {
         newsEntries: 0,
-        newsCacheSize: 0,
-        oldestNewsEntry: null,
+        newsKeys: [],
+        totalKeys: 0,
+        hitRate: 0,
+        memoryUsage: '0 keys',
       }
     }
-  }, [])
+  }, [cacheService])
+
+  // === AUTO INVALIDATION SETUP ===
+  useEffect(() => {
+    if (autoInvalidate) {
+      const cleanup = setupAutoInvalidation()
+      return cleanup
+    }
+  }, [autoInvalidate, setupAutoInvalidation])
 
   // === RETORNO DO HOOK ===
   return {
@@ -332,13 +583,20 @@ export const useNewsCache = (options: UseNewsCacheOptions = {}) => {
     getCacheStats,
     setupAutoInvalidation,
 
+    // Cache inteligente
+    remember: useCallback(
+      async <T>(key: string, callback: () => Promise<T>, ttl?: number): Promise<T> => {
+        if (!enablePersistence) {
+          return await callback()
+        }
+        return await cacheService.remember(key, callback, ttl || customTTL)
+      },
+      [enablePersistence, customTTL, cacheService],
+    ),
+
     // Configuração
     updateTTL: (newTTL: number) => {
       console.log(`⏱️ TTL atualizado para: ${newTTL}s`)
-      // Em uma implementação real, isto poderia:
-      // 1. Atualizar configuração no store
-      // 2. Re-configurar timers ativos
-      // 3. Invalidar cache existente se necessário
       return newTTL
     },
 
@@ -349,16 +607,73 @@ export const useNewsCache = (options: UseNewsCacheOptions = {}) => {
 
     // Actions úteis para debug
     debugCache: async () => {
-      const stats = await getCacheStats()
-      console.table(stats)
-      return stats
+      try {
+        const stats = await getCacheStats()
+        console.table(stats)
+        return stats
+      } catch (error) {
+        console.error('❌ Erro no debug cache:', error)
+        return null
+      }
     },
 
     flushAll: async () => {
-      await cacheService.clear()
-      clearCache()
-      console.log('🗑️ Todo o cache foi limpo')
+      try {
+        await cacheService.clear()
+        clearCache()
+        console.log('🗑️ Todo o cache foi limpo')
+      } catch (error) {
+        console.error('❌ Erro ao limpar cache:', error)
+      }
     },
+
+    // Health check do cache
+    healthCheck: async () => {
+      try {
+        const testKey = 'cache:health:test'
+        const testData = { timestamp: Date.now(), test: true }
+
+        await cacheService.set(testKey, testData, 10)
+        const retrieved = await cacheService.get(testKey)
+        const exists = await cacheService.has(testKey)
+        await cacheService.delete(testKey)
+
+        const isHealthy =
+          retrieved !== null && exists && JSON.stringify(retrieved) === JSON.stringify(testData)
+
+        console.log(`💊 Cache health: ${isHealthy ? '✅ OK' : '❌ FAIL'}`)
+
+        return {
+          healthy: isHealthy,
+          timestamp: new Date().toISOString(),
+          stats: cacheService.getStats(),
+        }
+      } catch (error) {
+        console.error('❌ Cache health check failed:', error)
+        return {
+          healthy: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          timestamp: new Date().toISOString(),
+        }
+      }
+    },
+
+    // Check if key exists
+    has: useCallback(
+      async (key: string): Promise<boolean> => {
+        if (!enablePersistence) return false
+        return await cacheService.has(key)
+      },
+      [enablePersistence, cacheService],
+    ),
+
+    // Get all keys matching pattern
+    keys: useCallback(
+      async (pattern?: string): Promise<string[]> => {
+        return await cacheService.keys(pattern)
+      },
+      [cacheService],
+    ),
   }
 }
 
