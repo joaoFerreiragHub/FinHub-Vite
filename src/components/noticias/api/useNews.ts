@@ -1,4 +1,4 @@
-// src/components/noticias/api/useNews.ts - VERSÃO LIMPA E SIMPLIFICADA
+// src/components/noticias/api/useNews.ts - VERSÃO ATUALIZADA COM YAHOO FINANCE
 
 import { useEffect } from 'react'
 import {
@@ -9,11 +9,29 @@ import {
 } from '../../../stores/useNewsStore'
 import { NewsArticle, NewsFilters } from '../../../types/news'
 
+// ✅ IMPORTAR o store de filtros que criamos
+import {
+  useNewsFilters as useNewsFiltersStore,
+  useBasicFilters,
+} from '../../../stores/news/useNewsFilters'
+
 // ===== INTERFACES =====
 interface UseNewsOptions {
   autoLoad?: boolean
   autoRefresh?: boolean
   refreshInterval?: number
+}
+interface SourceInfo {
+  value: string
+  label: string
+  icon: string
+  description: string
+}
+
+interface CategoryInfo {
+  value: string
+  label: string
+  icon: string
 }
 
 interface UseNewsReturn {
@@ -74,6 +92,7 @@ interface UseNewsReturn {
   // === FILTROS ===
   setSearchTerm: (term: string) => void
   setCategory: (category: string) => void
+  setSource: (source: string) => void // ✅ NOVO: Filtro por fonte
   setFilters: (filters: Partial<NewsFilters>) => void
   clearFilters: () => void
 
@@ -109,6 +128,12 @@ interface UseNewsReturn {
     isComplete: boolean
     canLoadMore: boolean
   }
+
+  // ✅ NOVOS: Específicos para filtros e fontes
+  getSourceInfo: (sourceValue: string) => SourceInfo | null
+  getCategoryInfo: (categoryValue: string) => CategoryInfo | null
+  filterSummary: string
+  activeFilterCount: number
 }
 
 // ===== HOOK PRINCIPAL =====
@@ -132,20 +157,19 @@ export const useNews = (options: UseNewsOptions = {}): UseNewsReturn => {
     error,
     stats,
     cache,
-    filters,
     currentPage,
     totalCount,
     itemsPerPage,
     hasMore,
     loadedItems,
     isLoadingMore,
-    // Actions
+    // Actions do store principal
     loadNews,
     refreshNews,
-    setSearchTerm,
-    setCategory,
-    setFilters,
-    clearFilters,
+    setSearchTerm: setStoreSearchTerm,
+    setCategory: setStoreCategory,
+    setFilters: setStoreFilters,
+    clearFilters: clearStoreFilters,
     setPage,
     nextPage,
     prevPage,
@@ -157,6 +181,20 @@ export const useNews = (options: UseNewsOptions = {}): UseNewsReturn => {
     setItemsPerPage,
   } = useNewsStore()
 
+  // ✅ NOVO: Store de filtros integrado
+  const {
+    filters: filtersStoreFilters,
+    hasActiveFilters: filtersHasActive,
+    setSearchTerm: filtersSetSearchTerm,
+    setCategory: filtersSetCategory,
+    setSource: filtersSetSource,
+    clearFilters: filtersClearFilters,
+    getSourceInfo,
+    getCategoryInfo,
+    filterSummary,
+    activeFilterCount,
+  } = useBasicFilters()
+
   // === SELECTORS ===
   const {
     isLoading,
@@ -167,12 +205,17 @@ export const useNews = (options: UseNewsOptions = {}): UseNewsReturn => {
     totalPages,
     hasNextPage,
     hasPrevPage,
-    hasActiveFilters,
     isEmpty,
     needsRefresh,
     canLoadMore,
     loadingStats,
   } = useNewsSelectors()
+
+  // ✅ SINCRONIZAÇÃO: Manter ambos os stores sincronizados
+  useEffect(() => {
+    // Quando filtros do store de filtros mudam, aplicar ao store principal
+    setStoreFilters(filtersStoreFilters)
+  }, [filtersStoreFilters, setStoreFilters])
 
   // === SETUP INICIAL ===
   useEffect(() => {
@@ -201,6 +244,39 @@ export const useNews = (options: UseNewsOptions = {}): UseNewsReturn => {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [needsRefresh, loadNews])
 
+  // ✅ FILTROS INTEGRADOS: Wrappers que mantêm ambos stores sincronizados
+  const setSearchTerm = (term: string) => {
+    filtersSetSearchTerm(term)
+    setStoreSearchTerm(term)
+  }
+
+  const setCategory = (category: string) => {
+    filtersSetCategory(category)
+    setStoreCategory(category)
+  }
+
+  const setSource = (source: string) => {
+    console.log(`🔄 [useNews] Setting source filter: ${source}`)
+    filtersSetSource(source)
+
+    // Aplicar filtro ao store principal também
+    setStoreFilters({ ...filtersStoreFilters, source: source === 'all' ? undefined : source })
+
+    // Recarregar notícias com novo filtro
+    loadNews(true)
+  }
+
+  const setFilters = (newFilters: Partial<NewsFilters>) => {
+    // Aplicar em ambos os stores
+    setStoreFilters(newFilters)
+    useNewsFiltersStore.getState().setFilters(newFilters)
+  }
+
+  const clearFilters = () => {
+    filtersClearFilters()
+    clearStoreFilters()
+  }
+
   // === UTILITIES AVANÇADAS ===
   const loadSpecificAmount = async (count: number) => {
     const originalCount = itemsPerPage
@@ -210,11 +286,11 @@ export const useNews = (options: UseNewsOptions = {}): UseNewsReturn => {
   }
 
   const canLoadMoreFromCategory = (category: string) => {
-    return filters.category === category && canLoadMore
+    return filtersStoreFilters.category === category && canLoadMore
   }
 
   const getCurrentCategoryStats = () => ({
-    category: filters.category,
+    category: filtersStoreFilters.category,
     loaded: loadedItems,
     total: totalCount,
     hasMore,
@@ -251,9 +327,9 @@ export const useNews = (options: UseNewsOptions = {}): UseNewsReturn => {
     isDataFresh,
     needsRefresh,
 
-    // === FILTROS ===
-    filters,
-    hasActiveFilters,
+    // === FILTROS (priorizando o store de filtros) ===
+    filters: filtersStoreFilters,
+    hasActiveFilters: filtersHasActive,
 
     // === PAGINAÇÃO ===
     currentPage,
@@ -277,9 +353,10 @@ export const useNews = (options: UseNewsOptions = {}): UseNewsReturn => {
     forceRefresh: () => loadNews(true),
     loadMoreNews,
 
-    // === FILTROS ===
+    // === FILTROS (wrappers sincronizados) ===
     setSearchTerm,
     setCategory,
+    setSource, // ✅ NOVO
     setFilters,
     clearFilters,
 
@@ -302,6 +379,12 @@ export const useNews = (options: UseNewsOptions = {}): UseNewsReturn => {
     canLoadMoreFromCategory,
     getCurrentCategoryStats,
     getProgressInfo,
+
+    // ✅ NOVOS: Específicos para filtros e fontes
+    getSourceInfo,
+    getCategoryInfo,
+    filterSummary,
+    activeFilterCount,
   }
 }
 
@@ -329,21 +412,24 @@ export const useNewsLoading = () => {
 }
 
 /**
- * Hook para filtros apenas
+ * ✅ RENOMEADO: Hook para filtros apenas (evita conflito)
  */
-export const useNewsFilters = () => {
-  const { filters, setSearchTerm, setCategory, setFilters, clearFilters, loadNewsByCategory } =
-    useNewsStore()
-  const { hasActiveFilters } = useNewsSelectors()
+export const useNewsFiltersSimple = () => {
+  const { setSearchTerm, setCategory, setSource, clearFilters } = useBasicFilters()
+  const { hasActiveFilters, filters } = useBasicFilters()
 
   return {
     filters,
     hasActiveFilters,
     setSearchTerm,
     setCategory,
-    setFilters,
+    setSource, // ✅ NOVO
     clearFilters,
-    changeCategory: (category: string) => loadNewsByCategory(category, true),
+    changeCategory: (category: string) => {
+      setCategory(category)
+      // Trigger reload if needed
+      useNewsStore.getState().loadNewsByCategory(category, true)
+    },
   }
 }
 
@@ -377,4 +463,23 @@ export const useNewsStats = (): NewsStats => {
   }, [hasNews, loadNews])
 
   return stats
+}
+
+/**
+ * ✅ NOVO: Hook específico para filtros de fonte (Yahoo Finance)
+ */
+export const useSourceFilters = () => {
+  const { filters, setSource, getSourceInfo } = useBasicFilters()
+
+  return {
+    currentSource: filters.source || 'all',
+    setSource,
+    getSourceInfo,
+    isYahooActive: filters.source === 'yahoo',
+    isFMPActive: filters.source === 'fmp',
+    isNewsAPIActive: filters.source === 'newsapi',
+    isAlphaVantageActive: filters.source === 'alphavantage',
+    isPolygonActive: filters.source === 'polygon',
+    isAllSourcesActive: !filters.source || filters.source === 'all',
+  }
 }

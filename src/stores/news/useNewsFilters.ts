@@ -28,6 +28,57 @@ export interface FilterStats {
   avgResultCount: number
 }
 
+// ✅ NOVO: Configuração das fontes disponíveis
+export const availableSources = [
+  {
+    value: 'all',
+    label: 'Todas as Fontes',
+    icon: '🌐',
+    description: 'Mostrar notícias de todas as fontes',
+  },
+  {
+    value: 'yahoo',
+    label: 'Yahoo Finance',
+    icon: '📈',
+    description: 'Yahoo Finance - Notícias gratuitas e confiáveis',
+  },
+  {
+    value: 'fmp',
+    label: 'Financial Modeling Prep',
+    icon: '💼',
+    description: 'FMP - API Premium de dados financeiros',
+  },
+  {
+    value: 'newsapi',
+    label: 'News API',
+    icon: '📰',
+    description: 'News API - Agregador global de notícias',
+  },
+  {
+    value: 'alphavantage',
+    label: 'Alpha Vantage',
+    icon: '📊',
+    description: 'Alpha Vantage - Dados com análise de sentimento',
+  },
+  {
+    value: 'polygon',
+    label: 'Polygon',
+    icon: '🔺',
+    description: 'Polygon.io - Dados de mercado premium',
+  },
+]
+
+// ✅ NOVO: Configuração das categorias disponíveis
+export const availableCategories = [
+  { value: 'all', label: 'Todas as Categorias', icon: '📂' },
+  { value: 'market', label: 'Mercados', icon: '📈' },
+  { value: 'earnings', label: 'Resultados', icon: '💰' },
+  { value: 'economy', label: 'Economia', icon: '🏦' },
+  { value: 'crypto', label: 'Criptomoedas', icon: '₿' },
+  { value: 'general', label: 'Geral', icon: '📰' },
+  { value: 'forex', label: 'Câmbio', icon: '💱' },
+]
+
 // Interface do store
 interface NewsFiltersStore {
   // === ESTADO ===
@@ -46,7 +97,7 @@ interface NewsFiltersStore {
   // === ACTIONS BÁSICAS ===
   setCategory: (category: string) => void
   setSearchTerm: (term: string) => void
-  setSource: (source: string) => void
+  setSource: (source: string) => void // ✅ JÁ EXISTE NO SEU CÓDIGO
   setSentiment: (sentiment: string) => void
   setDateRange: (from: Date, to: Date) => void
   clearDateRange: () => void
@@ -85,13 +136,17 @@ interface NewsFiltersStore {
   getFilterStats: () => FilterStats
   exportFilters: () => string
   importFilters: (filtersJson: string) => boolean
+
+  // ✅ NOVOS: Helpers para UI
+  getSourceInfo: (sourceValue: string) => (typeof availableSources)[0] | null
+  getCategoryInfo: (categoryValue: string) => (typeof availableCategories)[0] | null
 }
 
 // ===== CONSTANTS =====
 const defaultFilters: NewsFilters = {
   category: 'all',
   searchTerm: '',
-  source: undefined,
+  source: undefined, // ✅ Alterado para undefined quando "all"
   dateRange: undefined,
   sentiment: undefined,
   tickers: undefined,
@@ -130,16 +185,33 @@ const applyFiltersToArticles = (articles: NewsArticle[], filters: NewsFilters): 
     )
   }
 
-  // Filtro de fonte
-  if (filters.source) {
-    filtered = filtered.filter(
-      (article) => article.source.toLowerCase() === filters.source!.toLowerCase(),
-    )
+  // ✅ MELHORADO: Filtro de fonte com matching mais flexível
+  if (filters.source && filters.source !== 'all') {
+    filtered = filtered.filter((article) => {
+      const articleSource = article.source.toLowerCase().trim()
+      const filterSource = filters.source!.toLowerCase().trim()
+
+      // Matching exato
+      if (articleSource === filterSource) return true
+
+      // Matching parcial para fontes conhecidas
+      if (filterSource === 'yahoo' && articleSource.includes('yahoo')) return true
+      if (
+        filterSource === 'fmp' &&
+        (articleSource.includes('fmp') || articleSource.includes('financial modeling'))
+      )
+        return true
+      if (filterSource === 'newsapi' && articleSource.includes('newsapi')) return true
+      if (filterSource === 'alphavantage' && articleSource.includes('alpha')) return true
+      if (filterSource === 'polygon' && articleSource.includes('polygon')) return true
+
+      return false
+    })
     console.log(`📰 [Filters] Após filtro fonte (${filters.source}): ${filtered.length} artigos`)
   }
 
   // Filtro de sentimento
-  if (filters.sentiment) {
+  if (filters.sentiment && filters.sentiment !== 'all') {
     filtered = filtered.filter((article) => article.sentiment === filters.sentiment)
     console.log(
       `😊 [Filters] Após filtro sentimento (${filters.sentiment}): ${filtered.length} artigos`,
@@ -181,8 +253,8 @@ const hasActiveFilters = (filters: NewsFilters): boolean => {
   return !!(
     (filters.category && filters.category !== 'all') ||
     (filters.searchTerm && filters.searchTerm.trim()) ||
-    filters.source ||
-    filters.sentiment ||
+    (filters.source && filters.source !== 'all') || // ✅ Melhorado
+    (filters.sentiment && filters.sentiment !== 'all') || // ✅ Melhorado
     (filters.tickers && filters.tickers.length > 0) ||
     filters.dateRange
   )
@@ -193,44 +265,53 @@ const countActiveFilters = (filters: NewsFilters): number => {
   let count = 0
   if (filters.category && filters.category !== 'all') count++
   if (filters.searchTerm && filters.searchTerm.trim()) count++
-  if (filters.source) count++
-  if (filters.sentiment) count++
+  if (filters.source && filters.source !== 'all') count++ // ✅ Melhorado
+  if (filters.sentiment && filters.sentiment !== 'all') count++ // ✅ Melhorado
   if (filters.tickers && filters.tickers.length > 0) count++
   if (filters.dateRange) count++
   return count
 }
 
-// Criar resumo dos filtros
+// ✅ MELHORADO: Criar resumo dos filtros com informações mais amigáveis
 const createFilterSummary = (filters: NewsFilters): string => {
   const parts: string[] = []
 
   if (filters.category && filters.category !== 'all') {
-    parts.push(`Categoria: ${filters.category}`)
+    const categoryInfo = availableCategories.find((c) => c.value === filters.category)
+    parts.push(`${categoryInfo?.icon || '📂'} ${categoryInfo?.label || filters.category}`)
   }
+
   if (filters.searchTerm && filters.searchTerm.trim()) {
-    parts.push(`Pesquisa: "${filters.searchTerm}"`)
+    parts.push(`🔎 "${filters.searchTerm}"`)
   }
-  if (filters.source) {
-    parts.push(`Fonte: ${filters.source}`)
+
+  if (filters.source && filters.source !== 'all') {
+    const sourceInfo = availableSources.find((s) => s.value === filters.source)
+    parts.push(`${sourceInfo?.icon || '📰'} ${sourceInfo?.label || filters.source}`)
   }
-  if (filters.sentiment) {
-    parts.push(`Sentimento: ${filters.sentiment}`)
+
+  if (filters.sentiment && filters.sentiment !== 'all') {
+    const sentimentIcon =
+      filters.sentiment === 'positive' ? '😊' : filters.sentiment === 'negative' ? '😞' : '😐'
+    parts.push(`${sentimentIcon} ${filters.sentiment}`)
   }
+
   if (filters.tickers && filters.tickers.length > 0) {
-    parts.push(`Tickers: ${filters.tickers.join(', ')}`)
+    parts.push(`💹 ${filters.tickers.join(', ')}`)
   }
+
   if (filters.dateRange) {
     const { from, to } = filters.dateRange
     if (from && to) {
-      parts.push(`Data: ${from.toLocaleDateString()} - ${to.toLocaleDateString()}`)
+      parts.push(`📅 ${from.toLocaleDateString()} - ${to.toLocaleDateString()}`)
     } else if (from) {
-      parts.push(`Data: a partir de ${from.toLocaleDateString()}`)
+      parts.push(`📅 a partir de ${from.toLocaleDateString()}`)
     } else if (to) {
-      parts.push(`Data: até ${to.toLocaleDateString()}`)
+      parts.push(`📅 até ${to.toLocaleDateString()}`)
     }
   }
 
-  return parts.length > 0 ? parts.join(' | ') : 'Nenhum filtro ativo'
+  return parts.length > 0 ? parts.join(' • ') : 'Nenhum filtro ativo'
 }
 
 // Extrair opções disponíveis dos artigos
@@ -295,19 +376,24 @@ export const useNewsFilters = create<NewsFiltersStore>()(
         }
       },
 
+      // ✅ MELHORADO: setSource com tratamento para 'all'
       setSource: (source: string) => {
         console.log(`📰 [Filters] Setting source: ${source}`)
+        const normalizedSource = source === 'all' ? undefined : source
+
         set((state) => ({
-          filters: { ...state.filters, source: source || undefined },
-          appliedFilters: { ...state.filters, source: source || undefined },
+          filters: { ...state.filters, source: normalizedSource },
+          appliedFilters: { ...state.filters, source: normalizedSource },
         }))
       },
 
       setSentiment: (sentiment: string) => {
         console.log(`😊 [Filters] Setting sentiment: ${sentiment}`)
+        const normalizedSentiment = sentiment === 'all' ? undefined : sentiment
+
         set((state) => ({
-          filters: { ...state.filters, sentiment: sentiment || undefined },
-          appliedFilters: { ...state.filters, sentiment: sentiment || undefined },
+          filters: { ...state.filters, sentiment: normalizedSentiment },
+          appliedFilters: { ...state.filters, sentiment: normalizedSentiment },
         }))
       },
 
@@ -449,22 +535,24 @@ export const useNewsFilters = create<NewsFiltersStore>()(
         const suggestions: FilterSuggestion[] = []
 
         // Sugestões de categoria
-        state.availableCategories.forEach((category) => {
+        availableCategories.slice(1).forEach((category) => {
+          // Skip 'all'
           suggestions.push({
             type: 'category',
-            value: category,
-            count: 0, // TODO: calcular contagem real
-            label: `Categoria: ${category}`,
+            value: category.value,
+            count: 0,
+            label: `${category.icon} ${category.label}`,
           })
         })
 
         // Sugestões de fonte
-        state.availableSources.slice(0, 10).forEach((source) => {
+        availableSources.slice(1).forEach((source) => {
+          // Skip 'all'
           suggestions.push({
             type: 'source',
-            value: source,
+            value: source.value,
             count: 0,
-            label: `Fonte: ${source}`,
+            label: `${source.icon} ${source.label}`,
           })
         })
 
@@ -474,7 +562,7 @@ export const useNewsFilters = create<NewsFiltersStore>()(
             type: 'searchTerm',
             value: term,
             count: 0,
-            label: `Pesquisa: "${term}"`,
+            label: `🔎 "${term}"`,
           })
         })
 
@@ -609,6 +697,15 @@ export const useNewsFilters = create<NewsFiltersStore>()(
           return false
         }
       },
+
+      // ✅ NOVOS: Helpers para UI
+      getSourceInfo: (sourceValue: string) => {
+        return availableSources.find((s) => s.value === sourceValue) || null
+      },
+
+      getCategoryInfo: (categoryValue: string) => {
+        return availableCategories.find((c) => c.value === categoryValue) || null
+      },
     }),
     {
       name: 'finhub-news-filters-storage',
@@ -643,11 +740,15 @@ export const useBasicFilters = () => {
     // Actions básicas
     setCategory: store.setCategory,
     setSearchTerm: store.setSearchTerm,
-    setSource: store.setSource,
+    setSource: store.setSource, // ✅ Incluído
     clearFilters: store.clearFilters,
 
     // Aplicar filtros
     applyToArticles: store.applyFilters,
+
+    // ✅ Helpers para UI
+    getSourceInfo: store.getSourceInfo,
+    getCategoryInfo: store.getCategoryInfo,
   }
 }
 
