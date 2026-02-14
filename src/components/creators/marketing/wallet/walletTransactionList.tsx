@@ -1,7 +1,7 @@
 import { ArrowDown, ArrowUp } from "lucide-react"
 import { ScrollArea } from "../../../ui/scroll-area"
 import { Card } from "../../../ui/card"
-import { mockTransactions } from "../../../../mock/mockTransactions"
+import { mockTransactions } from '@/lib/mock/mockTransactions'
 
 
 interface WalletTransactionListProps {

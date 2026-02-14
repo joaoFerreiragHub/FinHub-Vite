@@ -1,4 +1,4 @@
-import ProtectedRoute from "../../../../components/auth/ProtectedRoute"
+import ProtectedRoute from '@/shared/guards'
 import CreatorFilesPanel from "../../../../components/creators/contentManagement/files/CreatorFilesPanel"
 import CreatorSidebar from "../../../../components/creators/sidebar/creatorSidebar"
 import { useUserStore } from "../../../../stores/useUserStore"

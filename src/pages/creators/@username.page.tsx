@@ -1,7 +1,7 @@
 import { CreatorFull } from '../../types/creator'
 import SidebarLayout from '../../components/layout/SidebarLayout'
 import LoadingSpinner from '../../components/ui/loading-spinner'
-import { mockCreatorsFull } from '../../mock/mockCreatorsFull'
+import { mockCreatorsFull } from '@/lib/mock/mockCreatorsFull'
 import { useEffect, useState } from 'react'
 import { usePageContext } from '../../renderer/PageShell'
 import ContentSections from '../../components/creators/public/ContentSections'

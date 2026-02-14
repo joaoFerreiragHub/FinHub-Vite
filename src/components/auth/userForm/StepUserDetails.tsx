@@ -1,5 +1,5 @@
 import { cn } from "../../../lib/utils"
-import { FormValues } from "../../../types/FormValues"
+import { FormValues } from '@/features/auth/types/FormValues'
 import { Input } from "../../ui/input"
 import { Label } from "../../ui/label"
 import { FormikProps } from "formik"

@@ -1,94 +1,40 @@
-import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
+/**
+ * @deprecated Use useAuthStore from '@/features/auth/stores/useAuthStore' instead
+ *
+ * This is a compatibility wrapper that maps to the new useAuthStore.
+ * Kept for backward compatibility during migration.
+ */
 
-export type UserRole = 'visitor' | 'regular' | 'premium' | 'creator' | 'admin'
+import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import type { User } from '@/features/auth/types'
 
-export interface User {
-  id: string
-  name: string
-  lastName?: string       // ✅ novo campo
-  email: string
-  username: string
-  avatar?: string
-  accessToken: string
-  bio?: string            // ✅ novo campo
-  role: UserRole
+// Re-export types for compatibility
+export type { User }
+export { UserRole } from '@/features/auth/types'
+
+// Re-export store with mapped methods for compatibility
+export const useUserStore = () => {
+  const authStore = useAuthStore()
+
+  return {
+    // State
+    user: authStore.user,
+    isAuthenticated: authStore.isAuthenticated,
+    hydrated: authStore.hydrated,
+    isLoading: authStore.isLoading,
+
+    // Actions (mapped)
+    setUser: (user: User) => {
+      authStore.setUser(user, authStore.accessToken || '', authStore.refreshToken || '')
+    },
+    login: authStore.login,
+    logout: authStore.logout,
+    updateUser: authStore.updateUser,
+
+    // Legacy getter
+    getRole: () => authStore.user?.role ?? 'visitor' as const,
+  }
 }
 
-
-interface UserStore {
-  user: User | null
-  isAuthenticated: boolean
-  hydrated: boolean
-  setUser: (user: User) => void
-  updateUser: (data: Partial<User>) => void
-  logout: () => void
-  getRole: () => UserRole
-}
-
-// Cria um mock de usuário para desenvolvimento
-const mockUser: User = {
-  id: "mock-id-123",
-  name: "Utilizador de Teste",
-  email: "teste@exemplo.com",
-  role: "creator", // Para permitir acesso nas rotas protegidas
-  accessToken: "mock-token-123",
-  username: "teste_user"
-}
-
-export const useUserStore = create<UserStore>()(
-  persist(
-    (set, get) => ({
-      user: null,
-      isAuthenticated: false,
-      hydrated: false,
-      setUser: (user) => set({ user, isAuthenticated: true }),
-      updateUser: (data) =>
-        set((state) => ({
-          user: state.user ? { ...state.user, ...data } : null,
-        })),
-      logout: () => set({ user: null, isAuthenticated: false }),
-      getRole: () => get().user?.role ?? 'visitor',
-    }),
-    {
-      name: 'user-storage',
-      storage: createJSONStorage(() => localStorage),
-      onRehydrateStorage: () => (state) => {
-        // Definir hidratado como true após o processo de rehidratação
-        setTimeout(() => {
-          useUserStore.setState({ hydrated: true })
-
-          // APENAS EM DESENVOLVIMENTO: inserir um usuário mock se não houver um
-          if (process.env.NODE_ENV === 'development' && !state?.user) {
-            useUserStore.setState({
-              user: mockUser,
-              isAuthenticated: true
-            })
-          }
-
-          console.log("🔄 Zustand hidratado:", useUserStore.getState())
-        }, 100)
-        console.log("✅ Mock user injetado:", mockUser)
-      }
-    }
-  )
-)
-
-// Inicialização imediata para SSR
-if (typeof window !== 'undefined') {
-  // Verificar se estamos no ambiente do cliente
-  setTimeout(() => {
-    const state = useUserStore.getState()
-    if (!state.hydrated) {
-      useUserStore.setState({ hydrated: true })
-
-      // APENAS EM DESENVOLVIMENTO: inserir um usuário mock se não houver um
-      if (process.env.NODE_ENV === 'development' && !state.user) {
-        useUserStore.setState({
-          user: mockUser,
-          isAuthenticated: true
-        })
-      }
-    }
-  }, 500)
-}
+// Default export for compatibility
+export default useUserStore

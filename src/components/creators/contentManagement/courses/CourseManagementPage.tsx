@@ -7,7 +7,7 @@ import CourseForm from "./CourseForm"
 import CoursesList from "./CoursesList"
 import CourseVisibilityToggle from "./CourseVisibilityToggle"
 import { createCourse, deleteCourse, getCourses, updateCourse } from "./hooks/useCourses"
-import { mockCourses } from "../../../../mock/mockCourses"
+import { mockCourses } from '@/lib/mock/mockCourses'
 
 const useMockData = true
 

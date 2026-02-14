@@ -7,7 +7,7 @@ import DocumentsSection from './DocumentsSection'
 import EventsSection from './EventsSection'
 import MainPlaylistSection from './MainPlaylistSection'
 import { CreatorFull } from '../../../types/creator'
-import { Article, CourseWithRatings, resolveArticles, resolvePlaylists } from '../../../types/content'
+import { Article, CourseWithRatings, resolveArticles, resolvePlaylists } from '@/features/hub/utils/content.legacy'
 
 
 type Props = {

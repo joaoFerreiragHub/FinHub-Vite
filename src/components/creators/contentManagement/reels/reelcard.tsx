@@ -1,4 +1,4 @@
-import { ReelType } from "../../../../mock/mockReels"
+import { ReelType } from '@/lib/mock/mockReels'
 import TikTokEmbed from "./TikTokEmbed"
 import { Button } from "../../../ui/button"
 

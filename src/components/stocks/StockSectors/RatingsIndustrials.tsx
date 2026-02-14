@@ -1,6 +1,6 @@
 // src/components/ratings/RatingsIndustrials.tsx
 
-import { buildIndustrialsComplementares, RatingsIndustrialsProps } from "../../../utils/complementares/industrialsComplementares"
+import { buildIndustrialsComplementares, RatingsIndustrialsProps } from '@/features/tools/stocks/utils/complementares/industrialsComplementares'
 import { avaliarIndicadorComContexto } from "../hooks/avaliarIndicadorComContexto"
 import { IndicatorValuePro } from "../quickAnalysis/IndicatorValuePro"
 import {
@@ -8,7 +8,7 @@ import {
   calculateCapitalQuality,
   calculateOperationalCycle,
   calculateOperationalLeverage,
-} from "../../../utils/industrialsCalculations"
+} from '@/features/tools/stocks/utils/industrialsCalculations'
 
 export function RatingsIndustrials(props: RatingsIndustrialsProps) {
   // ✅ NOVO: Constrói complementares específicos para Industrials

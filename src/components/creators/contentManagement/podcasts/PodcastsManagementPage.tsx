@@ -7,7 +7,7 @@ import { toast } from "react-toastify"
 import { Podcast } from "../../../../types/podcast"
 import PodcastForm from "./podcastsForm/PodcastForm"
 import PodcastsList from "./PodcastsList"
-import { mockPodcasts } from "../../../../mock/mockPodcasts"
+import { mockPodcasts } from '@/lib/mock/mockPodcasts'
 import EpisodesManagerModal from "./EpisodesManagerModal"
 
 const useMockData = true

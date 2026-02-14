@@ -2,10 +2,10 @@ import { useState } from "react"
 import { Button } from "../ui/button"
 import { Badge } from "../ui/badge"
 import StepPassword from "../auth/userForm/StepPassword"
-import { mockFormik } from "../../mock/mockFormik"
+import { mockFormik } from '@/lib/mock/mockFormik'
 import { Separator } from "../ui/separator"
 import { FormikProps } from "formik"
-import { FormValues } from "../../types/FormValues"
+import { FormValues } from '@/features/auth/types/FormValues'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs"
 import SecurityEmailAlerts from "./SecurityEmailAlerts"
 import SecurityLogs from "./SecurityLogs"

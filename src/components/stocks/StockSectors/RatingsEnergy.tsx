@@ -1,7 +1,7 @@
 // src/components/ratings/RatingsEnergy.tsx
 
-import { buildEnergyComplementares, RatingsEnergyProps } from "../../../utils/complementares/energyComplementares"
-import { calculateCashGeneration, calculateEnergyEfficiency, calculateFinancialSolidity } from "../../../utils/energyCalculations"
+import { buildEnergyComplementares, RatingsEnergyProps } from '@/features/tools/stocks/utils/complementares/energyComplementares'
+import { calculateCashGeneration, calculateEnergyEfficiency, calculateFinancialSolidity } from '@/features/tools/stocks/utils/energyCalculations'
 import { avaliarIndicadorComContexto } from "../hooks/avaliarIndicadorComContexto"
 import { IndicatorValuePro } from "../quickAnalysis/IndicatorValuePro"
 

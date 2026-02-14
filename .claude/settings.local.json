@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(src/shared/guards/index.ts:*)",
+      "Bash(while read file)",
+      "Bash(do sed -i \"s|from [''\"\"].*components/auth/ProtectedRoute[''\"\"]|from ''@/shared/guards''|g\" \"$file\")",
+      "Bash(done)",
+      "Bash(git checkout:*)",
+      "Bash(src/stores/useUserStore.ts:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}

@@ -1,6 +1,6 @@
 import { useState } from "react"
 
-import { simulateDCF } from "../../../../utils/simulateDCF"
+import { simulateDCF } from '@/features/tools/stocks/utils/simulateDCF'
 import { IndicatorValue } from "../../IndicatorValue"
 import { Button } from "../../../ui/button"
 import { Label } from "../../../ui/label"

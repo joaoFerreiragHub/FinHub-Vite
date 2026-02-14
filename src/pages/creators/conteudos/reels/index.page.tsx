@@ -1,6 +1,6 @@
 // src/pages/creators/content/gerir-reels/GerirReelsPage.tsx
 
-import ProtectedRoute from "../../../../components/auth/ProtectedRoute"
+import ProtectedRoute from '@/shared/guards'
 import ReelsManagementPage from "../../../../components/creators/contentManagement/reels/reelsManager"
 import CreatorSidebar from "../../../../components/creators/sidebar/creatorSidebar"
 

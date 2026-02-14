@@ -1,4 +1,4 @@
-import { FormDataType } from "../../../types/creatorForm"
+import { FormDataType } from '@/features/auth/types/creatorForm'
 import { topicOptions } from "./constants"
 import { Textarea } from "../../ui/textarea"
 import { Label } from "../../ui/label"

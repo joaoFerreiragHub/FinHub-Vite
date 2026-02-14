@@ -1,6 +1,6 @@
 // src/routes/premium/index.tsx
 
-import ProtectedRoute from "../../components/auth/ProtectedRoute";
+import ProtectedRoute from '@/shared/guards';
 
 
 export default function PremiumHome() {

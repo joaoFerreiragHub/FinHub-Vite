@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useUserStore } from '../../../stores/useUserStore'
 import { RatingDisplay } from '../../ratings/RatingDisplay'
-import { Article, ArticleWithRatings } from '../../../types/content'
+import { Article, ArticleWithRatings } from '@/features/hub/utils/content.legacy'
 import { Card, CardContent } from '../../ui/card'
 
 

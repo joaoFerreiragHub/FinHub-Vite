@@ -2,7 +2,7 @@
 import { useFormik } from "formik"
 import { useState } from "react"
 import { toast } from "react-toastify"
-import { courseFormSchema, CourseFormValues } from "../../../../schemas/courseFormSchema"
+import { courseFormSchema, CourseFormValues } from '@/features/hub/courses/schemas/courseFormSchema'
 
 import { Button } from "../../../ui/button"
 import { Course } from "../../../../types/course"

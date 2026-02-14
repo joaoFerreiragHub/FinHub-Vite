@@ -1,5 +1,5 @@
 // ✅ COMPONENTE RATINGSHEALTHCARE OTIMIZADO
-import { buildHealthcareComplementares, RatingsHealthcareProps } from "../../../utils/complementares/healthcareComplementares"
+import { buildHealthcareComplementares, RatingsHealthcareProps } from '@/features/tools/stocks/utils/complementares/healthcareComplementares'
 import { avaliarIndicadorComContexto } from "../hooks/avaliarIndicadorComContexto"
 import { IndicatorValuePro } from "../quickAnalysis/IndicatorValuePro"
 

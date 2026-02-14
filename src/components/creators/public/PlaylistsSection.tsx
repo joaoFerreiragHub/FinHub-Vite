@@ -1,7 +1,7 @@
 import React from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
 import { CreatorFull } from '../../../types/creator'
-import { PlaylistResolved } from '../../../types/content'
+import { PlaylistResolved } from '@/features/hub/utils/content.legacy'
 
 
 

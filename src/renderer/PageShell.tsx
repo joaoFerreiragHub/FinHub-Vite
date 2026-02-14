@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
-import { useUserStore } from '../stores/useUserStore'
-import PublicLayout from '../app/layout/PublicLayout'
-import UserLayout from '../app/layout/UserLayout'
+import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import { UserRole } from '@/features/auth/types'
+import { PublicLayout, UserLayout } from '../shared/layouts'
 import { ThemeProvider } from '../components/providers/ThemeProvider'
 import type { PageContext } from '../types/pageContext'
 import React from 'react'
@@ -9,6 +9,8 @@ import { ToastContainer } from 'react-toastify'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from '../lib/react-query-client'
 import { TooltipProvider } from '@radix-ui/react-tooltip'
+import { DevUserSwitcher } from '../shared/dev'
+
 // Create PageContext for component consumption
 const PageContextContext = React.createContext<PageContext | null>(null)
 
@@ -26,16 +28,17 @@ interface Props {
 }
 
 export function PageShell({ children, pageContext }: Props) {
-  const { isAuthenticated, getRole, setUser } = useUserStore()
+  const { user, isAuthenticated } = useAuthStore()
 
   useEffect(() => {
     if (pageContext.user) {
-      setUser(pageContext.user)
+      // Sync page context user if needed
+      // useAuthStore.setState({ user: pageContext.user })
     }
-  }, [pageContext.user, setUser])
+  }, [pageContext.user])
 
-  const role = getRole()
-  const Layout = !isAuthenticated || role === 'visitor' ? PublicLayout : UserLayout
+  const role = user?.role ?? UserRole.VISITOR
+  const Layout = !isAuthenticated || role === UserRole.VISITOR ? PublicLayout : UserLayout
 
   return (
     <PageContextContext.Provider value={pageContext}>
@@ -53,6 +56,8 @@ export function PageShell({ children, pageContext }: Props) {
               theme="colored"
             />
             </Layout>
+            {/* Dev Tools - Só aparece em desenvolvimento */}
+            <DevUserSwitcher />
             </TooltipProvider>
         </ThemeProvider>
       </QueryClientProvider>

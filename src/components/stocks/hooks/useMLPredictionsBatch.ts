@@ -1,7 +1,7 @@
 // hooks/useMLPredictionsBatch.ts - FIXED
 import { useCallback, useState, useEffect } from "react"
 import { EarningsOnly } from "../../../types/mlPredictions"
-import mlPredictionsApi from "../../../utils/mlPredictionsApi"
+import mlPredictionsApi from '@/features/tools/stocks/utils/mlPredictionsApi'
 
 
 export interface UseMLPredictionsBatchOptions {

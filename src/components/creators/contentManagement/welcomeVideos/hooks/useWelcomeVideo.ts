@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react"
 import axios from "axios"
 import { toast } from "react-toastify"
-import { mockWelcomeVideos } from "../../../../../mock/mockWelcomeVideos"
+import { mockWelcomeVideos } from '@/lib/mock/mockWelcomeVideos'
 
 import { VideoData, VideoType } from "../../../../../types/video"
 import { useUserStore } from "../../../../../stores/useUserStore"

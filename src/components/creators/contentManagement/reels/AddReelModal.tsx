@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { toast } from "react-toastify"
-import { ReelType } from "../../../../mock/mockReels"
+import { ReelType } from '@/lib/mock/mockReels'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../../ui/dialog"
 import { Label } from "../../../ui/label"
 import { Input } from "../../../ui/input"

@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Button } from "../../../ui/button"
-import { mockReels, ReelType } from "../../../../mock/mockReels"
+import { mockReels, ReelType } from '@/lib/mock/mockReels'
 import AddReelModal from "./AddReelModal"
 import { toast } from "react-toastify"
 import ReelCard from "./reelcard"

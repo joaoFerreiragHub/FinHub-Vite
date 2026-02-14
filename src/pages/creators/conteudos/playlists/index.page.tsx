@@ -1,6 +1,6 @@
 // pages/creator/content/playlists/index.page.tsx
 
-import ProtectedRoute from "../../../../components/auth/ProtectedRoute"
+import ProtectedRoute from '@/shared/guards'
 import CreatorSidebar from "../../../../components/creators/sidebar/creatorSidebar"
 import PlaylistsManager from "../../../../components/creators/contentManagement/playlists/PlaylistsManager"
 import { useUserStore } from "../../../../stores/useUserStore"

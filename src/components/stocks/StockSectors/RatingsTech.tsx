@@ -1,6 +1,6 @@
 // src/components/ratings/RatingsTech.tsx
 
-import { buildTechnologyComplementares, RatingsTechProps } from "../../../utils/complementares/technologyComplementares"
+import { buildTechnologyComplementares, RatingsTechProps } from '@/features/tools/stocks/utils/complementares/technologyComplementares'
 import { avaliarIndicadorComContexto } from "../hooks/avaliarIndicadorComContexto"
 import { IndicatorValuePro } from "../quickAnalysis/IndicatorValuePro"
 

@@ -1,18 +1,18 @@
 // src/hooks/avaliarIndicadorComContexto.ts
 
-import { FinancialComplementares } from "../../../utils/complementares/financialComplementares"
-import { HealthcareComplementares } from "../../../utils/complementares/healthcareComplementares"
-import { RealEstateComplementares } from "../../../utils/complementares/realEstateComplementares"
-import { TechnologyComplementares } from "../../../utils/complementares/technologyComplementares"
-import { IndustrialsComplementares } from "../../../utils/complementares/industrialsComplementares"
-import { EnergyComplementares } from "../../../utils/complementares/energyComplementares"
-import { BasicMaterialsComplementares } from "../../../utils/complementares/basicMaterialsComplementares"
-import { UtilitiesComplementares } from "../../../utils/complementares/utilitiesComplementares"
-import { ConsumerCyclicalComplementares } from "../../../utils/complementares/consumerCyclicalComplementares" // ✅ ADICIONADO
+import { FinancialComplementares } from '@/features/tools/stocks/utils/complementares/financialComplementares'
+import { HealthcareComplementares } from '@/features/tools/stocks/utils/complementares/healthcareComplementares'
+import { RealEstateComplementares } from '@/features/tools/stocks/utils/complementares/realEstateComplementares'
+import { TechnologyComplementares } from '@/features/tools/stocks/utils/complementares/technologyComplementares'
+import { IndustrialsComplementares } from '@/features/tools/stocks/utils/complementares/industrialsComplementares'
+import { EnergyComplementares } from '@/features/tools/stocks/utils/complementares/energyComplementares'
+import { BasicMaterialsComplementares } from '@/features/tools/stocks/utils/complementares/basicMaterialsComplementares'
+import { UtilitiesComplementares } from '@/features/tools/stocks/utils/complementares/utilitiesComplementares'
+import { ConsumerCyclicalComplementares } from '@/features/tools/stocks/utils/complementares/consumerCyclicalComplementares' // ✅ ADICIONADO
 import { thresholds, Setor } from "../StockSectors/thresholds"
 import { getScoreByThreshold } from "./getScoreByThreshold"
 import { getScoreByThresholdWithDelta } from "./getScoreByThresholdWithDelta"
-import { ConsumerDefensiveComplementares } from "../../../utils/complementares/consumerDefensiveComplementares"
+import { ConsumerDefensiveComplementares } from '@/features/tools/stocks/utils/complementares/consumerDefensiveComplementares'
 
 import {
   indicadoresMetaHealthcare,
@@ -28,7 +28,7 @@ import {
   indicadoresMetaCommunicationServices,
   IndicadorMeta
 } from "../sections/indicadoresMeta"
-import { CommunicationServicesComplementares } from "../../../utils/complementares/communicationServicesComplementares"
+import { CommunicationServicesComplementares } from '@/features/tools/stocks/utils/complementares/communicationServicesComplementares'
 
 
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { CourseWithRatings } from '../../../types/content'
+import { CourseWithRatings } from '@/features/hub/utils/content.legacy'
 import { RatingDisplay } from '../../ratings/RatingDisplay'
 
 interface CoursesSectionProps {

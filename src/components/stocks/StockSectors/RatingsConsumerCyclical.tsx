@@ -1,6 +1,6 @@
 import { avaliarIndicadorComContexto } from "../hooks/avaliarIndicadorComContexto"
 import { IndicatorValuePro } from "../quickAnalysis/IndicatorValuePro"
-import { buildConsumerCyclicalComplementares, RatingsConsumerCyclicalProps } from "../../../utils/complementares/consumerCyclicalComplementares"
+import { buildConsumerCyclicalComplementares, RatingsConsumerCyclicalProps } from '@/features/tools/stocks/utils/complementares/consumerCyclicalComplementares'
 
 interface Categoria {
   label: string

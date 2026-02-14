@@ -1,4 +1,4 @@
-import ProtectedRoute from '../../../../components/auth/ProtectedRoute'
+import ProtectedRoute from '@/shared/guards'
 import AnnouncementsManager from '../../../../components/creators/contentManagement/announcements/announcementsManager'
 
 import CreatorSidebar from '../../../../components/creators/sidebar/creatorSidebar'

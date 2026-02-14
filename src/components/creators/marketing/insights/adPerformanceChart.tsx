@@ -1,6 +1,6 @@
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts"
 import { Card, CardHeader, CardTitle, CardContent } from "../../../ui/card"
-import { mockAdPerformance } from "../../../../mock/mockAdPerformance"
+import { mockAdPerformance } from '@/lib/mock/mockAdPerformance'
 
 export default function AdPerformanceChart() {
   return (

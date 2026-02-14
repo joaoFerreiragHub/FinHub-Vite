@@ -1,4 +1,4 @@
-import ProtectedRoute from "../../../../components/auth/ProtectedRoute"
+import ProtectedRoute from '@/shared/guards'
 import LivesManager from "../../../../components/creators/contentManagement/lives/livesManager"
 import CreatorSidebar from "../../../../components/creators/sidebar/creatorSidebar"
 

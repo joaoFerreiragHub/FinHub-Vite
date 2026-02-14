@@ -1,5 +1,5 @@
 // src/components/contentManagement/courses/steps/StepCourseDescription.tsx
-import { CourseFormValues } from "../../../../../schemas/courseFormSchema"
+import { CourseFormValues } from '@/features/hub/courses/schemas/courseFormSchema'
 import { FormikProps } from "formik"
 import { Textarea } from "../../../../ui/textarea"
 

@@ -1,4 +1,4 @@
-import { buildUtilitiesComplementares, RatingsUtilitiesProps } from "../../../utils/complementares/utilitiesComplementares"
+import { buildUtilitiesComplementares, RatingsUtilitiesProps } from '@/features/tools/stocks/utils/complementares/utilitiesComplementares'
 import { avaliarIndicadorComContexto } from "../hooks/avaliarIndicadorComContexto"
 import { IndicatorValuePro } from "../quickAnalysis/IndicatorValuePro"
 

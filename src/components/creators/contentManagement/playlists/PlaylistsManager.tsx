@@ -1,6 +1,6 @@
 import { useState } from "react"
 import PlaylistModal from "./PlaylistModal"
-import { mockPlaylists } from "../../../../mock/mockPlaylists"
+import { mockPlaylists } from '@/lib/mock/mockPlaylists'
 import { Playlist } from "../../../../types/playlist"
 import { Button } from "../../../ui/button"
 import MiniPlaylistSlider from "./MiniPlaylistSlider"

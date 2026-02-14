@@ -1,7 +1,7 @@
 // src/components/ratings/RatingsConsumerDefensive.tsx
 
-import { buildConsumerDefensiveComplementares, RatingsConsumerDefensiveProps } from "../../../utils/complementares/consumerDefensiveComplementares"
-import { calculateEstabilidade, calculateQualidadeDefensiva, calculateSustentabilidadeDividendos } from "../../../utils/consumerCalc"
+import { buildConsumerDefensiveComplementares, RatingsConsumerDefensiveProps } from '@/features/tools/stocks/utils/complementares/consumerDefensiveComplementares'
+import { calculateEstabilidade, calculateQualidadeDefensiva, calculateSustentabilidadeDividendos } from '@/features/tools/stocks/utils/consumerCalc'
 import { avaliarIndicadorComContexto } from "../hooks/avaliarIndicadorComContexto"
 import { IndicatorValuePro } from "../quickAnalysis/IndicatorValuePro"
 

@@ -7,7 +7,7 @@ import { Badge } from '../ui/badge'
 import { NewsArticle } from '../../types/news'
 import { cn } from '../../lib/utils'
 import { NewsSourceBadge } from './NewsSourceBadge' // ✅ NOVO
-import { getSourceInfo, isYahooSource } from '../../utils/sourceUtils'
+import { getSourceInfo, isYahooSource } from '@/features/hub/news/utils/sourceUtils'
 
 interface NewsGridProps {
   articles: NewsArticle[]

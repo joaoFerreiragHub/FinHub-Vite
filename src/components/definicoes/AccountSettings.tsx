@@ -1,5 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs"
-import { useToast } from "../../utils/use-toast"
+import { useToast } from '@/shared/hooks/use-toast'
 import SecurityTab from "./SecurityTab"
 import AccountDetailsTab from "./AccountDetailsTab"
 import PreferencesTab from "./PreferencesTab"

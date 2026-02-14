@@ -1,7 +1,7 @@
 import React from 'react'
 
-import { useMediaQuery } from '../../../hooks/useMediaQuery'
-import { PlaylistResolved } from '../../../types/content'
+import { useMediaQuery } from '@/shared/hooks/useMediaQuery'
+import { PlaylistResolved } from '@/features/hub/utils/content.legacy'
 
 
 type Props = {

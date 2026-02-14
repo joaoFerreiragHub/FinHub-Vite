@@ -1,4 +1,4 @@
-import { FormDataType } from "../../../types/creatorForm"
+import { FormDataType } from '@/features/auth/types/creatorForm'
 import { Input } from "../../ui/input"
 import { Label } from "../../ui/label"
 import { Button } from "../../ui/button"

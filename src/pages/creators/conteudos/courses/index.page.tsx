@@ -1,5 +1,5 @@
 // src/pages/creators/content/gerir-cursos/GerirCursosPage.tsx
-import ProtectedRoute from "../../../../components/auth/ProtectedRoute"
+import ProtectedRoute from '@/shared/guards'
 import CreatorSidebar from "../../../../components/creators/sidebar/creatorSidebar"
 import CourseManagementPage from "../../../../components/creators/contentManagement/courses/CourseManagementPage"
 import { useUserStore } from "../../../../stores/useUserStore"

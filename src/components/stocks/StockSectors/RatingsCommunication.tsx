@@ -1,5 +1,5 @@
 // ✅ COMPONENTE RATINGSCOMMUNICATION OTIMIZADO
-import { buildCommunicationServicesComplementares, RatingsCommunicationProps } from "../../../utils/complementares/communicationServicesComplementares"
+import { buildCommunicationServicesComplementares, RatingsCommunicationProps } from '@/features/tools/stocks/utils/complementares/communicationServicesComplementares'
 import { avaliarIndicadorComContexto } from "../hooks/avaliarIndicadorComContexto"
 import { IndicatorValuePro } from "../quickAnalysis/IndicatorValuePro"
 

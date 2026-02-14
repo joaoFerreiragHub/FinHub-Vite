@@ -17,7 +17,7 @@ import { ToggleTheme } from '../ui/toggle-theme'
 import { RegisterDialog } from '../auth/RegisterDialog'
 import { UserRole, useUserStore } from '../../stores/useUserStore'
 
-import { getRoutesByRole } from '../../utils/getRoutesByRole'
+import { getRoutesByRole } from '@/lib/routing/getRoutesByRole'
 import { LoginDialog } from '../auth/loginDialog'
 
 // 🔓 Rotas públicas (sempre visíveis)

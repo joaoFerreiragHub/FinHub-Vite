@@ -1,4 +1,4 @@
-import { buildBasicMaterialsComplementares, RatingsBasicMaterialsProps } from "../../../utils/complementares/basicMaterialsComplementares"
+import { buildBasicMaterialsComplementares, RatingsBasicMaterialsProps } from '@/features/tools/stocks/utils/complementares/basicMaterialsComplementares'
 import { avaliarIndicadorComContexto } from "../hooks/avaliarIndicadorComContexto"
 import { IndicatorValuePro } from "../quickAnalysis/IndicatorValuePro"
 

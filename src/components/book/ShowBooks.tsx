@@ -1,7 +1,7 @@
 // src/components/book/ShowBooks.tsx
 
 import React, { useEffect, useState } from 'react'
-import { mockBooks } from '../../mock/books'
+import { mockBooks } from '@/lib/mock/books'
 import { BookCard } from './BookCard'
 import { Button } from '../ui/button'
 

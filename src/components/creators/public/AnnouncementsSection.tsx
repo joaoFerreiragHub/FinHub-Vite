@@ -1,6 +1,6 @@
 import React from 'react'
 import { Card, CardContent } from '../../ui/card'
-import { Announcement } from '../../../types/content'
+import { Announcement } from '@/features/hub/utils/content.legacy'
 
 
 type Props = {

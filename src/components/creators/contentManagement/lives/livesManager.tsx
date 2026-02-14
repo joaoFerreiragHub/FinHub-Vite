@@ -5,7 +5,7 @@ import { LiveEvent } from "../../../../types/liveEvent"
 import LiveEventModal from "./LiveEventModal"
 import LiveCalendar from "./LiveCalendar"
 import { Button } from "../../../ui/button"
-import { mockLiveEvents } from "../../../../mock/mockLiveEvents"
+import { mockLiveEvents } from '@/lib/mock/mockLiveEvents'
 
 export default function LivesManager() {
   // const [events, setEvents] = useState<LiveEvent[]>([])

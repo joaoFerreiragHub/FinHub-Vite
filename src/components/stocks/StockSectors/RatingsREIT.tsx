@@ -1,6 +1,6 @@
 // src/components/ratings/RatingsREITs.tsx
 
-import { buildRealEstateComplementares, RatingsREITsProps } from "../../../utils/complementares/realEstateComplementares"
+import { buildRealEstateComplementares, RatingsREITsProps } from '@/features/tools/stocks/utils/complementares/realEstateComplementares'
 import { avaliarIndicadorComContexto } from "../hooks/avaliarIndicadorComContexto"
 import { IndicatorValuePro } from "../quickAnalysis/IndicatorValuePro"
 

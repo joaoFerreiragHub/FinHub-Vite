@@ -1,6 +1,6 @@
 import { avaliarIndicadorComContexto } from "../hooks/avaliarIndicadorComContexto"
 import { IndicatorValuePro } from "../quickAnalysis/IndicatorValuePro"
-import { buildFinancialComplementares, RatingsFinancialsProps } from "../../../utils/complementares/financialComplementares"
+import { buildFinancialComplementares, RatingsFinancialsProps } from '@/features/tools/stocks/utils/complementares/financialComplementares'
 
 interface Categoria {
   label: string

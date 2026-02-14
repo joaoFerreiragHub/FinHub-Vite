@@ -1,7 +1,7 @@
 // hooks/useMLPredictions.ts - CLEAN VERSION
 import { useState, useEffect, useCallback } from 'react'
 import { EarningsOnly, MLPredictions } from '../../../types/mlPredictions'
-import mlPredictionsApi from '../../../utils/mlPredictionsApi'
+import mlPredictionsApi from '@/features/tools/stocks/utils/mlPredictionsApi'
 import { useMLPredictionsCache } from './useMLPredictionsCache'
 
 

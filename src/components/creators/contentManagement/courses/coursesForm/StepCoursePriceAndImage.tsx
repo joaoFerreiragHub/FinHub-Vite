@@ -2,7 +2,7 @@
 
 import { FormikProps } from "formik"
 import { Input } from "../../../../ui/input"
-import { CourseFormValues } from "../../../../../schemas/courseFormSchema"
+import { CourseFormValues } from '@/features/hub/courses/schemas/courseFormSchema'
 
 interface Props {
   formik: FormikProps<CourseFormValues>

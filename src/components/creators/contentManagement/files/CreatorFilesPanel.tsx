@@ -3,11 +3,11 @@ import { toast } from "react-toastify"
 import axios from "axios"
 import { useUserStore } from "../../../../stores/useUserStore"
 import { Switch } from "../../../ui/switch"
-import { FileData } from "../../../../types/file"
+import { FileData } from '@/features/creators/types/file'
 import FileUploadForm from "./filesForm/FileUploadForm"
 import FilesGrid from "./FilesGrid"
 import { CreatorFile } from "../../../../types/creatorFile"
-import { mockCreatorFiles } from "../../../../mock/mockFiles"
+import { mockCreatorFiles } from '@/lib/mock/mockFiles'
 
       const adaptFileData = (file: FileData): CreatorFile => ({
         _id: file._id,

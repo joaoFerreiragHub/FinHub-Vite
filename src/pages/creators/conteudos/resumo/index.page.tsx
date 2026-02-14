@@ -1,5 +1,5 @@
 // pages/creator/conteudos/index.page.tsx
-import ProtectedRoute from "../../../../components/auth/ProtectedRoute"
+import ProtectedRoute from '@/shared/guards'
 import TodosContentPage from "../../../../components/creators/contentManagement/resumo/TodosContentPage"
 import CreatorSidebar from "../../../../components/creators/sidebar/creatorSidebar"
 

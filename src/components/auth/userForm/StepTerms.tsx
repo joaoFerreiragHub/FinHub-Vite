@@ -3,7 +3,7 @@ import { Checkbox } from "../../ui/checkbox"
 import { Label } from "../../ui/label"
 import { cn } from "../../../lib/utils"
 import { FormikProps } from "formik"
-import { FormValues } from "../../../types/FormValues"
+import { FormValues } from '@/features/auth/types/FormValues'
 
 
 interface Props {

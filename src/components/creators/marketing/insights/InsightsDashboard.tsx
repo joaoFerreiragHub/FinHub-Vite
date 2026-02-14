@@ -1,7 +1,7 @@
 
 import TopPerformingAdsList from "./TopPerformingAdsList"
 
-import { mockAdMetrics } from "../../../../mock/mockAdMetrics"
+import { mockAdMetrics } from '@/lib/mock/mockAdMetrics'
 import InsightsKPICards from "./InsightsKPICards"
 import BudgetSuggestionBanner from "./budgetSuggestionBanner"
 import AdPerformanceChart from "./adPerformanceChart"

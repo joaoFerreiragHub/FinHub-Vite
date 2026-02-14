@@ -3,11 +3,11 @@ import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "../../../ui/card"
 import { Button } from "../../../ui/button"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../../../ui/tabs"
-import { mockPlaylists } from "../../../../mock/mockPlaylists"
-import { mockPodcasts } from "../../../../mock/mockPodcasts"
-import { mockReels } from "../../../../mock/mockReels"
-import { mockArticles } from "../../../../mock/mockArticles"
-import { mockCourses } from "../../../../mock/mockCourses"
+import { mockPlaylists } from '@/lib/mock/mockPlaylists'
+import { mockPodcasts } from '@/lib/mock/mockPodcasts'
+import { mockReels } from '@/lib/mock/mockReels'
+import { mockArticles } from '@/lib/mock/mockArticles'
+import { mockCourses } from '@/lib/mock/mockCourses'
 import { User } from "../../../../stores/useUserStore"
 
 interface TodosContentPageProps {

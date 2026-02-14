@@ -1,4 +1,4 @@
-import ProtectedRoute from "../../../components/auth/ProtectedRoute"
+import ProtectedRoute from "@/shared/guards"
 import CreatorSidebar from "../../../components/creators/sidebar/creatorSidebar"
 import AccountSettings from "../../../components/definicoes/AccountSettings"
 

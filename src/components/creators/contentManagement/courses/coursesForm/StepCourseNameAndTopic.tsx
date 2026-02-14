@@ -1,6 +1,6 @@
 
 import { FormikProps } from "formik"
-import { CourseFormValues } from "../../../../../schemas/courseFormSchema"
+import { CourseFormValues } from '@/features/hub/courses/schemas/courseFormSchema'
 import { Input } from "../../../../ui/input"
 
 

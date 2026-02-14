@@ -1,6 +1,6 @@
 // src/pages/creators/content/gerir-videos/GerirVideosPage.tsx
 
-import ProtectedRoute from "../../../../components/auth/ProtectedRoute"
+import ProtectedRoute from '@/shared/guards'
 import WelcomeVideoSection from "../../../../components/creators/contentManagement/welcomeVideos/WelcomeVideoSection"
 import CreatorSidebar from "../../../../components/creators/sidebar/creatorSidebar"
 

@@ -1,6 +1,6 @@
 import React from 'react'
 import { Badge } from '../ui/badge'
-import { getSourceInfo } from '../../utils/sourceUtils'
+import { getSourceInfo } from '@/features/hub/news/utils/sourceUtils'
 
 interface NewsSourceBadgeProps {
   source: string

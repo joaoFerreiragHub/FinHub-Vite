@@ -3,10 +3,10 @@ import StepDateOfBirth from "../auth/userForm/StepDateOfBirth";
 import StepTopics from "../auth/userForm/StepTopics";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { mockFormik } from "../../mock/mockFormik";
+import { mockFormik } from '@/lib/mock/mockFormik';
 import StepSocialLinks from "./SocialLinksTab";
 import { Button } from "../ui/button";
-import { FormValues } from "../../types/FormValues";
+import { FormValues } from '@/features/auth/types/FormValues';
 import { FormikProps } from "formik"
 
 interface PreferencesTabProps {

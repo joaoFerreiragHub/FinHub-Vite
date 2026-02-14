@@ -9,7 +9,7 @@ import { QuickAnalysis } from './quickAnalysis/QuickAnalysis'
 import { FullDetailedAnalysis } from './sections/FullDetailedAnalysis'
 
 import { useQuickAnalysis } from './hooks/useQuickAnalysis'
-import { mergeStockData } from '../../utils/mergeStockData'
+import { mergeStockData } from '@/features/tools/stocks/utils/mergeStockData'
 import { MLPredictions } from './MLPredictions/MLPredictions'
 
 interface StockDetailsProps {
