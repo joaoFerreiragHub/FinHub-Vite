@@ -12,9 +12,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { RatingDisplay } from '@/features/hub/components/ratings/RatingDisplay'
 import { ReviewsDisplay } from '@/features/hub/components/ratings/ReviewsDisplay'
 import { RatingForm } from '@/features/hub/components/ratings/RatingForm'
-import { Book, Review } from '@/features/hub/books/types/book'
+
 import { ContentType, Rating } from '@/features/hub/types'
 import { AspectRatio } from '@radix-ui/react-aspect-ratio'
+import { Book, Review } from '~/features/hub/books/types'
 
 interface BookModalProps {
   open: boolean
@@ -101,7 +102,7 @@ export default function BookModal({
                 <strong>Autor:</strong> {book.author}
               </p>
               <p>
-                <strong>Descrição:</strong> {book.summary || 'Não disponível.'}
+                <strong>Descrição:</strong> {book.description || 'Não disponível.'}
               </p>
               <div className="mt-2">
                 <RatingDisplay rating={averageRating} />
@@ -124,7 +125,7 @@ export default function BookModal({
             </TabsContent>
 
             <TabsContent value="comentarios">
-              <CommentSection bookId={book._id} />
+              <CommentSection bookId={book.id} />
             </TabsContent>
 
             <TabsContent value="avaliar">
@@ -132,10 +133,10 @@ export default function BookModal({
                 <div className="space-y-4">
                   <RatingForm
                     targetType={ContentType.BOOK}
-                    targetId={book._id}
+                    targetId={book.id}
                     initialRating={userRating ?? undefined}
                     onSubmit={async ({ rating, review }) => {
-                      await submitRating('Book', book._id, rating, review)
+                      await submitRating('Book', book.id, rating, review)
                       setUserRating(rating)
                     }}
                   />

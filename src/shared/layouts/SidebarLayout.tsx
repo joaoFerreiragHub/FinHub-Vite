@@ -1,67 +1,65 @@
-// src/components/layout/SidebarLayout.tsx
-
-import { Home, BookOpen, Calendar, Settings2, Newspaper, LogIn, UserPlus, Menu } from 'lucide-react'
+import { Home, BookOpen, Newspaper, TrendingUp, LogIn, UserPlus, Menu } from 'lucide-react'
 import { useEffect, useState, useCallback } from 'react'
-import { Button } from '@/components/ui'
+import { Button, ToggleTheme } from '@/components/ui'
 import { cn } from '@/lib/utils'
-import { ToggleTheme } from '@/components/ui'
 import { LoginDialog, RegisterDialog } from '@/features/auth/components/forms'
 import { UserRole } from '@/features/auth/types'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
-
 import { getRoutesByRole } from '@/lib/routing/getRoutesByRole'
 
-// 🔓 Rotas públicas (sempre visíveis)
 const publicLinks = [
   { label: 'Home', icon: Home, path: '/' },
   { label: 'Educadores', icon: BookOpen, path: '/creators' },
-  { label: 'Eventos', icon: Calendar, path: '/eventos' },
-  { label: 'Glossário', icon: Settings2, path: '/glossario' },
-  { label: 'Ferramentas', icon: Settings2, path: '/ferramentas' },
-  { label: 'Notícias', icon: Newspaper, path: '/noticias' },
-  { label: 'Conteúdos', icon: BookOpen, path: '/conteudos' },
-  { label: 'Ações', icon: BookOpen, path: '/stocks' },
+  { label: 'Noticias', icon: Newspaper, path: '/noticias' },
+  { label: 'Acoes', icon: TrendingUp, path: '/stocks' },
 ]
 
 export default function SidebarLayout({ children }: { children: React.ReactNode }) {
+  console.log('🏗️ [SIDEBAR] Renderizando SidebarLayout')
+
   const [collapsed, setCollapsed] = useState(false)
   const [loginOpen, setLoginOpen] = useState(false)
   const [registerOpen, setRegisterOpen] = useState(false)
-  const [currentPath, setCurrentPath] = useState<string>('')
 
   const { isAuthenticated, user, logout, hydrated } = useAuthStore()
+
+  console.log('🔐 [SIDEBAR] Auth state:', {
+    isAuthenticated,
+    username: user?.username,
+    role: user?.role,
+    hydrated,
+  })
+
   const privateLinks = isAuthenticated ? getRoutesByRole(user?.role || 'visitor') : []
+  const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
+  const isPathActive = (path: string) =>
+    currentPath === path || (path !== '/' && currentPath.startsWith(`${path}/`))
 
-  // Efeito para atualizar o currentPath
+  // Force hydration after mount if not already hydrated
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setCurrentPath(window.location.pathname)
+    if (typeof window !== 'undefined' && !hydrated) {
+      const timer = setTimeout(() => {
+        console.warn('⚠️ [SIDEBAR] Forcing hydration after timeout')
+        useAuthStore.getState().setHydrated(true)
+      }, 100)
+      return () => clearTimeout(timer)
     }
-  }, [])
+  }, [hydrated])
 
-  // Efeito para forçar hidratação se necessário
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !hydrated && user === null && !isAuthenticated) {
-      console.log('⚠️ Forçando hidratação')
-      useAuthStore.getState().setHydrated(true)
-    }
-  }, [hydrated, user, isAuthenticated])
-
-  // Handler de login com useCallback para evitar re-renders desnecessários
   const handleLogin = useCallback(async (email: string, password: string) => {
     console.log('Login com', email, password)
 
     const mockUser = {
       id: '123',
-      name: 'Sérgio Criador',
+      name: 'Sergio Criador',
       lastName: 'Criador',
       email: 'sergio@finhub.pt',
       role: 'creator' as UserRole,
       avatar: '/avatars/criador.jpg',
       username: 'sergiocriador',
-      bio: 'Criador de conteúdo',
+      bio: 'Criador de conteudo',
       isEmailVerified: true,
-      favoriteTopics: ['investimentos', 'finanças'],
+      favoriteTopics: ['investimentos', 'financas'],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
@@ -71,30 +69,28 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
       refreshToken: 'mock-refresh-token-456',
     }
 
-    // Atualiza user + autenticação usando o método correto do store
     useAuthStore.getState().setUser(mockUser, mockTokens.accessToken, mockTokens.refreshToken)
     setLoginOpen(false)
   }, [])
 
-  // Handler de registo
   const handleRegister = useCallback(
     (data: { name: string; email: string; password: string; confirmPassword: string }) => {
       console.log('Novo registo:', data)
-      // TODO: Implementar lógica de registo
       setRegisterOpen(false)
     },
     [],
   )
 
-  // Loading state
-  if (!hydrated) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-        <span className="ml-2 text-sm text-muted-foreground">A carregar...</span>
-      </div>
-    )
-  }
+  // TEMPORARILY DISABLED: hydration check causing infinite loading
+  // Will be re-enabled once hydration is guaranteed to work
+  // if (!hydrated) {
+  //   return (
+  //     <div className="flex h-screen items-center justify-center">
+  //       <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
+  //       <span className="ml-2 text-sm text-muted-foreground">A carregar...</span>
+  //     </div>
+  //   )
+  // }
 
   return (
     <div className="flex min-h-screen">
@@ -104,35 +100,32 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
           collapsed ? 'w-16' : 'w-64',
         )}
       >
-        {/* TOPO - Branding + Toggle Sidebar */}
-        <div className="p-4 border-b border-border flex items-center justify-between">
-          {!collapsed && <span className="font-bold text-xl">FinHub</span>}
+        <div className="flex items-center justify-between border-b border-border p-4">
+          {!collapsed && <span className="text-xl font-bold">FinHub</span>}
           <Button
             size="icon"
             variant="ghost"
             onClick={() => setCollapsed(!collapsed)}
             className="ml-auto"
           >
-            <Menu className="w-5 h-5" />
+            <Menu className="h-5 w-5" />
             <span className="sr-only">Toggle sidebar</span>
           </Button>
         </div>
 
-        {/* Alternância de tema */}
         <div className="flex items-center justify-start px-4 py-3">
           <ToggleTheme />
         </div>
 
-        {/* Ações rápidas */}
-        <div className="px-2 py-4 border-b border-border">
+        <div className="border-b border-border px-2 py-4">
           {!isAuthenticated ? (
             <>
               <Button
                 variant="default"
-                className="w-full justify-start mb-2"
+                className="mb-2 w-full justify-start"
                 onClick={() => setRegisterOpen(true)}
               >
-                <UserPlus className="w-5 h-5 mr-2" />
+                <UserPlus className="mr-2 h-5 w-5" />
                 {!collapsed && 'Criar Conta'}
               </Button>
               <Button
@@ -140,54 +133,50 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
                 className="w-full justify-start"
                 onClick={() => setLoginOpen(true)}
               >
-                <LogIn className="w-5 h-5 mr-2" />
+                <LogIn className="mr-2 h-5 w-5" />
                 {!collapsed && 'Login'}
               </Button>
             </>
           ) : (
             <Button variant="outline" className="w-full justify-start" onClick={() => logout()}>
-              <LogIn className="w-5 h-5 mr-2 rotate-180" />
+              <LogIn className="mr-2 h-5 w-5 rotate-180" />
               {!collapsed && 'Sair'}
             </Button>
           )}
         </div>
 
-        {/* Menu principal */}
-        <nav className="flex flex-col gap-1 p-2 flex-grow">
-          {/* Rotas públicas */}
+        <nav className="flex flex-grow flex-col gap-1 p-2">
           {publicLinks.map(({ label, icon: Icon, path }) => (
             <a key={label} href={path} className="w-full">
               <Button
                 variant="ghost"
                 className={cn(
-                  'justify-start w-full',
-                  currentPath === path && 'bg-muted text-primary',
+                  'w-full justify-start',
+                  isPathActive(path) && 'bg-muted text-primary',
                 )}
               >
-                <Icon className="w-5 h-5 mr-2" />
+                <Icon className="mr-2 h-5 w-5" />
                 {!collapsed && label}
               </Button>
             </a>
           ))}
 
-          {/* Separador visual e Rotas privadas */}
-          {isAuthenticated && (
+          {isAuthenticated && privateLinks.length > 0 && (
             <>
-              <div className="border-t border-border my-3" />
+              <div className="my-3 border-t border-border" />
               {!collapsed && (
-                <span className="text-xs text-muted-foreground px-2 mb-1">Tua Área</span>
+                <span className="mb-1 px-2 text-xs text-muted-foreground">Tua Area</span>
               )}
-
               {privateLinks.map(({ label, icon: Icon, path }) => (
                 <a key={label} href={path} className="w-full">
                   <Button
                     variant="ghost"
                     className={cn(
-                      'justify-start w-full',
-                      currentPath === path && 'bg-muted text-primary',
+                      'w-full justify-start',
+                      isPathActive(path) && 'bg-muted text-primary',
                     )}
                   >
-                    <Icon className="w-5 h-5 mr-2" />
+                    <Icon className="mr-2 h-5 w-5" />
                     {!collapsed && label}
                   </Button>
                 </a>
@@ -197,7 +186,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
         </nav>
       </aside>
 
-      <main className="flex-1 bg-background text-foreground p-6">{children}</main>
+      <main className="flex-1 bg-background p-6 text-foreground">{children}</main>
 
       <LoginDialog open={loginOpen} onOpenChange={setLoginOpen} onLogin={handleLogin} />
       <RegisterDialog

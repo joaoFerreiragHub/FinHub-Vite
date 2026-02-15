@@ -1,9 +1,9 @@
 import { type ReactNode, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
-import { usePermissions } from '@/features/auth/hooks/usePermissions'
-import { UserRole, Permission } from '@/features/auth'
+import { getRoutesByRole } from '@/lib/routing/getRoutesByRole'
 import { Button } from '@/components/ui'
+import { Menu } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 export interface DashboardLayoutProps {
   /**
@@ -16,10 +16,10 @@ export interface DashboardLayoutProps {
  * Layout principal para páginas autenticadas
  *
  * Features:
- * - Sidebar com navegação
+ * - Sidebar com navegação baseada em role
  * - Header com user menu
- * - Breadcrumbs
  * - Responsive
+ * - Usa configurações de rotas de src/routes/
  *
  * @example
  * <DashboardLayout>
@@ -27,94 +27,54 @@ export interface DashboardLayoutProps {
  * </DashboardLayout>
  */
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { user, logout } = useAuthStore()
-  const { can, isAtLeast } = usePermissions()
-  const navigate = useNavigate()
+  const { user, logout, isAuthenticated } = useAuthStore()
   const [sidebarOpen, setSidebarOpen] = useState(true)
+
+  const routes = isAuthenticated ? getRoutesByRole(user?.role || 'visitor') : []
+  const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
+
+  const isPathActive = (path: string) =>
+    currentPath === path || (path !== '/' && currentPath.startsWith(`${path}/`))
 
   const handleLogout = () => {
     logout()
-    navigate('/auth/login')
+    window.location.href = '/'
   }
 
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-950">
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-card transition-transform duration-300 ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={cn(
+          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-card transition-transform duration-300',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+        )}
       >
         {/* Logo */}
         <div className="flex h-16 items-center border-b border-border px-6">
-          <Link to="/dashboard" className="text-2xl font-bold text-primary">
+          <a href="/" className="text-2xl font-bold text-primary">
             FinHub
-          </Link>
+          </a>
         </div>
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1 overflow-y-auto p-4">
-          <NavSection title="Principal">
-            <NavItem to="/dashboard" icon="🏠">
-              Dashboard
-            </NavItem>
-            <NavItem to="/hub/articles" icon="📰">
-              Artigos
-            </NavItem>
-            {isAtLeast(UserRole.FREE) && (
-              <NavItem to="/hub/courses" icon="🎓">
-                Cursos
-              </NavItem>
-            )}
-          </NavSection>
-
-          {can(Permission.USE_CALCULATORS) && (
-            <NavSection title="Ferramentas">
-              <NavItem to="/tools/calculators" icon="🧮">
-                Calculadoras
-              </NavItem>
-              {can(Permission.CREATE_PORTFOLIO) && (
-                <NavItem to="/tools/portfolio" icon="📊">
-                  Portfolio
-                </NavItem>
-              )}
-            </NavSection>
-          )}
-
-          {isAtLeast(UserRole.FREE) && (
-            <NavSection title="Social">
-              <NavItem to="/social/forum" icon="💬">
-                Fórum
-              </NavItem>
-              {can(Permission.USE_CHAT) && (
-                <NavItem to="/social/chat" icon="✉️">
-                  Chat
-                </NavItem>
-              )}
-            </NavSection>
-          )}
-
-          {isAtLeast(UserRole.CREATOR) && (
-            <NavSection title="Criador">
-              <NavItem to="/creators/dashboard" icon="📝">
-                Meu Conteúdo
-              </NavItem>
-              <NavItem to="/creators/analytics" icon="📈">
-                Análises
-              </NavItem>
-            </NavSection>
-          )}
-
-          {isAtLeast(UserRole.ADMIN) && (
-            <NavSection title="Admin">
-              <NavItem to="/admin/users" icon="👥">
-                Utilizadores
-              </NavItem>
-              <NavItem to="/admin/content" icon="📚">
-                Conteúdo
-              </NavItem>
-            </NavSection>
-          )}
+          {routes.map((route) => {
+            const Icon = route.icon
+            return (
+              <a
+                key={route.path}
+                href={route.path}
+                className={cn(
+                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
+                  isPathActive(route.path) && 'bg-accent text-accent-foreground',
+                )}
+              >
+                {Icon && <Icon className="h-5 w-5" />}
+                <span>{route.label}</span>
+              </a>
+            )
+          })}
         </nav>
 
         {/* User info */}
@@ -124,7 +84,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               {user?.avatar ? (
                 <img src={user.avatar} alt={user.name} className="h-full w-full rounded-full" />
               ) : (
-                <span className="text-sm font-medium">{user?.name.charAt(0)}</span>
+                <span className="text-sm font-medium">{user?.name?.charAt(0)}</span>
               )}
             </div>
             <div className="flex-1 overflow-hidden">
@@ -132,7 +92,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <p className="truncate text-xs text-muted-foreground capitalize">{user?.role}</p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" className="mt-2" onClick={handleLogout}>
+          <Button variant="ghost" size="sm" className="mt-2 w-full" onClick={handleLogout}>
             Sair
           </Button>
         </div>
@@ -140,30 +100,23 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Main content */}
       <div
-        className={`flex flex-1 flex-col transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-0'}`}
+        className={cn(
+          'flex flex-1 flex-col transition-all duration-300',
+          sidebarOpen ? 'ml-64' : 'ml-0',
+        )}
       >
         {/* Header */}
         <header className="flex h-16 items-center justify-between border-b border-border bg-card px-6">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="rounded-lg p-2 hover:bg-accent"
+            aria-label="Toggle sidebar"
           >
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
+            <Menu className="h-6 w-6" />
           </button>
 
           <div className="flex items-center gap-4">
-            {!isAtLeast(UserRole.PREMIUM) && (
-              <Button variant="default" size="sm" onClick={() => navigate('/pricing')}>
-                ⭐ Upgrade
-              </Button>
-            )}
+            <span className="text-sm text-muted-foreground">{user?.name}</span>
           </div>
         </header>
 
@@ -171,29 +124,5 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
     </div>
-  )
-}
-
-// Helper components
-function NavSection({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <div>
-      <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        {title}
-      </h3>
-      <div className="space-y-1">{children}</div>
-    </div>
-  )
-}
-
-function NavItem({ to, icon, children }: { to: string; icon: string; children: ReactNode }) {
-  return (
-    <Link
-      to={to}
-      className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-    >
-      <span className="text-lg">{icon}</span>
-      <span>{children}</span>
-    </Link>
   )
 }

@@ -14,7 +14,7 @@ import {
   IconDefinition,
 } from '@fortawesome/free-brands-svg-icons'
 
-import { RatingDisplay } from '../../ratings/RatingDisplay'
+import { RatingDisplay } from '@/features/hub/components/ratings/RatingDisplay'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui'
 import { Button } from '@/components/ui'
 import { CreatorFull, SocialMediaLink } from '@/features/creators/types/creator'

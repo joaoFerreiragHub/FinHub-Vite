@@ -3,12 +3,22 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui'
 import { usePermissions } from '@/features/auth/hooks/usePermissions'
 import { Permission } from '@/lib/permissions/config'
+import { useSocialStore } from '@/features/social/stores/useSocialStore'
+import type { ContentType } from '@/features/hub/types'
 
 export interface ContentActionsProps extends HTMLAttributes<HTMLDivElement> {
   /**
-   * ID do conteúdo
+   * ID do conteudo
    */
   contentId: string
+  /**
+   * Tipo do conteudo (para persistir favoritos no social store)
+   */
+  contentType?: ContentType
+  /**
+   * Titulo do conteudo (para persistir favoritos no social store)
+   */
+  contentTitle?: string
   /**
    * Estado inicial de like
    */
@@ -32,7 +42,7 @@ export interface ContentActionsProps extends HTMLAttributes<HTMLDivElement> {
   onFavorite?: () => void | Promise<void>
   onShare?: () => void | Promise<void>
   /**
-   * Orientação
+   * Orientacao
    */
   orientation?: 'horizontal' | 'vertical'
   /**
@@ -55,9 +65,12 @@ export interface ContentActionsProps extends HTMLAttributes<HTMLDivElement> {
  * />
  */
 export function ContentActions({
+  contentId,
+  contentType,
+  contentTitle,
   isLiked: initialIsLiked = false,
   likeCount: initialLikeCount = 0,
-  isFavorited: initialIsFavorited = false,
+  isFavorited: initialIsFavorited,
   favoriteCount: initialFavoriteCount = 0,
   onLike,
   onFavorite,
@@ -68,11 +81,14 @@ export function ContentActions({
   ...props
 }: ContentActionsProps) {
   const { can } = usePermissions()
-  const canInteract = can(Permission.POST_COMMENTS) // Reutilizando permissão
+  const canInteract = can(Permission.POST_COMMENTS)
+
+  const socialStore = useSocialStore()
+  const storedFavorited = socialStore.isFavorited(contentId)
 
   const [isLiked, setIsLiked] = useState(initialIsLiked)
   const [likeCount, setLikeCount] = useState(initialLikeCount)
-  const [isFavorited, setIsFavorited] = useState(initialIsFavorited)
+  const [isFavorited, setIsFavorited] = useState(initialIsFavorited ?? storedFavorited)
   const [favoriteCount, setFavoriteCount] = useState(initialFavoriteCount)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -81,13 +97,10 @@ export function ContentActions({
 
     setIsLoading(true)
     try {
-      // Optimistic update
       setIsLiked(!isLiked)
       setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1))
-
       await onLike?.()
     } catch {
-      // Rollback on error
       setIsLiked(isLiked)
       setLikeCount(likeCount)
     } finally {
@@ -100,13 +113,24 @@ export function ContentActions({
 
     setIsLoading(true)
     try {
-      // Optimistic update
-      setIsFavorited(!isFavorited)
+      const newFavorited = !isFavorited
+      setIsFavorited(newFavorited)
       setFavoriteCount((prev) => (isFavorited ? prev - 1 : prev + 1))
+
+      // Persist to social store
+      if (newFavorited && contentType) {
+        socialStore.addFavorite({
+          contentId,
+          contentType,
+          title: contentTitle ?? '',
+          favoritedAt: new Date().toISOString(),
+        })
+      } else {
+        socialStore.removeFavorite(contentId)
+      }
 
       await onFavorite?.()
     } catch {
-      // Rollback on error
       setIsFavorited(isFavorited)
       setFavoriteCount(favoriteCount)
     } finally {

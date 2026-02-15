@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
-import { RatingDisplay } from '../../ratings/RatingDisplay'
+import { RatingDisplay } from '@/features/hub/components/ratings/RatingDisplay'
 import { Article, ArticleWithRatings } from '@/features/creators/types/content'
 import { Card, CardContent } from '@/components/ui'
 

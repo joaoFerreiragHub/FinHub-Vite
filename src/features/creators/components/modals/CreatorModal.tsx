@@ -9,8 +9,9 @@ import { CreatorRatings } from './CreatorRatings'
 import { Dialog, DialogContent } from '@/components/ui'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui'
-import { ReviewsDisplay } from '../../ratings/ReviewsDisplay'
+
 import { AspectRatio } from '@/components/ui'
+import { ReviewsDisplay } from '~/features/hub'
 
 interface CreatorModalProps {
   open: boolean

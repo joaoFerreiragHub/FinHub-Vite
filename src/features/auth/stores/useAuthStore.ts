@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { User, UserRole, AuthState, LoginCredentials, RegisterData } from '../types'
 import { authService } from '../services/authService'
+import { isDevelopment } from '@/lib/utils/env'
 
 interface AuthStore extends AuthState {
   // Actions
@@ -169,7 +170,7 @@ export const useAuthStore = create<AuthStore>()(
 
       // Dev Tools: trocar role em desenvolvimento
       switchDevRole: (role: UserRole) => {
-        if (!import.meta.env.DEV) {
+        if (!isDevelopment()) {
           console.warn('⚠️ switchDevRole só funciona em desenvolvimento')
           return
         }
@@ -217,7 +218,14 @@ export const useAuthStore = create<AuthStore>()(
         useAuthStore.setState({ hydrated: true })
 
         // APENAS EM DESENVOLVIMENTO: injetar mock user se não houver usuário
-        if (import.meta.env.DEV && !state?.user) {
+        const isDevEnv = isDevelopment()
+        console.log('🔍 [AUTH] Environment check:', {
+          isDevelopment: isDevEnv,
+          hostname: typeof window !== 'undefined' ? window.location.hostname : 'SSR',
+          hasUser: !!state?.user,
+        })
+
+        if (isDevEnv && !state?.user) {
           console.log('🔧 [DEV] Injetando mock user para desenvolvimento')
           useAuthStore.setState({
             user: DEV_MOCK_USER,
@@ -242,14 +250,15 @@ export const useAuthStore = create<AuthStore>()(
 if (typeof window !== 'undefined') {
   setTimeout(() => {
     const state = useAuthStore.getState()
-    console.log('⏰ [AUTH] SSR Fallback check - hydrated:', state.hydrated)
+    const isDevEnv = isDevelopment()
+    console.log('⏰ [AUTH] SSR Fallback check - hydrated:', state.hydrated, 'isDev:', isDevEnv)
 
     if (!state.hydrated) {
       console.warn('⚠️ [AUTH] Forçando hidratação via SSR fallback!')
       useAuthStore.setState({ hydrated: true })
 
       // Mock user em desenvolvimento
-      if (import.meta.env.DEV && !state.user) {
+      if (isDevEnv && !state.user) {
         console.log('🔧 [DEV] Injetando mock user (SSR fallback)')
         useAuthStore.setState({
           user: DEV_MOCK_USER,
@@ -259,5 +268,5 @@ if (typeof window !== 'undefined') {
         })
       }
     }
-  }, 1000) // Aumentado para 1s
+  }, 100) // Reduzido para 100ms para ser mais rápido
 }

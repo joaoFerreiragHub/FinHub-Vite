@@ -1,0 +1,6 @@
+export { UserProfilePage } from './UserProfilePage'
+export { FavoritesPage } from './FavoritesPage'
+export { FollowingPage } from './FollowingPage'
+export { NotificationsPage } from './NotificationsPage'
+export { ActivityFeedPage } from './ActivityFeedPage'
+export { SearchPage } from './SearchPage'

@@ -4,6 +4,7 @@ import { Creator } from '@/features/creators/types/creator'
 
 import { Card, CardContent } from '@/components/ui'
 import { AspectRatio } from '@/components/ui'
+import { Button } from '@/components/ui'
 import { RatingDisplay } from '~/features/hub'
 
 interface CreatorCardProps {
@@ -31,6 +32,16 @@ export function CreatorCard({ creator, onOpenModal }: CreatorCardProps) {
         <div className="flex items-center justify-center gap-1">
           <RatingDisplay rating={creator.averageRating || 0} />
         </div>
+
+        <a
+          href={`/creators/${encodeURIComponent(creator.username)}`}
+          onClick={(event) => event.stopPropagation()}
+          className="w-full"
+        >
+          <Button variant="outline" size="sm" className="w-full">
+            Ver pagina
+          </Button>
+        </a>
       </CardContent>
     </Card>
   )

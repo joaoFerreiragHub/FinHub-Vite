@@ -30,6 +30,12 @@ interface Props {
 export function PageShell({ children, pageContext }: Props) {
   const { user, isAuthenticated } = useAuthStore()
 
+  console.log('🎭 [PAGE SHELL] Renderizando PageShell', {
+    isAuthenticated,
+    role: user?.role,
+    username: user?.username,
+  })
+
   useEffect(() => {
     if (pageContext.user) {
       // Sync page context user if needed
@@ -39,6 +45,11 @@ export function PageShell({ children, pageContext }: Props) {
 
   const role = user?.role ?? UserRole.VISITOR
   const Layout = !isAuthenticated || role === UserRole.VISITOR ? PublicLayout : UserLayout
+
+  console.log(
+    '📐 [PAGE SHELL] Layout selecionado:',
+    Layout === PublicLayout ? 'PublicLayout' : 'UserLayout',
+  )
 
   return (
     <PageContextContext.Provider value={pageContext}>

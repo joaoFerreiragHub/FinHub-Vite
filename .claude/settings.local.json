@@ -33,7 +33,10 @@
       "Bash(\"c:/Users/Admin/finhub/nome-do-teu-projeto/src/shared/hooks/index.ts\":*)",
       "Bash(\"c:/Users/Admin/finhub/nome-do-teu-projeto/src/shared/components/index.ts\":*)",
       "Bash(\"c:/Users/Admin/finhub/nome-do-teu-projeto/src/shared/providers/index.ts\":*)",
-      "Bash(\"c:/Users/Admin/finhub/nome-do-teu-projeto/src/shared/index.ts\":*)"
+      "Bash(\"c:/Users/Admin/finhub/nome-do-teu-projeto/src/shared/index.ts\":*)",
+      "Bash(npx jest --no-cache)",
+      "Bash(npm ls:*)",
+      "Bash(npx cross-env:*)"
     ]
   }
 }

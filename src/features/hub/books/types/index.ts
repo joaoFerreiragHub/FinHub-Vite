@@ -1,6 +1,15 @@
 import type { BaseContent, ContentCategory } from '../../types'
 import { ContentType } from '../../types'
 
+export interface Review {
+  _id?: string
+  userId: string | { _id?: string; id?: string; name?: string; username?: string }
+  rating?: number
+  review: string
+  createdAt?: string
+  updatedAt?: string
+}
+
 /**
  * Book (extends BaseContent)
  */
@@ -21,6 +30,9 @@ export interface Book extends BaseContent {
   // Links
   purchaseUrl?: string
   pdfUrl?: string // Se disponivel para download
+
+  // Dados auxiliares para UI (mock/local)
+  reviews?: Review[]
 }
 
 /**

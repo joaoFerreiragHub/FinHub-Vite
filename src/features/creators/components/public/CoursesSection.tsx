@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { CourseWithRatings } from '@/features/creators/types/content'
-import { RatingDisplay } from '../../ratings/RatingDisplay'
+import { RatingDisplay } from '@/features/hub/components/ratings/RatingDisplay'
 
 interface CoursesSectionProps {
   courses: CourseWithRatings[]

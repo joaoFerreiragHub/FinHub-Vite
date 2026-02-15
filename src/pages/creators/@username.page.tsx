@@ -1,92 +1,103 @@
-import { CreatorFull } from '../../types/creator'
+import type { CreatorFull } from '@/features/creators/types/creator'
 import SidebarLayout from '@/shared/layouts/SidebarLayout'
-import LoadingSpinner from '@/components/ui/loading-spinner'
 import { mockCreatorsFull } from '@/lib/mock/mockCreatorsFull'
-import { useEffect, useState } from 'react'
-import { usePageContext } from '../../renderer/PageShell'
 import ContentSections from '@/features/creators/components/public/ContentSections'
 import CreatorProfile from '@/features/creators/components/public/CreatorProfile'
 
-// Define passToClient directly here
 export const passToClient = ['routeParams', 'pageProps', 'user']
+
+const createFallbackCreator = (username: string): CreatorFull => ({
+  _id: `virtual-${username}`,
+  username,
+  email: `${username}@finhub.local`,
+  firstname: username,
+  lastname: '',
+  role: 'creator',
+  isPremium: false,
+  topics: [],
+  termsAccepted: true,
+  termsOfServiceAgreement: true,
+  contentLicenseAgreement: true,
+  paymentTermsAgreement: true,
+  bio: 'Este criador ainda nao adicionou informacoes.',
+  socialMediaLinks: [],
+  followers: [],
+  famous: [],
+  content: [],
+  averageRating: 0,
+  contentVisibility: {
+    announcements: false,
+    courses: false,
+    articles: false,
+    events: false,
+    files: false,
+    playlists: {
+      regular: false,
+      shorts: false,
+      podcast: false,
+      featured: false,
+    },
+    welcomeVideo: false,
+  },
+  fullPlaylists: [],
+  announcementsResolved: [],
+  articlesResolved: [],
+  eventsResolved: [],
+  documentsResolved: [],
+  coursesResolved: [],
+})
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const resolveUsername = (props: any): string => {
+  const fromProps =
+    props.pageContext?.routeParams?.username ?? props.routeParams?.username ?? props.username
+  if (fromProps) return decodeURIComponent(String(fromProps))
+
+  if (typeof window !== 'undefined') {
+    const routeMatch = window.location.pathname.match(/^\/creators\/([^/?#]+)/)
+    if (routeMatch?.[1]) return decodeURIComponent(routeMatch[1])
+  }
+
+  return ''
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function Page(props: any) {
-  try {
-    // Try to get pageContext from usePageContext hook
-    const pageContext = usePageContext()
-    const username = pageContext.routeParams?.username
+  const username = resolveUsername(props)
 
-    if (!username) {
-      console.error('Username not found in pageContext', pageContext)
-      return <div>Error: Username not available</div>
-    }
-
-    return <CreatorPage username={username} />
-  } catch {
-    // Fallback to props drilling if context isn't available
-    console.log('Using fallback props-based approach')
-
-    // Get username either from pageContext prop or from routeParams directly
-    const username = props.pageContext?.routeParams?.username || props.routeParams?.username
-
-    if (!username) {
-      console.error('Username not found in props', props)
-      return <div>Error: Creator not found</div>
-    }
-
-    return <CreatorPage username={username} />
+  if (!username) {
+    return (
+      <SidebarLayout>
+        <div className="mx-auto max-w-7xl px-4 py-10">
+          <p className="text-center text-muted-foreground">
+            Nao foi possivel identificar o criador.
+          </p>
+        </div>
+      </SidebarLayout>
+    )
   }
+
+  return <CreatorPage username={username} />
 }
 
 function CreatorPage({ username }: { username: string }) {
-  const [creatorData, setCreatorData] = useState<CreatorFull | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    console.log('Username in CreatorPage:', username)
-    if (!username) {
-      console.log('No username provided')
-      return
-    }
-
-    const found = mockCreatorsFull.find(
-      (c) => c.username?.toLowerCase().trim() === username.toLowerCase().trim(),
-    )
-    console.log('Creator found:', found)
-    setCreatorData(found || null)
-    setLoading(false)
-  }, [username])
-
-  if (!username) return <p className="text-center">A carregar...</p>
-  if (loading) return <LoadingSpinner />
-  if (!creatorData) return <p className="text-center">Criador não encontrado.</p>
+  const normalizedUsername = username.toLowerCase().trim()
+  const found = mockCreatorsFull.find(
+    (creator) => creator.username?.toLowerCase().trim() === normalizedUsername,
+  )
+  const creatorData: CreatorFull = found ?? createFallbackCreator(username)
 
   return (
     <SidebarLayout>
       <div className="max-w-7xl mx-auto px-4 py-10 space-y-10">
-        {/* Welcome Video */}
-        {/* {creatorData.contentVisibility?.welcomeVideo && creatorData.mainVideo?.videoLink && (
-        <div className="w-full aspect-video">
-          <iframe
-            src={getEmbedUrl(creatorData.mainVideo.videoLink)}
-            className="w-full h-full rounded-lg"
-            allowFullScreen
-            title="Vídeo de Boas-Vindas"
-          />
-        </div>
-      )} */}
-
-        {/* Perfil do Criador */}
         <CreatorProfile
           creatorData={creatorData}
-          averageCreatorRating={5} // mock por agora
-          userRating={4} // mock por agora
-          submitRating={() => {}} // mock por agora
-          user={{ id: 'mock-user-id', role: 'RegularUser' }}
+          averageCreatorRating={creatorData.averageRating ?? 0}
+          userRating={0}
+          submitRating={() => {}}
+          user={{ id: 'visitor', role: 'visitor' }}
         />
 
-        {/* Secções de Conteúdos */}
         <ContentSections
           creatorData={creatorData}
           contentVisibility={creatorData.contentVisibility}

@@ -23,7 +23,7 @@ export default function ShowBooks() {
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
         {allBooks.map((book) => (
           <BookCard
-            key={book._id}
+            key={book.id}
             book={book}
             averageRating={book.averageRating}
             reviews={book.reviews}
