@@ -2,8 +2,8 @@ import { useEffect } from 'react'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { UserRole } from '@/features/auth/types'
 import { PublicLayout, UserLayout } from '../shared/layouts'
-import { ThemeProvider } from '../components/providers/ThemeProvider'
-import type { PageContext } from '../types/pageContext'
+import { ThemeProvider } from '../shared/providers/ThemeProvider'
+import type { PageContext } from '../lib/types/pageContext'
 import React from 'react'
 import { ToastContainer } from 'react-toastify'
 import { QueryClientProvider } from '@tanstack/react-query'
@@ -44,21 +44,21 @@ export function PageShell({ children, pageContext }: Props) {
     <PageContextContext.Provider value={pageContext}>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
-        <TooltipProvider>
-          <Layout>
-            {children}
-            <ToastContainer
-              position="top-right"
-              autoClose={3000}
-              hideProgressBar={false}
-              closeOnClick
-              pauseOnHover
-              theme="colored"
-            />
+          <TooltipProvider>
+            <Layout>
+              {children}
+              <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                closeOnClick
+                pauseOnHover
+                theme="colored"
+              />
             </Layout>
             {/* Dev Tools - Só aparece em desenvolvimento */}
             <DevUserSwitcher />
-            </TooltipProvider>
+          </TooltipProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </PageContextContext.Provider>

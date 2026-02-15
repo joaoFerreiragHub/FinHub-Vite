@@ -63,79 +63,87 @@ export enum Permission {
  * Matriz de Permissões por Role
  * Cada role tem um conjunto específico de permissões
  */
+
+// Definir permissões de cada role sequencialmente para evitar referências circulares
+const VISITOR_PERMISSIONS: Permission[] = [
+  // HUB - Acesso limitado a conteúdo público
+  Permission.VIEW_ARTICLES, // Apenas artigos públicos
+  Permission.VIEW_COURSES, // Apenas cursos públicos
+  Permission.VIEW_VIDEOS, // Apenas vídeos públicos
+  Permission.VIEW_EVENTS,
+  Permission.VIEW_FORUM,
+
+  // TOOLS - Acesso limitado
+  Permission.USE_CALCULATORS, // Sem salvar
+]
+
+const FREE_PERMISSIONS: Permission[] = [
+  // Herda tudo de VISITOR +
+  ...VISITOR_PERMISSIONS,
+
+  // HUB - Mais conteúdo
+  Permission.FOLLOW_CREATORS,
+  Permission.ENROLL_COURSES,
+  Permission.REGISTER_EVENTS,
+
+  // TOOLS - Pode salvar
+  Permission.SAVE_CALCULATIONS,
+  Permission.CREATE_PORTFOLIO,
+
+  // SOCIAL - Pode interagir
+  Permission.POST_COMMENTS,
+  Permission.RATE_CONTENT,
+  Permission.POST_FORUM,
+]
+
+const PREMIUM_PERMISSIONS: Permission[] = [
+  // Herda tudo de FREE +
+  ...FREE_PERMISSIONS,
+
+  // HUB - Acesso total ao conteúdo
+  Permission.VIEW_ARTICLES_PREMIUM,
+  Permission.VIEW_COURSES_PREMIUM,
+  Permission.VIEW_VIDEOS_PREMIUM,
+
+  // TOOLS - Analytics avançado
+  Permission.ADVANCED_ANALYTICS,
+
+  // SOCIAL - Chat
+  Permission.USE_CHAT,
+  Permission.CREATE_TOPICS,
+]
+
+const CREATOR_PERMISSIONS: Permission[] = [
+  // Herda tudo de PREMIUM +
+  ...PREMIUM_PERMISSIONS,
+
+  // HUB - Pode criar conteúdo
+  Permission.CREATE_ARTICLES,
+  Permission.EDIT_ARTICLES,
+  Permission.CREATE_COURSES,
+  Permission.EDIT_COURSES,
+  Permission.UPLOAD_VIDEOS,
+  Permission.CREATE_EVENTS,
+  Permission.MANAGE_CREATOR_PAGE,
+]
+
+const ADMIN_PERMISSIONS: Permission[] = [
+  // Herda tudo de CREATOR +
+  ...CREATOR_PERMISSIONS,
+
+  // ADMIN - Acesso total
+  Permission.ADMIN_PANEL,
+  Permission.MANAGE_USERS,
+  Permission.MANAGE_CONTENT,
+  Permission.DELETE_ARTICLES,
+]
+
 export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
-  [UserRole.VISITOR]: [
-    // HUB - Acesso limitado a conteúdo público
-    Permission.VIEW_ARTICLES, // Apenas artigos públicos
-    Permission.VIEW_COURSES, // Apenas cursos públicos
-    Permission.VIEW_VIDEOS, // Apenas vídeos públicos
-    Permission.VIEW_EVENTS,
-    Permission.VIEW_FORUM,
-
-    // TOOLS - Acesso limitado
-    Permission.USE_CALCULATORS, // Sem salvar
-  ],
-
-  [UserRole.FREE]: [
-    // Herda tudo de VISITOR +
-    ...ROLE_PERMISSIONS[UserRole.VISITOR],
-
-    // HUB - Mais conteúdo
-    Permission.FOLLOW_CREATORS,
-    Permission.ENROLL_COURSES,
-    Permission.REGISTER_EVENTS,
-
-    // TOOLS - Pode salvar
-    Permission.SAVE_CALCULATIONS,
-    Permission.CREATE_PORTFOLIO,
-
-    // SOCIAL - Pode interagir
-    Permission.POST_COMMENTS,
-    Permission.RATE_CONTENT,
-    Permission.POST_FORUM,
-  ],
-
-  [UserRole.PREMIUM]: [
-    // Herda tudo de FREE +
-    ...ROLE_PERMISSIONS[UserRole.FREE],
-
-    // HUB - Acesso total ao conteúdo
-    Permission.VIEW_ARTICLES_PREMIUM,
-    Permission.VIEW_COURSES_PREMIUM,
-    Permission.VIEW_VIDEOS_PREMIUM,
-
-    // TOOLS - Analytics avançado
-    Permission.ADVANCED_ANALYTICS,
-
-    // SOCIAL - Chat
-    Permission.USE_CHAT,
-    Permission.CREATE_TOPICS,
-  ],
-
-  [UserRole.CREATOR]: [
-    // Herda tudo de PREMIUM +
-    ...ROLE_PERMISSIONS[UserRole.PREMIUM],
-
-    // HUB - Pode criar conteúdo
-    Permission.CREATE_ARTICLES,
-    Permission.EDIT_ARTICLES,
-    Permission.CREATE_COURSES,
-    Permission.EDIT_COURSES,
-    Permission.UPLOAD_VIDEOS,
-    Permission.CREATE_EVENTS,
-    Permission.MANAGE_CREATOR_PAGE,
-  ],
-
-  [UserRole.ADMIN]: [
-    // Herda tudo de CREATOR +
-    ...ROLE_PERMISSIONS[UserRole.CREATOR],
-
-    // ADMIN - Acesso total
-    Permission.ADMIN_PANEL,
-    Permission.MANAGE_USERS,
-    Permission.MANAGE_CONTENT,
-    Permission.DELETE_ARTICLES,
-  ],
+  [UserRole.VISITOR]: VISITOR_PERMISSIONS,
+  [UserRole.FREE]: FREE_PERMISSIONS,
+  [UserRole.PREMIUM]: PREMIUM_PERMISSIONS,
+  [UserRole.CREATOR]: CREATOR_PERMISSIONS,
+  [UserRole.ADMIN]: ADMIN_PERMISSIONS,
 }
 
 /**

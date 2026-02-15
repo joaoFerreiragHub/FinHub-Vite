@@ -1,23 +1,22 @@
-import ProtectedRoute from "@/shared/guards"
-import CreatorSidebar from "../../../components/creators/sidebar/creatorSidebar"
+import { ProtectedRoute } from '@/shared/guards'
+import CreatorSidebar from '@/features/creators/components/sidebar/creatorSidebar'
 
-import ContentSummaryCard from "../../../components/creators/dashboard/ContentSummaryCard"
-import XPProgressCard from "../../../components/creators/dashboard/XPProgressCard"
-import RecentInteractionsCard from "../../../components/creators/dashboard/RecentInteractionsCard"
-import HelpCard from "../../../components/creators/dashboard/HelpCard"
-import FeedbackCard from "../../../components/creators/dashboard/FeedbackCard"
-import MissionCard from "../../../components/creators/dashboard/MissionCard"
-import RankingCard from "../../../components/creators/dashboard/RankingCard"
-import TopContentCard from "../../../components/creators/dashboard/TopContentCard"
-import VisualizationsChartCard from "../../../components/creators/dashboard/VisualizationsChartCard"
-import FeedbackChartCard from "../../../components/creators/dashboard/FeedbackCard"
-import ChecklistCard from "../../../components/creators/dashboard/ChecklistCard"
-import ContentTrendsCard from "../../../components/creators/dashboard/ContentTrendsCard"
-import CampaignSummaryCard from "../../../components/creators/dashboard/CampaignSummaryCard"
-import CampaignInsightsCard from "../../../components/creators/dashboard/CampaignInsightsCard"
-import { Button } from "../../../components/ui/button"
-import { PlusCircle } from "lucide-react"
-
+import ContentSummaryCard from '@/features/creators/components/dashboard/ContentSummaryCard'
+import XPProgressCard from '@/features/creators/components/dashboard/XPProgressCard'
+import RecentInteractionsCard from '@/features/creators/components/dashboard/RecentInteractionsCard'
+import HelpCard from '@/features/creators/components/dashboard/HelpCard'
+import FeedbackCard from '@/features/creators/components/dashboard/FeedbackCard'
+import MissionCard from '@/features/creators/components/dashboard/MissionCard'
+import RankingCard from '@/features/creators/components/dashboard/RankingCard'
+import TopContentCard from '@/features/creators/components/dashboard/TopContentCard'
+import VisualizationsChartCard from '@/features/creators/components/dashboard/VisualizationsChartCard'
+import FeedbackChartCard from '@/features/creators/components/dashboard/FeedbackCard'
+import ChecklistCard from '@/features/creators/components/dashboard/ChecklistCard'
+import ContentTrendsCard from '@/features/creators/components/dashboard/ContentTrendsCard'
+import CampaignSummaryCard from '@/features/creators/components/dashboard/CampaignSummaryCard'
+import CampaignInsightsCard from '@/features/creators/components/dashboard/CampaignInsightsCard'
+import { Button } from '@/components/ui'
+import { PlusCircle } from 'lucide-react'
 
 function DashboardPage() {
   return (
@@ -39,7 +38,7 @@ function DashboardPage() {
               <FeedbackChartCard />
             </div>
           </section>
-{/* Secção:Marketing & Publicidade */}
+          {/* Secção:Marketing & Publicidade */}
           <section>
             <h2 className="text-lg font-semibold mb-2">Marketing & Publicidade</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -49,7 +48,6 @@ function DashboardPage() {
                 <PlusCircle className="w-4 h-4 mr-2" />
                 Criar Nova Campanha
               </Button>
-
             </div>
           </section>
 
@@ -71,7 +69,7 @@ function DashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ChecklistCard />
               <ContentTrendsCard />
-                 <FeedbackCard />
+              <FeedbackCard />
               <HelpCard />
             </div>
           </section>

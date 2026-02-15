@@ -1,8 +1,8 @@
 import { type HTMLAttributes } from 'react'
-import { cn } from '@/lib/utils/cn'
+import { cn } from '@/lib/utils'
 import { type BaseContent } from '../../types'
 import { ContentCard, type ContentCardProps } from './ContentCard'
-import { Button } from '@/shared/ui'
+import { Button } from '@/components/ui'
 
 export interface ContentListProps<T extends BaseContent = BaseContent>
   extends HTMLAttributes<HTMLDivElement> {
@@ -113,7 +113,7 @@ export function ContentList<T extends BaseContent = BaseContent>({
         className={cn(
           variant === 'grid' && `grid gap-6 ${gridClasses[columns]}`,
           variant === 'list' && 'flex flex-col gap-4',
-          variant === 'masonry' && 'columns-1 gap-6 md:columns-2 lg:columns-3'
+          variant === 'masonry' && 'columns-1 gap-6 md:columns-2 lg:columns-3',
         )}
       >
         {items.map((item) => (
@@ -138,12 +138,7 @@ export function ContentList<T extends BaseContent = BaseContent>({
       {/* Load More Button */}
       {showPagination && hasMore && !isLoading && (
         <div className="flex justify-center pt-4">
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={onLoadMore}
-            disabled={isLoading}
-          >
+          <Button variant="outline" size="lg" onClick={onLoadMore} disabled={isLoading}>
             Carregar mais
           </Button>
         </div>

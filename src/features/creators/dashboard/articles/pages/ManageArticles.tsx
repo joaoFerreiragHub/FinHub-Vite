@@ -1,8 +1,14 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Button, Card } from '@/shared/ui'
+import { Button, Card } from '@/components/ui'
 import { DashboardLayout } from '@/shared/layouts'
-import { useMyArticles, useDeleteArticle, usePublishArticle } from '@/features/hub/articles/hooks/useArticles'
+import {
+  useMyArticles,
+  useDeleteArticle,
+  usePublishArticle,
+} from '@/features/hub/articles/hooks/useArticles'
+import { formatDistanceToNow } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
 /**
  * Página de gestão de artigos do creator
@@ -43,9 +49,7 @@ export function ManageArticles() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Gerir Artigos</h1>
-            <p className="mt-1 text-muted-foreground">
-              Cria e gere os teus artigos educativos
-            </p>
+            <p className="mt-1 text-muted-foreground">Cria e gere os teus artigos educativos</p>
           </div>
 
           <Link to="/creators/dashboard/artigos/criar">
@@ -56,7 +60,7 @@ export function ManageArticles() {
         </div>
 
         {/* Filters */}
-        <Card padding="default">
+        <Card className="p-6">
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium">Estado:</label>
@@ -104,23 +108,23 @@ export function ManageArticles() {
         {/* Stats */}
         {data && (
           <div className="grid gap-4 md:grid-cols-4">
-            <Card padding="default">
+            <Card className="p-6">
               <div className="text-2xl font-bold">{data.total}</div>
               <div className="text-sm text-muted-foreground">Total de Artigos</div>
             </Card>
-            <Card padding="default">
+            <Card className="p-6">
               <div className="text-2xl font-bold">
                 {data.items.filter((a) => a.status === 'published').length}
               </div>
               <div className="text-sm text-muted-foreground">Publicados</div>
             </Card>
-            <Card padding="default">
+            <Card className="p-6">
               <div className="text-2xl font-bold">
                 {data.items.filter((a) => a.status === 'draft').length}
               </div>
               <div className="text-sm text-muted-foreground">Rascunhos</div>
             </Card>
-            <Card padding="default">
+            <Card className="p-6">
               <div className="text-2xl font-bold">
                 {data.items.reduce((sum, a) => sum + a.viewCount, 0)}
               </div>
@@ -135,7 +139,7 @@ export function ManageArticles() {
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
           </div>
         ) : data?.items.length === 0 ? (
-          <Card padding="lg" className="text-center">
+          <Card className="p-8 text-center">
             <svg
               className="mx-auto mb-4 h-16 w-16 text-muted-foreground"
               fill="none"
@@ -160,7 +164,7 @@ export function ManageArticles() {
         ) : (
           <div className="space-y-4">
             {data?.items.map((article) => (
-              <Card key={article.id} padding="default" hoverable>
+              <Card key={article.id} className="p-6 transition-shadow hover:shadow-md">
                 <div className="flex items-start gap-4">
                   {/* Cover Image */}
                   {article.coverImage && (
@@ -187,15 +191,15 @@ export function ManageArticles() {
                           article.status === 'published'
                             ? 'bg-green-100 text-green-800'
                             : article.status === 'draft'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-gray-100 text-gray-800'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-gray-100 text-gray-800'
                         }`}
                       >
                         {article.status === 'published'
                           ? 'Publicado'
                           : article.status === 'draft'
-                          ? 'Rascunho'
-                          : 'Arquivado'}
+                            ? 'Rascunho'
+                            : 'Arquivado'}
                       </span>
                     </div>
 
@@ -203,7 +207,9 @@ export function ManageArticles() {
                     <div className="mb-3 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                       <span>👁️ {article.viewCount} visualizações</span>
                       <span>❤️ {article.likeCount} likes</span>
-                      <span>⭐ {article.averageRating.toFixed(1)} ({article.ratingCount})</span>
+                      <span>
+                        ⭐ {article.averageRating.toFixed(1)} ({article.ratingCount})
+                      </span>
                       <span>💬 {article.commentCount} comentários</span>
                       <span>
                         {formatDistanceToNow(new Date(article.updatedAt), {

@@ -1,6 +1,6 @@
-// src/components/noticias/hooks/useNewsIncremental.ts
+// src/features/hub/news/stores/useNewsIncremental.ts
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useNewsSelectors, useNewsStore } from '../useNewsStore'
+import { useNewsSelectors, useNewsStore } from './useNewsStore'
 
 interface UseNewsIncrementalOptions {
   scrollThreshold?: number

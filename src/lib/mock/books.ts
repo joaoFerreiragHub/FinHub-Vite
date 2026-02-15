@@ -1,144 +1,149 @@
-// src/mock/books.ts
+import type { Book } from '@/features/hub/books/types'
+import { ContentType, ContentCategory, PublishStatus } from '@/features/hub/types'
 
-export const mockBooks = [
+export const mockBooks: Book[] = [
   {
-    _id: 'book1',
-    title: 'O Homem Mais Rico da Babilónia',
-    author: 'George S. Clason',
+    id: 'book-1',
+    type: ContentType.BOOK,
+    slug: 'o-homem-mais-rico-da-babilonia',
+    title: 'O Homem Mais Rico da Babilonia',
+    description:
+      'Principios financeiros antigos que continuam a guiar milhoes de pessoas para a independencia financeira. Atraves de parabolas ambientadas na antiga Babilonia, George S. Clason ensina licoes atemporais sobre poupanca, investimento e gestao financeira.',
+    excerpt: 'Principios atemporais de riqueza e poupanca',
     coverImage: 'https://m.media-amazon.com/images/I/81TR4j3QWDL._AC_UF1000,1000_QL80_.jpg',
-    summary:
-      'Princípios financeiros antigos que continuam a guiar milhões de pessoas para a independência financeira.',
-    genres: ['Finanças Pessoais', 'Desenvolvimento Pessoal'],
+
+    creator: { id: 'creator-1', name: 'Pedro Santos', username: 'pedro-santos' },
+    creatorId: 'creator-1',
+
+    category: ContentCategory.PERSONAL_FINANCE,
+    tags: ['financas', 'poupanca', 'classico', 'iniciantes'],
+
+    viewCount: 450,
+    likeCount: 78,
+    favoriteCount: 52,
+    shareCount: 23,
     averageRating: 4.6,
-    ratings: [
-      { userId: { _id: 'user1' }, rating: 5 },
-      { userId: { _id: 'user2' }, rating: 4 },
+    ratingCount: 34,
+    reviewCount: 34,
+    commentCount: 8,
+    commentsEnabled: true,
+
+    requiredRole: 'visitor',
+    isPremium: false,
+    isFeatured: true,
+
+    status: PublishStatus.PUBLISHED,
+    isPublished: true,
+    publishedAt: '2025-06-15T10:00:00Z',
+    createdAt: '2025-06-10T14:00:00Z',
+    updatedAt: '2026-01-10T10:00:00Z',
+
+    author: 'George S. Clason',
+    publisher: 'Presenca',
+    publishYear: 1926,
+    pages: 144,
+    isbn: '978-9722340731',
+    genres: ['Financas Pessoais', 'Desenvolvimento Pessoal'],
+    keyPhrases: [
+      'Uma parte de tudo o que ganhas e tua para guardar',
+      'A riqueza cresce onde quer que homens de energia e iniciativa a procurem',
+      'O ouro foge do homem que o investe em negocios que nao conhece',
     ],
-    reviews: [
-      {
-        userId: { _id: 'user1' },
-        review: 'Excelente para quem quer começar a entender como gerir dinheiro.',
-      },
-      {
-        userId: { _id: 'user2' },
-        review: 'Simples e prático, mas repetitivo em alguns pontos.',
-      },
-    ],
+    purchaseUrl: 'https://www.amazon.pt/dp/9722340735',
   },
   {
-    _id: 'book2',
+    id: 'book-2',
+    type: ContentType.BOOK,
+    slug: 'pai-rico-pai-pobre',
     title: 'Pai Rico, Pai Pobre',
-    author: 'Robert T. Kiyosaki',
+    description:
+      'Descobre o que os ricos ensinam aos filhos sobre dinheiro que os pobres e a classe media nao sabem. Robert Kiyosaki partilha a sua experiencia com dois pais: o seu pai biologico e o pai do seu melhor amigo.',
+    excerpt: 'O que os ricos ensinam sobre dinheiro',
     coverImage: 'https://m.media-amazon.com/images/I/81bsw6fnUiL._AC_UF1000,1000_QL80_.jpg',
-    summary:
-      'Descobre o que os ricos ensinam aos filhos sobre dinheiro — que os pobres e a classe média não sabem.',
-    genres: ['Finanças', 'Educação Financeira'],
+
+    creator: { id: 'creator-1', name: 'Pedro Santos', username: 'pedro-santos' },
+    creatorId: 'creator-1',
+
+    category: ContentCategory.PERSONAL_FINANCE,
+    tags: ['educacao-financeira', 'investimento', 'mindset'],
+
+    viewCount: 680,
+    likeCount: 92,
+    favoriteCount: 61,
+    shareCount: 35,
     averageRating: 4.2,
-    ratings: [
-      { userId: { _id: 'user3' }, rating: 4 },
-      { userId: { _id: 'user4' }, rating: 4.5 },
+    ratingCount: 45,
+    reviewCount: 45,
+    commentCount: 15,
+    commentsEnabled: true,
+
+    requiredRole: 'visitor',
+    isPremium: false,
+    isFeatured: true,
+
+    status: PublishStatus.PUBLISHED,
+    isPublished: true,
+    publishedAt: '2025-07-01T10:00:00Z',
+    createdAt: '2025-06-25T11:00:00Z',
+    updatedAt: '2026-01-05T09:00:00Z',
+
+    author: 'Robert T. Kiyosaki',
+    publisher: 'Objetiva',
+    publishYear: 1997,
+    pages: 336,
+    isbn: '978-9724622491',
+    genres: ['Financas', 'Educacao Financeira'],
+    keyPhrases: [
+      'Os ricos nao trabalham por dinheiro, fazem o dinheiro trabalhar para eles',
+      'Ativos poem dinheiro no teu bolso, passivos tiram dinheiro do teu bolso',
     ],
-    reviews: [
-      {
-        userId: { _id: 'user3' },
-        review: 'Uma nova perspectiva sobre dinheiro e ativos.',
-      },
-    ],
+    purchaseUrl: 'https://www.amazon.pt/dp/9724622495',
   },
   {
-    _id: 'book3',
+    id: 'book-3',
+    type: ContentType.BOOK,
+    slug: 'liberdade-financeira',
     title: 'Liberdade Financeira',
-    author: 'Tony Robbins',
+    description:
+      'Estrategias praticas para alcancar a independencia financeira baseadas em entrevistas com os maiores especialistas financeiros do mundo.',
+    excerpt: 'Guia completo para a independencia financeira',
     coverImage: 'https://m.media-amazon.com/images/I/81xU2oc4HXL._AC_UF1000,1000_QL80_.jpg',
-    summary:
-      'Estratégias práticas para alcançar a independência financeira baseadas em entrevistas com especialistas.',
-    genres: ['Investimento', 'Finanças'],
+
+    creator: { id: 'creator-2', name: 'Ana Costa', username: 'ana-costa' },
+    creatorId: 'creator-2',
+
+    category: ContentCategory.ADVANCED,
+    tags: ['investimento', 'liberdade-financeira', 'estrategia'],
+
+    viewCount: 320,
+    likeCount: 55,
+    favoriteCount: 38,
+    shareCount: 18,
     averageRating: 4.8,
-    ratings: [{ userId: { _id: 'user5' }, rating: 5 }],
-    reviews: [
-      {
-        userId: { _id: 'user5' },
-        review: 'Transformador! Um guia completo com dicas acionáveis.',
-      },
+    ratingCount: 22,
+    reviewCount: 22,
+    commentCount: 6,
+    commentsEnabled: true,
+
+    requiredRole: 'free',
+    isPremium: false,
+    isFeatured: false,
+
+    status: PublishStatus.PUBLISHED,
+    isPublished: true,
+    publishedAt: '2025-08-10T10:00:00Z',
+    createdAt: '2025-08-05T14:00:00Z',
+    updatedAt: '2026-01-20T12:00:00Z',
+
+    author: 'Tony Robbins',
+    publisher: 'Lua de Papel',
+    publishYear: 2014,
+    pages: 688,
+    genres: ['Investimento', 'Financas'],
+    keyPhrases: [
+      'A diversificacao e a unica estrategia gratuita no mundo dos investimentos',
+      'Nao se trata de quanto ganhas, mas de quanto guardas',
     ],
-  },
-  {
-    _id: '41e8fc56-3644-46ef-a95f-623bffdc01be',
-    title: 'Recusandae eveniet',
-    author: 'Jaime Pires',
-    coverImage: 'https://placehold.co/300x450?text=Livro',
-    summary:
-      'Assumenda possimus pariatur ad eius quisquam. Ducimus deleniti aliquid tempore. Aperiam suscipit voluptatem quae deserunt quas.',
-    genres: ['Educação Financeira', 'Desenvolvimento Pessoal'],
-    averageRating: 4.6,
-    ratings: [{ userId: { _id: 'user1' }, rating: 4.5 }],
-    reviews: [
-      { userId: { _id: 'user2' }, review: 'Porro sequi iure facilis delectus explicabo.' },
-      { userId: { _id: 'user3' }, review: 'Corrupti laudantium reprehenderit.' },
-      { userId: { _id: 'user4' }, review: 'Nam impedit quia illo libero pariatur.' },
-    ],
-  },
-  {
-    _id: '6dc046c0-2f1b-4c06-897c-b877aa2991d9',
-    title: 'Officia ex corporis deserunt',
-    author: 'Valentina Guerreiro',
-    coverImage: 'https://placehold.co/300x450?text=Livro',
-    summary: 'Suscipit debitis minima odio quidem. Recusandae beatae maiores consequuntur odio.',
-    genres: ['Desenvolvimento Pessoal', 'Economia Comportamental'],
-    averageRating: 4.9,
-    ratings: [
-      { userId: { _id: 'user5' }, rating: 3.2 },
-      { userId: { _id: 'user6' }, rating: 3.5 },
-    ],
-    reviews: [
-      { userId: { _id: 'user7' }, review: 'Animi praesentium eius soluta pariatur.' },
-      { userId: { _id: 'user8' }, review: 'Explicabo quis libero fugiat facere eos.' },
-      { userId: { _id: 'user9' }, review: 'Vitae facilis voluptatum aliquam omnis.' },
-    ],
-  },
-  {
-    _id: 'e7f2089d-afd0-411b-98d2-dfdb90753993',
-    title: 'Recusandae blanditiis corporis',
-    author: 'Isaac do Matias',
-    coverImage: 'https://placehold.co/300x450?text=Livro',
-    summary: 'Nihil quia rem dolorem quaerat. Unde recusandae voluptates molestiae ipsam libero.',
-    genres: ['Economia Comportamental', 'Finanças'],
-    averageRating: 4.3,
-    ratings: [{ userId: { _id: 'user10' }, rating: 3.9 }],
-    reviews: [
-      { userId: { _id: 'user11' }, review: 'Consequuntur enim numquam incidunt corrupti.' },
-    ],
-  },
-  {
-    _id: '8d3e6b88-9a8a-41e6-8103-c574a6f40376',
-    title: 'Officiis ratione nostrum facilis',
-    author: 'Ivo Lopes',
-    coverImage: 'https://placehold.co/300x450?text=Livro',
-    summary:
-      'Maiores eos blanditiis veritatis. Vel incidunt consectetur explicabo atque beatae sequi.',
-    genres: ['Educação Financeira', 'Finanças'],
-    averageRating: 4.6,
-    ratings: [{ userId: { _id: 'user12' }, rating: 4.1 }],
-    reviews: [
-      { userId: { _id: 'user13' }, review: 'Delectus labore quis accusantium fugiat.' },
-      {
-        userId: { _id: 'user14' },
-        review: 'Quaerat dolores corrupti excepturi exercitationem voluptatum rerum.',
-      },
-    ],
-  },
-  {
-    _id: '4f4d931d-b587-48fb-a0ea-ebebc020eac6',
-    title: 'Quis nesciunt dicta nam architecto',
-    author: 'Vítor Freitas',
-    coverImage: 'https://placehold.co/300x450?text=Livro',
-    summary: 'Consequuntur voluptate doloribus atque beatae ea. Labore quibusdam eos dicta.',
-    genres: ['Economia Comportamental', 'Investimento'],
-    averageRating: 4.5,
-    ratings: [
-      { userId: { _id: 'user15' }, rating: 3.7 },
-      { userId: { _id: 'user16' }, rating: 4.8 },
-    ],
-    reviews: [{ userId: { _id: 'user17' }, review: 'Quos saepe sed porro.' }],
+    purchaseUrl: 'https://www.amazon.pt/dp/9892330185',
   },
 ]

@@ -1,12 +1,6 @@
-export interface Course {
-  _id: string
-  courseName: string
-  description: string
-  price: number
-  topic: string
-  bannerImage?: File | string
-  purchaseLink?: string
-  status: "draft" | "published"
-  hidden?: boolean // <- novo campo
-  views: number
-}
+/**
+ * @deprecated Importar directamente de '@/features/hub/courses/types'
+ * Este ficheiro existe apenas para compatibilidade com imports legados.
+ * Será eliminado quando os 5 ficheiros restantes forem migrados.
+ */
+export type { Course } from './index'

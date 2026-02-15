@@ -47,6 +47,28 @@ export function useUpdateCourse() {
   })
 }
 
+export function useDeleteCourse() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => courseService.deleteCourse(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['courses'] })
+      queryClient.invalidateQueries({ queryKey: ['my-courses'] })
+    },
+  })
+}
+
+export function usePublishCourse() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => courseService.publishCourse(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['courses'] })
+      queryClient.invalidateQueries({ queryKey: ['my-courses'] })
+    },
+  })
+}
+
 export function useEnrollCourse() {
   const queryClient = useQueryClient()
   return useMutation({

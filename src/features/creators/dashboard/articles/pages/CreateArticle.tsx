@@ -1,7 +1,7 @@
 import { DashboardLayout } from '@/shared/layouts'
 import { ArticleForm } from '../components/ArticleForm'
 import { useCreateArticle } from '@/features/hub/articles/hooks/useArticles'
-import { Card } from '@/shared/ui'
+import { Card } from '@/components/ui'
 import type { CreateArticleDto } from '@/features/hub/articles/types'
 
 /**
@@ -26,12 +26,12 @@ export function CreateArticle() {
         </div>
 
         {/* Form */}
-        <Card padding="lg">
+        <Card className="p-8">
           <ArticleForm onSubmit={handleSubmit} submitText="Publicar Artigo" />
         </Card>
 
         {/* Tips */}
-        <Card padding="default" variant="ghost">
+        <Card className="border-dashed bg-muted/30 p-6">
           <h3 className="mb-2 font-semibold">💡 Dicas para um bom artigo</h3>
           <ul className="space-y-1 text-sm text-muted-foreground">
             <li>✅ Usa um título claro e descritivo</li>

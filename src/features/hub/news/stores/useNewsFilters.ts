@@ -2,7 +2,7 @@
 
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { NewsArticle, NewsFilters } from '../../types/news'
+import { NewsArticle, NewsFilters } from '~/features/hub/news/types/news'
 
 // ===== INTERFACES =====
 export interface FilterHistoryItem {

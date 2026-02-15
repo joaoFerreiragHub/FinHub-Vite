@@ -1,6 +1,6 @@
 import { type HTMLAttributes, useState } from 'react'
-import { cn } from '@/lib/utils/cn'
-import { Button } from '@/shared/ui'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui'
 import { usePermissions } from '@/features/auth/hooks/usePermissions'
 import { Permission } from '@/lib/permissions/config'
 
@@ -137,11 +137,7 @@ export function ContentActions({
 
   return (
     <div
-      className={cn(
-        'flex gap-2',
-        orientation === 'vertical' && 'flex-col',
-        className
-      )}
+      className={cn('flex gap-2', orientation === 'vertical' && 'flex-col', className)}
       {...props}
     >
       {/* Like */}
@@ -153,7 +149,7 @@ export function ContentActions({
         className={cn(
           'gap-2',
           isLiked && 'text-red-500',
-          !canInteract && 'cursor-not-allowed opacity-50'
+          !canInteract && 'cursor-not-allowed opacity-50',
         )}
       >
         <svg
@@ -182,7 +178,7 @@ export function ContentActions({
         className={cn(
           'gap-2',
           isFavorited && 'text-yellow-500',
-          !canInteract && 'cursor-not-allowed opacity-50'
+          !canInteract && 'cursor-not-allowed opacity-50',
         )}
       >
         <svg

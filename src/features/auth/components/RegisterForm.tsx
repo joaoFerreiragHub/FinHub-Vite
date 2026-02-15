@@ -4,18 +4,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/useAuthStore'
 import { registerSchema, type RegisterFormData } from '../schemas/authSchemas'
-import { Button, Input } from '@/shared/ui'
-import { getErrorMessage } from '@/lib/api'
+import { Button, Input, Label } from '@/components/ui'
+import { getErrorMessage } from '@/lib/api/client'
 
-/**
- * Formulário de Registro
- *
- * @example
- * <RegisterForm />
- */
 export function RegisterForm() {
   const navigate = useNavigate()
-  const register_action = useAuthStore((state) => state.register)
+  const registerAction = useAuthStore((state) => state.register)
   const [serverError, setServerError] = useState<string | null>(null)
 
   const {
@@ -38,9 +32,7 @@ export function RegisterForm() {
     setServerError(null)
 
     try {
-      await register_action(data)
-
-      // Redirecionar para dashboard
+      await registerAction(data)
       navigate('/dashboard', { replace: true })
     } catch (error) {
       setServerError(getErrorMessage(error))
@@ -49,7 +41,6 @@ export function RegisterForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      {/* Server Error */}
       {serverError && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
           <p className="font-medium">Erro ao criar conta</p>
@@ -57,90 +48,80 @@ export function RegisterForm() {
         </div>
       )}
 
-      {/* Name */}
-      <Input
-        label="Nome"
-        type="text"
-        placeholder="João"
-        error={errors.name?.message}
-        {...register('name')}
-      />
+      <div className="space-y-2">
+        <Label htmlFor="name">Nome</Label>
+        <Input id="name" type="text" placeholder="Joao" {...register('name')} />
+        {errors.name?.message && <p className="text-sm text-destructive">{errors.name.message}</p>}
+      </div>
 
-      {/* Last Name */}
-      <Input
-        label="Apelido (opcional)"
-        type="text"
-        placeholder="Silva"
-        error={errors.lastName?.message}
-        {...register('lastName')}
-      />
+      <div className="space-y-2">
+        <Label htmlFor="lastName">Apelido (opcional)</Label>
+        <Input id="lastName" type="text" placeholder="Silva" {...register('lastName')} />
+        {errors.lastName?.message && (
+          <p className="text-sm text-destructive">{errors.lastName.message}</p>
+        )}
+      </div>
 
-      {/* Email */}
-      <Input
-        label="Email"
-        type="email"
-        placeholder="seu@email.com"
-        error={errors.email?.message}
-        helperText="Enviaremos um email de confirmação"
-        {...register('email')}
-      />
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input id="email" type="email" placeholder="seu@email.com" {...register('email')} />
+        <p className="text-xs text-muted-foreground">Enviaremos um email de confirmacao</p>
+        {errors.email?.message && (
+          <p className="text-sm text-destructive">{errors.email.message}</p>
+        )}
+      </div>
 
-      {/* Username */}
-      <Input
-        label="Username"
-        type="text"
-        placeholder="joaosilva"
-        error={errors.username?.message}
-        helperText="Apenas letras, números e underscore"
-        {...register('username')}
-      />
+      <div className="space-y-2">
+        <Label htmlFor="username">Username</Label>
+        <Input id="username" type="text" placeholder="joaosilva" {...register('username')} />
+        <p className="text-xs text-muted-foreground">Apenas letras, numeros e underscore</p>
+        {errors.username?.message && (
+          <p className="text-sm text-destructive">{errors.username.message}</p>
+        )}
+      </div>
 
-      {/* Password */}
-      <Input
-        label="Password"
-        type="password"
-        placeholder="••••••••"
-        error={errors.password?.message}
-        helperText="Mín. 8 caracteres, com maiúscula, minúscula e número"
-        {...register('password')}
-      />
+      <div className="space-y-2">
+        <Label htmlFor="password">Password</Label>
+        <Input id="password" type="password" placeholder="********" {...register('password')} />
+        <p className="text-xs text-muted-foreground">
+          Min. 8 caracteres, com maiuscula, minuscula e numero
+        </p>
+        {errors.password?.message && (
+          <p className="text-sm text-destructive">{errors.password.message}</p>
+        )}
+      </div>
 
-      {/* Confirm Password */}
-      <Input
-        label="Confirmar Password"
-        type="password"
-        placeholder="••••••••"
-        error={errors.confirmPassword?.message}
-        {...register('confirmPassword')}
-      />
+      <div className="space-y-2">
+        <Label htmlFor="confirmPassword">Confirmar Password</Label>
+        <Input
+          id="confirmPassword"
+          type="password"
+          placeholder="********"
+          {...register('confirmPassword')}
+        />
+        {errors.confirmPassword?.message && (
+          <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
+        )}
+      </div>
 
-      {/* Terms */}
       <div className="text-xs text-muted-foreground">
-        Ao criar uma conta, você concorda com os nossos{' '}
+        Ao criar uma conta, voce concorda com os nossos{' '}
         <Link to="/terms" className="text-primary hover:underline">
-          Termos de Serviço
+          Termos de Servico
         </Link>{' '}
         e{' '}
         <Link to="/privacy" className="text-primary hover:underline">
-          Política de Privacidade
+          Politica de Privacidade
         </Link>
         .
       </div>
 
-      {/* Submit Button */}
-      <Button
-        type="submit"
-        variant="default"
-        size="lg"
-        fullWidth
-        isLoading={isSubmitting}
-      >
+      <Button type="submit" variant="default" size="lg" className="w-full" isLoading={isSubmitting}>
         Criar Conta
       </Button>
 
-      {/* Login Link */}
       <div className="text-center text-sm text-muted-foreground">
-        Já tem conta?{' '}
+        Ja tem conta?{' '}
         <Link to="/auth/login" className="font-medium text-primary hover:underline">
           Fazer login
         </Link>

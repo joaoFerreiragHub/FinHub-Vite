@@ -1,16 +1,16 @@
 // src/pages/creators/content/gerir-reels/GerirReelsPage.tsx
 
-import ProtectedRoute from '@/shared/guards'
-import ReelsManagementPage from "../../../../components/creators/contentManagement/reels/reelsManager"
-import CreatorSidebar from "../../../../components/creators/sidebar/creatorSidebar"
+import { ProtectedRoute } from '@/shared/guards'
+import ReelsManagementPage from '@/features/creators/components/contentManagement/reels/reelsManager'
+import CreatorSidebar from '@/features/creators/components/sidebar/creatorSidebar'
 
-import { useUserStore } from "../../../../stores/useUserStore"
+import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 
 function GerirReelsPage() {
-  const { user, hydrated } = useUserStore()
-  const isDevelopment = process.env.NODE_ENV === "development"
+  const { user, hydrated } = useAuthStore()
+  const isDevelopment = process.env.NODE_ENV === 'development'
 
-  console.log("🎬 ~ Estado de hidratação:", hydrated, user)
+  console.log('🎬 ~ Estado de hidratação:', hydrated, user)
 
   if (!hydrated && !isDevelopment) {
     return (
@@ -22,7 +22,7 @@ function GerirReelsPage() {
   }
 
   return (
-    <ProtectedRoute allowedRoles={["creator", "admin"]}>
+    <ProtectedRoute allowedRoles={['creator', 'admin']}>
       <div className="flex min-h-screen">
         <CreatorSidebar />
         <main className="flex-1 p-6 space-y-6 bg-background text-foreground">

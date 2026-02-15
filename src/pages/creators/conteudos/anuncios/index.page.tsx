@@ -1,11 +1,11 @@
-import ProtectedRoute from '@/shared/guards'
-import AnnouncementsManager from '../../../../components/creators/contentManagement/announcements/announcementsManager'
+import { ProtectedRoute } from '@/shared/guards'
+import AnnouncementsManager from '@/features/creators/components/contentManagement/announcements/announcementsManager'
 
-import CreatorSidebar from '../../../../components/creators/sidebar/creatorSidebar'
-import { useUserStore } from '../../../../stores/useUserStore'
+import CreatorSidebar from '@/features/creators/components/sidebar/creatorSidebar'
+import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 
 function GerirConteudosPage() {
-  const { user, hydrated } = useUserStore()
+  const { user, hydrated } = useAuthStore()
 
   console.log('🚀 ~ file: index.page.tsx:8 ~ GerirConteudosPage ~ hydrated teste:', hydrated, user)
 

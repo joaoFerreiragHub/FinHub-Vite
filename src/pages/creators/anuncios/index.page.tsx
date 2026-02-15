@@ -1,10 +1,10 @@
-import ProtectedRoute from "@/shared/guards"
-import CreatorSidebar from "../../../components/creators/sidebar/creatorSidebar"
-import MarketingTabs from "../../../components/creators/marketing/MarketingTabs"
+import { ProtectedRoute } from '@/shared/guards'
+import CreatorSidebar from '@/features/creators/components/sidebar/creatorSidebar'
+import MarketingTabs from '@/features/creators/components/marketing/MarketingTabs'
 
 function PubPage() {
   return (
-    <ProtectedRoute allowedRoles={["creator", "admin"]}>
+    <ProtectedRoute allowedRoles={['creator', 'admin']}>
       <div className="flex min-h-screen">
         <CreatorSidebar />
         <main className="flex-1 bg-background text-foreground p-6">

@@ -1,5 +1,5 @@
 import { type HTMLAttributes } from 'react'
-import { cn } from '@/lib/utils/cn'
+import { cn } from '@/lib/utils'
 
 export interface RatingStarsProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'> {
   /**
@@ -71,11 +71,7 @@ export function RatingStars({
       <div className="flex gap-0.5">
         {[1, 2, 3, 4, 5].map((starValue) => {
           const fillPercentage =
-            roundedRating >= starValue
-              ? 100
-              : roundedRating >= starValue - 0.5
-              ? 50
-              : 0
+            roundedRating >= starValue ? 100 : roundedRating >= starValue - 0.5 ? 50 : 0
 
           return (
             <button
@@ -86,7 +82,7 @@ export function RatingStars({
               className={cn(
                 'relative',
                 interactive && 'cursor-pointer transition-transform hover:scale-110',
-                !interactive && 'cursor-default'
+                !interactive && 'cursor-default',
               )}
             >
               {/* Estrela vazia (background) */}
@@ -103,7 +99,7 @@ export function RatingStars({
                 className={cn(
                   sizeClasses[size],
                   'absolute left-0 top-0 text-yellow-400',
-                  'transition-all duration-200'
+                  'transition-all duration-200',
                 )}
                 fill="currentColor"
                 viewBox="0 0 20 20"

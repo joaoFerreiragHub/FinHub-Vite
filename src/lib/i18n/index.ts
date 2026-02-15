@@ -1,5 +1,5 @@
-import i18n from '@/lib/i18next'
-import { initReactI18next } from '@/lib/i18next'
+import i18n from 'i18next'
+import { initReactI18next } from 'react-i18next'
 import pt from './pt/common.json'
 import en from './en/common.json'
 

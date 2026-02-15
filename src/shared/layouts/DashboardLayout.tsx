@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { usePermissions } from '@/features/auth/hooks/usePermissions'
 import { UserRole, Permission } from '@/features/auth'
-import { Button } from '@/shared/ui'
+import { Button } from '@/components/ui'
 
 export interface DashboardLayoutProps {
   /**
@@ -132,27 +132,29 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <p className="truncate text-xs text-muted-foreground capitalize">{user?.role}</p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" fullWidth className="mt-2" onClick={handleLogout}>
+          <Button variant="ghost" size="sm" className="mt-2" onClick={handleLogout}>
             Sair
           </Button>
         </div>
       </aside>
 
       {/* Main content */}
-      <div className={`flex flex-1 flex-col transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <div
+        className={`flex flex-1 flex-col transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-0'}`}
+      >
         {/* Header */}
         <header className="flex h-16 items-center justify-between border-b border-border bg-card px-6">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="rounded-lg p-2 hover:bg-accent"
           >
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
             </svg>
           </button>
 

@@ -1,12 +1,4 @@
-export interface LiveEvent {
-  id: string
-  title: string
-  type: "online" | "presencial"
-  date: string
-  description?: string
-  startTime?: string
-  endTime?: string
-  coverImage?: string
-  address?: string
-  eventCreatorName?: string
-}
+/**
+ * @deprecated Importar directamente de '@/features/hub/lives/types'
+ */
+export type { LiveEvent } from '../lives/types'

@@ -1,5 +1,12 @@
-import { Playlist, Announcement, Article, Event, CourseWithRatings, PlaylistResolved } from './content'
-import { CreatorFile } from './creatorFile'
+import type {
+  Playlist,
+  Announcement,
+  Article,
+  Event,
+  CourseWithRatings,
+  PlaylistResolved,
+} from '@/features/creators/types/content'
+import type { CreatorFile } from './creatorFile'
 
 export interface SocialMediaLink {
   platform: string
@@ -17,8 +24,6 @@ export interface CoursesSectionProps {
   onCourseClick: (course: CourseWithRatings) => void
   coursesWithRatings: CourseWithRatings[] // ✅ adiciona esta linha
 }
-
-
 
 export interface CreatorContent {
   contentId: string
@@ -100,7 +105,7 @@ export interface Creator {
 
 // Criador expandido (para página pública)
 export interface CreatorFull extends Creator {
-    mainPlaylist?: PlaylistResolved
+  mainPlaylist?: PlaylistResolved
   fullPlaylists?: Playlist[]
   announcementsResolved?: Announcement[]
   articlesResolved?: Article[]
@@ -112,17 +117,17 @@ export interface CreatorFull extends Creator {
   }
   // Se quiseres, também podes manter o contentVisibility aqui como override
   contentVisibility?: {
-      playlists?: {
-        regular?: boolean
-        shorts?: boolean
-        podcast?: boolean
-        featured?: boolean
-      }
+    playlists?: {
+      regular?: boolean
+      shorts?: boolean
+      podcast?: boolean
+      featured?: boolean
+    }
     announcements?: boolean
     courses?: boolean
     files?: boolean
     articles?: boolean
     events?: boolean
-      welcomeVideo?: boolean
+    welcomeVideo?: boolean
   }
 }

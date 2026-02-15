@@ -1,8 +1,8 @@
 import { type HTMLAttributes } from 'react'
-import { cn } from '@/lib/utils/cn'
+import { cn } from '@/lib/utils'
 import { type RatingListResponse } from '../../types'
 import { RatingCard, type RatingCardProps } from './RatingCard'
-import { Button } from '@/shared/ui'
+import { Button } from '@/components/ui'
 
 export interface RatingListProps extends HTMLAttributes<HTMLDivElement> {
   /**
@@ -68,9 +68,7 @@ export function RatingList({
           />
         </svg>
         <h3 className="mb-2 text-lg font-semibold">Nenhuma avaliação ainda</h3>
-        <p className="text-sm text-muted-foreground">
-          Seja o primeiro a avaliar este conteúdo!
-        </p>
+        <p className="text-sm text-muted-foreground">Seja o primeiro a avaliar este conteúdo!</p>
       </div>
     )
   }
@@ -80,9 +78,7 @@ export function RatingList({
       {/* Header with sort */}
       {onSortChange && (
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">
-            Avaliações ({response.total})
-          </h3>
+          <h3 className="text-lg font-semibold">Avaliações ({response.total})</h3>
 
           <div className="flex gap-2">
             <Button

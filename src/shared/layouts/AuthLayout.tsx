@@ -1,7 +1,7 @@
 import { type ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
-import { Card } from '@/shared/ui'
+import { Card } from '@/components/ui'
 
 export interface AuthLayoutProps {
   /**
@@ -63,25 +63,19 @@ export function AuthLayout({
       <div className="flex min-h-screen flex-col items-center justify-center p-4">
         {/* Logo */}
         <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-primary">
-            FinHub
-          </h1>
+          <h1 className="text-4xl font-bold tracking-tight text-primary">FinHub</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Sua plataforma de literacia financeira
           </p>
         </div>
 
         {/* Card do formulário */}
-        <Card className="w-full max-w-md" padding="lg">
+        <Card className="w-full max-w-md p-6">
           {/* Header do card */}
           {(title || description) && (
             <div className="mb-6 space-y-2 text-center">
-              {title && (
-                <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
-              )}
-              {description && (
-                <p className="text-sm text-muted-foreground">{description}</p>
-              )}
+              {title && <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>}
+              {description && <p className="text-sm text-muted-foreground">{description}</p>}
             </div>
           )}
 

@@ -1,7 +1,7 @@
-// src/components/noticias/hooks/useNewsCache.ts
+// src/features/hub/news/stores/useNewsCache.ts
 import { useCallback, useMemo, useRef, useEffect } from 'react'
-import { useNewsSelectors, useNewsStore } from '../useNewsStore'
-import { NewsFilters } from '../../types/news'
+import { useNewsSelectors, useNewsStore } from '~/features/hub/news/stores/useNewsStore'
+import type { NewsFilters } from '~/features/hub/news/types/news'
 
 // ✅ Cache strategies locais (não dependem de service externo)
 const CacheStrategies = {
@@ -289,6 +289,8 @@ export const useNewsCache = (options: UseNewsCacheOptions = {}) => {
   const timersRef = useRef<Set<NodeJS.Timeout>>(new Set())
 
   useEffect(() => {
+    const timers = timersRef.current
+
     // Cleanup automático a cada 5 minutos (apenas no cliente)
     if (typeof window !== 'undefined') {
       const cleanupInterval = setInterval(
@@ -298,12 +300,12 @@ export const useNewsCache = (options: UseNewsCacheOptions = {}) => {
         5 * 60 * 1000,
       )
 
-      timersRef.current.add(cleanupInterval)
+      timers.add(cleanupInterval)
     }
 
     return () => {
-      timersRef.current.forEach((timer) => clearTimeout(timer))
-      timersRef.current.clear()
+      timers.forEach((timer) => clearTimeout(timer))
+      timers.clear()
     }
   }, [cacheService])
 

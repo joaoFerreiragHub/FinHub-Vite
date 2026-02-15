@@ -1,31 +1,31 @@
-import { UserRole } from "../stores/useUserStore"
-import { LayoutDashboard, FileText, BarChart, Megaphone } from "lucide-react"
+import { UserRole } from '@/features/auth/types'
+import { LayoutDashboard, FileText, BarChart, Megaphone } from 'lucide-react'
 
 export const creatorRoutes = [
   {
-    path: "/creators/dashboard",
-    label: "Painel do Criador",
+    path: '/creators/dashboard',
+    label: 'Painel do Criador',
     icon: LayoutDashboard,
-    allowedRoles: ["creator", "admin"] as UserRole[],
+    allowedRoles: ['creator', 'admin'] as UserRole[],
   },
   {
-    path: "/conteudos/gerir",
-    label: "Gerir Conteúdos",
+    path: '/conteudos/gerir',
+    label: 'Gerir Conteúdos',
     icon: FileText,
-    allowedRoles: ["creator", "admin"] as UserRole[],
+    allowedRoles: ['creator', 'admin'] as UserRole[],
   },
   {
-    path: "/estatisticas",
-    label: "Estatísticas dos Conteúdos",
+    path: '/estatisticas',
+    label: 'Estatísticas dos Conteúdos',
     icon: BarChart,
-    allowedRoles: ["creator", "admin"] as UserRole[],
+    allowedRoles: ['creator', 'admin'] as UserRole[],
   },
   {
-    path: "/publicidade",
-    label: "Gerir Publicidade",
+    path: '/publicidade',
+    label: 'Gerir Publicidade',
     icon: Megaphone,
-    allowedRoles: ["creator", "admin"] as UserRole[],
-  }
+    allowedRoles: ['creator', 'admin'] as UserRole[],
+  },
 ]
 
 export default creatorRoutes

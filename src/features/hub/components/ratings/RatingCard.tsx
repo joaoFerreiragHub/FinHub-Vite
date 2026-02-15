@@ -1,12 +1,12 @@
 import { type HTMLAttributes, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { cn } from '@/lib/utils/cn'
-import { Card } from '@/shared/ui'
+import { cn } from '@/lib/utils'
+import { Card } from '@/components/ui'
 import { type Rating } from '../../types'
 import { RatingStars } from '../common/RatingStars'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Button } from '@/shared/ui'
+import { Button } from '@/components/ui'
 
 export interface RatingCardProps extends HTMLAttributes<HTMLDivElement> {
   /**
@@ -75,7 +75,7 @@ export function RatingCard({
   }
 
   return (
-    <Card padding="default" className={cn('space-y-3', className)} {...props}>
+    <Card className={cn('space-y-3 p-6', className)} {...props}>
       {/* Header: User + Rating */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
@@ -84,11 +84,7 @@ export function RatingCard({
             <Link to={`/users/${user.username}`}>
               <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-primary text-primary-foreground">
                 {user.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={user.name}
-                    className="h-full w-full object-cover"
-                  />
+                  <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
                 ) : (
                   <span className="text-sm font-medium">{user.name.charAt(0)}</span>
                 )}
@@ -138,9 +134,7 @@ export function RatingCard({
       </div>
 
       {/* Review text */}
-      {rating.review && (
-        <p className="text-sm leading-relaxed text-foreground">{rating.review}</p>
-      )}
+      {rating.review && <p className="text-sm leading-relaxed text-foreground">{rating.review}</p>}
 
       {/* Helpful button */}
       {showHelpful && !isOwner && (
@@ -151,7 +145,7 @@ export function RatingCard({
               'flex items-center gap-1 rounded-lg px-3 py-1 text-sm transition-colors',
               isHelpful
                 ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80',
             )}
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

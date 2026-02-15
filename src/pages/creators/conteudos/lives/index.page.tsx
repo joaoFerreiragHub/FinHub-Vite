@@ -1,12 +1,12 @@
-import ProtectedRoute from '@/shared/guards'
-import LivesManager from "../../../../components/creators/contentManagement/lives/livesManager"
-import CreatorSidebar from "../../../../components/creators/sidebar/creatorSidebar"
+import { ProtectedRoute } from '@/shared/guards'
+import LivesManager from '@/features/creators/components/contentManagement/lives/livesManager'
+import CreatorSidebar from '@/features/creators/components/sidebar/creatorSidebar'
 
-import { useUserStore } from "../../../../stores/useUserStore"
+import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 
 function GerirEventosPage() {
-  const {  hydrated } = useUserStore()
-  const isDevelopment = process.env.NODE_ENV === "development"
+  const { hydrated } = useAuthStore()
+  const isDevelopment = process.env.NODE_ENV === 'development'
 
   if (!hydrated && !isDevelopment) {
     return (
@@ -18,7 +18,7 @@ function GerirEventosPage() {
   }
 
   return (
-    <ProtectedRoute allowedRoles={["creator", "admin"]}>
+    <ProtectedRoute allowedRoles={['creator', 'admin']}>
       <div className="flex min-h-screen">
         <CreatorSidebar />
         <main className="flex-1 p-6 space-y-6 bg-background text-foreground">

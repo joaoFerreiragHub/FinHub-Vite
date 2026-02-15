@@ -1,14 +1,14 @@
 // src/pages/creators/content/gerir-cursos/GerirCursosPage.tsx
-import ProtectedRoute from '@/shared/guards'
-import CreatorSidebar from "../../../../components/creators/sidebar/creatorSidebar"
-import CourseManagementPage from "../../../../components/creators/contentManagement/courses/CourseManagementPage"
-import { useUserStore } from "../../../../stores/useUserStore"
+import { ProtectedRoute } from '@/shared/guards'
+import CreatorSidebar from '@/features/creators/components/sidebar/creatorSidebar'
+import CourseManagementPage from '@/features/creators/components/contentManagement/courses/CourseManagementPage'
+import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 
 function GerirCursosPage() {
-  const { user, hydrated } = useUserStore()
+  const { user, hydrated } = useAuthStore()
   const isDevelopment = process.env.NODE_ENV === 'development'
 
-  console.log("🚀 ~ Estado de hidratação:", hydrated, user)
+  console.log('🚀 ~ Estado de hidratação:', hydrated, user)
 
   if (!hydrated && !isDevelopment) {
     return (
@@ -20,7 +20,7 @@ function GerirCursosPage() {
   }
 
   return (
-    <ProtectedRoute allowedRoles={["creator", "admin"]}>
+    <ProtectedRoute allowedRoles={['creator', 'admin']}>
       <div className="flex min-h-screen">
         <CreatorSidebar />
         <main className="flex-1 p-6 space-y-6 bg-background text-foreground">

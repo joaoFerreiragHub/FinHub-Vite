@@ -1,10 +1,10 @@
 import { type HTMLAttributes, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { cn } from '@/lib/utils/cn'
+import { cn } from '@/lib/utils'
 import { type Comment } from '../../types'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Button } from '@/shared/ui'
+import { Button } from '@/components/ui'
 import { CommentForm } from './CommentForm'
 
 export interface CommentCardProps extends HTMLAttributes<HTMLDivElement> {
@@ -68,7 +68,7 @@ export function CommentCard({
 
     // Optimistic update
     setIsLiked(!isLiked)
-    setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1))
+    setLikeCount((prev: number) => (isLiked ? prev - 1 : prev + 1))
 
     try {
       await onLike()
@@ -110,11 +110,7 @@ export function CommentCard({
               <Link to={`/users/${user.username}`}>
                 <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-primary text-primary-foreground">
                   {user.avatar ? (
-                    <img
-                      src={user.avatar}
-                      alt={user.name}
-                      className="h-full w-full object-cover"
-                    />
+                    <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
                   ) : (
                     <span className="text-xs font-medium">{user.name.charAt(0)}</span>
                   )}
@@ -189,7 +185,9 @@ export function CommentCard({
               onClick={handleLike}
               className={cn(
                 'flex items-center gap-1 transition-colors',
-                isLiked ? 'text-primary font-medium' : 'text-muted-foreground hover:text-foreground'
+                isLiked
+                  ? 'text-primary font-medium'
+                  : 'text-muted-foreground hover:text-foreground',
               )}
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -241,7 +239,7 @@ export function CommentCard({
       {/* Replies */}
       {showReplies && comment.replies && comment.replies.length > 0 && (
         <div className="ml-10 space-y-3 border-l-2 border-muted pl-4">
-          {comment.replies.map((reply) => (
+          {comment.replies.map((reply: Comment) => (
             <CommentCard
               key={reply.id}
               comment={reply}

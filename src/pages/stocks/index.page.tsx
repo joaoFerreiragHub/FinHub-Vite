@@ -1,11 +1,8 @@
-import { useStockSearch } from '../../components/stocks/hooks/useStockSearch'
-import { useWatchlist } from '../../components/stocks/hooks/useWatchlist'
+import { useStockSearch, useWatchlist } from '@/features/tools/stocks/components'
+import { StockPeers, StocksSearchBar, StockDetails } from '@/features/tools/stocks/components'
 
-import { StockPeers } from '../../components/stocks/StockPeers'
-import { StocksSearchBar } from '../../components/stocks/StocksSearchBar'
-import SidebarLayout from '../../components/layout/SidebarLayout'
-import { Card, CardContent } from '../../components/ui/card'
-import { StockDetails } from '../../components/stocks/StockDetails'
+import SidebarLayout from '@/shared/layouts/SidebarLayout'
+import { Card, CardContent } from '@/components/ui'
 
 export const Page = () => {
   const { ticker, setTicker, searchStock, data, loading, error } = useStockSearch()
@@ -34,22 +31,18 @@ export const Page = () => {
           <>
             <Card>
               <CardContent className="p-6 space-y-4">
-              <StockDetails
-                stockData={data}
-                isInWatchlist={isInWatchlist(data.symbol)}
-                onToggleWatchlist={() => toggle(data.symbol)}
-              />
-
+                <StockDetails
+                  stockData={data}
+                  isInWatchlist={isInWatchlist(data.symbol)}
+                  onToggleWatchlist={() => toggle(data.symbol)}
+                />
               </CardContent>
             </Card>
 
             <Card>
               <CardContent className="p-6">
                 <h2 className="text-lg font-semibold mb-2">👥 Ações Relacionadas</h2>
-                <StockPeers
-                  peers={data.peers}
-                  onPeerClick={(symbol) => setTicker(symbol)}
-                />
+                <StockPeers peers={data.peers} onPeerClick={(symbol) => setTicker(symbol)} />
               </CardContent>
             </Card>
           </>

@@ -1,6 +1,6 @@
-// src/components/noticias/hooks/useNewsAutoRefresh.ts
+// src/features/hub/news/stores/useNewsAutoRefresh.ts
 import { useEffect, useRef, useCallback } from 'react'
-import { useNewsSelectors, useNewsStore } from '../useNewsStore'
+import { useNewsSelectors, useNewsStore } from '~/features/hub/news/stores/useNewsStore'
 
 interface UseNewsAutoRefreshOptions {
   enabled?: boolean

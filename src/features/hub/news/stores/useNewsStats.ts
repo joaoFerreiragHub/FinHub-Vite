@@ -1,7 +1,7 @@
-// src/components/noticias/hooks/useNewsStats.ts
+// src/features/hub/news/stores/useNewsStats.ts
 import { useMemo, useCallback, useEffect, useState, useRef } from 'react'
-import { useNewsSelectors, useNewsStore } from '../useNewsStore'
-import { NewsStats } from '../../types/news'
+import { useNewsSelectors, useNewsStore } from '~/features/hub/news/stores/useNewsStore'
+import type { NewsStats } from '~/features/hub/news/types/news'
 
 interface ExtendedNewsStats extends NewsStats {
   // Estatísticas estendidas
@@ -267,7 +267,7 @@ export const useNewsStats = (options: UseNewsStatsOptions = {}) => {
       clickThroughRate: engagementDataRef.current.clickThroughRate,
       popularityScore: Math.round(popularityScore),
     }
-  }, [dataToAnalyze.length])
+  }, [dataToAnalyze])
 
   // === EXTENDED STATS ===
   const extendedStats: ExtendedNewsStats = useMemo(() => {
@@ -342,7 +342,7 @@ export const useNewsStats = (options: UseNewsStatsOptions = {}) => {
       setStatsHistory((prev) => [...prev.slice(-9), extendedStats])
       setLastUpdateTime(new Date())
     }
-  }, [hasNews, isLoading, currentStatsString])
+  }, [hasNews, isLoading, currentStatsString, extendedStats])
 
   // === ANALYSIS FUNCTIONS ===
   const getStatsByCategory = useCallback(

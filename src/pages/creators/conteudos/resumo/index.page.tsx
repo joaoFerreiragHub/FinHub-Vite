@@ -1,15 +1,14 @@
 // pages/creator/conteudos/index.page.tsx
-import ProtectedRoute from '@/shared/guards'
-import TodosContentPage from "../../../../components/creators/contentManagement/resumo/TodosContentPage"
-import CreatorSidebar from "../../../../components/creators/sidebar/creatorSidebar"
+import { ProtectedRoute } from '@/shared/guards'
+import TodosContentPage from '@/features/creators/components/contentManagement/resumo/TodosContentPage'
+import CreatorSidebar from '@/features/creators/components/sidebar/creatorSidebar'
 
-import { useUserStore } from "../../../../stores/useUserStore"
+import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 
 function GerirTodosOsConteudosPage() {
-  const { user, hydrated } = useUserStore()
-  const isDevelopment = process.env.NODE_ENV === "development"
-  console.log("user", user)
-
+  const { user, hydrated } = useAuthStore()
+  const isDevelopment = process.env.NODE_ENV === 'development'
+  console.log('user', user)
 
   if (!hydrated && !isDevelopment) {
     return (
@@ -21,7 +20,7 @@ function GerirTodosOsConteudosPage() {
   }
 
   return (
-    <ProtectedRoute allowedRoles={["creator", "admin"]}>
+    <ProtectedRoute allowedRoles={['creator', 'admin']}>
       <div className="flex min-h-screen">
         <CreatorSidebar />
         <main className="flex-1 p-6 space-y-6 bg-background text-foreground">
@@ -29,8 +28,7 @@ function GerirTodosOsConteudosPage() {
           <p className="mt-2 text-muted-foreground">
             Aqui podes ver um resumo geral e gerir todos os teus conteúdos.
           </p>
-        {user && <TodosContentPage user={user} />}
-
+          {user && <TodosContentPage user={user} />}
         </main>
       </div>
     </ProtectedRoute>

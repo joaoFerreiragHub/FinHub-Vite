@@ -1,9 +1,11 @@
-import { xpValues, XPAction } from "./xpValues"
-import { getLevelFromXP } from "./getLevelFromXP"
-import { logXPEvent } from "./xpLogger"
-import { getUserById, updateUser } from "../../components/creators/gamification/hooks/mockUserService"
+import { xpValues, XPAction } from './xpValues'
+import { getLevelFromXP } from './getLevelFromXP'
+import { logXPEvent } from './xpLogger'
+import {
+  getUserById,
+  updateUser,
+} from '@/features/creators/components/gamification/hooks/mockUserService'
 // Estes são mocks que deves substituir pela tua base de dados
-
 
 export async function awardXP(userId: string, action: XPAction) {
   const xp = xpValues[action]

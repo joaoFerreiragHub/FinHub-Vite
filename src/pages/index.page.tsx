@@ -1,13 +1,18 @@
 // src/pages/index.page.tsx
 
-import ShowBooks from '../components/book/ShowBooks'
-import { mockCreators } from '../components/creators/api/mockCreators'
-import { CarouselCreators } from '../components/creators/carousel/CarouselCreators'
-import SidebarLayout from '../components/layout/SidebarLayout'
-import { Button } from '../components/ui/button'
-import { Card, CardContent } from '../components/ui/card'
-import { Carousel, CarouselContent, CarouselItem } from '../components/ui/carousel'
-import { Separator } from '../components/ui/separator'
+import { ShowBooks } from '@/features/hub/books/components'
+import { mockCreators } from '../features/creators/components/api/mockCreators'
+import { CarouselCreators } from '../features/creators/components/carousel/CarouselCreators'
+import SidebarLayout from '@/shared/layouts/SidebarLayout'
+import {
+  Button,
+  Card,
+  CardContent,
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  Separator,
+} from '@/components/ui'
 
 export function Page() {
   return (

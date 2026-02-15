@@ -2,7 +2,7 @@ import { useParams, Navigate } from 'react-router-dom'
 import { DashboardLayout } from '@/shared/layouts'
 import { ArticleForm } from '../components/ArticleForm'
 import { useArticle, useUpdateArticle } from '@/features/hub/articles/hooks/useArticles'
-import { Card } from '@/shared/ui'
+import { Card } from '@/components/ui'
 import type { UpdateArticleDto } from '@/features/hub/articles/types'
 
 /**
@@ -44,7 +44,7 @@ export function EditArticle() {
         </div>
 
         {/* Form */}
-        <Card padding="lg">
+        <Card className="p-8">
           <ArticleForm
             article={article}
             onSubmit={handleSubmit}

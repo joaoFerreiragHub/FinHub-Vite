@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Button } from '@/shared/ui'
+import { Button } from '@/components/ui'
 import { RatingStars } from '../common/RatingStars'
 import { type ContentType } from '../../types'
-import { getErrorMessage } from '@/lib/api'
+import { getErrorMessage } from '@/lib/api/client'
 
 const ratingFormSchema = z.object({
   rating: z.number().min(1, 'Selecione uma classificação').max(5),
@@ -107,15 +107,8 @@ export function RatingForm({
         <label className="text-sm font-medium">
           Classificação <span className="text-red-500">*</span>
         </label>
-        <RatingStars
-          rating={rating}
-          size="lg"
-          interactive
-          onChange={handleRatingChange}
-        />
-        {errors.rating && (
-          <p className="text-sm text-red-600">{errors.rating.message}</p>
-        )}
+        <RatingStars rating={rating} size="lg" interactive onChange={handleRatingChange} />
+        {errors.rating && <p className="text-sm text-red-600">{errors.rating.message}</p>}
       </div>
 
       {/* Review Text */}
@@ -130,19 +123,12 @@ export function RatingForm({
           className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm transition-all duration-200 placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           {...register('review')}
         />
-        {errors.review && (
-          <p className="text-sm text-red-600">{errors.review.message}</p>
-        )}
+        {errors.review && <p className="text-sm text-red-600">{errors.review.message}</p>}
       </div>
 
       {/* Actions */}
       <div className="flex gap-2">
-        <Button
-          type="submit"
-          variant="default"
-          isLoading={isSubmitting}
-          disabled={rating === 0}
-        >
+        <Button type="submit" variant="default" isLoading={isSubmitting} disabled={rating === 0}>
           {submitText}
         </Button>
 

@@ -14,15 +14,13 @@ import {
   BarChart3,
 } from 'lucide-react'
 
-import SidebarLayout from '../../components/layout/SidebarLayout'
-import { NewsGrid } from '../../components/noticias/NewsGrid'
-import { CategoryFilterTabs } from '../../components/noticias/CategoryFilterTabs'
-import { NewsFilters } from '../../components/noticias/NewsFilters' // ✅ Componente atualizado
-import { Button } from '../../components/ui/button'
-import { Card, CardContent } from '../../components/ui/card'
-import { Badge } from '../../components/ui/badge'
-import { NewsArticle } from '../../types/news'
-import { useNews, useInfiniteNews } from '../../components/noticias/api/useNews'
+import SidebarLayout from '@/shared/layouts/SidebarLayout'
+import { NewsGrid, CategoryFilterTabs, NewsFilters } from '@/features/hub/news/components'
+import { Button } from '@/components/ui'
+import { Card, CardContent } from '@/components/ui'
+import { Badge } from '@/components/ui'
+import { NewsArticle } from '@/features/hub/news/types'
+import { useNews, useInfiniteNews } from '@/features/hub/news/hooks'
 
 export function Page() {
   // Estados locais para UI

@@ -1,14 +1,14 @@
 import { type HTMLAttributes } from 'react'
 import { Link } from 'react-router-dom'
-import { cn } from '@/lib/utils/cn'
-import { Card } from '@/shared/ui'
+import { cn } from '@/lib/utils'
+import { Card } from '@/components/ui'
 import { type BaseContent, ContentType } from '../../types'
 import { RatingStars } from './RatingStars'
 import { ContentMeta } from './ContentMeta'
 import { usePermissions } from '@/features/auth/hooks/usePermissions'
 import { isRoleAtLeast } from '@/lib/permissions/config'
 
-export interface ContentCardProps extends HTMLAttributes<HTMLDivElement> {
+export interface ContentCardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'content'> {
   /**
    * Conteúdo a ser exibido
    */
@@ -68,13 +68,12 @@ export function ContentCard({
 
   return (
     <Card
-      variant={variant === 'featured' ? 'elevated' : 'default'}
-      padding={variant === 'compact' ? 'sm' : 'default'}
-      hoverable
       className={cn(
         'group relative overflow-hidden transition-all duration-300',
+        variant === 'compact' ? 'p-4' : 'p-6',
+        variant !== 'compact' && 'hover:shadow-md',
         variant === 'featured' && 'ring-2 ring-primary/20',
-        className
+        className,
       )}
       {...props}
     >
@@ -92,7 +91,7 @@ export function ContentCard({
             className={cn(
               'relative overflow-hidden bg-muted',
               variant === 'compact' ? 'h-32' : 'h-48',
-              variant === 'featured' && 'h-64'
+              variant === 'featured' && 'h-64',
             )}
           >
             <img
@@ -121,7 +120,7 @@ export function ContentCard({
             className={cn(
               'font-semibold leading-tight transition-colors group-hover:text-primary',
               variant === 'featured' ? 'text-xl' : 'text-lg',
-              variant === 'compact' && 'text-base'
+              variant === 'compact' && 'text-base',
             )}
           >
             {content.title}
@@ -131,7 +130,7 @@ export function ContentCard({
           <p
             className={cn(
               'line-clamp-2 text-muted-foreground',
-              variant === 'compact' ? 'text-xs' : 'text-sm'
+              variant === 'compact' ? 'text-xs' : 'text-sm',
             )}
           >
             {content.description}
@@ -148,12 +147,7 @@ export function ContentCard({
           )}
 
           {/* Metadata */}
-          {showMeta && (
-            <ContentMeta
-              content={content}
-              size={variant === 'compact' ? 'sm' : 'md'}
-            />
-          )}
+          {showMeta && <ContentMeta content={content} size={variant === 'compact' ? 'sm' : 'md'} />}
 
           {/* Access Lock */}
           {!hasAccess && (
@@ -166,9 +160,7 @@ export function ContentCard({
                   d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
                 />
               </svg>
-              <span className="font-medium">
-                Requer plano {content.requiredRole.toUpperCase()}
-              </span>
+              <span className="font-medium">Requer plano {content.requiredRole.toUpperCase()}</span>
             </div>
           )}
         </div>

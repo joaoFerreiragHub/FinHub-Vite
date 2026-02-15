@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { useUserStore } from '@/stores/useUserStore'
+import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { UserRole } from '../types'
 import {
   Permission,
@@ -24,7 +24,7 @@ import {
  * }
  */
 export function usePermissions() {
-  const { user, isAuthenticated } = useUserStore()
+  const { user, isAuthenticated } = useAuthStore()
 
   const role = user?.role ?? UserRole.VISITOR
 
@@ -35,7 +35,7 @@ export function usePermissions() {
     (permission: Permission): boolean => {
       return hasPermission(role, permission)
     },
-    [role]
+    [role],
   )
 
   /**
@@ -45,7 +45,7 @@ export function usePermissions() {
     (permissions: Permission[]): boolean => {
       return hasAnyPermission(role, permissions)
     },
-    [role]
+    [role],
   )
 
   /**
@@ -55,7 +55,7 @@ export function usePermissions() {
     (permissions: Permission[]): boolean => {
       return hasAllPermissions(role, permissions)
     },
-    [role]
+    [role],
   )
 
   /**
@@ -65,7 +65,7 @@ export function usePermissions() {
     (requiredRole: UserRole): boolean => {
       return isRoleAtLeast(role, requiredRole)
     },
-    [role]
+    [role],
   )
 
   /**
@@ -75,7 +75,7 @@ export function usePermissions() {
     (targetRole: UserRole): boolean => {
       return role === targetRole
     },
-    [role]
+    [role],
   )
 
   return {

@@ -1,4 +1,4 @@
-import { UserRole } from '../stores/useUserStore'
+import { UserRole } from '@/features/auth/types'
 import { LayoutDashboard, FileText, BarChart, Megaphone, Settings } from 'lucide-react'
 
 export const creatorDashboardRouts = [
@@ -31,7 +31,7 @@ export const creatorDashboardRouts = [
         path: '/creators/conteudos/reels',
         label: 'Gerir Reels',
       },
-    {
+      {
         path: '/creators/conteudos/artigos',
         label: 'Gerir Artigos',
       },
@@ -47,7 +47,7 @@ export const creatorDashboardRouts = [
         path: '/creators/conteudos/welcomeVideos',
         label: 'Gerir Vídeos de Apresentação',
       },
-            {
+      {
         path: '/creators/conteudos/lives',
         label: 'Gerir Lives',
       },
@@ -55,7 +55,7 @@ export const creatorDashboardRouts = [
         path: '/creators/conteudos/files',
         label: 'Gerir Ficheiros',
       },
-     {
+      {
         path: '/creators/conteudos/playlists',
         label: 'Gerir Playlists',
       },

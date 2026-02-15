@@ -1,11 +1,10 @@
-import ProtectedRoute from "@/shared/guards"
-import CreatorSidebar from "../../../components/creators/sidebar/creatorSidebar"
-import ContentStatsDashboard from "../../../components/creators/stats/ContentStatsDashboard"
-
+import { ProtectedRoute } from '@/shared/guards'
+import CreatorSidebar from '@/features/creators/components/sidebar/creatorSidebar'
+import ContentStatsDashboard from '@/features/creators/components/stats/ContentStatsDashboard'
 
 function ContentStatsPage() {
   return (
-    <ProtectedRoute allowedRoles={["creator", "admin"]}>
+    <ProtectedRoute allowedRoles={['creator', 'admin']}>
       <div className="flex min-h-screen">
         <CreatorSidebar />
         <main className="flex-1 bg-background text-foreground p-6">

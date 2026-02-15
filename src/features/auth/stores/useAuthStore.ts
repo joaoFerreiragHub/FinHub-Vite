@@ -62,7 +62,7 @@ export const useAuthStore = create<AuthStore>()(
       refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
-      hydrated: false,
+      hydrated: typeof window === 'undefined', // SSR: true, Browser: false (will hydrate)
 
       // Actions
       login: async (credentials: LoginCredentials) => {
@@ -211,36 +211,41 @@ export const useAuthStore = create<AuthStore>()(
       }),
 
       onRehydrateStorage: () => (state) => {
-        setTimeout(() => {
-          useAuthStore.setState({ hydrated: true })
+        console.log('🔄 [AUTH] onRehydrateStorage called, state:', state)
 
-          // APENAS EM DESENVOLVIMENTO: injetar mock user se não houver usuário
-          if (import.meta.env.DEV && !state?.user) {
-            console.log('🔧 [DEV] Injetando mock user para desenvolvimento')
-            useAuthStore.setState({
-              user: DEV_MOCK_USER,
-              accessToken: DEV_MOCK_TOKENS.accessToken,
-              refreshToken: DEV_MOCK_TOKENS.refreshToken,
-              isAuthenticated: true,
-            })
-          }
+        // Set hydrated IMMEDIATELY to unblock UI
+        useAuthStore.setState({ hydrated: true })
 
-          console.log('🔄 Auth store hidratado:', {
-            isAuthenticated: useAuthStore.getState().isAuthenticated,
-            role: useAuthStore.getState().user?.role,
-            username: useAuthStore.getState().user?.username,
+        // APENAS EM DESENVOLVIMENTO: injetar mock user se não houver usuário
+        if (import.meta.env.DEV && !state?.user) {
+          console.log('🔧 [DEV] Injetando mock user para desenvolvimento')
+          useAuthStore.setState({
+            user: DEV_MOCK_USER,
+            accessToken: DEV_MOCK_TOKENS.accessToken,
+            refreshToken: DEV_MOCK_TOKENS.refreshToken,
+            isAuthenticated: true,
           })
-        }, 100)
+        }
+
+        console.log('✅ [AUTH] Store hidratado:', {
+          isAuthenticated: useAuthStore.getState().isAuthenticated,
+          role: useAuthStore.getState().user?.role,
+          username: useAuthStore.getState().user?.username,
+          hydrated: useAuthStore.getState().hydrated,
+        })
       },
-    }
-  )
+    },
+  ),
 )
 
-// Inicialização para SSR
+// Inicialização para SSR - FALLBACK
 if (typeof window !== 'undefined') {
   setTimeout(() => {
     const state = useAuthStore.getState()
+    console.log('⏰ [AUTH] SSR Fallback check - hydrated:', state.hydrated)
+
     if (!state.hydrated) {
+      console.warn('⚠️ [AUTH] Forçando hidratação via SSR fallback!')
       useAuthStore.setState({ hydrated: true })
 
       // Mock user em desenvolvimento
@@ -254,5 +259,5 @@ if (typeof window !== 'undefined') {
         })
       }
     }
-  }, 500)
+  }, 1000) // Aumentado para 1s
 }

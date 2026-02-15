@@ -1,7 +1,7 @@
 # 📊 Progresso de Implementação - FinHub Platform
 
-**Última Atualização**: 2026-02-14
-**Status Geral**: 🟢 **Phase 0 + HUB Core Completos**
+**Ultima Atualizacao**: 2026-02-15
+**Status Geral**: 🟢 **Phase 0 + HUB Core + Fases 1-7 Completas (Reorganizacao + Todos os Conteudos)**
 
 ---
 
@@ -135,73 +135,170 @@
 
 ---
 
-## 📊 Estatísticas
+---
 
-### **Ficheiros Criados**: 50+ ficheiros
-### **Linhas de Código**: ~6,000+ linhas
-### **Componentes**: 25+ componentes reutilizáveis
-### **Pages**: 10 páginas completas
+### **Fase 2: Store Reorganization** (100%) ✅
+- [x] PageShell migrado para useAuthStore
+- [x] useUserStore wrapper de compatibilidade
+- [x] useNewsStore movido para features/hub/news/stores
 
-### **Cobertura por Módulo**:
-- ✅ **Phase 0**: 100%
+### **Fase 3: Types/Schemas/Hooks/Utils** (100%) ✅
+- [x] 30+ ficheiros reorganizados por feature
+- [x] Types movidos para features/*/types/
+- [x] Schemas movidos para features/*/schemas/
+- [x] Hooks redistribuídos
+- [x] Mock data consolidado em lib/mock/
+- [x] i18n movido para lib/i18n/
+
+### **Fase 4: Migração de /components → /features** (100%) ✅
+- [x] News components → features/hub/news/components/
+- [x] Stocks components → features/tools/stocks/components/ (~100 ficheiros)
+- [x] Creators components → features/creators/components/ (157 ficheiros)
+- [x] Auth forms → features/auth/components/forms/
+- [x] Books → features/hub/books/components/
+- [x] Settings → features/auth/components/settings/
+- [x] Layout → shared/layouts/
+- [x] CommonButtons → shared/components/commonButtons/
+- [x] Languages → shared/components/languages/
+- [x] Providers → shared/providers/
+- [x] Duplicados eliminados (ratings, types/book.ts, fileManagement)
+- [x] `src/components/` agora contém APENAS `ui/` (design system)
+
+**Documentação**: [`FASE_4_MIGRACAO_COMPONENTS.md`](./FASE_4_MIGRACAO_COMPONENTS.md)
+
+### **Fase 5: Finalização e Qualidade** (100%) ✅
+- [x] 28 ficheiros migrados de useUserStore → useAuthStore
+- [x] content.legacy.ts movido para features/creators/types/content.ts
+- [x] useUserStore wrapper eliminado + pasta stores/ removida
+- [x] 9 barrel exports (index.ts) criados
+- [x] 13 pastas vazias eliminadas (entities, widgets, account, etc.)
+- [x] Zero referências legadas restantes
+- [x] 56 barrel exports totais em features/ e shared/
+
+**Documentacao**: [`FASE_5_FINALIZACAO.md`](./FASE_5_FINALIZACAO.md)
+
+### **Fase 6: Implementacao de Tipos de Conteudo** (100%) ✅
+
+**Courses** ✅
+- [x] Types consolidados (old course.ts → re-export de index.ts)
+- [x] Schema reescrito com Zod (courseFormSchema completo)
+- [x] Hooks expandidos (+useDeleteCourse, +usePublishCourse)
+- [x] Paginas publicas: CourseListPage, CourseDetailPage
+- [x] Creator Dashboard CRUD: CourseForm, ManageCourses, CreateCourse, EditCourse
+- [x] Rotas: /creators/dashboard/courses/*
+- [x] Mock data atualizado para BaseContent
+
+**Videos** ✅
+- [x] Types expandidos (+UpdateVideoDto)
+- [x] Service expandido (+getMyVideos, +publishVideo, +toggleLike, +toggleFavorite)
+- [x] Hooks criados (useVideos, useVideo, useMyVideos, useCreateVideo, useUpdateVideo, useDeleteVideo, usePublishVideo)
+- [x] Schema criado (videoFormSchema)
+- [x] Paginas publicas: VideoListPage, VideoDetailPage
+- [x] Creator Dashboard CRUD: VideoForm, ManageVideos, CreateVideo, EditVideo
+- [x] Rotas: /creators/dashboard/videos/*
+
+**News Integration** ✅
+- [x] newsAdapter.ts: toBaseContent() converte NewsArticle → BaseContent
+- [x] NewsContent interface (extends BaseContent)
+- [x] useUnifiedFeed hook (Articles + News combinados, ordenados por data)
+- [x] Hub index atualizado com exports
+
+**Documentacao**: [`FASE_6_IMPLEMENTACAO_CONTEUDOS.md`](./FASE_6_IMPLEMENTACAO_CONTEUDOS.md)
+
+### **Fase 7: Events/Lives, Podcasts & Books** (100%) ✅
+
+**Events/Lives** ✅
+- [x] Types: LiveEvent extends BaseContent + DTOs
+- [x] Service: CRUD + register/unregister + actions
+- [x] Hooks: 8 hooks React Query
+- [x] Schema: liveFormSchema (Zod)
+- [x] Paginas publicas: LiveListPage, LiveDetailPage
+- [x] Creator Dashboard CRUD: LiveForm, ManageLives, CreateLive, EditLive
+- [x] Rotas: /creators/dashboard/lives/*
+- [x] Mock data atualizado (3 eventos com BaseContent)
+
+**Podcasts** ✅
+- [x] Types: Podcast extends BaseContent + PodcastEpisode + DTOs
+- [x] Service: CRUD podcasts + CRUD episodios + subscribe
+- [x] Hooks: 7 hooks React Query
+- [x] Schema: podcastFormSchema + episodeFormSchema (Zod)
+- [x] Paginas publicas: PodcastListPage (filtros), PodcastDetailPage (audio player, episodios)
+- [x] Creator Dashboard CRUD: PodcastForm, ManagePodcasts, CreatePodcast, EditPodcast
+- [x] Rotas: /creators/dashboard/podcasts/*
+- [x] Mock data atualizado (2 podcasts com episodios)
+
+**Books** ✅
+- [x] Types: Book extends BaseContent + DTOs
+- [x] Service: CRUD + actions
+- [x] Hooks: 7 hooks React Query
+- [x] Schema: bookFormSchema (Zod)
+- [x] Paginas publicas: BookListPage, BookDetailPage (capa, frases-chave, compra)
+- [x] Creator Dashboard CRUD: BookForm, ManageBooks, CreateBook, EditBook
+- [x] Rotas: /creators/dashboard/books/*
+- [x] Mock data atualizado (3 livros com BaseContent)
+
+**Legacy types atualizados**: liveEvent.ts, podcast.ts, podcastEpisode.ts, book.ts → re-exports com @deprecated
+
+**Documentacao**: [`FASE_7_EVENTS_PODCASTS_BOOKS.md`](./FASE_7_EVENTS_PODCASTS_BOOKS.md)
+
+---
+
+## Estatisticas
+
+### **Ficheiros Criados/Migrados**: 380+ ficheiros
+### **Linhas de Codigo**: ~15,000+ linhas
+### **Componentes**: 250+ componentes organizados
+### **Pages**: 27 paginas completas
+
+### **Cobertura por Modulo**:
+- ✅ **Phase 0 (Foundation)**: 100%
 - ✅ **HUB Core**: 100%
 - ✅ **Articles**: 100%
-- 🔄 **Courses**: 0%
-- 🔄 **Videos**: 0%
-- 🔄 **Events**: 0%
-- 🔄 **Tools**: 0%
+- ✅ **Reorganizacao Completa**: 100%
+- ✅ **Courses**: 100%
+- ✅ **Videos**: 100%
+- ✅ **News Integration**: 100%
+- ✅ **Events/Lives**: 100%
+- ✅ **Podcasts**: 100%
+- ✅ **Books**: 100%
 - 🔄 **Social**: 0%
 
 ---
 
-## 🎯 Próximos Passos
+## Proximos Passos
 
-### **Imediato (Esta Semana)**
+### **Fase 8: Proximas Funcionalidades**
 
-#### **1. Testar Articles** (1-2 dias)
-- [ ] Configurar .env com API URL
-- [ ] Testar fluxo completo (create → edit → publish → view)
-- [ ] Ajustar bugs encontrados
-- [ ] Adicionar loading states faltantes
+**Social / Interacao**
+- [ ] Perfis de utilizador publicos
+- [ ] Sistema de follows/followers
+- [ ] Feed social personalizado
+- [ ] Notificacoes em tempo real
 
-#### **2. Conectar com API Mock** (1 dia)
-- [ ] Criar mock data para articles
-- [ ] Testar integração com ratings
-- [ ] Testar integração com comments
+**API Integration**
+- [ ] Conectar todos os services com API real
+- [ ] Implementar autenticacao JWT
+- [ ] Upload de ficheiros (imagens, audio, PDF)
 
-#### **3. Adicionar Mais Tipos de Conteúdo** (Por Prioridade)
-
-**Opção A: Courses** (Semana 2-3)
-- [ ] Course types (extends BaseContent)
-- [ ] Module system
-- [ ] Enrollment logic
-- [ ] Progress tracking
-- [ ] Creator dashboard CRUD
-- [ ] Public pages
-
-**Opção B: Videos** (Semana 2-3)
-- [ ] Video types
-- [ ] Video player integration
-- [ ] Playlists
-- [ ] Watch history
-- [ ] Creator dashboard
-- [ ] Public pages
-
-**Opção C: News Integration** (Semana 2)
-- [ ] Adaptar newsStore existente
-- [ ] Migrar para BaseContent
-- [ ] Usar ContentCard genérico
-- [ ] Unified feed (Articles + News)
+**Testes**
+- [ ] Testes unitarios (Vitest)
+- [ ] Testes E2E (Playwright)
+- [ ] Storybook para componentes
 
 ---
 
-## 🗂️ Estrutura Atual
+## 🗂️ Estrutura Atual (Pós Fase 4)
 
 ```
 src/
+├── components/
+│   └── ui/                            ← Design system (shadcn) - ÚNICO restante
+│
 ├── features/
 │   ├── auth/                          ✅ COMPLETO
 │   │   ├── components/
+│   │   │   ├── forms/                 ✅ Login, Register, UserForm, CreatorForm
+│   │   │   └── settings/             ✅ Account, Security, Preferences
 │   │   ├── hooks/
 │   │   ├── pages/
 │   │   ├── schemas/
@@ -209,43 +306,60 @@ src/
 │   │   ├── stores/
 │   │   └── types/
 │   │
-│   ├── hub/                           ✅ INFRAESTRUTURA COMPLETA
-│   │   ├── types/                     ✅ Base, Rating, Comment
-│   │   ├── components/
-│   │   │   ├── common/                ✅ 5 componentes genéricos
-│   │   │   ├── ratings/               ✅ 4 componentes
-│   │   │   └── comments/              ✅ 3 componentes
-│   │   │
-│   │   └── articles/                  ✅ COMPLETO (primeiro tipo)
-│   │       ├── types/
-│   │       ├── services/
-│   │       ├── hooks/
-│   │       └── pages/
-│   │           ├── ArticleListPage    ✅
-│   │           └── ArticleDetailPage  ✅
+│   ├── hub/                           ✅ COMPLETO (TODOS OS TIPOS)
+│   │   ├── articles/                  ✅ types, hooks, pages, services
+│   │   ├── books/                     ✅ types, hooks, schemas, services, pages, components
+│   │   ├── courses/                   ✅ types, hooks, schemas, services, pages
+│   │   ├── lives/                     ✅ types, hooks, schemas, services, pages
+│   │   ├── news/                      ✅ components, hooks, services, stores, types, utils
+│   │   ├── podcasts/                  ✅ types, hooks, schemas, services, pages
+│   │   ├── videos/                    ✅ types, hooks, schemas, services, pages
+│   │   ├── components/                ✅ common/, ratings/ (7), comments/
+│   │   ├── hooks/
+│   │   ├── types/                     ✅ BaseContent + shared types
+│   │   └── utils/
 │   │
-│   ├── creators/                      ✅ DASHBOARD ARTICLES
-│   │   └── dashboard/
-│   │       └── articles/              ✅ COMPLETO
-│   │           ├── components/
-│   │           │   └── ArticleForm    ✅
-│   │           └── pages/
-│   │               ├── ManageArticles ✅
-│   │               ├── CreateArticle  ✅
-│   │               └── EditArticle    ✅
+│   ├── creators/                      ✅ COMPLETO (157+ componentes migrados)
+│   │   ├── components/                ✅ analytics, cards, carousel, contentManagement,
+│   │   │                                 dashboard, exposure, filters, gamification,
+│   │   │                                 marketing, modals, public, sidebar, stats
+│   │   ├── dashboard/
+│   │   │   ├── articles/              ✅ CRUD completo
+│   │   │   ├── books/                 ✅ CRUD completo
+│   │   │   ├── courses/               ✅ CRUD completo
+│   │   │   ├── lives/                 ✅ CRUD completo
+│   │   │   ├── podcasts/              ✅ CRUD completo
+│   │   │   └── videos/                ✅ CRUD completo
+│   │   ├── marketing/types/
+│   │   └── types/
 │   │
-│   ├── tools/                         🔜 FUTURO
-│   └── social/                        🔜 FUTURO
+│   └── tools/
+│       └── stocks/                    ✅ COMPLETO (~100 componentes)
+│           ├── components/
+│           ├── types/
+│           └── utils/
 │
 ├── shared/                            ✅ COMPLETO
-│   ├── ui/                            ✅ Button, Card, Input
-│   ├── layouts/                       ✅ Auth, Dashboard
-│   └── guards/                        ✅ RequireAuth, RequireRole
+│   ├── components/
+│   │   ├── commonButtons/             ✅ 8 botões reutilizáveis
+│   │   └── languages/                 ✅ LanguageSwitcher
+│   ├── dev/                           ✅ DevUserSwitcher
+│   ├── guards/                        ✅ ProtectedRoute, RequireAuth, RequireRole
+│   ├── hooks/                         ✅ useMediaQuery, useToast
+│   ├── layouts/                       ✅ Auth, Dashboard, Public, User, Sidebar, Header
+│   └── providers/                     ✅ ThemeProvider, PageTracker
 │
 └── lib/                               ✅ COMPLETO
+    ├── analytics/
     ├── api/                           ✅ Client com interceptors
+    ├── hooks/
+    ├── i18n/
+    ├── mock/
     ├── permissions/                   ✅ Config + helpers
-    └── utils/                         ✅ cn(), etc
+    ├── routing/
+    ├── types/
+    ├── utils/                         ✅ cn(), etc
+    └── xpEngine/
 ```
 
 ---
@@ -298,6 +412,102 @@ import {
   CreateArticle,
   EditArticle,
 } from '@/features/creators/dashboard/articles'
+```
+
+### **Courses**
+```tsx
+import {
+  CourseListPage,
+  CourseDetailPage,
+  useCourses,
+  useCourse,
+  useDeleteCourse,
+  usePublishCourse,
+} from '@/features/hub/courses'
+
+import {
+  ManageCourses,
+  CreateCourse,
+  EditCourse,
+} from '@/features/creators/dashboard/courses'
+```
+
+### **Videos**
+```tsx
+import {
+  VideoListPage,
+  VideoDetailPage,
+  useVideos,
+  useVideo,
+  useDeleteVideo,
+  usePublishVideo,
+} from '@/features/hub/videos'
+
+import {
+  ManageVideos,
+  CreateVideo,
+  EditVideo,
+} from '@/features/creators/dashboard/videos'
+```
+
+### **Events/Lives**
+```tsx
+import {
+  LiveListPage,
+  LiveDetailPage,
+  useLives,
+  useLive,
+  useRegisterLive,
+} from '@/features/hub/lives'
+
+import {
+  ManageLives,
+  CreateLive,
+  EditLive,
+} from '@/features/creators/dashboard/lives'
+```
+
+### **Podcasts**
+```tsx
+import {
+  PodcastListPage,
+  PodcastDetailPage,
+  usePodcasts,
+  usePodcast,
+} from '@/features/hub/podcasts'
+
+import {
+  ManagePodcasts,
+  CreatePodcast,
+  EditPodcast,
+} from '@/features/creators/dashboard/podcasts'
+```
+
+### **Books**
+```tsx
+import {
+  BookListPage,
+  BookDetailPage,
+  useBooks,
+  useBook,
+} from '@/features/hub/books'
+
+import {
+  ManageBooks,
+  CreateBook,
+  EditBook,
+} from '@/features/creators/dashboard/books'
+```
+
+### **Unified Feed**
+```tsx
+import { useUnifiedFeed } from '@/features/hub'
+
+const { items, isLoading } = useUnifiedFeed({
+  includeArticles: true,
+  includeNews: true,
+  limit: 20,
+})
 ```
 
 ---
@@ -424,6 +634,6 @@ Referência: [`ANALISE_API_E_RECOMENDACOES.md`](./ANALISE_API_E_RECOMENDACOES.md
 
 ---
 
-**Status**: ✅ **FOUNDATION + HUB CORE + ARTICLES COMPLETOS**
+**Status**: ✅ **TODOS OS TIPOS DE CONTEUDO IMPLEMENTADOS** (Articles, Courses, Videos, Events/Lives, Podcasts, Books, News)
 
-**Próximo**: Testar Articles e adicionar mais tipos de conteúdo
+**Proximo**: Social features, API real integration, Testes

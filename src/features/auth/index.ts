@@ -5,13 +5,26 @@
  */
 
 // Types
-export { UserRole, type User, type AuthState, type LoginCredentials, type RegisterData, type AuthResponse } from './types'
+export {
+  UserRole,
+  type User,
+  type AuthState,
+  type LoginCredentials,
+  type RegisterData,
+  type AuthResponse,
+} from './types'
 
 // Hooks
 export { usePermissions, usePaywall, type PaywallConfig } from './hooks'
 
-// Guards (re-export from shared)
-export { RequireAuth, RequireRole, type RequireAuthProps, type RequireRoleProps } from '@/shared/guards'
-
 // Permissions
-export { Permission, hasPermission, hasAnyPermission, hasAllPermissions, isRoleAtLeast } from '@/lib/permissions/config'
+export {
+  Permission,
+  hasPermission,
+  hasAnyPermission,
+  hasAllPermissions,
+  isRoleAtLeast,
+} from '@/lib/permissions/config'
+
+// Note: Para usar Guards, importe diretamente de '@/shared/guards'
+// Não re-exportamos aqui para evitar dependências circulares

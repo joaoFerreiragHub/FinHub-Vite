@@ -1,13 +1,13 @@
 // pages/creator/content/playlists/index.page.tsx
 
-import ProtectedRoute from '@/shared/guards'
-import CreatorSidebar from "../../../../components/creators/sidebar/creatorSidebar"
-import PlaylistsManager from "../../../../components/creators/contentManagement/playlists/PlaylistsManager"
-import { useUserStore } from "../../../../stores/useUserStore"
+import { ProtectedRoute } from '@/shared/guards'
+import CreatorSidebar from '@/features/creators/components/sidebar/creatorSidebar'
+import PlaylistsManager from '@/features/creators/components/contentManagement/playlists/PlaylistsManager'
+import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 
 function GerirPlaylistsPage() {
-  const {  hydrated } = useUserStore()
-  const isDevelopment = process.env.NODE_ENV === "development"
+  const { hydrated } = useAuthStore()
+  const isDevelopment = process.env.NODE_ENV === 'development'
 
   if (!hydrated && !isDevelopment) {
     return (
@@ -19,7 +19,7 @@ function GerirPlaylistsPage() {
   }
 
   return (
-    <ProtectedRoute allowedRoles={["creator", "admin"]}>
+    <ProtectedRoute allowedRoles={['creator', 'admin']}>
       <div className="flex min-h-screen">
         <CreatorSidebar />
         <main className="flex-1 p-6 space-y-6 bg-background text-foreground">

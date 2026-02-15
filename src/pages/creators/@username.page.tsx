@@ -1,15 +1,14 @@
 import { CreatorFull } from '../../types/creator'
-import SidebarLayout from '../../components/layout/SidebarLayout'
-import LoadingSpinner from '../../components/ui/loading-spinner'
+import SidebarLayout from '@/shared/layouts/SidebarLayout'
+import LoadingSpinner from '@/components/ui/loading-spinner'
 import { mockCreatorsFull } from '@/lib/mock/mockCreatorsFull'
 import { useEffect, useState } from 'react'
 import { usePageContext } from '../../renderer/PageShell'
-import ContentSections from '../../components/creators/public/ContentSections'
-import CreatorProfile from '../../components/creators/public/CreatorProfile'
+import ContentSections from '@/features/creators/components/public/ContentSections'
+import CreatorProfile from '@/features/creators/components/public/CreatorProfile'
 
 // Define passToClient directly here
 export const passToClient = ['routeParams', 'pageProps', 'user']
-
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function Page(props: any) {
@@ -29,9 +28,7 @@ export function Page(props: any) {
     console.log('Using fallback props-based approach')
 
     // Get username either from pageContext prop or from routeParams directly
-    const username =
-      props.pageContext?.routeParams?.username ||
-      props.routeParams?.username
+    const username = props.pageContext?.routeParams?.username || props.routeParams?.username
 
     if (!username) {
       console.error('Username not found in props', props)
@@ -54,7 +51,7 @@ function CreatorPage({ username }: { username: string }) {
     }
 
     const found = mockCreatorsFull.find(
-      (c) => c.username?.toLowerCase().trim() === username.toLowerCase().trim()
+      (c) => c.username?.toLowerCase().trim() === username.toLowerCase().trim(),
     )
     console.log('Creator found:', found)
     setCreatorData(found || null)
@@ -66,10 +63,10 @@ function CreatorPage({ username }: { username: string }) {
   if (!creatorData) return <p className="text-center">Criador não encontrado.</p>
 
   return (
-<SidebarLayout>
-    <div className="max-w-7xl mx-auto px-4 py-10 space-y-10">
-      {/* Welcome Video */}
-      {/* {creatorData.contentVisibility?.welcomeVideo && creatorData.mainVideo?.videoLink && (
+    <SidebarLayout>
+      <div className="max-w-7xl mx-auto px-4 py-10 space-y-10">
+        {/* Welcome Video */}
+        {/* {creatorData.contentVisibility?.welcomeVideo && creatorData.mainVideo?.videoLink && (
         <div className="w-full aspect-video">
           <iframe
             src={getEmbedUrl(creatorData.mainVideo.videoLink)}
@@ -80,27 +77,27 @@ function CreatorPage({ username }: { username: string }) {
         </div>
       )} */}
 
-      {/* Perfil do Criador */}
-      <CreatorProfile
-        creatorData={creatorData}
-        averageCreatorRating={5} // mock por agora
-        userRating={4} // mock por agora
-        submitRating={() => {}} // mock por agora
-         user={{ id: 'mock-user-id', role: 'RegularUser' }}
-      />
+        {/* Perfil do Criador */}
+        <CreatorProfile
+          creatorData={creatorData}
+          averageCreatorRating={5} // mock por agora
+          userRating={4} // mock por agora
+          submitRating={() => {}} // mock por agora
+          user={{ id: 'mock-user-id', role: 'RegularUser' }}
+        />
 
-      {/* Secções de Conteúdos */}
-      <ContentSections
-        creatorData={creatorData}
-        contentVisibility={creatorData.contentVisibility}
-        handleCourseClick={(course) => console.log('Curso selecionado:', course)}
-        handleArticleClick={(article) => console.log('Artigo selecionado:', article)}
-        handleEventClick={(event) => console.log('Evento selecionado:', event)}
-        getEmbedUrl={(url) => `https://www.youtube.com/embed/${url}`}
-        coursesWithRatings={creatorData.coursesResolved ?? []}
-        articlesWithRatings={creatorData.articlesResolved ?? []}
-      />
-    </div>
-  </SidebarLayout>
+        {/* Secções de Conteúdos */}
+        <ContentSections
+          creatorData={creatorData}
+          contentVisibility={creatorData.contentVisibility}
+          handleCourseClick={(course) => console.log('Curso selecionado:', course)}
+          handleArticleClick={(article) => console.log('Artigo selecionado:', article)}
+          handleEventClick={(event) => console.log('Evento selecionado:', event)}
+          getEmbedUrl={(url) => `https://www.youtube.com/embed/${url}`}
+          coursesWithRatings={creatorData.coursesResolved ?? []}
+          articlesWithRatings={creatorData.articlesResolved ?? []}
+        />
+      </div>
+    </SidebarLayout>
   )
 }

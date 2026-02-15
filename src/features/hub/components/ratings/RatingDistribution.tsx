@@ -1,5 +1,5 @@
 import { type HTMLAttributes } from 'react'
-import { cn } from '@/lib/utils/cn'
+import { cn } from '@/lib/utils'
 import { type RatingStats } from '../../types'
 import { RatingStars } from '../common/RatingStars'
 
@@ -70,9 +70,7 @@ export function RatingDistribution({
                 </span>
 
                 {/* Count */}
-                <span className="w-12 text-right text-xs text-muted-foreground">
-                  ({count})
-                </span>
+                <span className="w-12 text-right text-xs text-muted-foreground">({count})</span>
               </div>
             )
           })}

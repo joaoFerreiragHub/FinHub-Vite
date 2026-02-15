@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
-import { useUserStore } from '@/stores/useUserStore'
+import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 
 export interface RequireAuthProps {
   /**
@@ -30,7 +30,7 @@ export function RequireAuth({
   redirectTo = '/auth/login',
   fallback = <div>Carregando...</div>,
 }: RequireAuthProps) {
-  const { isAuthenticated, hydrated } = useUserStore()
+  const { isAuthenticated, hydrated } = useAuthStore()
   const location = useLocation()
 
   // Aguardar hidratação do Zustand

@@ -1,4 +1,4 @@
-// src/components/noticias/utils/sourceUtils.ts
+// src/features/hub/news/utils/sourceUtils.ts
 
 // ✅ Configuração das fontes (exportada para reutilização)
 export const sourceConfig = {

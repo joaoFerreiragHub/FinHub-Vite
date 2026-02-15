@@ -1,16 +1,16 @@
 // src/pages/creators/content/gerir-videos/GerirVideosPage.tsx
 
-import ProtectedRoute from '@/shared/guards'
-import WelcomeVideoSection from "../../../../components/creators/contentManagement/welcomeVideos/WelcomeVideoSection"
-import CreatorSidebar from "../../../../components/creators/sidebar/creatorSidebar"
+import { ProtectedRoute } from '@/shared/guards'
+import WelcomeVideoSection from '@/features/creators/components/contentManagement/welcomeVideos/WelcomeVideoSection'
+import CreatorSidebar from '@/features/creators/components/sidebar/creatorSidebar'
 
-import { useUserStore } from "../../../../stores/useUserStore"
+import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 
 function GerirVideosPage() {
-  const { user, hydrated } = useUserStore()
-  const isDevelopment = process.env.NODE_ENV === "development"
+  const { user, hydrated } = useAuthStore()
+  const isDevelopment = process.env.NODE_ENV === 'development'
 
-  console.log("🎥 ~ Estado de hidratação:", hydrated, user)
+  console.log('🎥 ~ Estado de hidratação:', hydrated, user)
 
   if (!hydrated && !isDevelopment) {
     return (
@@ -22,7 +22,7 @@ function GerirVideosPage() {
   }
 
   return (
-    <ProtectedRoute allowedRoles={["creator", "admin"]}>
+    <ProtectedRoute allowedRoles={['creator', 'admin']}>
       <div className="flex min-h-screen">
         <CreatorSidebar />
         <main className="flex-1 p-6 space-y-6 bg-background text-foreground">
@@ -32,7 +32,7 @@ function GerirVideosPage() {
             pública como os do teu cartão de apresentação.
           </p>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <WelcomeVideoSection/>
+            <WelcomeVideoSection />
           </div>
         </main>
       </div>

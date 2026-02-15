@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/api/client'
-import type { Video, CreateVideoDto } from '../types'
+import type { Video, CreateVideoDto, UpdateVideoDto } from '../types'
 import type { ContentListResponse, ContentFilters } from '../../types'
 
 export const videoService = {
@@ -7,22 +7,53 @@ export const videoService = {
     const response = await apiClient.get<ContentListResponse<Video>>('/videos', { params: filters })
     return response.data
   },
+
   getVideoBySlug: async (slug: string): Promise<Video> => {
     const response = await apiClient.get<Video>(`/videos/${slug}`)
     return response.data
   },
+
+  getMyVideos: async (filters?: ContentFilters): Promise<ContentListResponse<Video>> => {
+    const response = await apiClient.get<ContentListResponse<Video>>('/videos/me', {
+      params: filters,
+    })
+    return response.data
+  },
+
   createVideo: async (data: CreateVideoDto): Promise<Video> => {
     const response = await apiClient.post<Video>('/videos', data)
     return response.data
   },
-  updateVideo: async (id: string, data: Partial<CreateVideoDto>): Promise<Video> => {
+
+  updateVideo: async (id: string, data: UpdateVideoDto): Promise<Video> => {
     const response = await apiClient.patch<Video>(`/videos/${id}`, data)
     return response.data
   },
+
   deleteVideo: async (id: string): Promise<void> => {
     await apiClient.delete(`/videos/${id}`)
   },
+
+  publishVideo: async (id: string): Promise<Video> => {
+    const response = await apiClient.post<Video>(`/videos/${id}/publish`)
+    return response.data
+  },
+
   incrementView: async (id: string): Promise<void> => {
     await apiClient.post(`/videos/${id}/view`)
+  },
+
+  toggleLike: async (id: string): Promise<{ liked: boolean; likeCount: number }> => {
+    const response = await apiClient.post<{ liked: boolean; likeCount: number }>(
+      `/videos/${id}/like`,
+    )
+    return response.data
+  },
+
+  toggleFavorite: async (id: string): Promise<{ favorited: boolean; favoriteCount: number }> => {
+    const response = await apiClient.post<{ favorited: boolean; favoriteCount: number }>(
+      `/videos/${id}/favorite`,
+    )
+    return response.data
   },
 }

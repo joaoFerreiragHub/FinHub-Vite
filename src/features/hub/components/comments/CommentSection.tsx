@@ -1,9 +1,9 @@
 import { type HTMLAttributes } from 'react'
-import { cn } from '@/lib/utils/cn'
-import { type ContentType, type CommentListResponse } from '../../types'
+import { cn } from '@/lib/utils'
+import { type ContentType, type Comment, type CommentListResponse } from '../../types'
 import { CommentForm } from './CommentForm'
 import { CommentCard } from './CommentCard'
-import { Button } from '@/shared/ui'
+import { Button } from '@/components/ui'
 import { usePermissions } from '@/features/auth/hooks/usePermissions'
 import { Permission } from '@/lib/permissions/config'
 
@@ -152,13 +152,11 @@ export function CommentSection({
             />
           </svg>
           <h4 className="mb-2 font-semibold">Nenhum comentário ainda</h4>
-          <p className="text-sm text-muted-foreground">
-            Seja o primeiro a comentar!
-          </p>
+          <p className="text-sm text-muted-foreground">Seja o primeiro a comentar!</p>
         </div>
       ) : (
         <div className="space-y-6">
-          {response.items.map((comment) => (
+          {response.items.map((comment: Comment) => (
             <CommentCard
               key={comment.id}
               comment={comment}

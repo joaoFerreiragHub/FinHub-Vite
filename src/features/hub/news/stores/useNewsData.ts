@@ -1,7 +1,7 @@
 // src/stores/news/useNewsData.ts - Store de Gestão de Dados
 
 import { create } from 'zustand'
-import { NewsArticle } from '../../types/news'
+import { NewsArticle } from '~/features/hub/news/types/news'
 
 // ===== INTERFACES =====
 export interface GetNewsParams {

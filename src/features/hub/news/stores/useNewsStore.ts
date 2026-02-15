@@ -3,7 +3,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { NewsArticle, NewsFilters } from '../types/news'
-import { newsApi } from '../components/noticias/api/newsApi'
+import { newsApi } from '../services/newsApi'
 
 // ===== INTERFACES EXPORTADAS (MANTIDAS - usadas pelos hooks) =====
 export interface NewsStats {

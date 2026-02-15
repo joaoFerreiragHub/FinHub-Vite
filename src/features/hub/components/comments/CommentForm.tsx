@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Button } from '@/shared/ui'
+import { Button } from '@/components/ui'
 import { type ContentType } from '../../types'
-import { getErrorMessage } from '@/lib/api'
-import { cn } from '@/lib/utils/cn'
+
+import { cn } from '@/lib/utils'
+import { getErrorMessage } from '@/lib/api/client'
 
 const commentFormSchema = z.object({
   content: z
@@ -106,13 +107,11 @@ export function CommentForm({
           placeholder={placeholder}
           className={cn(
             'w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm transition-all duration-200 placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
-            errors.content && 'border-red-500'
+            errors.content && 'border-red-500',
           )}
           {...register('content')}
         />
-        {errors.content && (
-          <p className="text-sm text-red-600">{errors.content.message}</p>
-        )}
+        {errors.content && <p className="text-sm text-red-600">{errors.content.message}</p>}
       </div>
 
       <div className="flex gap-2">

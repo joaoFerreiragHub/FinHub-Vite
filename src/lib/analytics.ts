@@ -1,4 +1,4 @@
-import { useUserStore } from '../stores/useUserStore'
+import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 
 export type EventName =
   | 'page_view'
@@ -17,7 +17,7 @@ export interface TrackEventProps {
 }
 
 export function trackEvent({ name, properties }: TrackEventProps) {
-  const { user } = useUserStore.getState()
+  const { user } = useAuthStore.getState()
   const baseProps = {
     userId: user?.id || 'anonymous',
     userRole: user?.role || 'visitor',

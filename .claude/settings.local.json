@@ -9,7 +9,31 @@
       "Bash(git checkout:*)",
       "Bash(src/stores/useUserStore.ts:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm install:*)",
+      "Bash(find:*)",
+      "Bash(fi)",
+      "Bash(node -e:*)",
+      "Bash(grep:*)",
+      "Bash(for:*)",
+      "Bash(do sed -i \"s|''~/components/ui''|''@/components/ui''|g\" \"$file\")",
+      "Bash(xargs sed:*)",
+      "Bash(npx vite build:*)",
+      "Bash(xargs:*)",
+      "Bash(\"c:/Users/Admin/finhub/nome-do-teu-projeto/src/features/hub/components/ratings/ReviewsDisplay.tsx\":*)",
+      "Bash(\"c:/Users/Admin/finhub/nome-do-teu-projeto/src/features/hub/components/ratings/index.ts\":*)",
+      "Bash(\"c:/Users/Admin/finhub/nome-do-teu-projeto/src/shared/layouts/index.ts\":*)",
+      "Bash(\"c:/Users/Admin/finhub/nome-do-teu-projeto/src/features/creators/components/index.ts\":*)",
+      "Bash(\"c:/Users/Admin/finhub/nome-do-teu-projeto/src/features/tools/index.ts\":*)",
+      "Bash(\"c:/Users/Admin/finhub/nome-do-teu-projeto/src/features/tools/stocks/index.ts\":*)",
+      "Bash(\"c:/Users/Admin/finhub/nome-do-teu-projeto/src/shared/hooks/index.ts\":*)",
+      "Bash(\"c:/Users/Admin/finhub/nome-do-teu-projeto/src/shared/components/index.ts\":*)",
+      "Bash(\"c:/Users/Admin/finhub/nome-do-teu-projeto/src/shared/providers/index.ts\":*)",
+      "Bash(\"c:/Users/Admin/finhub/nome-do-teu-projeto/src/shared/index.ts\":*)"
     ]
   }
 }

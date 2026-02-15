@@ -1,0 +1,5 @@
+export { HistoricalMultiplesChart } from './HistoricalMultiplesChart'
+export { SectorMultiplesComparison } from './SectorMultiplesComparison'
+export { ValuationComparison } from './ValuationComparison'
+export { ValuationSectionAdvanced } from './ValuationSectionAdvanced'
+export { ValuationSimulator } from './ValuationSimulator'

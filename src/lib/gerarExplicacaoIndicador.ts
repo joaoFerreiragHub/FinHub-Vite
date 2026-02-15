@@ -1,4 +1,4 @@
-import { IndicadorExplicacaoContexto } from "../components/stocks/sections/indicadoresMeta"
+import { IndicadorExplicacaoContexto } from '@/features/tools/stocks/components/sections'
 
 export function gerarExplicacaoIndicador(ctx: IndicadorExplicacaoContexto): string {
   const { valor, valorAnterior, score, meta } = ctx

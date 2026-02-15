@@ -1,18 +1,15 @@
 import { type HTMLAttributes } from 'react'
 import { Link } from 'react-router-dom'
-import { cn } from '@/lib/utils/cn'
+import { cn } from '@/lib/utils'
 import { type BaseContent } from '../../types'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
-export interface ContentMetaProps extends HTMLAttributes<HTMLDivElement> {
+export interface ContentMetaProps extends Omit<HTMLAttributes<HTMLDivElement>, 'content'> {
   /**
    * Conteúdo (para extrair metadata)
    */
-  content: Pick<
-    BaseContent,
-    'creator' | 'creatorId' | 'publishedAt' | 'viewCount' | 'commentCount'
-  >
+  content: Pick<BaseContent, 'creator' | 'creatorId' | 'publishedAt' | 'viewCount' | 'commentCount'>
   /**
    * Mostrar avatar do creator
    */
@@ -73,7 +70,7 @@ export function ContentMeta({
         orientation === 'vertical' && 'flex-col items-start',
         sizeClasses[size].text,
         'text-muted-foreground',
-        className
+        className,
       )}
       {...props}
     >
@@ -84,7 +81,7 @@ export function ContentMeta({
             <div
               className={cn(
                 sizeClasses[size].avatar,
-                'flex items-center justify-center overflow-hidden rounded-full bg-primary text-primary-foreground'
+                'flex items-center justify-center overflow-hidden rounded-full bg-primary text-primary-foreground',
               )}
             >
               {creator.avatar ? (
