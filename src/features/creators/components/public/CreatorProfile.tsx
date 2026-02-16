@@ -111,7 +111,7 @@ const CreatorProfile: React.FC<Props> = ({
       <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
         <div className="flex flex-col items-center gap-4">
           <img
-            src={creatorData.profilePictureUrl || '/default-avatar.png'}
+            src={creatorData.profilePictureUrl || '/placeholder-user.svg'}
             alt={creatorData.username}
             className="w-32 h-32 rounded-full object-cover border"
           />

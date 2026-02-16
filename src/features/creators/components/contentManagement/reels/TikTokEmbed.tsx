@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react'
-import '../../../../index.css'
 
 export default function TikTokEmbed({ url }: { url: string }) {
   const containerRef = useRef<HTMLDivElement>(null)

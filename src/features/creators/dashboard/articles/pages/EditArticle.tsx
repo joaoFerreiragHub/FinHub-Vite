@@ -29,7 +29,7 @@ export function EditArticle() {
   }
 
   if (error || !article) {
-    return <Navigate to="/creators/dashboard/artigos" replace />
+    return <Navigate to="/creators/dashboard/articles" replace />
   }
 
   return (

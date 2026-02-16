@@ -20,43 +20,43 @@ export const creatorDashboardRouts = [
     allowedRoles: ['creator', 'admin'] as UserRole[],
     children: [
       {
-        path: '/creators/conteudos/resumo',
+        path: '/creators/dashboard/overview',
         label: 'Todos os Conteúdos',
       },
       {
-        path: '/creators/conteudos/anuncios',
+        path: '/creators/dashboard/announcements',
         label: 'Gerir Anúncios',
       },
       {
-        path: '/creators/conteudos/reels',
+        path: '/creators/dashboard/reels',
         label: 'Gerir Reels',
       },
       {
-        path: '/creators/conteudos/artigos',
+        path: '/creators/dashboard/articles',
         label: 'Gerir Artigos',
       },
       {
-        path: '/creators/conteudos/courses',
+        path: '/creators/dashboard/courses',
         label: 'Gerir Cursos',
       },
       {
-        path: '/creators/conteudos/podcasts',
+        path: '/creators/dashboard/podcasts',
         label: 'Gerir Podcasts',
       },
       {
-        path: '/creators/conteudos/welcomeVideos',
+        path: '/creators/dashboard/welcome-videos',
         label: 'Gerir Vídeos de Apresentação',
       },
       {
-        path: '/creators/conteudos/lives',
+        path: '/creators/dashboard/lives',
         label: 'Gerir Lives',
       },
       {
-        path: '/creators/conteudos/files',
+        path: '/creators/dashboard/files',
         label: 'Gerir Ficheiros',
       },
       {
-        path: '/creators/conteudos/playlists',
+        path: '/creators/dashboard/playlists',
         label: 'Gerir Playlists',
       },
     ],

@@ -18,11 +18,11 @@ export default function TodosContentPage({ user }: TodosContentPageProps) {
   const [tab, setTab] = useState('resumo')
 
   const contentSummary = [
-    { type: 'Reels', count: mockReels.length, path: '/creators/conteudos/reels' },
-    { type: 'Artigos', count: mockArticles.length, path: '/creators/conteudos/artigos' },
-    { type: 'Cursos', count: mockCourses.length, path: '/creators/conteudos/cursos' },
-    { type: 'Podcasts', count: mockPodcasts.length, path: '/creators/conteudos/podcasts' },
-    { type: 'Playlists', count: mockPlaylists.length, path: '/creators/conteudos/playlists' },
+    { type: 'Reels', count: mockReels.length, path: '/creators/dashboard/reels' },
+    { type: 'Artigos', count: mockArticles.length, path: '/creators/dashboard/articles' },
+    { type: 'Cursos', count: mockCourses.length, path: '/creators/dashboard/courses' },
+    { type: 'Podcasts', count: mockPodcasts.length, path: '/creators/dashboard/podcasts' },
+    { type: 'Playlists', count: mockPlaylists.length, path: '/creators/dashboard/playlists' },
   ]
 
   return (

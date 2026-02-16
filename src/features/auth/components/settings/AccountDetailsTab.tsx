@@ -16,7 +16,7 @@ export default function AccountDetailsTab({ user, onChange, onSave }: Props) {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <img
-          src={user?.avatar || '/default-avatar.png'}
+          src={user?.avatar || '/placeholder-user.svg'}
           alt="Avatar"
           className="w-16 h-16 rounded-full"
         />

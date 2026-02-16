@@ -5,7 +5,7 @@ import ContentSummaryCard from '@/features/creators/components/dashboard/Content
 import XPProgressCard from '@/features/creators/components/dashboard/XPProgressCard'
 import RecentInteractionsCard from '@/features/creators/components/dashboard/RecentInteractionsCard'
 import HelpCard from '@/features/creators/components/dashboard/HelpCard'
-import FeedbackCard from '@/features/creators/components/dashboard/FeedbackCard'
+import FeedbackFormCard from '@/features/creators/components/dashboard/FeedbackFormCard'
 import MissionCard from '@/features/creators/components/dashboard/MissionCard'
 import RankingCard from '@/features/creators/components/dashboard/RankingCard'
 import TopContentCard from '@/features/creators/components/dashboard/TopContentCard'
@@ -69,7 +69,7 @@ function DashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ChecklistCard />
               <ContentTrendsCard />
-              <FeedbackCard />
+              <FeedbackFormCard />
               <HelpCard />
             </div>
           </section>

@@ -1,18 +1,27 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import {
+  Eye,
+  Heart,
+  MessageCircle,
+  PenSquare,
+  RefreshCcw,
+  Rocket,
+  Star,
+  Trash2,
+} from 'lucide-react'
+import { formatDistanceToNow } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import { Button, Card } from '@/components/ui'
 import { DashboardLayout } from '@/shared/layouts'
 import {
-  useMyArticles,
   useDeleteArticle,
+  useMyArticles,
   usePublishArticle,
 } from '@/features/hub/articles/hooks/useArticles'
-import { formatDistanceToNow } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 
 /**
- * Página de gestão de artigos do creator
- * Lista todos os artigos com opções de editar/eliminar/publicar
+ * Pagina de gestao de artigos do creator
+ * Lista todos os artigos com opcoes de editar/eliminar/publicar
  */
 export function ManageArticles() {
   const [filters, setFilters] = useState({
@@ -45,21 +54,20 @@ export function ManageArticles() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Gerir Artigos</h1>
             <p className="mt-1 text-muted-foreground">Cria e gere os teus artigos educativos</p>
           </div>
 
-          <Link to="/creators/dashboard/artigos/criar">
+          <a href="/creators/dashboard/articles/create">
             <Button variant="default" size="lg">
-              ✍️ Criar Artigo
+              <PenSquare className="mr-2 h-4 w-4" />
+              Criar Artigo
             </Button>
-          </Link>
+          </a>
         </div>
 
-        {/* Filters */}
         <Card className="p-6">
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
@@ -100,12 +108,12 @@ export function ManageArticles() {
             </div>
 
             <Button variant="ghost" size="sm" onClick={() => refetch()}>
-              🔄 Atualizar
+              <RefreshCcw className="mr-2 h-4 w-4" />
+              Atualizar
             </Button>
           </div>
         </Card>
 
-        {/* Stats */}
         {data && (
           <div className="grid gap-4 md:grid-cols-4">
             <Card className="p-6">
@@ -128,12 +136,11 @@ export function ManageArticles() {
               <div className="text-2xl font-bold">
                 {data.items.reduce((sum, a) => sum + a.viewCount, 0)}
               </div>
-              <div className="text-sm text-muted-foreground">Total de Visualizações</div>
+              <div className="text-sm text-muted-foreground">Total de Visualizacoes</div>
             </Card>
           </div>
         )}
 
-        {/* Articles List */}
         {isLoading ? (
           <div className="flex justify-center py-12">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -155,18 +162,17 @@ export function ManageArticles() {
             </svg>
             <h3 className="mb-2 text-lg font-semibold">Nenhum artigo ainda</h3>
             <p className="mb-4 text-sm text-muted-foreground">
-              Começa a partilhar conhecimento criando o teu primeiro artigo
+              Comeca a partilhar conhecimento criando o teu primeiro artigo
             </p>
-            <Link to="/creators/dashboard/artigos/criar">
+            <a href="/creators/dashboard/articles/create">
               <Button variant="default">Criar Primeiro Artigo</Button>
-            </Link>
+            </a>
           </Card>
         ) : (
           <div className="space-y-4">
             {data?.items.map((article) => (
               <Card key={article.id} className="p-6 transition-shadow hover:shadow-md">
                 <div className="flex items-start gap-4">
-                  {/* Cover Image */}
                   {article.coverImage && (
                     <img
                       src={article.coverImage}
@@ -175,7 +181,6 @@ export function ManageArticles() {
                     />
                   )}
 
-                  {/* Content */}
                   <div className="flex-1">
                     <div className="mb-2 flex items-start justify-between">
                       <div>
@@ -185,7 +190,6 @@ export function ManageArticles() {
                         </p>
                       </div>
 
-                      {/* Status Badge */}
                       <span
                         className={`rounded-full px-3 py-1 text-xs font-medium ${
                           article.status === 'published'
@@ -203,14 +207,23 @@ export function ManageArticles() {
                       </span>
                     </div>
 
-                    {/* Meta */}
                     <div className="mb-3 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                      <span>👁️ {article.viewCount} visualizações</span>
-                      <span>❤️ {article.likeCount} likes</span>
-                      <span>
-                        ⭐ {article.averageRating.toFixed(1)} ({article.ratingCount})
+                      <span className="inline-flex items-center gap-1">
+                        <Eye className="h-4 w-4" />
+                        {article.viewCount} visualizacoes
                       </span>
-                      <span>💬 {article.commentCount} comentários</span>
+                      <span className="inline-flex items-center gap-1">
+                        <Heart className="h-4 w-4" />
+                        {article.likeCount} likes
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <Star className="h-4 w-4" />
+                        {article.averageRating.toFixed(1)} ({article.ratingCount})
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <MessageCircle className="h-4 w-4" />
+                        {article.commentCount} comentarios
+                      </span>
                       <span>
                         {formatDistanceToNow(new Date(article.updatedAt), {
                           addSuffix: true,
@@ -219,18 +232,19 @@ export function ManageArticles() {
                       </span>
                     </div>
 
-                    {/* Actions */}
                     <div className="flex gap-2">
-                      <Link to={`/hub/articles/${article.slug}`}>
+                      <a href={`/hub/articles/${article.slug}`}>
                         <Button variant="ghost" size="sm">
-                          👁️ Ver
+                          <Eye className="mr-1 h-4 w-4" />
+                          Ver
                         </Button>
-                      </Link>
-                      <Link to={`/creators/dashboard/artigos/editar/${article.id}`}>
+                      </a>
+                      <a href={`/creators/dashboard/articles/${article.id}/edit`}>
                         <Button variant="ghost" size="sm">
-                          ✏️ Editar
+                          <PenSquare className="mr-1 h-4 w-4" />
+                          Editar
                         </Button>
-                      </Link>
+                      </a>
 
                       {article.status === 'draft' && (
                         <Button
@@ -239,7 +253,8 @@ export function ManageArticles() {
                           onClick={() => handlePublish(article.id)}
                           disabled={publishArticle.isPending}
                         >
-                          🚀 Publicar
+                          <Rocket className="mr-1 h-4 w-4" />
+                          Publicar
                         </Button>
                       )}
 
@@ -250,7 +265,8 @@ export function ManageArticles() {
                         disabled={deleteArticle.isPending}
                         className="text-red-600 hover:text-red-700"
                       >
-                        🗑️ Eliminar
+                        <Trash2 className="mr-1 h-4 w-4" />
+                        Eliminar
                       </Button>
                     </div>
                   </div>

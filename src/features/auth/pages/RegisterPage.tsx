@@ -1,16 +1,12 @@
-import { AuthLayout } from '@/shared/layouts'
-import { RegisterForm } from '../components'
-
 /**
- * Página de Registro
+ * Criar Conta
+ * TODO: Implementar conteúdo completo
  */
-export function RegisterPage() {
+export default function RegisterPage() {
   return (
-    <AuthLayout
-      title="Criar nova conta"
-      description="Junte-se à comunidade FinHub"
-    >
-      <RegisterForm />
-    </AuthLayout>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold text-gray-900 mb-4">Criar Conta</h1>
+      <p className="text-gray-600">Esta página está em construção. Implementação em breve.</p>
+    </div>
   )
 }

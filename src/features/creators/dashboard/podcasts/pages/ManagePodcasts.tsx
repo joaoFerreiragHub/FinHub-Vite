@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+﻿import { useState } from 'react'
 import { Button, Card } from '@/components/ui'
 import { DashboardLayout } from '@/shared/layouts'
 import {
@@ -49,11 +48,11 @@ export function ManagePodcasts() {
             <p className="mt-1 text-muted-foreground">Cria e gere os teus podcasts e episodios</p>
           </div>
 
-          <Link to="/creators/dashboard/podcasts/create">
+          <a href="/creators/dashboard/podcasts/create">
             <Button variant="default" size="lg">
               + Criar Podcast
             </Button>
-          </Link>
+          </a>
         </div>
 
         <Card className="p-6">
@@ -134,11 +133,11 @@ export function ManagePodcasts() {
           <Card className="p-8 text-center">
             <h3 className="mb-2 text-lg font-semibold">Nenhum podcast ainda</h3>
             <p className="mb-4 text-sm text-muted-foreground">
-              Começa a partilhar conhecimento em formato audio
+              ComeÃ§a a partilhar conhecimento em formato audio
             </p>
-            <Link to="/creators/dashboard/podcasts/create">
+            <a href="/creators/dashboard/podcasts/create">
               <Button variant="default">Criar Primeiro Podcast</Button>
-            </Link>
+            </a>
           </Card>
         ) : (
           <div className="space-y-4">
@@ -188,16 +187,16 @@ export function ManagePodcasts() {
                     </div>
 
                     <div className="flex gap-2">
-                      <Link to={`/hub/podcasts/${podcast.slug}`}>
+                      <a href={`/hub/podcasts/${podcast.slug}`}>
                         <Button variant="ghost" size="sm">
                           Ver
                         </Button>
-                      </Link>
-                      <Link to={`/creators/dashboard/podcasts/${podcast.id}/edit`}>
+                      </a>
+                      <a href={`/creators/dashboard/podcasts/${podcast.id}/edit`}>
                         <Button variant="ghost" size="sm">
                           Editar
                         </Button>
-                      </Link>
+                      </a>
                       {podcast.status === 'draft' && (
                         <Button
                           variant="ghost"

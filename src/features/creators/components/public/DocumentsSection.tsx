@@ -1,6 +1,6 @@
 import React from 'react'
 import { CreatorFile } from '@/features/creators/types/creatorFile'
-import { FilesGrid } from '@/features/creators/components/contentManagement/files/FilesGrid'
+import FilesGrid from '@/features/creators/components/contentManagement/files/FilesGrid'
 
 type Props = {
   files: CreatorFile[]

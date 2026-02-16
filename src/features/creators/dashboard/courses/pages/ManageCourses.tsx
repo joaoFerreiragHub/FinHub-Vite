@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+﻿import { useState } from 'react'
 import { Button, Card } from '@/components/ui'
 import { DashboardLayout } from '@/shared/layouts'
 import {
@@ -50,11 +49,11 @@ export function ManageCourses() {
             <p className="mt-1 text-muted-foreground">Cria e gere os teus cursos educativos</p>
           </div>
 
-          <Link to="/creators/dashboard/courses/criar">
+          <a href="/creators/dashboard/courses/create">
             <Button variant="default" size="lg">
               + Criar Curso
             </Button>
-          </Link>
+          </a>
         </div>
 
         <Card className="p-6">
@@ -150,11 +149,11 @@ export function ManageCourses() {
             </svg>
             <h3 className="mb-2 text-lg font-semibold">Nenhum curso ainda</h3>
             <p className="mb-4 text-sm text-muted-foreground">
-              Começa a partilhar conhecimento criando o teu primeiro curso
+              ComeÃ§a a partilhar conhecimento criando o teu primeiro curso
             </p>
-            <Link to="/creators/dashboard/courses/criar">
+            <a href="/creators/dashboard/courses/create">
               <Button variant="default">Criar Primeiro Curso</Button>
-            </Link>
+            </a>
           </Card>
         ) : (
           <div className="space-y-4">
@@ -207,7 +206,7 @@ export function ManageCourses() {
                     </div>
 
                     <div className="mb-3 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                      <span>{course.price === 0 ? 'Gratuito' : `${course.price}€`}</span>
+                      <span>{course.price === 0 ? 'Gratuito' : `${course.price}â‚¬`}</span>
                       <span>{course.totalModules} modulos</span>
                       <span>{course.totalLessons} aulas</span>
                       <span>{course.enrolledCount} inscritos</span>
@@ -223,16 +222,16 @@ export function ManageCourses() {
                     </div>
 
                     <div className="flex gap-2">
-                      <Link to={`/hub/courses/${course.slug}`}>
+                      <a href={`/hub/courses/${course.slug}`}>
                         <Button variant="ghost" size="sm">
                           Ver
                         </Button>
-                      </Link>
-                      <Link to={`/creators/dashboard/courses/editar/${course.id}`}>
+                      </a>
+                      <a href={`/creators/dashboard/courses/${course.id}/edit`}>
                         <Button variant="ghost" size="sm">
                           Editar
                         </Button>
-                      </Link>
+                      </a>
 
                       {course.status === 'draft' && (
                         <Button

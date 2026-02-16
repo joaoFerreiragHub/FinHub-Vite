@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+﻿import { useState } from 'react'
 import { Button, Card } from '@/components/ui'
 import { DashboardLayout } from '@/shared/layouts'
 import { useMyLives, useDeleteLive, usePublishLive } from '@/features/hub/lives/hooks/useLives'
@@ -49,11 +48,11 @@ export function ManageLives() {
             <p className="mt-1 text-muted-foreground">Cria e gere os teus eventos ao vivo</p>
           </div>
 
-          <Link to="/creators/dashboard/lives/create">
+          <a href="/creators/dashboard/lives/create">
             <Button variant="default" size="lg">
               + Criar Evento
             </Button>
-          </Link>
+          </a>
         </div>
 
         <Card className="p-6">
@@ -131,11 +130,11 @@ export function ManageLives() {
           <Card className="p-8 text-center">
             <h3 className="mb-2 text-lg font-semibold">Nenhum evento ainda</h3>
             <p className="mb-4 text-sm text-muted-foreground">
-              Começa a interagir com a tua audiencia criando o teu primeiro evento
+              ComeÃ§a a interagir com a tua audiencia criando o teu primeiro evento
             </p>
-            <Link to="/creators/dashboard/lives/create">
+            <a href="/creators/dashboard/lives/create">
               <Button variant="default">Criar Primeiro Evento</Button>
-            </Link>
+            </a>
           </Card>
         ) : (
           <div className="space-y-4">
@@ -198,7 +197,7 @@ export function ManageLives() {
                         <span>
                           {eventDate.toLocaleDateString('pt-PT')} {live.startTime}
                         </span>
-                        <span>{live.price === 0 ? 'Gratuito' : `${live.price}€`}</span>
+                        <span>{live.price === 0 ? 'Gratuito' : `${live.price}â‚¬`}</span>
                         <span>{live.attendeeCount} inscritos</span>
                         <span>
                           {formatDistanceToNow(new Date(live.updatedAt), {
@@ -209,16 +208,16 @@ export function ManageLives() {
                       </div>
 
                       <div className="flex gap-2">
-                        <Link to={`/hub/lives/${live.slug}`}>
+                        <a href={`/hub/lives/${live.slug}`}>
                           <Button variant="ghost" size="sm">
                             Ver
                           </Button>
-                        </Link>
-                        <Link to={`/creators/dashboard/lives/${live.id}/edit`}>
+                        </a>
+                        <a href={`/creators/dashboard/lives/${live.id}/edit`}>
                           <Button variant="ghost" size="sm">
                             Editar
                           </Button>
-                        </Link>
+                        </a>
                         {live.status === 'draft' && (
                           <Button
                             variant="ghost"

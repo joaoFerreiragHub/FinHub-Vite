@@ -8,11 +8,18 @@
 const { TsJestTransformer } = require('ts-jest')
 
 class ImportMetaTransformer extends TsJestTransformer {
+  static CACHE_VERSION = 'import-meta-transform-v2'
+
   constructor() {
     super({
       diagnostics: false,
       tsconfig: 'tsconfig.jest.json',
     })
+  }
+
+  getCacheKey(sourceText, sourcePath, options) {
+    const baseKey = super.getCacheKey(sourceText, sourcePath, options)
+    return `${baseKey}|${ImportMetaTransformer.CACHE_VERSION}`
   }
 
   process(sourceText, sourcePath, options) {
@@ -22,6 +29,8 @@ class ImportMetaTransformer extends TsJestTransformer {
       .replace(/import\.meta\.env\.MODE/g, '"test"')
       .replace(/import\.meta\.env\.SSR/g, 'false')
       .replace(/import\.meta\.env/g, '({DEV:false,PROD:true,MODE:"test",SSR:false})')
+      .replace(/typeof\s+import\.meta\s*!==\s*['"]undefined['"]/g, 'true')
+      .replace(/typeof\s+import\.meta\s*===\s*['"]undefined['"]/g, 'false')
     return super.process(transformed, sourcePath, options)
   }
 }

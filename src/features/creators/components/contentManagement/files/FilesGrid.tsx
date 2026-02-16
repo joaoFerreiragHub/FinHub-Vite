@@ -5,9 +5,9 @@ import FileItem from './FileItem'
 
 interface Props {
   files: CreatorFile[]
-  onDelete: (id: string) => void
+  onDelete?: (id: string) => void
   showActions?: boolean
-  loading?: boolean // <--- adiciona isto
+  loading?: boolean
 }
 
 export default function FilesGrid({ files, onDelete, showActions = true }: Props) {
@@ -22,7 +22,12 @@ export default function FilesGrid({ files, onDelete, showActions = true }: Props
   return (
     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {files.map((file) => (
-        <FileItem key={file._id} file={file} onDelete={onDelete} showActions={showActions} />
+        <FileItem
+          key={file._id}
+          file={file}
+          onDelete={onDelete || (() => {})}
+          showActions={showActions}
+        />
       ))}
     </div>
   )

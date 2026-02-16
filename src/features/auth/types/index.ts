@@ -3,11 +3,11 @@
  * Cada nível herda permissões do anterior
  */
 export enum UserRole {
-  VISITOR = 'visitor',     // Nível 0 - Sem conta
-  FREE = 'free',           // Nível 1 - Com conta gratuita
-  PREMIUM = 'premium',     // Nível 2 - Assinatura premium
-  CREATOR = 'creator',     // Nível 3 - Criador de conteúdo
-  ADMIN = 'admin',         // Nível 4 - Administrador
+  VISITOR = 'visitor', // Nível 0 - Sem conta
+  FREE = 'free', // Nível 1 - Com conta gratuita
+  PREMIUM = 'premium', // Nível 2 - Assinatura premium
+  CREATOR = 'creator', // Nível 3 - Criador de conteúdo
+  ADMIN = 'admin', // Nível 4 - Administrador
 }
 
 /**
@@ -62,10 +62,31 @@ export interface RegisterData {
 }
 
 /**
- * Auth Response
+ * Auth Tokens
+ */
+export interface AuthTokens {
+  accessToken: string
+  refreshToken: string
+}
+
+/**
+ * Auth Response (Login/Register)
  */
 export interface AuthResponse {
   user: User
-  accessToken: string
-  refreshToken: string
+  tokens: AuthTokens
+}
+
+/**
+ * Refresh Response
+ */
+export interface RefreshResponse {
+  tokens: AuthTokens
+}
+
+/**
+ * Me Response
+ */
+export interface MeResponse {
+  user: User
 }

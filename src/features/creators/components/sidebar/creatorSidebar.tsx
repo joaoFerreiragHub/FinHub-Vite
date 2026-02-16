@@ -181,7 +181,7 @@ export default function CreatorSidebar() {
       <div>
         <div className="mb-4 flex items-center gap-3">
           <img
-            src={user?.avatar || '/default-avatar.png'}
+            src={user?.avatar || '/placeholder-user.svg'}
             alt="Avatar do Criador"
             className="h-12 w-12 rounded-full border border-primary"
           />

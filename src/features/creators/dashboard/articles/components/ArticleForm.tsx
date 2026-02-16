@@ -119,7 +119,7 @@ export function ArticleForm(props: ArticleFormProps) {
         }
         await props.onSubmit(createPayload)
       }
-      navigate('/creators/dashboard/artigos')
+      navigate('/creators/dashboard/articles')
     } catch (error) {
       setServerError(getErrorMessage(error))
     } finally {
@@ -284,7 +284,7 @@ export function ArticleForm(props: ArticleFormProps) {
           type="button"
           variant="ghost"
           size="lg"
-          onClick={() => navigate('/creators/dashboard/artigos')}
+          onClick={() => navigate('/creators/dashboard/articles')}
         >
           Cancelar
         </Button>

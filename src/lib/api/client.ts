@@ -10,7 +10,7 @@ import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestCo
  * - Request/Response interceptors
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
 // Flag para evitar refresh loops
 let isRefreshing = false
@@ -29,6 +29,28 @@ const processQueue = (error: Error | null, token: string | null = null) => {
   })
 
   failedQueue = []
+}
+
+const isDevMockToken = (token: unknown): token is string => {
+  return import.meta.env.DEV && typeof token === 'string' && token.startsWith('dev-')
+}
+
+const readAuthState = (): Record<string, unknown> | null => {
+  const authStorage = localStorage.getItem('auth-storage')
+  if (!authStorage) return null
+
+  try {
+    const parsed = JSON.parse(authStorage)
+    return parsed?.state ?? null
+  } catch (error) {
+    console.error('Error parsing auth storage:', error)
+    return null
+  }
+}
+
+const hasDevMockSession = (): boolean => {
+  const state = readAuthState()
+  return isDevMockToken(state?.accessToken) || isDevMockToken(state?.refreshToken)
 }
 
 /**
@@ -76,7 +98,7 @@ apiClient.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error)
-  }
+  },
 )
 
 /**
@@ -87,10 +109,13 @@ apiClient.interceptors.response.use(
   (response) => {
     // Log em desenvolvimento
     if (import.meta.env.DEV) {
-      console.log(`✅ API Response: ${response.config.method?.toUpperCase()} ${response.config.url}`, {
-        status: response.status,
-        data: response.data,
-      })
+      console.log(
+        `✅ API Response: ${response.config.method?.toUpperCase()} ${response.config.url}`,
+        {
+          status: response.status,
+          data: response.data,
+        },
+      )
     }
 
     return response
@@ -111,9 +136,14 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       // Se é a rota de refresh, não tentar refresh novamente
       if (originalRequest.url?.includes('/auth/refresh')) {
-        // Limpar auth e redirecionar para login
+        if (hasDevMockSession()) {
+          console.warn('⚠️ [AUTH] Ignorando logout automático para sessão DEV mock')
+          return Promise.reject(error)
+        }
+
+        // Limpar auth e redirecionar para homepage (login é via dialog)
         localStorage.removeItem('auth-storage')
-        window.location.href = '/auth/login'
+        window.location.href = '/'
         return Promise.reject(error)
       }
 
@@ -138,25 +168,27 @@ apiClient.interceptors.response.use(
 
       // Tentar refresh
       try {
-        const authStorage = localStorage.getItem('auth-storage')
-        if (!authStorage) throw new Error('No auth storage')
+        const state = readAuthState()
+        if (!state) throw new Error('No auth storage')
 
-        const { state } = JSON.parse(authStorage)
         const refreshToken = state?.refreshToken
 
         if (!refreshToken) throw new Error('No refresh token')
+        if (isDevMockToken(refreshToken)) {
+          throw new Error('Dev mock token does not support refresh')
+        }
 
         // Fazer request de refresh
         const response = await axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken })
 
-        const { accessToken, refreshToken: newRefreshToken, user } = response.data
+        const { tokens } = response.data
+        const { accessToken, refreshToken: newRefreshToken } = tokens
 
         // Atualizar localStorage
         const updatedState = {
           ...state,
           accessToken,
           refreshToken: newRefreshToken,
-          user,
         }
 
         localStorage.setItem('auth-storage', JSON.stringify({ state: updatedState }))
@@ -173,9 +205,14 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError as Error, null)
 
-        // Limpar auth e redirecionar
+        if (hasDevMockSession()) {
+          console.warn('⚠️ [AUTH] Mantendo sessão DEV mock após falha de refresh')
+          return Promise.reject(refreshError)
+        }
+
+        // Limpar auth e redirecionar para homepage (login é via dialog)
         localStorage.removeItem('auth-storage')
-        window.location.href = '/auth/login'
+        window.location.href = '/'
 
         return Promise.reject(refreshError)
       } finally {
@@ -185,7 +222,7 @@ apiClient.interceptors.response.use(
 
     // Outros erros
     return Promise.reject(error)
-  }
+  },
 )
 
 /**

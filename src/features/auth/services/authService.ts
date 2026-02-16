@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/api/client'
-import { LoginCredentials, RegisterData, AuthResponse } from '../types'
+import { LoginCredentials, RegisterData, AuthResponse, RefreshResponse, MeResponse } from '../types'
 
 /**
  * Authentication Service
@@ -33,8 +33,8 @@ export const authService = {
   /**
    * Refresh do access token
    */
-  refreshToken: async (refreshToken: string): Promise<AuthResponse> => {
-    const response = await apiClient.post<AuthResponse>('/auth/refresh', { refreshToken })
+  refreshToken: async (refreshToken: string): Promise<RefreshResponse> => {
+    const response = await apiClient.post<RefreshResponse>('/auth/refresh', { refreshToken })
     return response.data
   },
 
@@ -62,8 +62,8 @@ export const authService = {
   /**
    * Obter usuário atual
    */
-  getCurrentUser: async (): Promise<AuthResponse> => {
-    const response = await apiClient.get<AuthResponse>('/auth/me')
+  getCurrentUser: async (): Promise<MeResponse> => {
+    const response = await apiClient.get<MeResponse>('/auth/me')
     return response.data
   },
 }

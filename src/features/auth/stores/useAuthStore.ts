@@ -24,25 +24,75 @@ interface AuthStore extends AuthState {
   setHydrated: (hydrated: boolean) => void
 }
 
-// Mock user para desenvolvimento
+// Mock user para desenvolvimento - Admin omnipresente
 const DEV_MOCK_USER: User = {
-  id: 'dev-mock-id',
-  name: 'Desenvolvedor',
-  lastName: 'Teste',
-  email: 'dev@finhub.test',
-  username: 'dev_test',
+  id: 'dev-admin-id',
+  name: 'Admin',
+  lastName: 'Dev',
+  email: 'admin@admin.com',
+  username: 'admin',
   avatar: undefined,
-  bio: 'Usuário de desenvolvimento',
-  role: UserRole.CREATOR, // Full access para testar features
+  bio: 'Admin de desenvolvimento - Omnipresente',
+  role: UserRole.ADMIN, // Admin = acesso total
   isEmailVerified: true,
-  favoriteTopics: ['investimentos', 'finanças'],
+  favoriteTopics: ['investimentos', 'finanças', 'trading'],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 }
 
 const DEV_MOCK_TOKENS = {
-  accessToken: 'dev-mock-access-token',
-  refreshToken: 'dev-mock-refresh-token',
+  accessToken: 'dev-admin-access-token',
+  refreshToken: 'dev-admin-refresh-token',
+}
+
+const DEV_ROLE_STORAGE_KEY = 'auth-dev-role'
+
+const isValidRole = (role: unknown): role is UserRole => {
+  return typeof role === 'string' && Object.values(UserRole).includes(role as UserRole)
+}
+
+const isDevMockToken = (token: unknown): token is string => {
+  return typeof token === 'string' && token.startsWith('dev-')
+}
+
+const getStoredDevRole = (): UserRole => {
+  if (typeof window === 'undefined') return UserRole.CREATOR
+
+  try {
+    const rawRole = localStorage.getItem(DEV_ROLE_STORAGE_KEY)
+    if (isValidRole(rawRole)) {
+      return rawRole
+    }
+  } catch (error) {
+    console.warn('⚠️ [DEV] Nao foi possivel ler auth-dev-role:', error)
+  }
+
+  return UserRole.CREATOR
+}
+
+const setStoredDevRole = (role: UserRole): void => {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(DEV_ROLE_STORAGE_KEY, role)
+  } catch (error) {
+    console.warn('⚠️ [DEV] Nao foi possivel guardar auth-dev-role:', error)
+  }
+}
+
+const buildDevUser = (role: UserRole): User => ({
+  ...DEV_MOCK_USER,
+  role,
+  name: `Dev ${role.charAt(0).toUpperCase() + role.slice(1)}`,
+})
+
+const buildDevAuthState = (role: UserRole) => {
+  const isVisitor = role === UserRole.VISITOR
+  return {
+    user: buildDevUser(role),
+    accessToken: isVisitor ? null : DEV_MOCK_TOKENS.accessToken,
+    refreshToken: isVisitor ? null : DEV_MOCK_TOKENS.refreshToken,
+    isAuthenticated: !isVisitor,
+  }
 }
 
 /**
@@ -72,8 +122,8 @@ export const useAuthStore = create<AuthStore>()(
           const response = await authService.login(credentials)
           set({
             user: response.user,
-            accessToken: response.accessToken,
-            refreshToken: response.refreshToken,
+            accessToken: response.tokens.accessToken,
+            refreshToken: response.tokens.refreshToken,
             isAuthenticated: true,
             isLoading: false,
           })
@@ -89,8 +139,8 @@ export const useAuthStore = create<AuthStore>()(
           const response = await authService.register(data)
           set({
             user: response.user,
-            accessToken: response.accessToken,
-            refreshToken: response.refreshToken,
+            accessToken: response.tokens.accessToken,
+            refreshToken: response.tokens.refreshToken,
             isAuthenticated: true,
             isLoading: false,
           })
@@ -103,7 +153,7 @@ export const useAuthStore = create<AuthStore>()(
       logout: () => {
         // Limpar tokens do servidor (fire & forget)
         const { refreshToken } = get()
-        if (refreshToken) {
+        if (refreshToken && !(isDevelopment() && isDevMockToken(refreshToken))) {
           authService.logout(refreshToken).catch(console.error)
         }
 
@@ -122,12 +172,15 @@ export const useAuthStore = create<AuthStore>()(
           throw new Error('No refresh token available')
         }
 
+        if (isDevelopment() && isDevMockToken(refreshToken)) {
+          return
+        }
+
         try {
           const response = await authService.refreshToken(refreshToken)
           set({
-            accessToken: response.accessToken,
-            refreshToken: response.refreshToken,
-            user: response.user,
+            accessToken: response.tokens.accessToken,
+            refreshToken: response.tokens.refreshToken,
           })
         } catch (error) {
           // Se refresh falhar, fazer logout
@@ -175,19 +228,8 @@ export const useAuthStore = create<AuthStore>()(
           return
         }
 
-        const currentUser = get().user
-        if (!currentUser) {
-          console.warn('⚠️ Nenhum usuário logado para trocar role')
-          return
-        }
-
-        const updatedUser: User = {
-          ...currentUser,
-          role,
-          name: `Dev ${role.charAt(0).toUpperCase() + role.slice(1)}`,
-        }
-
-        set({ user: updatedUser })
+        setStoredDevRole(role)
+        set(buildDevAuthState(role))
         console.log(`🔄 [DEV] Role alterado para: ${role}`)
       },
 
@@ -212,35 +254,34 @@ export const useAuthStore = create<AuthStore>()(
       }),
 
       onRehydrateStorage: () => (state) => {
-        console.log('🔄 [AUTH] onRehydrateStorage called, state:', state)
+        console.log('🔄 [AUTH] onRehydrateStorage called')
 
         // Set hydrated IMMEDIATELY to unblock UI
         useAuthStore.setState({ hydrated: true })
 
-        // APENAS EM DESENVOLVIMENTO: injetar mock user se não houver usuário
-        const isDevEnv = isDevelopment()
-        console.log('🔍 [AUTH] Environment check:', {
-          isDevelopment: isDevEnv,
-          hostname: typeof window !== 'undefined' ? window.location.hostname : 'SSR',
-          hasUser: !!state?.user,
-        })
+        if (isDevelopment()) {
+          const hasRealUser = !!state?.user && state.user.id !== DEV_MOCK_USER.id
+          if (!hasRealUser) {
+            const preferredRole = isValidRole(state?.user?.role)
+              ? state.user.role
+              : getStoredDevRole()
+            setStoredDevRole(preferredRole)
+            useAuthStore.setState(buildDevAuthState(preferredRole))
+            console.log(`🔧 [DEV] Sessao dev restaurada com role: ${preferredRole}`)
+            return
+          }
+        }
 
-        if (isDevEnv && !state?.user) {
-          console.log('🔧 [DEV] Injetando mock user para desenvolvimento')
+        // Normaliza estado persistido legado para evitar flicker entre visitor/auth
+        if (!state?.user && state?.isAuthenticated) {
+          useAuthStore.setState({ isAuthenticated: false })
+        } else if (state?.user?.role === UserRole.VISITOR && state?.isAuthenticated) {
           useAuthStore.setState({
-            user: DEV_MOCK_USER,
-            accessToken: DEV_MOCK_TOKENS.accessToken,
-            refreshToken: DEV_MOCK_TOKENS.refreshToken,
-            isAuthenticated: true,
+            isAuthenticated: false,
           })
         }
 
-        console.log('✅ [AUTH] Store hidratado:', {
-          isAuthenticated: useAuthStore.getState().isAuthenticated,
-          role: useAuthStore.getState().user?.role,
-          username: useAuthStore.getState().user?.username,
-          hydrated: useAuthStore.getState().hydrated,
-        })
+        console.log('✅ [AUTH] Store hidratado')
       },
     },
   ),
@@ -250,23 +291,16 @@ export const useAuthStore = create<AuthStore>()(
 if (typeof window !== 'undefined') {
   setTimeout(() => {
     const state = useAuthStore.getState()
-    const isDevEnv = isDevelopment()
-    console.log('⏰ [AUTH] SSR Fallback check - hydrated:', state.hydrated, 'isDev:', isDevEnv)
 
     if (!state.hydrated) {
       console.warn('⚠️ [AUTH] Forçando hidratação via SSR fallback!')
       useAuthStore.setState({ hydrated: true })
-
-      // Mock user em desenvolvimento
-      if (isDevEnv && !state.user) {
-        console.log('🔧 [DEV] Injetando mock user (SSR fallback)')
-        useAuthStore.setState({
-          user: DEV_MOCK_USER,
-          accessToken: DEV_MOCK_TOKENS.accessToken,
-          refreshToken: DEV_MOCK_TOKENS.refreshToken,
-          isAuthenticated: true,
-        })
-      }
     }
-  }, 100) // Reduzido para 100ms para ser mais rápido
+
+    if (isDevelopment() && !state.user) {
+      const preferredRole = getStoredDevRole()
+      useAuthStore.setState(buildDevAuthState(preferredRole))
+      console.log(`🔧 [DEV] Sessao dev aplicada via fallback com role: ${preferredRole}`)
+    }
+  }, 100)
 }

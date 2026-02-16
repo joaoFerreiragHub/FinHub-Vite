@@ -1,16 +1,12 @@
-import { AuthLayout } from '@/shared/layouts'
-import { LoginForm } from '../components'
-
 /**
- * Página de Login
+ * Login
+ * TODO: Implementar conteúdo completo
  */
-export function LoginPage() {
+export default function LoginPage() {
   return (
-    <AuthLayout
-      title="Bem-vindo de volta"
-      description="Entre na sua conta para continuar"
-    >
-      <LoginForm />
-    </AuthLayout>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold text-gray-900 mb-4">Login</h1>
+      <p className="text-gray-600">Esta página está em construção. Implementação em breve.</p>
+    </div>
   )
 }

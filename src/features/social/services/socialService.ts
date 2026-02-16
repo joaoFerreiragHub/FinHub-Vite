@@ -8,201 +8,187 @@ import type {
   UserProfile,
   SearchResponse,
 } from '../types'
-import {
-  mockFollowing,
-  mockFavorites,
-  mockNotifications,
-  mockActivityFeed,
-  mockUserProfiles,
-  mockSearchResults,
-} from './mockData'
 
 /**
  * Social Service
- * Usa apiClient pattern (pronto para API real).
- * Por agora retorna mock data.
+ * Conecta com a API real implementada no backend
+ *
+ * Endpoints implementados:
+ * - Follow: POST/DELETE /follow/:targetId, GET /follow/following, GET /follow/followers
+ * - Favorites: POST /favorites, DELETE /favorites/:id, GET /favorites
+ * - Notifications: GET /notifications, PATCH /notifications/:id/read, POST /notifications/read-all
  */
 export const socialService = {
   // ========== FOLLOWS ==========
 
+  /**
+   * Obter lista de quem eu sigo
+   */
   getFollowing: async (): Promise<FollowedCreator[]> => {
-    try {
-      const response = await apiClient.get<FollowedCreator[]>('/social/following')
-      return response.data
-    } catch {
-      return mockFollowing
-    }
+    const response = await apiClient.get<FollowedCreator[]>('/follow/following')
+    return response.data
   },
 
-  followCreator: async (creatorId: string): Promise<FollowedCreator> => {
-    try {
-      const response = await apiClient.post<FollowedCreator>(`/social/follow/${creatorId}`)
-      return response.data
-    } catch {
-      const creator = mockFollowing.find((c) => c.creatorId === creatorId)
-      return (
-        creator ?? {
-          creatorId,
-          username: 'creator',
-          name: 'Creator',
-          followedAt: new Date().toISOString(),
-        }
-      )
-    }
+  /**
+   * Obter meus seguidores
+   */
+  getFollowers: async (): Promise<FollowedCreator[]> => {
+    const response = await apiClient.get<FollowedCreator[]>('/follow/followers')
+    return response.data
   },
 
+  /**
+   * Seguir um criador
+   */
+  followCreator: async (creatorId: string): Promise<void> => {
+    await apiClient.post(`/follow/${creatorId}`)
+  },
+
+  /**
+   * Deixar de seguir um criador
+   */
   unfollowCreator: async (creatorId: string): Promise<void> => {
-    try {
-      await apiClient.delete(`/social/follow/${creatorId}`)
-    } catch {
-      // Mock: no-op
-    }
+    await apiClient.delete(`/follow/${creatorId}`)
+  },
+
+  /**
+   * Verificar se estou a seguir um criador
+   */
+  isFollowing: async (creatorId: string): Promise<{ isFollowing: boolean }> => {
+    const response = await apiClient.get<{ isFollowing: boolean }>(`/follow/${creatorId}/status`)
+    return response.data
+  },
+
+  /**
+   * Obter follows mútuos
+   */
+  getMutualFollows: async (): Promise<FollowedCreator[]> => {
+    const response = await apiClient.get<FollowedCreator[]>('/follow/mutual')
+    return response.data
   },
 
   // ========== FAVORITES ==========
 
-  getFavorites: async (filters?: { type?: ContentType }): Promise<FavoriteItem[]> => {
-    try {
-      const response = await apiClient.get<FavoriteItem[]>('/social/favorites', {
-        params: filters,
-      })
-      return response.data
-    } catch {
-      if (filters?.type) {
-        return mockFavorites.filter((f) => f.contentType === filters.type)
-      }
-      return mockFavorites
-    }
+  /**
+   * Obter meus favoritos
+   */
+  getFavorites: async (filters?: { targetType?: ContentType }): Promise<FavoriteItem[]> => {
+    const response = await apiClient.get<FavoriteItem[]>('/favorites', {
+      params: filters,
+    })
+    return response.data
   },
 
-  addFavorite: async (contentId: string, contentType: ContentType): Promise<FavoriteItem> => {
-    try {
-      const response = await apiClient.post<FavoriteItem>('/social/favorites', {
-        contentId,
-        contentType,
-      })
-      return response.data
-    } catch {
-      return {
-        contentId,
-        contentType,
-        title: 'Conteudo',
-        favoritedAt: new Date().toISOString(),
-      }
-    }
+  /**
+   * Adicionar aos favoritos
+   */
+  addFavorite: async (targetId: string, targetType: ContentType): Promise<void> => {
+    await apiClient.post('/favorites', {
+      targetId,
+      targetType,
+    })
   },
 
-  removeFavorite: async (contentId: string): Promise<void> => {
-    try {
-      await apiClient.delete(`/social/favorites/${contentId}`)
-    } catch {
-      // Mock: no-op
-    }
+  /**
+   * Remover dos favoritos
+   */
+  removeFavorite: async (favoriteId: string): Promise<void> => {
+    await apiClient.delete(`/favorites/${favoriteId}`)
+  },
+
+  /**
+   * Verificar se está nos favoritos
+   */
+  isFavorited: async (targetId: string): Promise<{ isFavorited: boolean }> => {
+    const response = await apiClient.get<{ isFavorited: boolean }>(`/favorites/check/${targetId}`)
+    return response.data
   },
 
   // ========== NOTIFICATIONS ==========
 
+  /**
+   * Obter notificações
+   */
   getNotifications: async (limit?: number): Promise<NotificationListResponse> => {
-    try {
-      const response = await apiClient.get<NotificationListResponse>('/social/notifications', {
-        params: { limit },
-      })
-      return response.data
-    } catch {
-      const items = limit ? mockNotifications.slice(0, limit) : mockNotifications
-      return {
-        items,
-        total: mockNotifications.length,
-        unreadCount: mockNotifications.filter((n) => !n.isRead).length,
-        hasMore: limit ? mockNotifications.length > limit : false,
-      }
-    }
+    const response = await apiClient.get<NotificationListResponse>('/notifications', {
+      params: { limit },
+    })
+    return response.data
   },
 
+  /**
+   * Obter notificações não lidas
+   */
+  getUnreadNotifications: async (): Promise<NotificationListResponse> => {
+    const response = await apiClient.get<NotificationListResponse>('/notifications/unread')
+    return response.data
+  },
+
+  /**
+   * Marcar notificação como lida
+   */
   markNotificationRead: async (id: string): Promise<void> => {
-    try {
-      await apiClient.patch(`/social/notifications/${id}/read`)
-    } catch {
-      // Mock: no-op
-    }
+    await apiClient.patch(`/notifications/${id}/read`)
   },
 
+  /**
+   * Marcar todas como lidas
+   */
   markAllNotificationsRead: async (): Promise<void> => {
-    try {
-      await apiClient.post('/social/notifications/read-all')
-    } catch {
-      // Mock: no-op
-    }
+    await apiClient.post('/notifications/read-all')
+  },
+
+  /**
+   * Apagar notificação
+   */
+  deleteNotification: async (id: string): Promise<void> => {
+    await apiClient.delete(`/notifications/${id}`)
+  },
+
+  /**
+   * Apagar todas as notificações
+   */
+  deleteAllNotifications: async (): Promise<void> => {
+    await apiClient.delete('/notifications')
   },
 
   // ========== ACTIVITY FEED ==========
+  // Nota: Estes endpoints ainda não foram implementados no backend
+  // Mantidos para compatibilidade com o frontend existente
 
   getActivityFeed: async (filters?: {
     following?: boolean
     limit?: number
   }): Promise<ActivityFeedItem[]> => {
-    try {
-      const response = await apiClient.get<ActivityFeedItem[]>('/social/feed', {
-        params: filters,
-      })
-      return response.data
-    } catch {
-      const items = filters?.limit ? mockActivityFeed.slice(0, filters.limit) : mockActivityFeed
-      return items
-    }
+    // TODO: Implementar endpoint no backend
+    const response = await apiClient.get<ActivityFeedItem[]>('/social/feed', {
+      params: filters,
+    })
+    return response.data
   },
 
   // ========== USER PROFILE ==========
+  // Nota: Perfis são geridos através do /auth/me endpoint
 
   getUserProfile: async (username: string): Promise<UserProfile> => {
-    try {
-      const response = await apiClient.get<UserProfile>(`/social/profiles/${username}`)
-      return response.data
-    } catch {
-      const profile = mockUserProfiles.find((p) => p.username === username)
-      if (profile) return profile
-      return {
-        ...mockUserProfiles[0],
-        username,
-        name: username,
-      }
-    }
+    // TODO: Implementar endpoint no backend para obter perfil público
+    const response = await apiClient.get<UserProfile>(`/users/${username}`)
+    return response.data
   },
 
   getMyProfile: async (): Promise<UserProfile> => {
-    try {
-      const response = await apiClient.get<UserProfile>('/social/profiles/me')
-      return response.data
-    } catch {
-      return mockUserProfiles[0]
-    }
+    const response = await apiClient.get<UserProfile>('/auth/me')
+    return response.data
   },
 
   // ========== SEARCH ==========
+  // Nota: Endpoint de search ainda não implementado no backend
 
   search: async (query: string, filters?: { type?: ContentType }): Promise<SearchResponse> => {
-    try {
-      const response = await apiClient.get<SearchResponse>('/search', {
-        params: { q: query, ...filters },
-      })
-      return response.data
-    } catch {
-      const lowerQuery = query.toLowerCase()
-      let results = mockSearchResults.filter(
-        (r) =>
-          r.title.toLowerCase().includes(lowerQuery) ||
-          r.description.toLowerCase().includes(lowerQuery),
-      )
-
-      if (filters?.type) {
-        results = results.filter((r) => r.type === filters.type)
-      }
-
-      return {
-        results,
-        total: results.length,
-        query,
-      }
-    }
+    // TODO: Implementar endpoint no backend
+    const response = await apiClient.get<SearchResponse>('/search', {
+      params: { q: query, ...filters },
+    })
+    return response.data
   },
 }
