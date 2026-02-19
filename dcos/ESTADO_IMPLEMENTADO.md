@@ -243,3 +243,23 @@ Data de referencia: 2026-02-19 (atualizado apos fecho de P1.3 frontend).
   - `npm run test -- --runInBand` -> PASS (11 suites, 108 testes).
   - `npm run build` -> PASS.
   - `npm run test:e2e` -> PASS (3/3 smoke, incluindo SSR).
+
+## 18) Replaneamento oficial do backlog para P2 (2026-02-19)
+- Decisao de produto registada: P2 passa a ser Admin-first para garantir operacao, suporte e governanca da plataforma antes de novas frentes de conteudo.
+- Estrutura oficial de P2 definida em fases:
+  - P2.0 seguranca/governanca (bloqueante)
+  - P2.1 gestao de utilizadores
+  - P2.2 moderacao de conteudo
+  - P2.3 acesso assistido com consentimento explicito
+  - P2.4 metricas admin e observabilidade
+  - P2.5 painel admin unificado
+  - P2.6 hardening operacional admin
+- Itens extra adicionados ao MVP Admin:
+  - tickets internos
+  - feature flags
+  - compliance/retencao de auditoria
+  - alertas internos de eventos criticos
+  - modo read-only para admin junior
+  - bulk actions protegidas
+- Reclassificacao de escopo:
+  - livros completos, ferramentas financeiras legadas e blocos de brokers/websites passam para Prioridade 3 (apos fecho do MVP Admin).

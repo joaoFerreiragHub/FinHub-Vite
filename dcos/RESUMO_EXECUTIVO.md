@@ -25,7 +25,17 @@ Escopo: pasta `dcos`
 - Gate de build frontend foi fechado com `typecheck:p1 + vite build`.
 - Gate E2E smoke frontend tambem ficou fechado (`test:e2e`).
 - Prioridade 1 encontra-se FECHADA no frontend.
-- Proximo passo: reavaliacao do backlog antes de iniciar P2.
+- Decisao de produto (2026-02-19): P2 passa a ser Admin-first (MVP operacional de administracao).
+- Backlog oficial de P2 atualizado para 6 fases:
+  - P2.0 seguranca/governanca (bloqueante)
+  - P2.1 gestao de utilizadores
+  - P2.2 moderacao de conteudo
+  - P2.3 acesso assistido com consentimento
+  - P2.4 metricas admin
+  - P2.5 painel admin unificado
+  - P2.6 hardening operacional
+- Itens extra foram incorporados ao backlog de P2 (tickets internos, feature flags, compliance/log retention, alertas, modo read-only admin junior e bulk actions protegidas).
+- Livros/ferramentas/brokers-websites foram reclassificados para Prioridade 3 apos fecho do MVP Admin.
 
 ## Fontes de verdade para seguimento
 - Estado detalhado: `dcos/ESTADO_IMPLEMENTADO.md`

@@ -82,17 +82,65 @@ Data da consolidacao: 2026-02-19 (revisto apos fecho de P1.3 frontend).
   - `npm run test:e2e` -> PASS (3 cenarios smoke).
 - estado do item: FECHADO.
 
-## Prioridade 2 - Importante
-1. Livros completos (replies, filtros, destaques, categorias).
-2. Ferramentas financeiras legadas (fundo emergencia, juros compostos, ETF analyzer, REIT valuation, debt snowball).
-3. Blocos de brokers/websites.
-4. Admin dashboard completo.
+## Prioridade 2 - Critico (Admin-first MVP)
+0. P2.0 Fundacao de seguranca e governanca (bloqueante).
+- RBAC granular (`admin.super`, `admin.ops`, `admin.support`) no backend e frontend.
+- Audit log imutavel para todas as acoes admin (quem, quando, alvo, antes/depois, motivo).
+- Controlo de risco: rate limit admin, confirmacao forte para acoes criticas e motivo obrigatorio.
+- Gate de aceite: nenhuma acao critica executa sem permissao explicita e sem rasto de auditoria.
 
-## Prioridade 3 - Medio
-1. Eventos end-to-end (criacao, aprovacao, status e tracking).
-2. Glossario financeiro.
-3. Paginas dinamicas por topico.
-4. Regular user dashboard e about completo.
+1. P2.1 Gestao de utilizadores.
+- Listar/pesquisar users com filtros por role, estado e atividade.
+- Suspender, banir, desbanir e forcar logout global.
+- Historico de sancoes e anotacoes internas por utilizador.
+- Gate de aceite: ciclo completo "encontrar user -> agir -> auditar" funcional.
+
+2. P2.2 Moderacao de conteudo.
+- Fila de moderacao unificada (artigos, cursos, videos, lives, podcasts, books, comentarios/reviews).
+- Acoes de ocultar/desocultar/restringir com motivo padronizado.
+- Estados de moderacao (`pending`, `approved`, `rejected`, `hidden`) com historico.
+- Gate de aceite: conteudo problematico pode ser removido da visibilidade em minutos, com rasto completo.
+
+3. P2.3 Acesso assistido a conta com consentimento explicito.
+- Sessao delegada temporaria (nao "impersonation" livre) com escopo minimo.
+- Consentimento explicito do user, expiracao curta, revogacao imediata e notificacao ao utilizador.
+- Banner permanente durante sessao assistida e log detalhado de todas as acoes.
+- Gate de aceite: sem consentimento valido nao existe acesso assistido.
+
+4. P2.4 Metricas e observabilidade admin.
+- Dashboard de utilizacao (DAU/WAU/MAU, engagement, retencao, funnel, conteudo e social).
+- KPIs de moderacao (tempo medio de resolucao, volume por tipo, reincidencia).
+- KPIs operacionais (erros, latencia, disponibilidade dos servicos principais).
+- Gate de aceite: equipa responde perguntas de negocio e operacao sem consulta manual a BD.
+
+5. P2.5 Painel admin unificado (UI final do MVP Admin).
+- Integrar users, moderacao, suporte assistido e metricas num painel unico.
+- Navegacao por permissoes (mostrar/esconder modulos conforme role admin).
+- Guardrails de UX para acoes destrutivas (confirmacao dupla, resumo do impacto).
+- Gate de aceite: admin consegue operar o fluxo diario completo num unico painel.
+
+6. P2.6 Hardening operacional admin.
+- Suite E2E admin (positivo/negativo) para permissao, moderacao, sancao e sessao assistida.
+- Alertas internos para acoes criticas (ban, hide massivo, delegated access).
+- Runbook de incidentes admin + documentacao operacional.
+- Gate de aceite: CI cobre os fluxos criticos admin e runbook esta validado.
+
+## Itens extra incorporados no MVP Admin
+1. Tickets internos de suporte/moderacao com ligacao a user e conteudo.
+2. Feature flags para rollout seguro de funcionalidades admin.
+3. Regras de compliance e retencao para logs/auditoria/consentimentos.
+4. Notificacoes internas para eventos criticos de risco operacional.
+5. Modo `read-only` para perfis admin junior (sem acoes destrutivas).
+6. Bulk actions protegidas (limites por operacao, confirmacao dupla, auditoria reforcada).
+
+## Prioridade 3 - Medio (apos MVP Admin)
+1. Livros completos (replies, filtros, destaques, categorias) no frontend ativo.
+2. Ferramentas financeiras legadas expostas no router principal (fundo emergencia, juros compostos, ETF analyzer, REIT valuation, debt snowball).
+3. Blocos e paginas completas de brokers/websites.
+4. Eventos end-to-end (criacao, aprovacao, status e tracking).
+5. Glossario financeiro.
+6. Paginas dinamicas por topico.
+7. Regular user dashboard e about completo.
 
 ## Pendencias tecnicas observadas em checklists
 1. Sem bloqueadores tecnicos pre-P1 ativos neste momento.
@@ -110,6 +158,7 @@ Data da consolidacao: 2026-02-19 (revisto apos fecho de P1.3 frontend).
 - limpeza de tipagem global em modulos legados (`creators/tools/mock`) para eventualmente reintroduzir gate full `tsc -b` sem escopo.
 
 ## Sequencia pragmatica sugerida
-1. Entrar em Prioridade 2 (livros, ferramentas, brokers/websites, admin).
-2. Reavaliar backlog e dependencias antes de iniciar P2 formal.
-3. Fechar Prioridade 3 e polimento final.
+1. Iniciar P2.0 (fundacao de seguranca e governanca) como bloqueante.
+2. Fechar P2.1 e P2.2 (users + moderacao), depois P2.3 (acesso assistido com consentimento).
+3. Fechar P2.4 e P2.5 (metricas + painel unificado), seguido de P2.6 (hardening).
+4. So depois entrar em Prioridade 3 (livros, ferramentas, brokers/websites e restantes frentes).
