@@ -3,10 +3,16 @@ import { useQuery } from '@tanstack/react-query'
 import { HomepageLayout } from '@/components/home/HomepageLayout'
 import { HeroBanner, type HeroBannerSlide } from '@/components/home/HeroBanner'
 import { ContentRow } from '@/components/home/ContentRow'
-import { ArticleCard, CourseCard, CreatorCardLarge, BookCardHome } from '@/components/home/cards'
+import {
+  ArticleCard,
+  CourseCard,
+  CreatorCardLarge,
+  BookCardHome,
+  ResourceCard,
+} from '@/components/home/cards'
 import { apiClient } from '@/lib/api/client'
 
-type ListKey = 'articles' | 'courses' | 'books'
+type ContentListKey = 'articles' | 'courses' | 'books'
 
 interface ApiCreatorSummary {
   _id?: string
@@ -49,10 +55,34 @@ interface ApiCollectionResponse {
   items?: ApiContentItem[]
 }
 
+interface ApiBrandItem {
+  _id?: string
+  id?: string
+  slug?: string
+  name?: string
+  description?: string
+  brandType?: string
+  category?: string
+  logo?: string
+  coverImage?: string
+  website?: string
+  tags?: string[]
+  averageRating?: number
+  ratingsCount?: number
+  views?: number
+  isVerified?: boolean
+}
+
+interface ApiBrandsResponse {
+  brands?: ApiBrandItem[]
+  items?: ApiBrandItem[]
+}
+
 interface HomeFeedData {
   articles: ApiContentItem[]
   courses: ApiContentItem[]
   books: ApiContentItem[]
+  resources: ApiBrandItem[]
 }
 
 interface CreatorCardData {
@@ -99,20 +129,23 @@ const heroSlides: HeroBannerSlide[] = [
       'Compara comissoes, funcionalidades e avaliacoes reais de outros utilizadores. Encontra a plataforma ideal para ti.',
     imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1600&q=80',
     ctaLabel: 'Comparar corretoras',
-    ctaHref: '/corretoras',
+    ctaHref: '/mercados/recursos',
     secondaryLabel: 'Guia de investimento',
     secondaryHref: '/hub/conteudos',
   },
 ]
 
-const normalizeCollection = (payload: ApiCollectionResponse | ApiContentItem[], key: ListKey) => {
+const normalizeCollection = (
+  payload: ApiCollectionResponse | ApiContentItem[],
+  key: ContentListKey,
+) => {
   if (Array.isArray(payload)) return payload
   if (Array.isArray(payload?.[key])) return payload[key] ?? []
   if (Array.isArray(payload?.items)) return payload.items
   return []
 }
 
-const fetchCollection = async (endpoint: string, key: ListKey) => {
+const fetchCollection = async (endpoint: string, key: ContentListKey) => {
   try {
     const response = await apiClient.get<ApiCollectionResponse>(endpoint, {
       params: { limit: 12, sort: 'popular' },
@@ -124,14 +157,42 @@ const fetchCollection = async (endpoint: string, key: ListKey) => {
   }
 }
 
+const normalizeBrands = (payload: ApiBrandsResponse | ApiBrandItem[]) => {
+  if (Array.isArray(payload)) return payload
+  if (Array.isArray(payload?.brands)) return payload.brands ?? []
+  if (Array.isArray(payload?.items)) return payload.items
+  return []
+}
+
+const fetchResourceCollection = async (): Promise<ApiBrandItem[]> => {
+  try {
+    const featuredResponse = await apiClient.get<ApiBrandsResponse | ApiBrandItem[]>('/brands', {
+      params: { limit: 12, sort: 'featured', isActive: true },
+    })
+
+    const featuredItems = normalizeBrands(featuredResponse.data)
+    if (featuredItems.length > 0) return featuredItems
+
+    const fallbackResponse = await apiClient.get<ApiBrandsResponse | ApiBrandItem[]>(
+      '/brands/featured',
+      { params: { limit: 12 } },
+    )
+    return normalizeBrands(fallbackResponse.data)
+  } catch (error) {
+    console.error('[HOME] Falha ao carregar recursos:', error)
+    return []
+  }
+}
+
 const fetchHomepageData = async (): Promise<HomeFeedData> => {
-  const [articles, courses, books] = await Promise.all([
+  const [articles, courses, books, resources] = await Promise.all([
     fetchCollection('/articles', 'articles'),
     fetchCollection('/courses', 'courses'),
     fetchCollection('/books', 'books'),
+    fetchResourceCollection(),
   ])
 
-  return { articles, courses, books }
+  return { articles, courses, books, resources }
 }
 
 const toCardId = (item: ApiContentItem, index: number, prefix: string) =>
@@ -162,6 +223,32 @@ const toCourseDurationMinutes = (item: ApiContentItem) => {
   if (!duration || duration <= 0) return 0
   return duration <= 24 ? Math.round(duration * 60) : Math.round(duration)
 }
+
+const toBrandTypeLabel = (brandType?: string) => {
+  switch (brandType) {
+    case 'broker':
+      return 'Corretora'
+    case 'platform':
+      return 'Plataforma'
+    case 'website':
+      return 'Website'
+    case 'tool':
+      return 'Ferramenta'
+    case 'exchange':
+      return 'Exchange'
+    case 'news-source':
+      return 'Fonte de noticias'
+    case 'podcast':
+      return 'Podcast'
+    default:
+      return 'Recurso'
+  }
+}
+
+const toResourceHref = (resource: ApiBrandItem) =>
+  resource.website && resource.website.trim().length > 0 ? resource.website : '/mercados/recursos'
+
+const isExternalHref = (href: string) => /^https?:\/\//i.test(href)
 
 const EmptyRowState = ({ message }: { message: string }) => (
   <div
@@ -243,6 +330,27 @@ export function Page() {
     [data?.books],
   )
 
+  const resourceCards = useMemo(
+    () =>
+      (data?.resources ?? []).slice(0, 12).map((item, index) => {
+        const href = toResourceHref(item)
+        return {
+          id: item.id || item._id || item.slug || `resource-${index}`,
+          name: item.name || 'Recurso sem nome',
+          description: item.description || 'Recurso financeiro em destaque na plataforma.',
+          typeLabel: toBrandTypeLabel(item.brandType || item.category),
+          imageUrl: item.logo || item.coverImage,
+          href,
+          isExternal: isExternalHref(href),
+          averageRating: item.averageRating,
+          ratingsCount: item.ratingsCount,
+          views: item.views,
+          isVerified: item.isVerified,
+        }
+      }),
+    [data?.resources],
+  )
+
   const creatorCards = useMemo(() => {
     const source = [...(data?.articles ?? []), ...(data?.courses ?? []), ...(data?.books ?? [])]
     const creatorMap = new Map<string, CreatorCardData & { score: number; topicSet: Set<string> }>()
@@ -307,6 +415,20 @@ export function Page() {
           creatorCards.map((creator) => <CreatorCardLarge key={creator._id} creator={creator} />)
         ) : (
           <EmptyRowState message="Sem criadores disponiveis neste momento." />
+        )}
+      </ContentRow>
+
+      <ContentRow
+        title="Recursos em Destaque"
+        subtitle="Corretoras, plataformas e ferramentas com dados reais"
+        href="/mercados/recursos"
+      >
+        {isLoading ? (
+          <LoadingRowState />
+        ) : resourceCards.length > 0 ? (
+          resourceCards.map((resource) => <ResourceCard key={resource.id} resource={resource} />)
+        ) : (
+          <EmptyRowState message="Sem recursos disponiveis neste momento." />
         )}
       </ContentRow>
 

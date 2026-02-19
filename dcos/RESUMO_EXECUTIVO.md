@@ -21,9 +21,11 @@ Escopo: pasta `dcos`
 3. Plano
 - P1.1 global esta FECHADO (backend + frontend + validacao integrada).
 - P1.2 frontend (notificacoes: preferencias + subscriptions por criador) esta FECHADO.
+- P1.3 frontend (homepage completa: paridade + UX) esta FECHADO.
 - Gate de build frontend foi fechado com `typecheck:p1 + vite build`.
 - Gate E2E smoke frontend tambem ficou fechado (`test:e2e`).
-- Proximo foco de Prioridade 1: homepage completa (paridade + UX).
+- Prioridade 1 encontra-se FECHADA no frontend.
+- Proximo passo: reavaliacao do backlog antes de iniciar P2.
 
 ## Fontes de verdade para seguimento
 - Estado detalhado: `dcos/ESTADO_IMPLEMENTADO.md`

@@ -59,7 +59,7 @@ export function HomepageLayout({ children }: HomepageLayoutProps) {
   const [loginOpen, setLoginOpen] = useState(false)
   const [registerOpen, setRegisterOpen] = useState(false)
 
-  const { isAuthenticated, user, logout } = useAuthStore()
+  const { isAuthenticated, user, login, register, logout } = useAuthStore()
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40)
@@ -67,34 +67,32 @@ export function HomepageLayout({ children }: HomepageLayoutProps) {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const handleLogin = useCallback(async (email: string, password: string) => {
-    // Mock login - will be replaced with API
-    const { UserRole } = await import('@/features/auth/types')
-    void password
-    const mockUser = {
-      id: '123',
-      name: 'Sergio Criador',
-      lastName: 'Criador',
-      email,
-      role: UserRole.CREATOR,
-      avatar: '/avatars/criador.jpg',
-      username: 'sergiocriador',
-      bio: 'Criador de conteudo',
-      isEmailVerified: true,
-      favoriteTopics: ['investimentos', 'financas'],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }
-    useAuthStore.getState().setUser(mockUser, 'mock-token', 'mock-refresh')
-    setLoginOpen(false)
-  }, [])
+  const handleLogin = useCallback(
+    async (email: string, password: string) => {
+      await login({ email: email.trim(), password })
+      setLoginOpen(false)
+    },
+    [login],
+  )
 
   const handleRegister = useCallback(
-    (data: { name: string; email: string; password: string; confirmPassword: string }) => {
-      void data
+    async (data: {
+      name: string
+      username: string
+      email: string
+      password: string
+      confirmPassword: string
+    }) => {
+      await register({
+        name: data.name.trim(),
+        username: data.username.trim(),
+        email: data.email.trim(),
+        password: data.password,
+        confirmPassword: data.confirmPassword,
+      })
       setRegisterOpen(false)
     },
-    [],
+    [register],
   )
 
   const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
@@ -299,7 +297,7 @@ export function HomepageLayout({ children }: HomepageLayoutProps) {
               <h4 className="text-sm font-semibold text-foreground mb-3">Recursos</h4>
               <div className="flex flex-col gap-2">
                 <a
-                  href="/corretoras"
+                  href="/mercados/recursos"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Corretoras

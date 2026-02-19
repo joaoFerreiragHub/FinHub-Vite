@@ -1,6 +1,6 @@
 # Pendencias Priorizadas
 
-Data da consolidacao: 2026-02-19 (revisto apos fecho de P1.2 frontend).
+Data da consolidacao: 2026-02-19 (revisto apos fecho de P1.3 frontend).
 
 ## Prioridade 0 - Fechada (2026-02-18)
 1. P0.1 contratos social frontend x backend fechados.
@@ -65,9 +65,22 @@ Data da consolidacao: 2026-02-19 (revisto apos fecho de P1.2 frontend).
 - estado do item: FECHADO (escopo frontend).
 
 3. Homepage completa (paridade + UX).
-- secoes principais com dados reais.
-- cards reutilizaveis.
-- blocos de criadores e recursos dedicados.
+- frontend P1.3 integrado (2026-02-19):
+  - homepage com secoes principais ligadas a dados reais (`articles`, `courses`, `books`).
+  - bloco dedicado de criadores mantido com deduplicacao por username e score de relevancia.
+  - novo bloco dedicado de recursos com dados reais de brands (`GET /api/brands` com fallback `GET /api/brands/featured`).
+  - novo card reutilizavel `ResourceCard` adicionado em `src/components/home/cards`.
+  - CTA de recursos da hero e footer alinhados para rota valida (`/mercados/recursos`).
+  - fluxo de auth na homepage alinhado ao backend real:
+    - removido mock login (`setUser(..., 'mock-token', ...)`).
+    - `LoginDialog` passa a usar `useAuthStore.login`.
+    - `RegisterDialog` passa a recolher username e usar `useAuthStore.register`.
+- validacao integrada frontend (2026-02-19):
+  - `npm run test -- --runInBand` -> PASS (11 suites, 108 testes).
+  - `npm run typecheck:p1` -> PASS.
+  - `npm run build` -> PASS.
+  - `npm run test:e2e` -> PASS (3 cenarios smoke).
+- estado do item: FECHADO.
 
 ## Prioridade 2 - Importante
 1. Livros completos (replies, filtros, destaques, categorias).
@@ -89,7 +102,7 @@ Data da consolidacao: 2026-02-19 (revisto apos fecho de P1.2 frontend).
 - Storybook.
 - performance monitoring.
 - error tracking.
-4. Build frontend fechado para os gates de P1.1/P1.2:
+4. Build frontend fechado para os gates de P1.1/P1.2/P1.3:
 - `npm run build` verde com `typecheck:p1` + `vite build`.
 5. Gate E2E smoke frontend fechado:
 - `npm run test:e2e` verde (3 cenarios: SSR, navegacao publica e fallback de noticias).
@@ -97,6 +110,6 @@ Data da consolidacao: 2026-02-19 (revisto apos fecho de P1.2 frontend).
 - limpeza de tipagem global em modulos legados (`creators/tools/mock`) para eventualmente reintroduzir gate full `tsc -b` sem escopo.
 
 ## Sequencia pragmatica sugerida
-1. Fechar Prioridade 1 item 3 (homepage completa: paridade + UX).
-2. Avancar para Prioridade 2 (livros, ferramentas, brokers/websites, admin).
+1. Entrar em Prioridade 2 (livros, ferramentas, brokers/websites, admin).
+2. Reavaliar backlog e dependencias antes de iniciar P2 formal.
 3. Fechar Prioridade 3 e polimento final.

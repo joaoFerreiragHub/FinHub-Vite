@@ -11,6 +11,7 @@ import { Label } from '@/components/ui'
 import { Button, Input } from '@/components/ui'
 interface RegisterData {
   name: string
+  username: string
   email: string
   password: string
   confirmPassword: string
@@ -25,6 +26,7 @@ interface RegisterDialogProps {
 export function RegisterDialog({ open, onOpenChange, onRegister }: RegisterDialogProps) {
   const [formData, setFormData] = useState<RegisterData>({
     name: '',
+    username: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -47,13 +49,28 @@ export function RegisterDialog({ open, onOpenChange, onRegister }: RegisterDialo
       return
     }
 
+    const username = formData.username.trim()
+    if (username.length < 3) {
+      setError('O username deve ter pelo menos 3 caracteres')
+      return
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      setError('O username so pode conter letras, numeros e underscore')
+      return
+    }
+
     setIsLoading(true)
 
     try {
-      await onRegister(formData)
+      await onRegister({
+        ...formData,
+        username,
+      })
       // Reset form on success
       setFormData({
         name: '',
+        username: '',
         email: '',
         password: '',
         confirmPassword: '',
@@ -110,6 +127,20 @@ export function RegisterDialog({ open, onOpenChange, onRegister }: RegisterDialo
               onChange={handleChange('email')}
               required
               disabled={isLoading}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="register-username">Username</Label>
+            <Input
+              id="register-username"
+              type="text"
+              placeholder="joaosilva"
+              value={formData.username}
+              onChange={handleChange('username')}
+              required
+              disabled={isLoading}
+              minLength={3}
             />
           </div>
 

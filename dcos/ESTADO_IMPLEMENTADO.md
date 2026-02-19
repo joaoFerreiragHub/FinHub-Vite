@@ -1,6 +1,6 @@
 # Estado Implementado
 
-Data de referencia: 2026-02-19 (atualizado apos fecho de P1.2 frontend).
+Data de referencia: 2026-02-19 (atualizado apos fecho de P1.3 frontend).
 
 ## 1) Foundation e arquitetura
 - Estrutura feature-based e separacao por modulos.
@@ -221,3 +221,25 @@ Data de referencia: 2026-02-19 (atualizado apos fecho de P1.2 frontend).
   - `npm run test:e2e` -> PASS (3/3 smoke, incluindo SSR).
 - Nota de qualidade:
   - warnings de build existentes (deprecacoes Vite/Vike e chaves duplicadas em mocks) mantem-se nao-bloqueantes.
+
+## 17) P1.3 Homepage completa (paridade + UX) - frontend (2026-02-19) - PASS
+- Homepage consolidada com paridade funcional e sem dependencias mock para os fluxos principais:
+  - secoes de conteudo real mantidas (`articles`, `courses`, `books`) com loading/empty states.
+  - bloco de criadores dedicado mantido com deduplicacao por username e ordenacao por relevancia.
+  - bloco de recursos dedicado adicionado com dados reais de brands:
+    - fonte principal: `GET /api/brands?sort=featured&limit=12`.
+    - fallback: `GET /api/brands/featured?limit=12`.
+- Reutilizacao de UI para escalabilidade:
+  - novo card reutilizavel `src/components/home/cards/ResourceCard.tsx`.
+  - exportado em `src/components/home/cards/index.ts` e integrado em `src/pages/index.page.tsx`.
+- UX/navigation alinhada:
+  - links de recursos da hero e footer ajustados para rota valida `/mercados/recursos`.
+- Fluxo de autenticacao na homepage alinhado ao backend real:
+  - removido mock login no layout (`setUser(..., 'mock-token', 'mock-refresh')`).
+  - `HomepageLayout` passa a usar `useAuthStore.login` e `useAuthStore.register`.
+  - `RegisterDialog` atualizado para incluir `username`, compativel com contrato real de `POST /api/auth/register`.
+- Validacao apos implementacao:
+  - `npm run typecheck:p1` -> PASS.
+  - `npm run test -- --runInBand` -> PASS (11 suites, 108 testes).
+  - `npm run build` -> PASS.
+  - `npm run test:e2e` -> PASS (3/3 smoke, incluindo SSR).
