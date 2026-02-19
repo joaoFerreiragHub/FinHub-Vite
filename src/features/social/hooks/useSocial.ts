@@ -3,7 +3,12 @@ import { socialService } from '../services/socialService'
 import { useSocialStore } from '../stores/useSocialStore'
 import { useNotificationStore } from '../stores/useNotificationStore'
 import type { ContentType } from '@/features/hub/types'
-import type { FollowedCreator } from '../types'
+import type { FollowedCreator, NotificationPreferencesPatchInput } from '../types'
+
+interface CreatorSubscriptionMutationInput {
+  creatorId: string
+  isSubscribed: boolean
+}
 
 // ========== FOLLOWS ==========
 
@@ -85,6 +90,58 @@ export function useMarkAllNotificationsRead() {
     mutationFn: () => socialService.markAllNotificationsRead(),
     onSuccess: () => {
       markAllRead()
+      queryClient.invalidateQueries({ queryKey: ['social', 'notifications'] })
+    },
+  })
+}
+
+export function useNotificationPreferences() {
+  return useQuery({
+    queryKey: ['social', 'notification-preferences'],
+    queryFn: () => socialService.getNotificationPreferences(),
+  })
+}
+
+export function useUpdateNotificationPreferences() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: NotificationPreferencesPatchInput) =>
+      socialService.updateNotificationPreferences(input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['social', 'notification-preferences'] })
+    },
+  })
+}
+
+export function useCreatorSubscriptions(page = 1, limit = 20) {
+  return useQuery({
+    queryKey: ['social', 'creator-subscriptions', page, limit],
+    queryFn: () => socialService.getCreatorSubscriptions({ page, limit }),
+  })
+}
+
+export function useCreatorSubscriptionStatus(creatorId?: string) {
+  return useQuery({
+    queryKey: ['social', 'creator-subscription', creatorId],
+    queryFn: () => socialService.getCreatorSubscriptionStatus(creatorId || ''),
+    enabled: !!creatorId,
+  })
+}
+
+export function useUpdateCreatorSubscription() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ creatorId, isSubscribed }: CreatorSubscriptionMutationInput) =>
+      isSubscribed
+        ? socialService.subscribeToCreator(creatorId)
+        : socialService.unsubscribeFromCreator(creatorId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['social', 'creator-subscriptions'] })
+      queryClient.invalidateQueries({
+        queryKey: ['social', 'creator-subscription', variables.creatorId],
+      })
       queryClient.invalidateQueries({ queryKey: ['social', 'notifications'] })
     },
   })

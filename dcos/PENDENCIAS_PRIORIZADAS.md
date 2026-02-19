@@ -1,6 +1,6 @@
 # Pendencias Priorizadas
 
-Data da consolidacao: 2026-02-18 (revisto apos fecho dos 7 pontos tecnicos pre-P1).
+Data da consolidacao: 2026-02-19 (revisto apos fecho de P1.2 frontend).
 
 ## Prioridade 0 - Fechada (2026-02-18)
 1. P0.1 contratos social frontend x backend fechados.
@@ -41,11 +41,28 @@ Data da consolidacao: 2026-02-18 (revisto apos fecho dos 7 pontos tecnicos pre-P
 - estado do item: FECHADO.
 
 2. Sistema de notificacoes completo.
-- notificacoes in-app.
-- preferencias.
-- marcar como lida.
-- eventos por acao.
-- subscriptions por criador.
+- backend P1.2 consumido por contratos reais:
+  - preferencias de notificacao por utilizador.
+  - subscriptions por criador (listar/check/subscribe/unsubscribe).
+- frontend P1.2 integrado (2026-02-19):
+  - pagina `/notificacoes` ligada ao modulo social real (removido placeholder da feature `user`).
+  - preferencias com toggles (`likes`, `comments`, `follows`, `newContent`, `mentions`, `system`).
+  - subscriptions por criador com toggle por item e estado pendente por mutation.
+  - novos hooks de dados:
+    - `useNotificationPreferences`
+    - `useUpdateNotificationPreferences`
+    - `useCreatorSubscriptions`
+    - `useCreatorSubscriptionStatus`
+    - `useUpdateCreatorSubscription`
+  - servico social expandido com mapeadores tipados backend/frontend para preferencias e subscriptions.
+  - testes unitarios dedicados:
+    - `src/__tests__/features/social/socialService.notifications.test.ts`
+- validacao integrada frontend (2026-02-19):
+  - `npm run test -- --runInBand` -> PASS (11 suites, 108 testes).
+  - `npm run typecheck:p1` -> PASS.
+  - `npm run build` -> PASS.
+  - `npm run test:e2e` -> PASS (3 cenarios smoke).
+- estado do item: FECHADO (escopo frontend).
 
 3. Homepage completa (paridade + UX).
 - secoes principais com dados reais.
@@ -72,7 +89,7 @@ Data da consolidacao: 2026-02-18 (revisto apos fecho dos 7 pontos tecnicos pre-P
 - Storybook.
 - performance monitoring.
 - error tracking.
-4. Build frontend fechado para o gate de P1.1:
+4. Build frontend fechado para os gates de P1.1/P1.2:
 - `npm run build` verde com `typecheck:p1` + `vite build`.
 5. Gate E2E smoke frontend fechado:
 - `npm run test:e2e` verde (3 cenarios: SSR, navegacao publica e fallback de noticias).
@@ -80,6 +97,6 @@ Data da consolidacao: 2026-02-18 (revisto apos fecho dos 7 pontos tecnicos pre-P
 - limpeza de tipagem global em modulos legados (`creators/tools/mock`) para eventualmente reintroduzir gate full `tsc -b` sem escopo.
 
 ## Sequencia pragmatica sugerida
-1. Entrar em Prioridade 1 (ratings/reviews, notificacoes e homepage full).
+1. Fechar Prioridade 1 item 3 (homepage completa: paridade + UX).
 2. Avancar para Prioridade 2 (livros, ferramentas, brokers/websites, admin).
 3. Fechar Prioridade 3 e polimento final.

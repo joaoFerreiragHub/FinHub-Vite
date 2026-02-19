@@ -6,6 +6,10 @@ import {
   type FavoriteItem,
   type Notification,
   type NotificationListResponse,
+  type NotificationPreferences,
+  type NotificationPreferencesPatchInput,
+  type CreatorSubscription,
+  type CreatorSubscriptionListResponse,
   type ActivityFeedItem,
   type UserProfile,
   type SearchResponse,
@@ -18,7 +22,7 @@ import {
  * Endpoints implementados:
  * - Follow: POST/DELETE /follow/:userId, GET /follow/:userId/following, GET /follow/:userId/followers.
  * - Favorites: POST /favorites, DELETE /favorites (body), GET /favorites, GET /favorites/check.
- * - Notifications: GET /notifications, PATCH /notifications/:id/read, PATCH /notifications/read-all.
+ * - Notifications: listagem, read/read-all e preferências/subscriptions por creator.
  */
 
 type BackendFavoriteTargetType = 'article' | 'video' | 'course' | 'live' | 'podcast' | 'book'
@@ -80,6 +84,48 @@ interface BackendNotificationRecord {
 interface BackendNotificationListResponse {
   notifications: BackendNotificationRecord[]
   unreadCount?: number
+  pagination?: {
+    page: number
+    limit: number
+    total: number
+    pages: number
+  }
+}
+
+interface BackendNotificationPreferences {
+  follow?: boolean
+  comment?: boolean
+  reply?: boolean
+  rating?: boolean
+  like?: boolean
+  mention?: boolean
+  content_published?: boolean
+}
+
+interface BackendNotificationPreferencesResponse {
+  notificationPreferences?: BackendNotificationPreferences
+}
+
+interface BackendCreator {
+  id?: string
+  _id?: string
+  name?: string
+  username?: string
+  avatar?: string
+}
+
+interface BackendCreatorSubscriptionRecord {
+  creatorId?: string
+  eventType?: string
+  isSubscribed?: boolean
+  hasOverride?: boolean
+  isFollowing?: boolean
+  followedAt?: string
+  creator?: BackendCreator
+}
+
+interface BackendCreatorSubscriptionListResponse {
+  items?: BackendCreatorSubscriptionRecord[]
   pagination?: {
     page: number
     limit: number
@@ -342,6 +388,89 @@ const mapNotificationsResponse = (
   }
 }
 
+const defaultNotificationPreferences: NotificationPreferences = {
+  follow: true,
+  comment: true,
+  reply: true,
+  rating: true,
+  like: true,
+  mention: true,
+  contentPublished: true,
+}
+
+const mapNotificationPreferences = (
+  preferences?: BackendNotificationPreferences,
+): NotificationPreferences => ({
+  follow: preferences?.follow ?? defaultNotificationPreferences.follow,
+  comment: preferences?.comment ?? defaultNotificationPreferences.comment,
+  reply: preferences?.reply ?? defaultNotificationPreferences.reply,
+  rating: preferences?.rating ?? defaultNotificationPreferences.rating,
+  like: preferences?.like ?? defaultNotificationPreferences.like,
+  mention: preferences?.mention ?? defaultNotificationPreferences.mention,
+  contentPublished:
+    preferences?.content_published ?? defaultNotificationPreferences.contentPublished,
+})
+
+const toBackendNotificationPreferencesPatch = (
+  input: NotificationPreferencesPatchInput,
+): BackendNotificationPreferences => {
+  const patch: BackendNotificationPreferences = {}
+
+  if (typeof input.follow === 'boolean') patch.follow = input.follow
+  if (typeof input.comment === 'boolean') patch.comment = input.comment
+  if (typeof input.reply === 'boolean') patch.reply = input.reply
+  if (typeof input.rating === 'boolean') patch.rating = input.rating
+  if (typeof input.like === 'boolean') patch.like = input.like
+  if (typeof input.mention === 'boolean') patch.mention = input.mention
+  if (typeof input.contentPublished === 'boolean') {
+    patch.content_published = input.contentPublished
+  }
+
+  return patch
+}
+
+const mapCreatorSubscription = (
+  item: BackendCreatorSubscriptionRecord,
+): CreatorSubscription | null => {
+  const creatorId = item.creatorId ?? item.creator?.id ?? item.creator?._id
+  if (!creatorId) return null
+
+  return {
+    creatorId,
+    eventType: 'content_published',
+    isSubscribed: Boolean(item.isSubscribed),
+    hasOverride: Boolean(item.hasOverride),
+    isFollowing: item.isFollowing,
+    followedAt: item.followedAt,
+    creator: item.creator
+      ? {
+          id: item.creator.id ?? item.creator._id ?? creatorId,
+          name: item.creator.name,
+          username: item.creator.username,
+          avatar: item.creator.avatar,
+        }
+      : undefined,
+  }
+}
+
+const mapCreatorSubscriptionsResponse = (
+  payload: BackendCreatorSubscriptionListResponse,
+): CreatorSubscriptionListResponse => {
+  const items = (payload.items ?? [])
+    .map(mapCreatorSubscription)
+    .filter((item): item is CreatorSubscription => item !== null)
+
+  const total = payload.pagination?.total ?? items.length
+  const page = payload.pagination?.page ?? 1
+  const limit = payload.pagination?.limit ?? (items.length > 0 ? items.length : 1)
+
+  return {
+    items,
+    total,
+    hasMore: page * limit < total,
+  }
+}
+
 export const socialService = {
   // ========== FOLLOWS ==========
 
@@ -509,6 +638,90 @@ export const socialService = {
    */
   deleteAllNotifications: async (): Promise<void> => {
     await apiClient.delete('/notifications/read')
+  },
+
+  /**
+   * Obter preferencias de notificacoes.
+   */
+  getNotificationPreferences: async (): Promise<NotificationPreferences> => {
+    const response = await apiClient.get<BackendNotificationPreferencesResponse>(
+      '/notifications/preferences',
+    )
+
+    return mapNotificationPreferences(response.data.notificationPreferences)
+  },
+
+  /**
+   * Atualizar preferencias de notificacoes.
+   */
+  updateNotificationPreferences: async (
+    input: NotificationPreferencesPatchInput,
+  ): Promise<NotificationPreferences> => {
+    const response = await apiClient.patch<BackendNotificationPreferencesResponse>(
+      '/notifications/preferences',
+      toBackendNotificationPreferencesPatch(input),
+    )
+
+    return mapNotificationPreferences(response.data.notificationPreferences)
+  },
+
+  /**
+   * Listar subscriptions de notificacoes por criador.
+   */
+  getCreatorSubscriptions: async (options?: {
+    page?: number
+    limit?: number
+  }): Promise<CreatorSubscriptionListResponse> => {
+    const response = await apiClient.get<BackendCreatorSubscriptionListResponse>(
+      '/notifications/subscriptions',
+      {
+        params: options,
+      },
+    )
+
+    return mapCreatorSubscriptionsResponse(response.data)
+  },
+
+  /**
+   * Obter status de subscription para um criador.
+   */
+  getCreatorSubscriptionStatus: async (creatorId: string): Promise<CreatorSubscription> => {
+    const response = await apiClient.get<BackendCreatorSubscriptionRecord>(
+      `/notifications/subscriptions/${creatorId}`,
+    )
+    const mapped = mapCreatorSubscription(response.data)
+    if (!mapped) {
+      throw new Error('Resposta de subscription invalida')
+    }
+    return mapped
+  },
+
+  /**
+   * Ativar subscription para novo conteudo de um criador.
+   */
+  subscribeToCreator: async (creatorId: string): Promise<CreatorSubscription> => {
+    const response = await apiClient.put<BackendCreatorSubscriptionRecord>(
+      `/notifications/subscriptions/${creatorId}`,
+    )
+    const mapped = mapCreatorSubscription(response.data)
+    if (!mapped) {
+      throw new Error('Resposta de subscription invalida')
+    }
+    return mapped
+  },
+
+  /**
+   * Desativar subscription para novo conteudo de um criador.
+   */
+  unsubscribeFromCreator: async (creatorId: string): Promise<CreatorSubscription> => {
+    const response = await apiClient.delete<BackendCreatorSubscriptionRecord>(
+      `/notifications/subscriptions/${creatorId}`,
+    )
+    const mapped = mapCreatorSubscription(response.data)
+    if (!mapped) {
+      throw new Error('Resposta de subscription invalida')
+    }
+    return mapped
   },
 
   // ========== ACTIVITY FEED ==========

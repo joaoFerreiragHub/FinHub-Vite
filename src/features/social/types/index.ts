@@ -34,6 +34,39 @@ export interface NotificationListResponse {
   hasMore: boolean
 }
 
+export interface NotificationPreferences {
+  follow: boolean
+  comment: boolean
+  reply: boolean
+  rating: boolean
+  like: boolean
+  mention: boolean
+  contentPublished: boolean
+}
+
+export type NotificationPreferencesPatchInput = Partial<NotificationPreferences>
+
+export interface CreatorSubscription {
+  creatorId: string
+  eventType: 'content_published'
+  isSubscribed: boolean
+  hasOverride: boolean
+  isFollowing?: boolean
+  followedAt?: string
+  creator?: {
+    id: string
+    name?: string
+    username?: string
+    avatar?: string
+  }
+}
+
+export interface CreatorSubscriptionListResponse {
+  items: CreatorSubscription[]
+  total: number
+  hasMore: boolean
+}
+
 // ========== FOLLOWS ==========
 
 export interface FollowedCreator {

@@ -1,11 +1,5 @@
-import { PlaceholderPage } from '@/components/layout/PlaceholderPage'
+import { NotificationsPage as SocialNotificationsPage } from '@/features/social/pages'
 
 export default function NotificationsPage() {
-  return (
-    <PlaceholderPage
-      section="Area do utilizador"
-      title="Notificações"
-      description="Estamos a finalizar a experiencia desta pagina com o mesmo padrao de navegacao e responsividade da Home."
-    />
-  )
+  return <SocialNotificationsPage />
 }

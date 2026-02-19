@@ -1,12 +1,24 @@
 import { useState } from 'react'
-import { Bell } from 'lucide-react'
-import { Button } from '@/components/ui'
+import { Bell, Loader2 } from 'lucide-react'
+import {
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Switch,
+} from '@/components/ui'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui'
 import { Skeleton } from '@/components/ui'
-import { NotificationType } from '../types'
+import { NotificationType, type NotificationPreferences } from '../types'
 import { NotificationList } from '../components/NotificationList'
 import {
   useNotifications,
+  useNotificationPreferences,
+  useUpdateNotificationPreferences,
+  useCreatorSubscriptions,
+  useUpdateCreatorSubscription,
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
 } from '../hooks/useSocial'
@@ -29,14 +41,75 @@ const tabTypeMap: Record<FilterTab, NotificationType[] | null> = {
   system: [NotificationType.SYSTEM, NotificationType.FOLLOW_NEW, NotificationType.RATING_RECEIVED],
 }
 
+const preferenceConfig: Array<{
+  key: keyof NotificationPreferences
+  label: string
+  description: string
+}> = [
+  {
+    key: 'contentPublished',
+    label: 'Novo conteudo de criadores',
+    description: 'Receber quando criadores que segues publicam conteudo novo.',
+  },
+  {
+    key: 'follow',
+    label: 'Novos seguidores',
+    description: 'Receber quando alguem comeca a seguir o teu perfil.',
+  },
+  {
+    key: 'comment',
+    label: 'Comentarios',
+    description: 'Receber quando comentam no teu conteudo.',
+  },
+  {
+    key: 'reply',
+    label: 'Respostas',
+    description: 'Receber quando respondem aos teus comentarios.',
+  },
+  {
+    key: 'rating',
+    label: 'Avaliacoes',
+    description: 'Receber quando avaliam o teu conteudo.',
+  },
+  {
+    key: 'like',
+    label: 'Likes',
+    description: 'Receber quando ha likes em conteudo teu.',
+  },
+  {
+    key: 'mention',
+    label: 'Mencoes',
+    description: 'Receber quando es mencionado em comentarios.',
+  },
+]
+
+const defaultPreferences: NotificationPreferences = {
+  follow: true,
+  comment: true,
+  reply: true,
+  rating: true,
+  like: true,
+  mention: true,
+  contentPublished: true,
+}
+
 export function NotificationsPage() {
   const [activeTab, setActiveTab] = useState<FilterTab>('all')
+
   const { data, isLoading } = useNotifications()
+  const { data: preferencesData, isLoading: isPreferencesLoading } = useNotificationPreferences()
+  const { data: creatorSubscriptionsData, isLoading: isSubscriptionsLoading } =
+    useCreatorSubscriptions(1, 50)
+
   const markAllRead = useMarkAllNotificationsRead()
   const markRead = useMarkNotificationRead()
+  const updatePreferences = useUpdateNotificationPreferences()
+  const updateCreatorSubscription = useUpdateCreatorSubscription()
 
   const notifications = data?.items ?? []
   const unreadCount = data?.unreadCount ?? 0
+  const preferences = preferencesData ?? defaultPreferences
+  const creatorSubscriptions = creatorSubscriptionsData?.items ?? []
 
   const filteredNotifications = notifications.filter((n) => {
     if (activeTab === 'unread') return !n.isRead
@@ -45,8 +118,19 @@ export function NotificationsPage() {
     return types.includes(n.type)
   })
 
+  const togglePreference = (key: keyof NotificationPreferences, checked: boolean) => {
+    updatePreferences.mutate({ [key]: checked })
+  }
+
+  const toggleCreatorSubscription = (creatorId: string, checked: boolean) => {
+    updateCreatorSubscription.mutate({
+      creatorId,
+      isSubscribed: checked,
+    })
+  }
+
   return (
-    <div className="mx-auto max-w-3xl space-y-6 p-6">
+    <div className="mx-auto max-w-5xl space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -65,6 +149,108 @@ export function NotificationsPage() {
             Marcar todas como lidas
           </Button>
         )}
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Preferencias de notificacoes</CardTitle>
+            <CardDescription>Controla os tipos de eventos que queres receber.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-1">
+            {isPreferencesLoading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <Skeleton key={index} className="h-12 w-full rounded-lg" />
+                ))}
+              </div>
+            ) : (
+              preferenceConfig.map((item) => (
+                <div
+                  key={item.key}
+                  className="flex items-start justify-between gap-4 rounded-lg border border-border/60 p-3"
+                >
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium">{item.label}</p>
+                    <p className="text-xs text-muted-foreground">{item.description}</p>
+                  </div>
+                  <Switch
+                    checked={preferences[item.key]}
+                    onCheckedChange={(checked) => togglePreference(item.key, checked)}
+                    disabled={updatePreferences.isPending}
+                    aria-label={item.label}
+                  />
+                </div>
+              ))
+            )}
+
+            {updatePreferences.isPending && (
+              <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />A guardar preferencias...
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Subscriptions por criador</CardTitle>
+            <CardDescription>
+              Ativa ou silencia notificacoes de novo conteudo por criador que segues.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {isSubscriptionsLoading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <Skeleton key={index} className="h-12 w-full rounded-lg" />
+                ))}
+              </div>
+            ) : creatorSubscriptions.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Ainda nao segues criadores suficientes para gerir subscriptions.
+              </p>
+            ) : (
+              creatorSubscriptions.map((subscription) => {
+                const creatorName =
+                  subscription.creator?.name ||
+                  subscription.creator?.username ||
+                  subscription.creatorId
+                const isPendingRow =
+                  updateCreatorSubscription.isPending &&
+                  updateCreatorSubscription.variables?.creatorId === subscription.creatorId
+
+                return (
+                  <div
+                    key={subscription.creatorId}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-border/60 p-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{creatorName}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {subscription.isSubscribed
+                          ? 'Ativo para novo conteudo'
+                          : 'Silenciado para novo conteudo'}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {isPendingRow && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                      <Switch
+                        checked={subscription.isSubscribed}
+                        onCheckedChange={(checked) =>
+                          toggleCreatorSubscription(subscription.creatorId, checked)
+                        }
+                        disabled={isPendingRow}
+                        aria-label={`Subscription de ${creatorName}`}
+                      />
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Tabs */}

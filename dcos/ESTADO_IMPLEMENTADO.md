@@ -1,6 +1,6 @@
 # Estado Implementado
 
-Data de referencia: 2026-02-18 (atualizado apos fecho de P0 e hardening tecnico pre-P1).
+Data de referencia: 2026-02-19 (atualizado apos fecho de P1.2 frontend).
 
 ## 1) Foundation e arquitetura
 - Estrutura feature-based e separacao por modulos.
@@ -9,7 +9,7 @@ Data de referencia: 2026-02-18 (atualizado apos fecho de P0 e hardening tecnico 
 
 ## 2) Conteudos HUB e social
 - Tipos de conteudo implementados: articles, courses, videos, lives, podcasts, books e news.
-- Modulos sociais ativos: follow, favorites, notifications, ratings, comments.
+- Modulos sociais ativos: follow, favorites, notifications, ratings, comments, notification preferences e creator subscriptions.
 
 ## 3) Validacao real da API
 - API confirmada ativa em `http://localhost:5000/api`.
@@ -186,3 +186,38 @@ Data de referencia: 2026-02-18 (atualizado apos fecho de P0 e hardening tecnico 
   - `npm run test:e2e:install` -> PASS (Chromium instalado).
   - `npm run test:e2e` -> PASS (3/3 testes).
   - `npm run build` -> PASS apos validacao E2E.
+
+## 16) P1.2 Notificacoes/Subscriptions - frontend (2026-02-19) - PASS
+- Integracao completa dos contratos de notificacoes de P1.2 no frontend:
+  - preferencias de notificacao por utilizador (get/update).
+  - subscriptions por criador (list/check/subscribe/unsubscribe).
+- Pagina de notificacoes em producao:
+  - `src/features/user/pages/NotificationsPage.tsx` deixa de usar placeholder e passa a renderizar `src/features/social/pages/NotificationsPage.tsx`.
+  - card de preferencias com toggles reais (`likes`, `comments`, `follows`, `newContent`, `mentions`, `system`).
+  - card de subscriptions por criador com toggle por item e estado pendente durante mutation.
+- Camada de dominio social expandida para manter escalabilidade:
+  - novos tipos em `src/features/social/types/index.ts`:
+    - `NotificationPreferences`
+    - `NotificationPreferencesPatchInput`
+    - `CreatorSubscription`
+    - `CreatorSubscriptionListResponse`
+  - novos metodos em `src/features/social/services/socialService.ts`:
+    - `getNotificationPreferences`
+    - `updateNotificationPreferences`
+    - `getCreatorSubscriptions`
+    - `getCreatorSubscriptionStatus`
+    - `subscribeToCreator`
+    - `unsubscribeFromCreator`
+  - novos hooks em `src/features/social/hooks/useSocial.ts`:
+    - `useNotificationPreferences`
+    - `useUpdateNotificationPreferences`
+    - `useCreatorSubscriptions`
+    - `useCreatorSubscriptionStatus`
+    - `useUpdateCreatorSubscription`
+- Validacao automatizada apos integracao:
+  - `npm run test -- --runInBand` -> PASS (11 suites, 108 testes).
+  - `npm run typecheck:p1` -> PASS.
+  - `npm run build` -> PASS.
+  - `npm run test:e2e` -> PASS (3/3 smoke, incluindo SSR).
+- Nota de qualidade:
+  - warnings de build existentes (deprecacoes Vite/Vike e chaves duplicadas em mocks) mantem-se nao-bloqueantes.
