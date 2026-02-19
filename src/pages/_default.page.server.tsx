@@ -5,7 +5,11 @@ import { PageShell } from '../renderer/PageShell'
 
 export const passToClient = ['routeParams', 'pageProps', 'user']
 
-export const render = async (pageContext: PageContext) => {
+type RenderResult = {
+  documentHtml: ReturnType<typeof escapeInject>
+}
+
+export const render = async (pageContext: PageContext): Promise<RenderResult> => {
   // console.log('Server-side PageContext:', pageContext)
   const { Page, pageProps } = pageContext
 
