@@ -1,12 +1,15 @@
-/**
- * Criar Conta
- * TODO: Implementar conteúdo completo
- */
+import { RegisterForm } from '@/features/auth/components/RegisterForm'
+
 export default function RegisterPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-4">Criar Conta</h1>
-      <p className="text-gray-600">Esta página está em construção. Implementação em breve.</p>
-    </div>
+    <section className="space-y-5">
+      <div className="space-y-2 text-center">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Criar conta</h1>
+        <p className="text-sm text-muted-foreground">
+          Junta-te a comunidade FinHub e personaliza o teu percurso de aprendizagem.
+        </p>
+      </div>
+      <RegisterForm />
+    </section>
   )
 }

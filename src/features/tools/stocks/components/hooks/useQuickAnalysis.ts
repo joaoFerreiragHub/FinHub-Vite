@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import axios from 'axios'
 import { StockData } from '@/features/tools/stocks/types/stocks'
+import { apiClient } from '@/lib/api/client'
 
 export function useQuickAnalysis(symbol: string) {
   const [data, setData] = useState<StockData | null>(null)
@@ -11,8 +11,8 @@ export function useQuickAnalysis(symbol: string) {
     if (!symbol) return
 
     setLoading(true)
-    axios
-      .get(`/api/stocks/quick-analysis/${symbol}`)
+    apiClient
+      .get(`/stocks/quick-analysis/${symbol}`)
 
       .then((res) => {
         setData(res.data)

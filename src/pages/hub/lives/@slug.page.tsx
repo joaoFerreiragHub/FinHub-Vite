@@ -19,7 +19,7 @@ export function Page(props: any) {
 
   return (
     <SidebarLayout>
-      <LiveDetailPage slug={slug} />
+      <LiveDetailPage />
     </SidebarLayout>
   )
 }

@@ -45,7 +45,7 @@ export function useUnfollowCreator() {
 export function useFavorites(type?: ContentType) {
   return useQuery({
     queryKey: ['social', 'favorites', type],
-    queryFn: () => socialService.getFavorites(type ? { type } : undefined),
+    queryFn: () => socialService.getFavorites(type ? { targetType: type } : undefined),
   })
 }
 

@@ -1,111 +1,148 @@
 import { Link } from 'react-router-dom'
 
-/**
- * Footer principal da aplicação
- * TODO: Expandir com links úteis, redes sociais, newsletter
- */
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-gray-300">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Brand */}
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold">F</span>
+    <footer className="mt-12 border-t border-border bg-muted/20">
+      <div className="mx-auto w-full max-w-[1600px] px-4 py-10 sm:px-6 lg:px-10">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+          <div className="col-span-2 md:col-span-1">
+            <div className="mb-4 flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <span className="text-sm font-bold">F</span>
               </div>
-              <span className="text-lg font-bold text-white">FinHub</span>
+              <span className="text-lg font-semibold">
+                Fin<span className="text-primary">Hub</span>
+              </span>
             </div>
-            <p className="text-sm text-gray-400">
-              A plataforma de literacia financeira em português.
+            <p className="text-sm text-muted-foreground">
+              Plataforma de literacia financeira com foco em navegacao simples e conteudo pratico.
             </p>
           </div>
 
-          {/* Links Úteis */}
           <div>
-            <h3 className="font-semibold text-white mb-4">Explorar</h3>
+            <h3 className="mb-3 text-sm font-semibold text-foreground">Explorar</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link to="/explorar/artigos" className="hover:text-white">
+                <Link
+                  to="/explorar/tudo"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Tudo
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/explorar/artigos"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
                   Artigos
                 </Link>
               </li>
               <li>
-                <Link to="/explorar/videos" className="hover:text-white">
-                  Vídeos
+                <Link
+                  to="/explorar/videos"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Videos
                 </Link>
               </li>
               <li>
-                <Link to="/explorar/cursos" className="hover:text-white">
+                <Link
+                  to="/explorar/cursos"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
                   Cursos
                 </Link>
               </li>
               <li>
-                <Link to="/criadores" className="hover:text-white">
+                <Link
+                  to="/criadores"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
                   Criadores
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Recursos */}
           <div>
-            <h3 className="font-semibold text-white mb-4">Recursos</h3>
+            <h3 className="mb-3 text-sm font-semibold text-foreground">Recursos</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link to="/recursos/corretoras" className="hover:text-white">
+                <Link
+                  to="/recursos/corretoras"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
                   Corretoras
                 </Link>
               </li>
               <li>
-                <Link to="/recursos/plataformas" className="hover:text-white">
+                <Link
+                  to="/recursos/plataformas"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
                   Plataformas
                 </Link>
               </li>
               <li>
-                <Link to="/aprender/glossario" className="hover:text-white">
-                  Glossário
+                <Link
+                  to="/recursos/apps"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Apps
                 </Link>
               </li>
               <li>
-                <Link to="/aprender/noticias" className="hover:text-white">
-                  Notícias
+                <Link
+                  to="/recursos/sites"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Sites
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Sobre */}
           <div>
-            <h3 className="font-semibold text-white mb-4">Sobre</h3>
+            <h3 className="mb-3 text-sm font-semibold text-foreground">Informacao</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link to="/sobre" className="hover:text-white">
-                  Sobre o FinHub
+                <Link
+                  to="/sobre"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Sobre
                 </Link>
               </li>
               <li>
-                <Link to="/contacto" className="hover:text-white">
+                <Link
+                  to="/contacto"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
                   Contacto
                 </Link>
               </li>
               <li>
-                <Link to="/faq" className="hover:text-white">
+                <Link
+                  to="/faq"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
                   FAQ
                 </Link>
               </li>
               <li>
-                <Link to="/termos" className="hover:text-white">
-                  Termos de Uso
+                <Link
+                  to="/termos"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Termos
                 </Link>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Copyright */}
-        <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
+        <div className="mt-8 border-t border-border pt-6 text-center text-xs text-muted-foreground">
           <p>&copy; 2026 FinHub. Todos os direitos reservados.</p>
         </div>
       </div>

@@ -35,6 +35,7 @@ lerna-debug.log*
 # ========================
 test-output/
 test-results/
+playwright-report/
 __snapshots__/
 *.spec.ts.snap
 

@@ -63,8 +63,11 @@ export interface BaseContent {
   // Conteúdo básico
   title: string
   description: string // Resumo/excerpt curto
+  excerpt?: string
+  content?: string
   coverImage?: string
   thumbnailImage?: string
+  language?: string
 
   // Autoria
   creator: User | string // Pode ser User object ou ID

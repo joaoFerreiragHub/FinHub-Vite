@@ -1,7 +1,4 @@
-// src/features/creators/components/files/FileItem.tsx
-
-import { useState } from 'react'
-import axios from 'axios'
+import { useState, type MouseEvent } from 'react'
 import { toast } from 'react-toastify'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import type { CreatorFile } from '@/features/creators/types/creatorFile'
@@ -12,36 +9,36 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 const topicOptions = [
   'ETFs',
-  'Ações',
+  'Acoes',
   'Reits',
   'Cryptos',
-  'Finanças Pessoais',
-  'Poupança',
-  'Imobiliário',
-  'Obrigações',
-  'Fundos Mútuos',
+  'Financas Pessoais',
+  'Poupanca',
+  'Imobiliario',
+  'Obrigacoes',
+  'Fundos Mutuos',
   'Empreendedorismo',
-  'Futuros e Opções',
+  'Futuros e Opcoes',
   'Trading',
 ]
 
 interface Props {
   file: CreatorFile
   onDelete: (id: string) => void
+  onUpdate?: (id: string, patch: Pick<CreatorFile, 'name' | 'topic'>) => void
   showActions?: boolean
 }
 
-export default function FileItem({ file, onDelete, showActions = true }: Props) {
+export default function FileItem({ file, onDelete, onUpdate, showActions = true }: Props) {
   const { user } = useAuthStore()
-  const accessToken = useAuthStore((state) => state.accessToken)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [name, setName] = useState(file.name)
   const [topic, setTopic] = useState(file.topic || '')
 
-  const handleDownloadClick = (e: React.MouseEvent) => {
+  const handleDownloadClick = (event: MouseEvent<HTMLAnchorElement>) => {
     if (user?.role === 'visitor') {
-      e.preventDefault()
+      event.preventDefault()
       setDialogOpen(true)
     }
   }
@@ -52,18 +49,15 @@ export default function FileItem({ file, onDelete, showActions = true }: Props) 
     }
   }
 
-  const handleUpdate = async () => {
-    try {
-      await axios.patch(
-        `${import.meta.env.VITE_API_URL}/fileRoutes/files/${file._id}`,
-        { title: name, topic },
-        { headers: { Authorization: `Bearer ${accessToken}` } },
-      )
-      toast.success('Ficheiro atualizado com sucesso.')
-      setEditDialogOpen(false)
-    } catch {
-      toast.error('Erro ao atualizar ficheiro.')
+  const handleUpdate = () => {
+    if (!name.trim()) {
+      toast.error('O titulo nao pode estar vazio.')
+      return
     }
+
+    onUpdate?.(file._id, { name: name.trim(), topic })
+    toast.success('Ficheiro atualizado com sucesso.')
+    setEditDialogOpen(false)
   }
 
   const getIcon = () => {
@@ -105,7 +99,6 @@ export default function FileItem({ file, onDelete, showActions = true }: Props) 
         </div>
       )}
 
-      {/* Dialog: Acesso Restrito */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -125,7 +118,6 @@ export default function FileItem({ file, onDelete, showActions = true }: Props) 
         </DialogContent>
       </Dialog>
 
-      {/* Dialog: Edição */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -133,7 +125,7 @@ export default function FileItem({ file, onDelete, showActions = true }: Props) 
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Título</label>
+              <label className="text-sm font-medium">Titulo</label>
               <Input value={name} onChange={(e) => setName(e.target.value)} />
             </div>
             <div className="space-y-2">
@@ -155,7 +147,7 @@ export default function FileItem({ file, onDelete, showActions = true }: Props) 
               <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handleUpdate}>Guardar Alterações</Button>
+              <Button onClick={handleUpdate}>Guardar Alteracoes</Button>
             </div>
           </div>
         </DialogContent>

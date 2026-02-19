@@ -1,8 +1,24 @@
-// src/App.tsx
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { RouterProvider } from 'react-router-dom'
+import router from './router'
+import { ThemeProvider } from '@/shared/providers'
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+})
+
 export default function App() {
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold">Bem-vindo à FinHub SSR</h1>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <RouterProvider router={router} />
+      </ThemeProvider>
+    </QueryClientProvider>
   )
 }

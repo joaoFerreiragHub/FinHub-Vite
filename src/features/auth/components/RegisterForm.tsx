@@ -106,11 +106,11 @@ export function RegisterForm() {
 
       <div className="text-xs text-muted-foreground">
         Ao criar uma conta, voce concorda com os nossos{' '}
-        <Link to="/terms" className="text-primary hover:underline">
+        <Link to="/termos" className="text-primary hover:underline">
           Termos de Servico
         </Link>{' '}
         e{' '}
-        <Link to="/privacy" className="text-primary hover:underline">
+        <Link to="/privacidade" className="text-primary hover:underline">
           Politica de Privacidade
         </Link>
         .
@@ -122,7 +122,7 @@ export function RegisterForm() {
 
       <div className="text-center text-sm text-muted-foreground">
         Ja tem conta?{' '}
-        <Link to="/auth/login" className="font-medium text-primary hover:underline">
+        <Link to="/login" className="font-medium text-primary hover:underline">
           Fazer login
         </Link>
       </div>

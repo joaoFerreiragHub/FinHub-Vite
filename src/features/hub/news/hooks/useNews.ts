@@ -53,6 +53,7 @@ interface UseNewsReturn {
   isEmpty: boolean
   isDataFresh: boolean
   needsRefresh: boolean
+  isOffline: boolean
 
   // === FILTROS ===
   filters: NewsFilters
@@ -202,6 +203,7 @@ export const useNews = (options: UseNewsOptions = {}): UseNewsReturn => {
     hasError,
     hasNews,
     isDataFresh,
+    isOffline,
     totalPages,
     hasNextPage,
     hasPrevPage,
@@ -326,6 +328,7 @@ export const useNews = (options: UseNewsOptions = {}): UseNewsReturn => {
     isEmpty,
     isDataFresh,
     needsRefresh,
+    isOffline,
 
     // === FILTROS (priorizando o store de filtros) ===
     filters: filtersStoreFilters,

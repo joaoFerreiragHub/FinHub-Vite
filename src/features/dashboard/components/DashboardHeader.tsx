@@ -1,34 +1,41 @@
 import { Link } from 'react-router-dom'
+import { Menu, PlusCircle } from 'lucide-react'
+import { Button } from '@/components/ui'
 
-/**
- * Header do Creator Dashboard
- * TODO: Implementar notificações, user menu, quick actions
- */
-export default function DashboardHeader() {
+interface DashboardHeaderProps {
+  onMenuToggle: () => void
+}
+
+export default function DashboardHeader({ onMenuToggle }: DashboardHeaderProps) {
   return (
-    <header className="bg-white border-b border-gray-200">
-      <div className="px-6 py-4 flex items-center justify-between">
-        {/* Logo + Dashboard Title */}
-        <div className="flex items-center gap-6">
+    <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-md">
+      <div className="mx-auto flex h-16 w-full max-w-[1600px] items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={onMenuToggle}
+            aria-label="Abrir menu"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold">F</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <span className="text-xs font-bold">F</span>
             </div>
-            <span className="text-lg font-bold text-gray-900">FinHub</span>
+            <span className="text-sm font-semibold sm:text-base">FinHub</span>
           </Link>
-          <span className="text-gray-400">|</span>
-          <span className="text-gray-700 font-medium">Dashboard Creator</span>
+          <span className="hidden text-muted-foreground lg:inline">/ Dashboard</span>
         </div>
 
-        {/* Actions - TODO: Implementar */}
-        <div className="flex items-center gap-4">
-          <Link
-            to="/dashboard/criar"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium text-sm"
-          >
-            + Criar Conteúdo
+        <Button asChild size="sm" className="gap-1.5">
+          <Link to="/dashboard/criar">
+            <PlusCircle className="h-4 w-4" />
+            <span className="hidden sm:inline">Criar conteudo</span>
+            <span className="sm:hidden">Criar</span>
           </Link>
-        </div>
+        </Button>
       </div>
     </header>
   )

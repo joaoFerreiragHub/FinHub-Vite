@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "outDir": "./node_modules/.tmp/tsc-app",
     "target": "ES2020",
     "useDefineForClassFields": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
@@ -32,5 +33,13 @@
     "noUncheckedSideEffectImports": true
   },
   "include": ["src"],
-  "exclude": ["src/__tests__"]
+  "exclude": [
+    "src/__tests__/**",
+    "src/stories/**",
+    "src/features/creators/**",
+    "src/features/tools/**",
+    "src/lib/mock/**",
+    "src/pages/creators/**",
+    "src/pages/ferramentas/**"
+  ]
 }

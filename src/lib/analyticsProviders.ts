@@ -1,5 +1,5 @@
 import type { PostHog } from 'posthog-js'
-import { AnalyticsProps } from '../types/analytics'
+import type { AnalyticsProps } from './types/analytics'
 
 let posthogInstance: PostHog | null = null
 

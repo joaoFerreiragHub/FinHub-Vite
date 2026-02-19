@@ -1,7 +1,4 @@
-// src/components/book/CommentSection/index.tsx
-
 import { useState, useEffect, useCallback } from 'react'
-import axios from 'axios'
 import { Comment } from './Comment'
 
 import type { CommentType } from '@/features/hub/types/comment'
@@ -9,9 +6,38 @@ import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { Textarea } from '@/components/ui'
 import { Button } from '@/components/ui'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui'
+import { apiClient } from '@/lib/api/client'
 
 interface CommentSectionProps {
   bookId: string
+}
+
+interface ApiCommentNode {
+  _id: string
+  content?: string
+  text?: string
+  user?: {
+    _id?: string
+    name?: string
+  }
+  userId?: {
+    _id?: string
+    name?: string
+  }
+  replies?: ApiCommentNode[]
+}
+
+const mapApiCommentToLegacy = (comment: ApiCommentNode): CommentType => {
+  const userData = comment.user ?? comment.userId ?? {}
+  return {
+    _id: comment._id,
+    text: comment.content ?? comment.text ?? '',
+    userId: {
+      _id: userData._id ?? 'unknown',
+      name: userData.name,
+    },
+    replies: (comment.replies ?? []).map((reply) => mapApiCommentToLegacy(reply)),
+  }
 }
 
 export default function CommentSection({ bookId }: CommentSectionProps) {
@@ -24,81 +50,67 @@ export default function CommentSection({ bookId }: CommentSectionProps) {
 
   const fetchComments = useCallback(async () => {
     try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/commentsBookRouter/books/${bookId}/comments`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
+      const res = await apiClient.get<{ comments?: ApiCommentNode[] }>(
+        `/comments/book/${bookId}/tree`,
       )
-      setComments(res.data)
+      const apiComments = Array.isArray(res.data?.comments) ? res.data.comments : []
+      setComments(apiComments.map((comment) => mapApiCommentToLegacy(comment)))
     } catch (err) {
-      console.error('Erro ao buscar comentários:', err)
+      console.error('Erro ao buscar comentarios:', err)
     }
-  }, [bookId, accessToken])
+  }, [bookId])
 
   useEffect(() => {
-    if (bookId && accessToken) {
-      fetchComments()
+    if (bookId) {
+      void fetchComments()
     }
-  }, [bookId, fetchComments, accessToken])
+  }, [bookId, fetchComments])
 
   const handleCommentSubmit = async () => {
-    if (user?.role === 'visitor') return setVisitorDialogVisible(true)
+    if (!accessToken || user?.role === 'visitor') return setVisitorDialogVisible(true)
     if (!newComment.trim()) return
 
     try {
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/commentsBookRouter/books/${bookId}/comments`,
-        { text: newComment },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      )
-      setComments((prev) => [...prev, res.data])
+      await apiClient.post('/comments', {
+        targetType: 'book',
+        targetId: bookId,
+        content: newComment.trim(),
+      })
       setNewComment('')
+      await fetchComments()
     } catch (err) {
-      console.error('Erro ao enviar comentário:', err)
+      console.error('Erro ao enviar comentario:', err)
     }
   }
 
   const handleReply = useCallback(
     async (commentIndex: number, replyText: string) => {
-      if (user?.role === 'visitor') return setVisitorDialogVisible(true)
-      const commentId = comments[commentIndex]._id
+      if (!accessToken || user?.role === 'visitor') return setVisitorDialogVisible(true)
+      const commentId = comments[commentIndex]?._id
+      if (!commentId || !replyText.trim()) return
 
       try {
-        const res = await axios.post(
-          `${import.meta.env.VITE_API_URL}/commentsBookRouter/comments/${commentId}/replies`,
-          { text: replyText },
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          },
-        )
-        setComments((prev) => {
-          const updated = [...prev]
-          updated[commentIndex].replies.push(res.data)
-          return updated
+        await apiClient.post('/comments', {
+          targetType: 'book',
+          targetId: bookId,
+          content: replyText.trim(),
+          parentCommentId: commentId,
         })
+        await fetchComments()
       } catch (err) {
-        console.error('Erro ao responder comentário:', err)
+        console.error('Erro ao responder comentario:', err)
       }
     },
-    [comments, accessToken, user?.role],
+    [comments, accessToken, user?.role, bookId, fetchComments],
   )
 
   return (
     <section className="space-y-4 mt-6">
-      <h4 className="text-lg font-semibold">Comentários</h4>
+      <h4 className="text-lg font-semibold">Comentarios</h4>
 
       <div className="space-y-2">
         <Textarea
-          placeholder="Deixa o teu comentário..."
+          placeholder="Deixa o teu comentario..."
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
         />
@@ -107,7 +119,7 @@ export default function CommentSection({ bookId }: CommentSectionProps) {
 
       <div className="space-y-3">
         {comments.length === 0 ? (
-          <p className="text-muted-foreground">Ainda não há comentários.</p>
+          <p className="text-muted-foreground">Ainda nao ha comentarios.</p>
         ) : (
           comments.map((comment, index) => (
             <Comment
@@ -125,7 +137,7 @@ export default function CommentSection({ bookId }: CommentSectionProps) {
           <DialogHeader>
             <DialogTitle>Acesso Restrito</DialogTitle>
           </DialogHeader>
-          <p>Para comentar, precisas de iniciar sessão.</p>
+          <p>Para comentar, precisas de iniciar sessao.</p>
           <div className="flex justify-end gap-2 mt-4">
             <Button
               onClick={() => {

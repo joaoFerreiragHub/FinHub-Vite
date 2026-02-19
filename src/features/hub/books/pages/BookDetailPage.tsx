@@ -5,12 +5,11 @@ import { bookService } from '../services/bookService'
 import {
   ContentMeta,
   ContentActions,
-  RatingDistribution,
-  RatingForm,
+  RatingsSection,
   CommentSection,
 } from '@/features/hub/components'
 import { usePermissions, usePaywall } from '@/features/auth'
-import { Permission, isRoleAtLeast } from '@/lib/permissions/config'
+import { isRoleAtLeast } from '@/lib/permissions/config'
 import { Card, Button } from '@/components/ui'
 
 /**
@@ -19,7 +18,7 @@ import { Card, Button } from '@/components/ui'
 export function BookDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const { data: book, isLoading, error } = useBook(slug!)
-  const { role, can } = usePermissions()
+  const { role } = usePermissions()
   const { PaywallComponent } = usePaywall()
 
   useEffect(() => {
@@ -143,43 +142,12 @@ export function BookDetailPage() {
 
             {/* Ratings */}
             {hasAccess && (
-              <section className="space-y-6">
-                <h2 className="text-2xl font-bold">Avaliacoes</h2>
-
-                {book.ratingCount > 0 && (
-                  <RatingDistribution
-                    stats={{
-                      averageRating: book.averageRating,
-                      totalRatings: book.ratingCount,
-                      distribution: {
-                        5: Math.floor(book.ratingCount * 0.5),
-                        4: Math.floor(book.ratingCount * 0.3),
-                        3: Math.floor(book.ratingCount * 0.15),
-                        2: Math.floor(book.ratingCount * 0.04),
-                        1: Math.floor(book.ratingCount * 0.01),
-                      },
-                      percentages: { 5: 50, 4: 30, 3: 15, 2: 4, 1: 1 },
-                    }}
-                  />
-                )}
-
-                {can(Permission.RATE_CONTENT) ? (
-                  <Card className="p-6">
-                    <h3 className="mb-4 font-semibold">Avaliar este livro</h3>
-                    <RatingForm
-                      targetType={book.type}
-                      targetId={book.id}
-                      onSubmit={async (data) => {
-                        console.log('Submit rating:', data)
-                      }}
-                    />
-                  </Card>
-                ) : (
-                  <Card className="p-6 text-center text-sm text-muted-foreground">
-                    Faz login para avaliar este livro
-                  </Card>
-                )}
-              </section>
+              <RatingsSection
+                targetType="book"
+                targetId={book.id}
+                formTitle="Avaliar este livro"
+                contentQueryKey={['book', slug]}
+              />
             )}
 
             <hr className="border-border" />

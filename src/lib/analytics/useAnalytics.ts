@@ -1,4 +1,4 @@
-import { trackClick, trackEvent, trackFeature } from '../lib/analytics'
+import { trackClick, trackEvent, trackFeature } from '../analytics'
 
 export function useAnalytics() {
   return {

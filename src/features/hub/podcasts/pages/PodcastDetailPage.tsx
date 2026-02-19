@@ -5,12 +5,11 @@ import { podcastService } from '../services/podcastService'
 import {
   ContentMeta,
   ContentActions,
-  RatingDistribution,
-  RatingForm,
+  RatingsSection,
   CommentSection,
 } from '@/features/hub/components'
 import { usePermissions, usePaywall } from '@/features/auth'
-import { Permission, isRoleAtLeast } from '@/lib/permissions/config'
+import { isRoleAtLeast } from '@/lib/permissions/config'
 import { Card, Button } from '@/components/ui'
 import type { PodcastEpisode } from '../types'
 
@@ -20,7 +19,7 @@ import type { PodcastEpisode } from '../types'
 export function PodcastDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const { data: podcast, isLoading, error } = usePodcast(slug!)
-  const { role, can } = usePermissions()
+  const { role } = usePermissions()
   const { PaywallComponent } = usePaywall()
   const [expandedEpisode, setExpandedEpisode] = useState<string | null>(null)
 
@@ -232,43 +231,12 @@ export function PodcastDetailPage() {
 
             {/* Ratings */}
             {hasAccess && (
-              <section className="space-y-6">
-                <h2 className="text-2xl font-bold">Avaliacoes</h2>
-
-                {podcast.ratingCount > 0 && (
-                  <RatingDistribution
-                    stats={{
-                      averageRating: podcast.averageRating,
-                      totalRatings: podcast.ratingCount,
-                      distribution: {
-                        5: Math.floor(podcast.ratingCount * 0.5),
-                        4: Math.floor(podcast.ratingCount * 0.3),
-                        3: Math.floor(podcast.ratingCount * 0.15),
-                        2: Math.floor(podcast.ratingCount * 0.04),
-                        1: Math.floor(podcast.ratingCount * 0.01),
-                      },
-                      percentages: { 5: 50, 4: 30, 3: 15, 2: 4, 1: 1 },
-                    }}
-                  />
-                )}
-
-                {can(Permission.RATE_CONTENT) ? (
-                  <Card className="p-6">
-                    <h3 className="mb-4 font-semibold">Avaliar este podcast</h3>
-                    <RatingForm
-                      targetType={podcast.type}
-                      targetId={podcast.id}
-                      onSubmit={async (data) => {
-                        console.log('Submit rating:', data)
-                      }}
-                    />
-                  </Card>
-                ) : (
-                  <Card className="p-6 text-center text-sm text-muted-foreground">
-                    Faz login para avaliar este podcast
-                  </Card>
-                )}
-              </section>
+              <RatingsSection
+                targetType="podcast"
+                targetId={podcast.id}
+                formTitle="Avaliar este podcast"
+                contentQueryKey={['podcast', slug]}
+              />
             )}
 
             <hr className="border-border" />

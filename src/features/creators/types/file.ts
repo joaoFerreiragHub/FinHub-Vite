@@ -5,5 +5,6 @@ export interface FileData {
   mimeType: string
   topic: string
   creator: string
+  url: string
   createdAt: string
 }

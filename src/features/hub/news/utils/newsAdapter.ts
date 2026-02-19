@@ -1,4 +1,5 @@
-import { ContentType, ContentCategory } from '../../types'
+import { ContentType, ContentCategory, PublishStatus } from '../../types'
+import { UserRole } from '@/features/auth/types'
 import type { BaseContent } from '../../types'
 import type { NewsArticle } from '../types/news'
 
@@ -47,11 +48,7 @@ export function toBaseContent(article: NewsArticle): NewsContent {
     coverImage: article.image,
 
     // Creator (fonte da noticia)
-    creator: {
-      id: article.source,
-      name: article.author || article.source,
-      username: article.source.toLowerCase().replace(/\s+/g, '-'),
-    },
+    creator: article.source,
     creatorId: article.source,
 
     // Classificacao
@@ -65,16 +62,17 @@ export function toBaseContent(article: NewsArticle): NewsContent {
     shareCount: 0,
     averageRating: 0,
     ratingCount: 0,
+    reviewCount: 0,
     commentCount: 0,
     commentsEnabled: false,
 
     // Acesso
-    requiredRole: 'visitor',
+    requiredRole: UserRole.VISITOR,
     isPremium: false,
     isFeatured: false,
 
     // Status
-    status: 'published',
+    status: PublishStatus.PUBLISHED,
     isPublished: true,
 
     // Datas

@@ -1,0 +1,36 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "composite": false,
+    "emitDeclarationOnly": false,
+    "noEmit": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.p1.tsbuildinfo",
+    "outDir": "./node_modules/.tmp/tsc-p1"
+  },
+  "include": [
+    "src/vite-env.d.ts",
+    "src/features/hub/**/*",
+    "src/features/social/**/*",
+    "src/features/auth/hooks/**/*",
+    "src/features/auth/stores/**/*",
+    "src/features/auth/types/**/*",
+    "src/lib/api/**/*",
+    "src/lib/permissions/**/*",
+    "src/lib/types/**/*",
+    "src/lib/analytics.ts",
+    "src/lib/analyticsProviders.ts",
+    "src/components/**/*",
+    "src/shared/**/*",
+    "src/pages/hub/**/*",
+    "src/pages/noticias/**/*",
+    "src/pages/_default.page.client.tsx",
+    "src/pages/_default.page.server.tsx",
+    "src/index.css"
+  ],
+  "exclude": [
+    "src/features/hub/books/components/ShowBooks.tsx",
+    "src/lib/mock/**",
+    "src/stories/**",
+    "src/__tests__/**"
+  ]
+}

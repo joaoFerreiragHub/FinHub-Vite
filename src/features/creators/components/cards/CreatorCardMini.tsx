@@ -1,7 +1,7 @@
 // src/features/creators/components/cards/CreatorCardMini.tsx
 
 import { Creator } from '@/features/creators/types/creator'
-import { RatingDisplay } from '../../ratings/RatingDisplay'
+import { RatingDisplay } from '@/features/hub/components/ratings/RatingDisplay'
 import { AspectRatio } from '@/components/ui'
 
 interface CreatorCardMiniProps {

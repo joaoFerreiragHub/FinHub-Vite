@@ -74,8 +74,8 @@ export function LoginForm() {
           <span>Lembrar-me</span>
         </label>
 
-        <Link to="/auth/forgot-password" className="text-sm text-primary hover:underline">
-          Esqueceu a password?
+        <Link to="/contacto" className="text-sm text-primary hover:underline">
+          Precisa de ajuda?
         </Link>
       </div>
 
@@ -85,7 +85,7 @@ export function LoginForm() {
 
       <div className="text-center text-sm text-muted-foreground">
         Nao tem conta?{' '}
-        <Link to="/auth/register" className="font-medium text-primary hover:underline">
+        <Link to="/registar" className="font-medium text-primary hover:underline">
           Criar conta
         </Link>
       </div>

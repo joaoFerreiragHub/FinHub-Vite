@@ -6,11 +6,12 @@ import FileItem from './FileItem'
 interface Props {
   files: CreatorFile[]
   onDelete?: (id: string) => void
+  onUpdate?: (id: string, patch: Pick<CreatorFile, 'name' | 'topic'>) => void
   showActions?: boolean
   loading?: boolean
 }
 
-export default function FilesGrid({ files, onDelete, showActions = true }: Props) {
+export default function FilesGrid({ files, onDelete, onUpdate, showActions = true }: Props) {
   if (!files || files.length === 0) {
     return (
       <p className="text-muted-foreground">
@@ -26,6 +27,7 @@ export default function FilesGrid({ files, onDelete, showActions = true }: Props
           key={file._id}
           file={file}
           onDelete={onDelete || (() => {})}
+          onUpdate={onUpdate}
           showActions={showActions}
         />
       ))}

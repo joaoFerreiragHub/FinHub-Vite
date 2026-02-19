@@ -16,10 +16,15 @@ interface ApiConfig {
 }
 
 // ===== CONFIGURAÇÃO =====
+const resolveApiBaseUrl = (): string => {
+  const configuredBase = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+  return configuredBase.replace(/\/+$/, '')
+}
+
 const API_CONFIG: ApiConfig = {
   timeout: 30000, // 30 segundos
   retries: 3,
-  baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
+  baseUrl: resolveApiBaseUrl(),
 }
 
 // ===== CLASSE PRINCIPAL =====
@@ -63,7 +68,12 @@ class NewsApiService {
       if (error instanceof Error && error.name === 'AbortError') {
         throw new Error('Request cancelado')
       }
-      throw this.handleError(error)
+      // Marcar erro como offline se for erro de conexão
+      const apiError = this.handleError(error)
+      if (this.isConnectionError(error)) {
+        apiError.message = 'OFFLINE: ' + apiError.message
+      }
+      throw apiError
     } finally {
       this.controller = null
     }
@@ -214,6 +224,27 @@ class NewsApiService {
       return new Error(error)
     }
     return new Error('Erro desconhecido na API')
+  }
+
+  /**
+   * Verificar se é erro de conexão (offline)
+   */
+  private isConnectionError(error: unknown): boolean {
+    if (error instanceof TypeError) {
+      // Erros de rede (Failed to fetch, ERR_CONNECTION_REFUSED, etc)
+      return true
+    }
+    if (error instanceof Error) {
+      const message = error.message.toLowerCase()
+      return (
+        message.includes('failed to fetch') ||
+        message.includes('network') ||
+        message.includes('connection') ||
+        message.includes('offline') ||
+        message.includes('err_connection_refused')
+      )
+    }
+    return false
   }
 
   // Type guards

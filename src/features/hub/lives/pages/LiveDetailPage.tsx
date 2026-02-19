@@ -5,12 +5,11 @@ import { liveService } from '../services/liveService'
 import {
   ContentMeta,
   ContentActions,
-  RatingDistribution,
-  RatingForm,
+  RatingsSection,
   CommentSection,
 } from '@/features/hub/components'
 import { usePermissions, usePaywall } from '@/features/auth'
-import { Permission, isRoleAtLeast } from '@/lib/permissions/config'
+import { isRoleAtLeast } from '@/lib/permissions/config'
 import { Card, Button } from '@/components/ui'
 
 /**
@@ -19,7 +18,7 @@ import { Card, Button } from '@/components/ui'
 export function LiveDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const { data: live, isLoading, error } = useLive(slug!)
-  const { role, can } = usePermissions()
+  const { role } = usePermissions()
   const { PaywallComponent } = usePaywall()
   const registerMutation = useRegisterLive()
 
@@ -197,49 +196,12 @@ export function LiveDetailPage() {
 
             {/* Ratings */}
             {hasAccess && (
-              <section className="space-y-6">
-                <h2 className="text-2xl font-bold">Avaliacoes</h2>
-
-                {live.ratingCount > 0 && (
-                  <RatingDistribution
-                    stats={{
-                      averageRating: live.averageRating,
-                      totalRatings: live.ratingCount,
-                      distribution: {
-                        5: Math.floor(live.ratingCount * 0.5),
-                        4: Math.floor(live.ratingCount * 0.3),
-                        3: Math.floor(live.ratingCount * 0.15),
-                        2: Math.floor(live.ratingCount * 0.04),
-                        1: Math.floor(live.ratingCount * 0.01),
-                      },
-                      percentages: {
-                        5: 50,
-                        4: 30,
-                        3: 15,
-                        2: 4,
-                        1: 1,
-                      },
-                    }}
-                  />
-                )}
-
-                {can(Permission.RATE_CONTENT) ? (
-                  <Card className="p-6">
-                    <h3 className="mb-4 font-semibold">Avaliar este evento</h3>
-                    <RatingForm
-                      targetType={live.type}
-                      targetId={live.id}
-                      onSubmit={async (data) => {
-                        console.log('Submit rating:', data)
-                      }}
-                    />
-                  </Card>
-                ) : (
-                  <Card className="p-6 text-center text-sm text-muted-foreground">
-                    Faz login para avaliar este evento
-                  </Card>
-                )}
-              </section>
+              <RatingsSection
+                targetType="live"
+                targetId={live.id}
+                formTitle="Avaliar este evento"
+                contentQueryKey={['live', slug]}
+              />
             )}
 
             <hr className="border-border" />

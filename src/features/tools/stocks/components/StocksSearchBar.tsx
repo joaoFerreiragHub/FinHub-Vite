@@ -9,13 +9,18 @@ export interface StocksSearchBarProps {
 }
 
 export function StocksSearchBar({ value, onChange, onSearch }: StocksSearchBarProps) {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') onSearch()
+  }
+
   return (
     <div className="flex w-full max-w-md gap-2">
       <Input
         type="text"
         value={value}
         onChange={onChange}
-        placeholder="Ticker (ex: AAPL)"
+        onKeyDown={handleKeyDown}
+        placeholder="Ticker (ex: AAPL, O, MSFT)"
         className="text-sm"
       />
       <Button onClick={onSearch} className="flex gap-1">

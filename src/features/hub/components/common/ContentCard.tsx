@@ -1,5 +1,4 @@
 import { type HTMLAttributes } from 'react'
-import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { Card } from '@/components/ui'
 import { type BaseContent, ContentType } from '../../types'
@@ -77,7 +76,7 @@ export function ContentCard({
       )}
       {...props}
     >
-      <Link to={finalHref} className="block">
+      <a href={finalHref} className="block">
         {/* Premium Badge */}
         {content.isPremium && (
           <div className="absolute right-2 top-2 z-10 rounded-full bg-yellow-500 px-3 py-1 text-xs font-semibold text-white shadow-lg">
@@ -164,7 +163,7 @@ export function ContentCard({
             </div>
           )}
         </div>
-      </Link>
+      </a>
     </Card>
   )
 }

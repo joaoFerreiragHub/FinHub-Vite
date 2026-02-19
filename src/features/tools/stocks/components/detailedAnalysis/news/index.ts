@@ -1,3 +1,3 @@
-export { default as NewsFeed } from './NewsFeed'
-export { default as NewsSection } from './NewsSection'
-export { default as SentimentScore } from './SentimentScore'
+export { NewsFeed } from './NewsFeed'
+export { NewsSection } from './NewsSection'
+export { SentimentScore } from './SentimentScore'

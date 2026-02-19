@@ -10,7 +10,7 @@ import {
   Users,
   Bell,
   Search,
-  FileText,
+  FolderKanban,
   Video,
   GraduationCap,
   Calendar,
@@ -44,9 +44,9 @@ export const regularRoutes = [
     allowedRoles: ['free', 'premium', 'creator', 'admin'] as UserRole[],
   },
   {
-    path: '/hub/articles',
-    label: 'Artigos',
-    icon: FileText,
+    path: '/hub/conteudos',
+    label: 'Conteudos',
+    icon: FolderKanban,
     allowedRoles: ['free', 'premium', 'creator', 'admin'] as UserRole[],
   },
   {

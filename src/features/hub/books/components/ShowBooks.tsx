@@ -1,20 +1,12 @@
 // src/components/book/ShowBooks.tsx
 
-import React, { useEffect, useState } from 'react'
-import { mockBooks } from '@/lib/mock/books'
+import { useState } from 'react'
 import { BookCard } from './BookCard'
 import { Button } from '@/components/ui'
 import { Book } from '@/features/hub/books/types/book'
 
 export default function ShowBooks() {
-  const [allBooks, setAllBooks] = useState<Book[]>([])
-
-  useEffect(() => {
-    // Simular delay de carregamento
-    setTimeout(() => {
-      setAllBooks(mockBooks)
-    }, 500)
-  }, [])
+  const [allBooks] = useState<Book[]>([])
 
   return (
     <div className="px-6 py-12 max-w-6xl mx-auto">

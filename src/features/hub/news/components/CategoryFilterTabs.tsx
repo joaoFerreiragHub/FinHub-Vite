@@ -72,6 +72,14 @@ const categories: Category[] = [
       'bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700',
     description: 'Notícias gerais relacionadas com finanças',
   },
+  {
+    id: 'forex',
+    label: 'Forex',
+    icon: <DollarSign className="w-4 h-4" />,
+    color:
+      'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-200 dark:hover:bg-emerald-800',
+    description: 'Mercado de câmbio e moedas estrangeiras',
+  },
 ]
 
 export const CategoryFilterTabs: React.FC<CategoryFilterTabsProps> = ({

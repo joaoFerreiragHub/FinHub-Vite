@@ -26,6 +26,12 @@ export {
   type RatingFilters,
   type RatingListResponse,
   type RatingStats,
+  type RatingSort,
+  type RatingUser,
+  type RatingTargetType,
+  type RatingReaction,
+  type ReviewReactionInput,
+  type RatingReactionResult,
 } from './rating'
 
 // Comment types (universal)

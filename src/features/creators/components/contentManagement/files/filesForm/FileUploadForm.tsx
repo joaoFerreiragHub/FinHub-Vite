@@ -1,14 +1,12 @@
-// src/features/creators/components/files/FileUploadForm.tsx
-
 import { useState } from 'react'
 import { toast } from 'react-toastify'
-import axios from 'axios'
+import { apiClient } from '@/lib/api/client'
 import { Label } from '@/components/ui'
 import { Input } from '@/components/ui'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui'
 import { Button } from '@/components/ui'
 
-export interface CreatorFile {
+export interface UploadedCreatorFile {
   _id: string
   title: string
   topic: string
@@ -18,27 +16,33 @@ export interface CreatorFile {
   createdAt: string
 }
 
+interface UploadDocumentResponse {
+  filename: string
+  originalName: string
+  mimetype: string
+  url: string
+}
+
 const topicOptions = [
   'ETFs',
-  'Ações',
+  'Acoes',
   'Reits',
   'Cryptos',
-  'Finanças Pessoais',
-  'Poupança',
-  'Imobiliário',
-  'Obrigações',
-  'Fundos Mútuos',
+  'Financas Pessoais',
+  'Poupanca',
+  'Imobiliario',
+  'Obrigacoes',
+  'Fundos Mutuos',
   'Empreendedorismo',
-  'Futuros e Opções',
+  'Futuros e Opcoes',
   'Trading',
 ]
 
 interface Props {
-  onUploadSuccess: (file: CreatorFile) => void
-  creatorId: string
+  onUploadSuccess: (file: UploadedCreatorFile) => void
 }
 
-export default function FileUploadForm({ onUploadSuccess, creatorId }: Props) {
+export default function FileUploadForm({ onUploadSuccess }: Props) {
   const [file, setFile] = useState<File | null>(null)
   const [topic, setTopic] = useState('')
   const [title, setTitle] = useState('')
@@ -54,13 +58,23 @@ export default function FileUploadForm({ onUploadSuccess, creatorId }: Props) {
     formData.append('file', file)
     formData.append('topic', topic)
     formData.append('title', title)
-    formData.append('creator', creatorId)
 
     setLoading(true)
     try {
-      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/files/upload`, formData)
+      const { data } = await apiClient.post<UploadDocumentResponse>('/upload/document', formData)
+
+      const uploadedFile: UploadedCreatorFile = {
+        _id: data?.filename || `${Date.now()}`,
+        title,
+        topic,
+        originalName: data?.originalName || file.name,
+        mimeType: data?.mimetype || file.type || 'application/octet-stream',
+        url: data?.url || '',
+        createdAt: new Date().toISOString(),
+      }
+
+      onUploadSuccess(uploadedFile)
       toast.success('Ficheiro carregado com sucesso')
-      onUploadSuccess(data.fileRecord)
       setFile(null)
       setTitle('')
       setTopic('')
@@ -75,7 +89,7 @@ export default function FileUploadForm({ onUploadSuccess, creatorId }: Props) {
     <div className="space-y-4">
       <div className="grid md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="title">Título</Label>
+          <Label htmlFor="title">Titulo</Label>
           <Input
             id="title"
             value={title}
@@ -107,7 +121,7 @@ export default function FileUploadForm({ onUploadSuccess, creatorId }: Props) {
           type="file"
           id="file"
           onChange={(e) => setFile(e.target.files?.[0] || null)}
-          key={file?.name || ''} // 🔁 Força re-render para limpar o input
+          key={file?.name || ''}
         />
       </div>
 

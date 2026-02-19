@@ -1,69 +1,67 @@
-import { User } from '@/features/auth/types'
-import { ContentType } from './base'
+export type RatingTargetType =
+  | 'article'
+  | 'course'
+  | 'video'
+  | 'book'
+  | 'podcast'
+  | 'live'
+  | 'creator'
+  | 'brand'
+
+export type RatingSort = 'recent' | 'helpful' | 'rating'
+export type RatingReaction = 'like' | 'dislike'
+export type ReviewReactionInput = RatingReaction | 'none'
+
+export interface RatingUser {
+  id: string
+  name?: string
+  username?: string
+  avatar?: string
+}
 
 /**
- * Rating de um conteúdo
- * Sistema universal para todos os tipos de conteúdo
+ * Rating/review de um conteudo
  */
 export interface Rating {
   id: string
-
-  // Conteúdo alvo
-  targetType: ContentType
+  targetType: RatingTargetType
   targetId: string
-
-  // Usuário
-  user: User | string
+  user: RatingUser | string
   userId: string
-
-  // Rating
-  rating: number // 1-5 estrelas
-  review?: string // Review textual (opcional)
-
-  // Engagement
-  helpfulCount: number // Quantas pessoas marcaram como útil
-
-  // Timestamps
+  rating: number
+  review?: string
+  helpfulCount: number
+  likes: number
+  dislikes: number
+  myReaction?: RatingReaction | null
   createdAt: string
   updatedAt: string
 }
 
-/**
- * Dados para criar rating
- */
 export interface CreateRatingDto {
-  targetType: ContentType
+  targetType: RatingTargetType
   targetId: string
-  rating: number // 1-5
+  rating: number
   review?: string
 }
 
-/**
- * Dados para atualizar rating
- */
 export interface UpdateRatingDto {
   rating?: number
   review?: string
 }
 
-/**
- * Filtros para buscar ratings
- */
 export interface RatingFilters {
-  targetType?: ContentType
+  targetType?: RatingTargetType
   targetId?: string
   userId?: string
   minRating?: number
   maxRating?: number
   hasReview?: boolean
-  sortBy?: 'recent' | 'helpful' | 'rating'
+  sortBy?: RatingSort | 'rating-high' | 'rating-low'
   limit?: number
   offset?: number
 }
 
-/**
- * Resposta de lista de ratings
- */
 export interface RatingListResponse {
   items: Rating[]
   total: number
@@ -80,9 +78,6 @@ export interface RatingListResponse {
   }
 }
 
-/**
- * Estatísticas de ratings
- */
 export interface RatingStats {
   averageRating: number
   totalRatings: number
@@ -100,4 +95,16 @@ export interface RatingStats {
     4: number
     5: number
   }
+  reviews?: {
+    withText: number
+    totalLikes: number
+    totalDislikes: number
+  }
+}
+
+export interface RatingReactionResult {
+  reaction: RatingReaction | null
+  updated: boolean
+  message: string
+  rating?: Rating
 }

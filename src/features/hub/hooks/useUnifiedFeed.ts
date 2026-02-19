@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { useArticles } from '../articles/hooks/useArticles'
+import type { ArticleFilters } from '../articles/types'
 import { toBaseContentList } from '../news/utils/newsAdapter'
+import { PublishStatus } from '../types'
 import type { BaseContent, ContentFilters } from '../types'
 
 interface UseUnifiedFeedOptions {
@@ -20,9 +22,19 @@ export function useUnifiedFeed({
   includeNews = true,
   limit = 20,
 }: UseUnifiedFeedOptions = {}) {
-  const articlesQuery = useArticles(
-    includeArticles ? { ...filters, status: 'published', limit } : undefined,
-  )
+  const normalizedCategory = Array.isArray(filters?.category)
+    ? filters?.category[0]
+    : filters?.category
+  const articleFilters: ArticleFilters | undefined = includeArticles
+    ? ({
+        ...filters,
+        category: normalizedCategory,
+        status: PublishStatus.PUBLISHED,
+        limit,
+      } as ArticleFilters)
+    : undefined
+
+  const articlesQuery = useArticles(articleFilters)
 
   // News data from the news store (Zustand-based, not React Query)
   // We use a separate query to fetch it

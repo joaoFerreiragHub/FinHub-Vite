@@ -173,6 +173,7 @@ interface NewsStore {
   error: string | null
   stats: NewsStats
   cache: CacheInfo
+  isOffline: boolean
 
   // === FILTROS E PAGINAÇÃO ===
   filters: NewsFilters
@@ -221,7 +222,7 @@ interface NewsStore {
 // ===== CONSTANTES =====
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutos
 const DEFAULT_REFRESH_INTERVAL = 10 * 60 * 1000 // 10 minutos
-const DEFAULT_ITEMS_PER_PAGE = 20
+const DEFAULT_ITEMS_PER_PAGE = 50 // Aumentado de 20 para 50
 
 const initialLoadingState: LoadingStates = {
   initial: false,
@@ -270,6 +271,20 @@ const calculateStats = (articles: NewsArticle[]): NewsStats => {
 }
 
 export const applyFilters = (articles: NewsArticle[], filters: NewsFilters): NewsArticle[] => {
+  const matchesSource = (articleSource: string, selectedSource: string): boolean => {
+    const normalizedSource = selectedSource.toLowerCase().trim()
+    const normalizedArticleSource = articleSource.toLowerCase().trim()
+
+    if (normalizedSource === normalizedArticleSource) return true
+    if (normalizedSource === 'yahoo') return normalizedArticleSource.includes('yahoo')
+    if (normalizedSource === 'fmp') return normalizedArticleSource.includes('fmp')
+    if (normalizedSource === 'newsapi') return normalizedArticleSource.includes('newsapi')
+    if (normalizedSource === 'alphavantage') return normalizedArticleSource.includes('alpha')
+    if (normalizedSource === 'polygon') return normalizedArticleSource.includes('polygon')
+
+    return normalizedArticleSource.includes(normalizedSource)
+  }
+
   return articles.filter((article) => {
     // Filtro de categoria
     if (filters.category && filters.category !== 'all' && article.category !== filters.category) {
@@ -285,7 +300,11 @@ export const applyFilters = (articles: NewsArticle[], filters: NewsFilters): New
     }
 
     // Filtro de fonte
-    if (filters.source && article.source !== filters.source) {
+    if (
+      filters.source &&
+      filters.source !== 'all' &&
+      !matchesSource(article.source || '', filters.source)
+    ) {
       return false
     }
 
@@ -314,6 +333,7 @@ export const useNewsStore = create<NewsStore>()(
         isStale: true,
         nextRefresh: 0,
       },
+      isOffline: false,
 
       // === FILTROS E PAGINAÇÃO ===
       filters: {
@@ -395,6 +415,7 @@ export const useNewsStore = create<NewsStore>()(
               },
               loading: initialLoadingState,
               error: null,
+              isOffline: false,
             }))
           } else {
             set(() => ({
@@ -406,13 +427,38 @@ export const useNewsStore = create<NewsStore>()(
               stats: initialStats,
               loading: initialLoadingState,
               error: null,
+              isOffline: false,
             }))
           }
         } catch (error) {
-          set(() => ({
-            loading: initialLoadingState,
-            error: error instanceof Error ? error.message : 'Erro ao carregar notícias',
-          }))
+          const errorMessage = error instanceof Error ? error.message : 'Erro ao carregar notícias'
+          const isOfflineError = errorMessage.startsWith('OFFLINE:')
+
+          // Se offline e temos cache, usar cache
+          if (isOfflineError && state.news.length > 0) {
+            // Silenciar erro, apenas marcar como offline
+            console.warn('📡 API offline - usando dados em cache')
+            set(() => ({
+              loading: initialLoadingState,
+              error: null,
+              isOffline: true,
+            }))
+          } else if (isOfflineError && state.news.length === 0) {
+            // Offline sem cache - mostrar erro mas não spam
+            console.warn('📡 API offline - sem dados em cache')
+            set(() => ({
+              loading: initialLoadingState,
+              error: 'Sem conexão com o servidor. Tente novamente mais tarde.',
+              isOffline: true,
+            }))
+          } else {
+            // Erro real (não offline)
+            set(() => ({
+              loading: initialLoadingState,
+              error: errorMessage,
+              isOffline: false,
+            }))
+          }
         }
       },
 
@@ -460,6 +506,7 @@ export const useNewsStore = create<NewsStore>()(
               hasMore,
               stats: newStats,
               isLoadingMore: false,
+              isOffline: false,
               cache: {
                 ...state.cache,
                 lastUpdate: new Date().toISOString(),
@@ -469,10 +516,21 @@ export const useNewsStore = create<NewsStore>()(
             set({ isLoadingMore: false, hasMore: false })
           }
         } catch (error) {
-          set({
-            isLoadingMore: false,
-            error: error instanceof Error ? error.message : 'Erro ao carregar mais notícias',
-          })
+          const errorMessage =
+            error instanceof Error ? error.message : 'Erro ao carregar mais notícias'
+          const isOfflineError = errorMessage.startsWith('OFFLINE:')
+
+          if (isOfflineError) {
+            // Offline - silenciar erro
+            console.warn('📡 API offline - não é possível carregar mais')
+            set({ isLoadingMore: false, isOffline: true })
+          } else {
+            set({
+              isLoadingMore: false,
+              error: errorMessage,
+              isOffline: false,
+            })
+          }
         }
       },
 
@@ -633,6 +691,7 @@ export const useNewsStore = create<NewsStore>()(
         refreshInterval: state.refreshInterval,
         hasMore: state.hasMore,
         loadedItems: state.loadedItems,
+        isOffline: state.isOffline,
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {
@@ -672,6 +731,7 @@ export const useNewsSelectors = () => {
     hasError: !!store.error,
     hasNews: store.news.length > 0,
     isDataFresh: store.isDataFresh(),
+    isOffline: store.isOffline,
 
     // Pagination helpers
     totalPages: Math.ceil(store.totalCount / store.itemsPerPage),

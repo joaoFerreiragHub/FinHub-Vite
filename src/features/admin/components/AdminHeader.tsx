@@ -1,29 +1,45 @@
 import { Link } from 'react-router-dom'
+import { Menu, Shield, Users } from 'lucide-react'
+import { Button } from '@/components/ui'
 
-/**
- * Header do Admin Panel
- * TODO: Implementar notificações, stats rápidas, user menu
- */
-export default function AdminHeader() {
+interface AdminHeaderProps {
+  onMenuToggle: () => void
+}
+
+export default function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
   return (
-    <header className="bg-white border-b border-gray-300">
-      <div className="px-8 py-4 flex items-center justify-between">
-        {/* Logo + Admin Title */}
-        <div className="flex items-center gap-6">
+    <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-md">
+      <div className="mx-auto flex h-16 w-full max-w-[1600px] items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={onMenuToggle}
+            aria-label="Abrir menu"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold">F</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <span className="text-xs font-bold">F</span>
             </div>
-            <span className="text-lg font-bold text-gray-900">FinHub</span>
+            <span className="text-sm font-semibold sm:text-base">FinHub</span>
           </Link>
-          <span className="text-gray-400">|</span>
-          <span className="text-gray-700 font-medium">Admin Panel</span>
+          <span className="hidden text-muted-foreground lg:inline">/ Admin</span>
         </div>
 
-        {/* Actions - TODO: Implementar */}
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-600">Admin</span>
+        <div className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
+          <Shield className="h-3.5 w-3.5 text-primary" />
+          Acesso administrativo
         </div>
+
+        <Button asChild size="sm" variant="outline" className="hidden sm:inline-flex">
+          <Link to="/admin/users">
+            <Users className="h-4 w-4" />
+            Utilizadores
+          </Link>
+        </Button>
       </div>
     </header>
   )

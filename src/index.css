@@ -103,5 +103,485 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+}
+
+@layer components {
+  /* ══════════════════════════════════════════
+     HERO BANNER
+     Full-width hero com imagem + gradiente
+     Responsivo: 50vh mobile → 70vh desktop
+     ══════════════════════════════════════════ */
+  .hero-banner {
+    @apply relative w-full overflow-hidden bg-muted;
+    height: 50vh;
+    min-height: 360px;
+  }
+
+  @media (min-width: 768px) {
+    .hero-banner {
+      height: 65vh;
+      min-height: 480px;
+      max-height: 780px;
+    }
+  }
+
+  .hero-banner__gradient {
+    @apply absolute inset-0 z-10;
+    background:
+      linear-gradient(
+        to right,
+        hsl(var(--background)) 0%,
+        hsl(var(--background) / 0.85) 20%,
+        hsl(var(--background) / 0.4) 45%,
+        transparent 65%
+      ),
+      linear-gradient(
+        to top,
+        hsl(var(--background)) 0%,
+        hsl(var(--background) / 0.5) 20%,
+        transparent 50%
+      );
+  }
+
+  .hero-banner__content {
+    @apply absolute bottom-0 left-0 z-20
+           flex flex-col gap-3 p-6
+           sm:gap-4 sm:p-8
+           md:p-12 lg:p-16;
+    max-width: min(90vw, 560px);
+  }
+
+  .hero-banner__dots {
+    @apply absolute bottom-4 left-1/2 -translate-x-1/2 z-20
+           flex gap-1.5 sm:gap-2;
+  }
+
+  .hero-banner__dot {
+    @apply h-1 rounded-full transition-all duration-500 cursor-pointer
+           bg-foreground/25 hover:bg-foreground/50;
+    width: 20px;
+  }
+
+  @media (min-width: 640px) {
+    .hero-banner__dot { width: 28px; }
+  }
+
+  .hero-banner__dot--active {
+    @apply bg-foreground/90;
+    width: 44px;
+  }
+
+  @media (min-width: 640px) {
+    .hero-banner__dot--active { width: 56px; }
+  }
+
+  /* ══════════════════════════════════════════
+     CONTENT ROW (Netflix horizontal scroll)
+     Scroll nativo com snap, setas on hover
+     Padding responsivo, gaps adaptativos
+     ══════════════════════════════════════════ */
+  .content-row {
+    @apply relative py-4 sm:py-6 md:py-8;
+  }
+
+  .content-row__header {
+    @apply flex items-baseline justify-between
+           px-4 sm:px-6 md:px-10 lg:px-12
+           mb-2 sm:mb-3 md:mb-4;
+  }
+
+  .content-row__title {
+    @apply text-lg sm:text-xl md:text-2xl font-bold tracking-tight
+           text-foreground;
+  }
+
+  .content-row__link {
+    @apply text-xs sm:text-sm font-medium
+           text-primary hover:text-primary/80
+           transition-colors whitespace-nowrap;
+  }
+
+  .content-row__container {
+    @apply relative;
+  }
+
+  .content-row__scroll {
+    @apply flex gap-2.5 sm:gap-3 md:gap-4
+           overflow-x-auto
+           px-4 sm:px-6 md:px-10 lg:px-12
+           py-3 sm:py-4;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .content-row__scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .content-row__item {
+    scroll-snap-align: start;
+    @apply flex-shrink-0;
+  }
+
+  /* Setas - hidden on touch, visible on hover em desktop */
+  .content-row__arrow {
+    @apply absolute top-0 z-30
+           h-full w-10 sm:w-12 md:w-14
+           items-center justify-center
+           transition-all duration-300 cursor-pointer
+           hidden md:flex;
+    opacity: 0;
+  }
+
+  .content-row__container:hover .content-row__arrow {
+    opacity: 1;
+  }
+
+  .content-row__arrow--left {
+    @apply left-0 rounded-r-lg;
+    background: linear-gradient(
+      to right,
+      hsl(var(--background) / 0.95),
+      hsl(var(--background) / 0.6) 60%,
+      transparent
+    );
+  }
+
+  .content-row__arrow--right {
+    @apply right-0 rounded-l-lg;
+    background: linear-gradient(
+      to left,
+      hsl(var(--background) / 0.95),
+      hsl(var(--background) / 0.6) 60%,
+      transparent
+    );
+  }
+
+  .content-row__arrow svg {
+    @apply h-6 w-6 sm:h-7 sm:w-7
+           text-foreground/60
+           transition-all duration-200;
+  }
+
+  .content-row__arrow:hover svg {
+    @apply text-foreground scale-110;
+  }
+
+  .content-row__arrow:active svg {
+    @apply scale-95;
+  }
+
+  /* ══════════════════════════════════════════
+     NETFLIX CARD EFFECTS
+     Scale + shadow on hover, info reveal
+     Usa variáveis de tema para light/dark
+     GPU-accelerated com will-change
+     ══════════════════════════════════════════ */
+  .netflix-card {
+    @apply relative overflow-visible rounded-lg cursor-pointer
+           bg-card border border-border/50
+           transition-all duration-300 ease-out;
+    will-change: transform, box-shadow;
+  }
+
+  /* Hover desativado em touch devices */
+  @media (hover: hover) and (pointer: fine) {
+    .netflix-card:hover {
+      @apply z-20 border-primary/30;
+      transform: scale(1.06);
+      box-shadow:
+        0 8px 30px hsl(var(--foreground) / 0.12),
+        0 2px 8px hsl(var(--foreground) / 0.08);
+      transition-delay: 150ms;
+    }
+
+    .dark .netflix-card:hover {
+      box-shadow:
+        0 8px 30px hsl(var(--primary) / 0.15),
+        0 2px 8px hsl(0 0% 0% / 0.3);
+    }
+
+    .netflix-card:hover .netflix-card__image {
+      @apply scale-105;
+    }
+
+    .netflix-card:hover .netflix-card__info {
+      @apply translate-y-0 opacity-100;
+      transition-delay: 150ms;
+    }
+
+    .netflix-card:hover .netflix-card__overlay--hover {
+      @apply opacity-100;
+    }
+  }
+
+  .netflix-card__image-container {
+    @apply relative overflow-hidden rounded-t-lg bg-muted;
+  }
+
+  .netflix-card__image {
+    @apply w-full h-full object-cover
+           transition-transform duration-500 ease-out;
+  }
+
+  .netflix-card__overlay {
+    @apply absolute inset-0 pointer-events-none;
+    background: linear-gradient(
+      to top,
+      hsl(var(--card) / 0.9) 0%,
+      hsl(var(--card) / 0.3) 35%,
+      transparent 60%
+    );
+  }
+
+  .netflix-card__overlay--hover {
+    @apply absolute inset-0 opacity-0 transition-opacity duration-300 pointer-events-none;
+    background: linear-gradient(
+      to top,
+      hsl(var(--card)) 0%,
+      hsl(var(--card) / 0.7) 40%,
+      transparent 80%
+    );
+  }
+
+  .netflix-card__info {
+    @apply absolute bottom-0 left-0 right-0
+           p-3 sm:p-4
+           translate-y-2 opacity-0
+           transition-all duration-300 ease-out;
+  }
+
+  .netflix-card__body {
+    @apply p-3 sm:p-4 space-y-1.5;
+  }
+
+  /* ══════════════════════════════════════════
+     GLASSMORPHISM HEADER
+     Fixo, blur, adapta-se ao scroll
+     Transparente no topo → sólido ao scrollar
+     ══════════════════════════════════════════ */
+  .glass-header {
+    @apply fixed top-0 left-0 right-0 z-50
+           transition-all duration-500 ease-out;
+    background: hsl(var(--background) / 0.4);
+    backdrop-filter: blur(16px) saturate(1.8);
+    -webkit-backdrop-filter: blur(16px) saturate(1.8);
+  }
+
+  .glass-header--scrolled {
+    background: hsl(var(--background) / 0.92);
+    backdrop-filter: blur(24px) saturate(1.2);
+    -webkit-backdrop-filter: blur(24px) saturate(1.2);
+    box-shadow: 0 1px 0 hsl(var(--border) / 0.4);
+  }
+
+  .dark .glass-header--scrolled {
+    box-shadow:
+      0 1px 0 hsl(var(--border) / 0.3),
+      0 4px 20px hsl(0 0% 0% / 0.2);
+  }
+
+  /* ══════════════════════════════════════════
+     HOMEPAGE FOOTER
+     ══════════════════════════════════════════ */
+  .home-footer {
+    @apply border-t mt-8 sm:mt-12 md:mt-16
+           bg-muted/30 border-border/40;
+  }
+
+  .dark .home-footer {
+    @apply bg-muted/20;
+  }
+
+  /* ══════════════════════════════════════════
+     PAGE HERO (compact hero for listing pages)
+     Mais curto que o HeroBanner da homepage
+     30vh mobile → 35vh desktop
+     ══════════════════════════════════════════ */
+  .page-hero {
+    @apply relative w-full overflow-hidden bg-muted;
+    height: 30vh;
+    min-height: 260px;
+    padding-top: 56px;
+  }
+
+  @media (min-width: 768px) {
+    .page-hero {
+      height: 35vh;
+      min-height: 320px;
+      max-height: 440px;
+      padding-top: 64px;
+    }
+  }
+
+  .page-hero--compact {
+    height: 22vh;
+    min-height: 200px;
+  }
+
+  @media (min-width: 768px) {
+    .page-hero--compact {
+      height: 25vh;
+      min-height: 240px;
+      max-height: 320px;
+    }
+  }
+
+  .page-hero__gradient {
+    @apply absolute inset-0;
+    background:
+      linear-gradient(
+        to top,
+        hsl(var(--background)) 0%,
+        hsl(var(--background) / 0.85) 30%,
+        hsl(var(--background) / 0.5) 60%,
+        hsl(var(--background) / 0.3) 100%
+      );
+  }
+
+  .page-hero__content {
+    @apply relative z-10 flex flex-col items-center justify-center text-center
+           h-full px-4 sm:px-6 md:px-10 lg:px-12
+           gap-3 sm:gap-4;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .page-hero__search {
+    @apply w-full max-w-lg;
+  }
+
+  .page-hero__search input {
+    @apply w-full rounded-full border-border/50 px-5 py-3 text-sm
+           transition-all duration-300;
+    background: hsl(var(--background) / 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .page-hero__search input:focus {
+    @apply ring-2 ring-primary/30 border-primary/40;
+    background: hsl(var(--background) / 0.85);
+  }
+
+  .page-hero__categories {
+    @apply flex gap-2 overflow-x-auto py-2 max-w-full;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .page-hero__categories::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Pills nas categorias do hero precisam mais contraste */
+  .page-hero__categories .filter-bar__pill {
+    @apply bg-card/90 backdrop-blur-md border-border shadow-md;
+  }
+
+  .page-hero__categories .filter-bar__pill--active {
+    @apply bg-primary text-primary-foreground border-primary shadow-lg scale-105;
+  }
+
+  /* ══════════════════════════════════════════
+     FILTER BAR (sticky horizontal filters)
+     Substitui sidebar <aside>
+     ══════════════════════════════════════════ */
+  .filter-bar {
+    @apply sticky z-40 border-b border-border/30
+           px-4 sm:px-6 md:px-10 lg:px-12
+           py-3 flex items-center gap-2 sm:gap-3
+           overflow-x-auto;
+    top: 56px;
+    background: hsl(var(--background) / 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  @media (min-width: 640px) {
+    .filter-bar { top: 64px; }
+  }
+
+  .filter-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filter-bar__pill {
+    @apply flex-shrink-0 rounded-full px-3.5 py-1.5 text-xs sm:text-sm
+           font-medium border border-border/50
+           bg-background/60 text-muted-foreground
+           transition-all duration-200 cursor-pointer
+           hover:bg-accent hover:text-foreground;
+  }
+
+  .filter-bar__pill--active {
+    @apply bg-primary text-primary-foreground border-primary
+           hover:bg-primary/90 hover:text-primary-foreground;
+  }
+
+  /* ══════════════════════════════════════════
+     RAIO-X FINANCEIRO
+     ══════════════════════════════════════════ */
+  .score-ring {
+    @apply relative inline-flex items-center justify-center;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: conic-gradient(
+      var(--score-color, hsl(var(--primary))) var(--score-pct, 0%),
+      hsl(var(--muted) / 0.2) var(--score-pct, 0%)
+    );
+  }
+
+  .score-ring__inner {
+    @apply flex flex-col items-center justify-center rounded-full bg-card;
+    width: 96px;
+    height: 96px;
+  }
+
+  .whatif-card {
+    @apply rounded-lg border bg-card/80 p-4 transition-all duration-200;
+    border-left-width: 4px;
+  }
+
+  .whatif-card:hover {
+    @apply shadow-md;
+    transform: translateY(-1px);
+  }
+
+  .whatif-card--positive {
+    border-left-color: hsl(var(--chart-2, 142 71% 45%));
+  }
+
+  .whatif-card--negative {
+    border-left-color: hsl(var(--destructive, 0 84% 60%));
+  }
+
+  .metric-bar {
+    @apply h-1.5 rounded-full;
+    background: hsl(var(--muted) / 0.2);
+  }
+
+  .metric-bar__fill {
+    @apply h-full rounded-full transition-all duration-500;
+  }
+
+  .metric-bar__fill--good {
+    background: hsl(142, 71%, 45%);
+  }
+
+  .metric-bar__fill--attention {
+    background: hsl(38, 92%, 50%);
+  }
+
+  .metric-bar__fill--risk {
+    background: hsl(0, 84%, 60%);
   }
 }

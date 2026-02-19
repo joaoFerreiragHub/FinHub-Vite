@@ -19,7 +19,7 @@ export function Page(props: any) {
 
   return (
     <SidebarLayout>
-      <CourseDetailPage slug={slug} />
+      <CourseDetailPage />
     </SidebarLayout>
   )
 }

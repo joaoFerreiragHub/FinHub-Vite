@@ -5,13 +5,11 @@ import { articleService } from '../services/articleService'
 import {
   ContentMeta,
   ContentActions,
-  RatingDistribution,
-  RatingForm,
+  RatingsSection,
   CommentSection,
 } from '@/features/hub/components'
 import { usePermissions, usePaywall } from '@/features/auth'
-import { Permission, isRoleAtLeast } from '@/lib/permissions/config'
-import { Card } from '@/components/ui'
+import { isRoleAtLeast } from '@/lib/permissions/config'
 
 /**
  * Pagina de detalhe do artigo (publica)
@@ -19,7 +17,7 @@ import { Card } from '@/components/ui'
 export function ArticleDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const { data: article, isLoading, error } = useArticle(slug!)
-  const { role, can } = usePermissions()
+  const { role } = usePermissions()
   const { PaywallComponent } = usePaywall()
 
   useEffect(() => {
@@ -124,49 +122,12 @@ export function ArticleDetailPage() {
             <hr className="border-border" />
 
             {hasAccess && (
-              <section className="space-y-6">
-                <h2 className="text-2xl font-bold">Avaliacoes</h2>
-
-                {article.ratingCount > 0 && (
-                  <RatingDistribution
-                    stats={{
-                      averageRating: article.averageRating,
-                      totalRatings: article.ratingCount,
-                      distribution: {
-                        5: Math.floor(article.ratingCount * 0.5),
-                        4: Math.floor(article.ratingCount * 0.3),
-                        3: Math.floor(article.ratingCount * 0.15),
-                        2: Math.floor(article.ratingCount * 0.04),
-                        1: Math.floor(article.ratingCount * 0.01),
-                      },
-                      percentages: {
-                        5: 50,
-                        4: 30,
-                        3: 15,
-                        2: 4,
-                        1: 1,
-                      },
-                    }}
-                  />
-                )}
-
-                {can(Permission.RATE_CONTENT) ? (
-                  <Card className="p-6">
-                    <h3 className="mb-4 font-semibold">Avaliar este artigo</h3>
-                    <RatingForm
-                      targetType={article.type}
-                      targetId={article.id}
-                      onSubmit={async (data) => {
-                        console.log('Submit rating:', data)
-                      }}
-                    />
-                  </Card>
-                ) : (
-                  <Card className="p-6 text-center text-sm text-muted-foreground">
-                    Faz login para avaliar este artigo
-                  </Card>
-                )}
-              </section>
+              <RatingsSection
+                targetType="article"
+                targetId={article.id}
+                formTitle="Avaliar este artigo"
+                contentQueryKey={['article', slug]}
+              />
             )}
 
             <hr className="border-border" />

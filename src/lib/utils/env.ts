@@ -12,9 +12,7 @@ export function isDevelopment(): boolean {
 
   // Browser environment
   try {
-    // @ts-expect-error - import.meta may not be available
     if (typeof import.meta !== 'undefined' && import.meta.env) {
-      // @ts-expect-error - DEV may not exist
       return import.meta.env.DEV === true || import.meta.env.MODE === 'development'
     }
   } catch {

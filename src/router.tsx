@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 
 // Layouts
 import MainLayout from '@/layouts/MainLayout'
@@ -60,6 +60,17 @@ import NewsPage from '@/features/learn/pages/NewsPage'
 import GlossaryPage from '@/features/learn/pages/GlossaryPage'
 import FreeCoursesPage from '@/features/learn/pages/FreeCoursesPage'
 import GuidesPage from '@/features/learn/pages/GuidesPage'
+
+// Pages - Tools
+import ToolsHubPage from '@/features/tools/pages/ToolsHubPage'
+import {
+  CryptoListPage,
+  EtfOverlapPage,
+  MarketsHubPage,
+  MarketStocksPage,
+  MarketWatchlistPage,
+  ReitsToolkitPage,
+} from '@/features/markets'
 
 // Pages - User
 import UserProfilePage from '@/features/user/pages/UserProfilePage'
@@ -272,6 +283,51 @@ const router = createBrowserRouter([
             element: <GuidesPage />,
           },
         ],
+      },
+
+      // ========================================
+      // MERCADOS (Market tools)
+      // ========================================
+      {
+        path: 'mercados',
+        children: [
+          {
+            index: true,
+            element: <MarketsHubPage />,
+          },
+          {
+            path: 'acoes',
+            element: <MarketStocksPage />,
+          },
+          {
+            path: 'etfs',
+            element: <EtfOverlapPage />,
+          },
+          {
+            path: 'reits',
+            element: <ReitsToolkitPage />,
+          },
+          {
+            path: 'cripto',
+            element: <CryptoListPage />,
+          },
+          {
+            path: 'watchlist',
+            element: <MarketWatchlistPage />,
+          },
+        ],
+      },
+      {
+        path: 'stocks',
+        element: <Navigate to="/mercados/acoes" replace />,
+      },
+
+      // ========================================
+      // FERRAMENTAS
+      // ========================================
+      {
+        path: 'ferramentas',
+        element: <ToolsHubPage />,
       },
 
       // ========================================

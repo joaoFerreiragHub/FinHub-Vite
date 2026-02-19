@@ -1,12 +1,11 @@
-/**
- * Gestão de Conteúdo
- * TODO: Implementar conteúdo completo
- */
+import { PlaceholderPage } from '@/components/layout/PlaceholderPage'
+
 export default function ContentManagementPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-4">Gestão de Conteúdo</h1>
-      <p className="text-gray-600">Esta página está em construção. Implementação em breve.</p>
-    </div>
+    <PlaceholderPage
+      section="Dashboard de criador"
+      title="Gestão de Conteúdo"
+      description="Estamos a finalizar a experiencia desta pagina com o mesmo padrao de navegacao e responsividade da Home."
+    />
   )
 }

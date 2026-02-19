@@ -1,8 +1,8 @@
-import { type HTMLAttributes, useState } from 'react'
+import { type HTMLAttributes, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { Card } from '@/components/ui'
-import { type Rating } from '../../types'
+import { type Rating, type RatingReaction, type ReviewReactionInput } from '../../types'
 import { RatingStars } from '../common/RatingStars'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -14,42 +14,82 @@ export interface RatingCardProps extends HTMLAttributes<HTMLDivElement> {
    */
   rating: Rating
   /**
-   * Mostrar botão de "útil"
+   * Mostrar a area de feedback da review
    */
   showHelpful?: boolean
+  showReactions?: boolean
   /**
-   * Callback ao marcar como útil
+   * Callback legacy (mantido para compatibilidade)
    */
   onMarkHelpful?: () => void | Promise<void>
   /**
-   * Se o usuário atual é dono do rating
+   * Callback novo para like/dislike/none em review
+   */
+  onReactionChange?: (reaction: ReviewReactionInput) => void | Promise<void>
+  /**
+   * Reacao atual do utilizador para esta review
+   */
+  myReaction?: RatingReaction | null
+  /**
+   * Se o user pode reagir (auth/permissoes)
+   */
+  canReact?: boolean
+  /**
+   * Se o utilizador atual e dono do rating
    */
   isOwner?: boolean
   /**
-   * Callbacks de edição/exclusão (apenas para owner)
+   * Callbacks de edicao/eliminacao (owner)
    */
   onEdit?: () => void
   onDelete?: () => void
 }
 
-/**
- * Card de exibição de rating individual
- *
- * @example
- * <RatingCard rating={rating} showHelpful onMarkHelpful={handleMarkHelpful} />
- */
+const applyReaction = (
+  previous: RatingReaction | null,
+  next: RatingReaction | null,
+  currentLikes: number,
+  currentDislikes: number,
+) => {
+  let likes = currentLikes
+  let dislikes = currentDislikes
+
+  if (previous === 'like') likes = Math.max(0, likes - 1)
+  if (previous === 'dislike') dislikes = Math.max(0, dislikes - 1)
+
+  if (next === 'like') likes += 1
+  if (next === 'dislike') dislikes += 1
+
+  return { likes, dislikes }
+}
+
 export function RatingCard({
   rating,
   showHelpful = true,
+  showReactions = true,
   onMarkHelpful,
+  onReactionChange,
+  myReaction = null,
+  canReact = true,
   isOwner = false,
   onEdit,
   onDelete,
   className,
   ...props
 }: RatingCardProps) {
-  const [isHelpful, setIsHelpful] = useState(false)
-  const [helpfulCount, setHelpfulCount] = useState(rating.helpfulCount)
+  const [reaction, setReaction] = useState<RatingReaction | null>(myReaction)
+  const [likes, setLikes] = useState(rating.likes ?? rating.helpfulCount ?? 0)
+  const [dislikes, setDislikes] = useState(rating.dislikes ?? 0)
+  const [isSubmittingReaction, setIsSubmittingReaction] = useState(false)
+
+  useEffect(() => {
+    setReaction(myReaction)
+  }, [myReaction])
+
+  useEffect(() => {
+    setLikes(rating.likes ?? rating.helpfulCount ?? 0)
+    setDislikes(rating.dislikes ?? 0)
+  }, [rating.likes, rating.dislikes, rating.helpfulCount])
 
   const user = typeof rating.user === 'string' ? null : rating.user
 
@@ -58,57 +98,80 @@ export function RatingCard({
     locale: ptBR,
   })
 
-  const handleMarkHelpful = async () => {
-    if (!onMarkHelpful) return
+  const handleReaction = async (clickedReaction: RatingReaction) => {
+    if (isSubmittingReaction) return
+    if (!onReactionChange && !onMarkHelpful) return
 
-    // Optimistic update
-    setIsHelpful(!isHelpful)
-    setHelpfulCount((prev) => (isHelpful ? prev - 1 : prev + 1))
+    const previousReaction = reaction
+    const nextReaction: RatingReaction | null =
+      clickedReaction === previousReaction ? null : clickedReaction
+
+    const optimistic = applyReaction(previousReaction, nextReaction, likes, dislikes)
+
+    setReaction(nextReaction)
+    setLikes(optimistic.likes)
+    setDislikes(optimistic.dislikes)
+    setIsSubmittingReaction(true)
 
     try {
-      await onMarkHelpful()
+      if (onReactionChange) {
+        await onReactionChange(nextReaction ?? 'none')
+      } else if (onMarkHelpful) {
+        await onMarkHelpful()
+      }
     } catch {
-      // Rollback on error
-      setIsHelpful(isHelpful)
-      setHelpfulCount(helpfulCount)
+      const rollback = applyReaction(
+        nextReaction,
+        previousReaction,
+        optimistic.likes,
+        optimistic.dislikes,
+      )
+      setReaction(previousReaction)
+      setLikes(rollback.likes)
+      setDislikes(rollback.dislikes)
+    } finally {
+      setIsSubmittingReaction(false)
     }
   }
 
+  const userName = user?.name ?? user?.username ?? 'Utilizador'
+  const userHandle = user?.username ?? user?.id
+
+  const showLegacyHelpful = showHelpful && !showReactions && !!onMarkHelpful
+  const showReviewReactions = showHelpful && showReactions && !isOwner
+
   return (
     <Card className={cn('space-y-3 p-6', className)} {...props}>
-      {/* Header: User + Rating */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          {/* Avatar */}
           {user && (
-            <Link to={`/users/${user.username}`}>
+            <Link to={`/users/${userHandle}`}>
               <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-primary text-primary-foreground">
                 {user.avatar ? (
-                  <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
+                  <img src={user.avatar} alt={userName} className="h-full w-full object-cover" />
                 ) : (
-                  <span className="text-sm font-medium">{user.name.charAt(0)}</span>
+                  <span className="text-sm font-medium">{userName.charAt(0)}</span>
                 )}
               </div>
             </Link>
           )}
 
-          {/* User info */}
           <div>
             {user && (
               <Link
-                to={`/users/${user.username}`}
-                className="font-medium hover:text-primary transition-colors"
+                to={`/users/${userHandle}`}
+                className="font-medium transition-colors hover:text-primary"
               >
-                {user.name}
+                {userName}
               </Link>
             )}
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <RatingStars rating={rating.rating} size="sm" />
-              <span>•</span>
+              <span>-</span>
               <time dateTime={rating.createdAt}>{formattedDate}</time>
               {rating.updatedAt !== rating.createdAt && (
                 <>
-                  <span>•</span>
+                  <span>-</span>
                   <span className="text-xs">(editado)</span>
                 </>
               )}
@@ -116,7 +179,6 @@ export function RatingCard({
           </div>
         </div>
 
-        {/* Owner actions */}
         {isOwner && (
           <div className="flex gap-1">
             {onEdit && (
@@ -133,17 +195,17 @@ export function RatingCard({
         )}
       </div>
 
-      {/* Review text */}
       {rating.review && <p className="text-sm leading-relaxed text-foreground">{rating.review}</p>}
 
-      {/* Helpful button */}
-      {showHelpful && !isOwner && (
+      {showReviewReactions && (
         <div className="flex items-center gap-2 pt-2">
           <button
-            onClick={handleMarkHelpful}
+            type="button"
+            onClick={() => handleReaction('like')}
+            disabled={!canReact || isSubmittingReaction}
             className={cn(
-              'flex items-center gap-1 rounded-lg px-3 py-1 text-sm transition-colors',
-              isHelpful
+              'flex items-center gap-1 rounded-lg px-3 py-1 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+              reaction === 'like'
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-muted text-muted-foreground hover:bg-muted/80',
             )}
@@ -156,7 +218,47 @@ export function RatingCard({
                 d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
               />
             </svg>
-            <span>Útil {helpfulCount > 0 && `(${helpfulCount})`}</span>
+            <span>Gostei {likes > 0 && `(${likes})`}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleReaction('dislike')}
+            disabled={!canReact || isSubmittingReaction}
+            className={cn(
+              'flex items-center gap-1 rounded-lg px-3 py-1 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+              reaction === 'dislike'
+                ? 'bg-destructive text-destructive-foreground'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80',
+            )}
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.737 3h4.018c.162 0 .325.02.485.06L17 4m-7 10v5a2 2 0 002 2h.095c.5 0 .905-.405.905-.905 0-.714.211-1.412.608-2.006L17 13V4m-7 10h2M17 4h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5"
+              />
+            </svg>
+            <span>Nao gostei {dislikes > 0 && `(${dislikes})`}</span>
+          </button>
+        </div>
+      )}
+
+      {showLegacyHelpful && (
+        <div className="flex items-center gap-2 pt-2">
+          <button
+            type="button"
+            onClick={() => handleReaction('like')}
+            disabled={!canReact || isSubmittingReaction}
+            className={cn(
+              'flex items-center gap-1 rounded-lg px-3 py-1 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+              reaction === 'like'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80',
+            )}
+          >
+            <span>Util {likes > 0 && `(${likes})`}</span>
           </button>
         </div>
       )}

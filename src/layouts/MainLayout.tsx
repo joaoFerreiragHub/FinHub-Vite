@@ -8,10 +8,10 @@ import Footer from '@/components/layout/Footer'
  */
 export default function MainLayout() {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
       <Header />
 
-      <main className="flex-1">
+      <main className="relative z-0 flex-1 pt-2">
         <Outlet />
       </main>
 
