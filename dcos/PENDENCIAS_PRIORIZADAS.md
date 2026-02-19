@@ -96,6 +96,23 @@ Data da consolidacao: 2026-02-19 (revisto apos fecho de P1.3 frontend).
 - Suspender, banir, desbanir e forcar logout global.
 - Historico de sancoes e anotacoes internas por utilizador.
 - Gate de aceite: ciclo completo "encontrar user -> agir -> auditar" funcional.
+- Estado atual: EM CURSO (backend base entregue em 2026-02-19).
+  - API backend entregue:
+    - `GET /api/admin/users` (filtros por `search`, `role`, `accountStatus`, `adminReadOnly`, `activeSinceDays`).
+    - `POST /api/admin/users/:userId/suspend`
+    - `POST /api/admin/users/:userId/ban`
+    - `POST /api/admin/users/:userId/unban`
+    - `POST /api/admin/users/:userId/force-logout`
+    - `POST /api/admin/users/:userId/notes`
+    - `GET /api/admin/users/:userId/history`
+  - Governanca de sessao reforcada no auth backend:
+    - `tokenVersion` obrigatorio em access/refresh token.
+    - bloqueio de login/refresh/autenticacao para contas `suspended` e `banned`.
+    - invalidacao global de sessao via incremento de `tokenVersion`.
+  - Validacao tecnica apos entrega backend:
+    - `API_finhub` -> `npm run test:pre-p1` -> PASS (13 passos).
+    - `API_finhub` -> `npm run typecheck` -> PASS.
+    - `API_finhub` -> `npm run build` -> PASS.
 
 2. P2.2 Moderacao de conteudo.
 - Fila de moderacao unificada (artigos, cursos, videos, lives, podcasts, books, comentarios/reviews).

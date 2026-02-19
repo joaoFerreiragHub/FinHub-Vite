@@ -40,6 +40,12 @@ Escopo: pasta `dcos`
   - escopos admin granulares + modo read-only.
   - auditoria admin estruturada com rota de consulta (`GET /api/admin/audit-logs`).
   - validacao `npm run typecheck` em `API_finhub` -> PASS.
+- P2.1 backend arrancado com entrega funcional de gestao de utilizadores:
+  - listagem/pesquisa admin de users com filtros.
+  - sancoes (`suspend`, `ban`, `unban`) e `force-logout` global.
+  - historico de sancoes/anotacoes por utilizador.
+  - auth reforcado com `tokenVersion` e bloqueio por `accountStatus`.
+  - validacao backend apos entrega: `npm run test:pre-p1` + `npm run typecheck` + `npm run build` -> PASS.
 
 ## Fontes de verdade para seguimento
 - Estado detalhado: `dcos/ESTADO_IMPLEMENTADO.md`

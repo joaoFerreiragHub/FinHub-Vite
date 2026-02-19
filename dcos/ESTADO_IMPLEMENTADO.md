@@ -284,3 +284,30 @@ Data de referencia: 2026-02-19 (atualizado apos fecho de P1.3 frontend).
     - `src/routes/index.ts` (montagem de `/api/admin`)
 - Validacao tecnica da entrega:
   - `API_finhub` -> `npm run typecheck` -> PASS.
+
+## 20) P2.1 gestao de utilizadores - backend (2026-02-19)
+- Modulo admin users entregue no backend para sancoes, sessao e historico:
+  - novo modelo de historico de moderacao: `src/models/UserModerationEvent.ts`.
+  - novo service de dominio admin users: `src/services/adminUser.service.ts`.
+  - novo controller admin users: `src/controllers/adminUser.controller.ts`.
+  - rotas admin users integradas em `src/routes/admin.routes.ts`.
+- Endpoints admin users disponiveis:
+  - `GET /api/admin/users`
+  - `GET /api/admin/users/:userId/history`
+  - `POST /api/admin/users/:userId/notes`
+  - `POST /api/admin/users/:userId/suspend`
+  - `POST /api/admin/users/:userId/ban`
+  - `POST /api/admin/users/:userId/unban`
+  - `POST /api/admin/users/:userId/force-logout`
+- Seguranca e governanca reforcadas no auth:
+  - JWT com `tokenVersion` em access/refresh token (`src/utils/jwt.ts`).
+  - `authenticate` e `optionalAuth` validam `tokenVersion` e `accountStatus` (`src/middlewares/auth.ts`).
+  - login/refresh bloqueiam contas `suspended` e `banned`; refresh recusa tokens com versao desatualizada (`src/controllers/auth.controller.ts`).
+  - modelo `User` expandido com:
+    - `accountStatus`, `statusReason`, `statusChangedAt`, `statusChangedBy`
+    - `tokenVersion`, `lastForcedLogoutAt`
+    - `lastLoginAt`, `lastActiveAt`
+- Validacao tecnica apos implementacao:
+  - `API_finhub` -> `npm run test:pre-p1` -> PASS (13 passos).
+  - `API_finhub` -> `npm run typecheck` -> PASS.
+  - `API_finhub` -> `npm run build` -> PASS.
