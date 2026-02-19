@@ -36,6 +36,10 @@ Escopo: pasta `dcos`
   - P2.6 hardening operacional
 - Itens extra foram incorporados ao backlog de P2 (tickets internos, feature flags, compliance/log retention, alertas, modo read-only admin junior e bulk actions protegidas).
 - Livros/ferramentas/brokers-websites foram reclassificados para Prioridade 3 apos fecho do MVP Admin.
+- Arranque tecnico de P2.0 iniciado no backend:
+  - escopos admin granulares + modo read-only.
+  - auditoria admin estruturada com rota de consulta (`GET /api/admin/audit-logs`).
+  - validacao `npm run typecheck` em `API_finhub` -> PASS.
 
 ## Fontes de verdade para seguimento
 - Estado detalhado: `dcos/ESTADO_IMPLEMENTADO.md`

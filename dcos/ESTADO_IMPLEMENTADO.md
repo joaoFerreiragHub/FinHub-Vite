@@ -263,3 +263,24 @@ Data de referencia: 2026-02-19 (atualizado apos fecho de P1.3 frontend).
   - bulk actions protegidas
 - Reclassificacao de escopo:
   - livros completos, ferramentas financeiras legadas e blocos de brokers/websites passam para Prioridade 3 (apos fecho do MVP Admin).
+
+## 19) P2.0 arranque tecnico - backend (2026-02-19)
+- Primeira entrega concreta de P2.0 (seguranca/governanca) implementada no backend:
+  - escopos admin granulares introduzidos em `src/admin/permissions.ts`.
+  - middleware de permissao por escopo adicionado em `src/middlewares/roleGuard.ts` (`requireAdminScope`).
+  - extensoes de perfil admin no utilizador:
+    - `adminScopes?: string[]`
+    - `adminReadOnly: boolean`
+  - auditoria administrativa estruturada:
+    - modelo `src/models/AdminAuditLog.ts`
+    - service `src/services/adminAudit.service.ts`
+    - middleware `src/middlewares/adminAudit.ts`
+    - controller/rota `GET /api/admin/audit-logs` em:
+      - `src/controllers/adminAudit.controller.ts`
+      - `src/routes/admin.routes.ts`
+  - integracao inicial da auditoria/permissoes em rotas admin existentes:
+    - `src/routes/brand.routes.ts`
+    - `src/routes/upload.routes.ts`
+    - `src/routes/index.ts` (montagem de `/api/admin`)
+- Validacao tecnica da entrega:
+  - `API_finhub` -> `npm run typecheck` -> PASS.

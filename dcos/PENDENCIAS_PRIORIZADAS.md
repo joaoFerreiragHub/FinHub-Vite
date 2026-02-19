@@ -88,6 +88,8 @@ Data da consolidacao: 2026-02-19 (revisto apos fecho de P1.3 frontend).
 - Audit log imutavel para todas as acoes admin (quem, quando, alvo, antes/depois, motivo).
 - Controlo de risco: rate limit admin, confirmacao forte para acoes criticas e motivo obrigatorio.
 - Gate de aceite: nenhuma acao critica executa sem permissao explicita e sem rasto de auditoria.
+- Estado atual: EM CURSO.
+  - arranque backend concluido com escopos admin granulares, middleware de auditoria e rota de leitura de logs (`/api/admin/audit-logs`).
 
 1. P2.1 Gestao de utilizadores.
 - Listar/pesquisar users com filtros por role, estado e atividade.
