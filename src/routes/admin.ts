@@ -1,13 +1,37 @@
 import { UserRole } from '@/features/auth/types'
-import type { LucideIcon } from 'lucide-react'
+import { BarChart3, LayoutDashboard, Layers, ShieldCheck, Users } from 'lucide-react'
 
-// Ainda nao existem paginas /admin/* no filesystem routing.
-// Mantemos vazio para evitar navegacao para 404.
-export const adminRoutes: Array<{
-  path: string
-  label: string
-  icon: LucideIcon
-  allowedRoles: UserRole[]
-}> = []
+export const adminRoutes = [
+  {
+    path: '/admin',
+    label: 'Admin Dashboard',
+    icon: LayoutDashboard,
+    allowedRoles: ['admin'] as UserRole[],
+  },
+  {
+    path: '/admin/users',
+    label: 'Utilizadores',
+    icon: Users,
+    allowedRoles: ['admin'] as UserRole[],
+  },
+  {
+    path: '/admin/conteudo',
+    label: 'Moderacao',
+    icon: ShieldCheck,
+    allowedRoles: ['admin'] as UserRole[],
+  },
+  {
+    path: '/admin/recursos',
+    label: 'Recursos',
+    icon: Layers,
+    allowedRoles: ['admin'] as UserRole[],
+  },
+  {
+    path: '/admin/stats',
+    label: 'Estatisticas',
+    icon: BarChart3,
+    allowedRoles: ['admin'] as UserRole[],
+  },
+]
 
 export default adminRoutes

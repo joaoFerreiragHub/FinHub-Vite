@@ -311,3 +311,34 @@ Data de referencia: 2026-02-19 (atualizado apos fecho de P1.3 frontend).
   - `API_finhub` -> `npm run test:pre-p1` -> PASS (13 passos).
   - `API_finhub` -> `npm run typecheck` -> PASS.
   - `API_finhub` -> `npm run build` -> PASS.
+
+## 21) P2.1 gestao de utilizadores - frontend (2026-02-19)
+- Pagina admin users deixou de ser placeholder e passou a fluxo operacional real:
+  - ficheiro: `src/features/admin/pages/UsersManagementPage.tsx`.
+  - listagem de utilizadores com filtros por pesquisa, role, accountStatus, adminReadOnly e atividade recente.
+  - pagina com paginacao, resumo de estado e refresh manual.
+- Integracao com contratos backend de admin users:
+  - `GET /api/admin/users`
+  - `GET /api/admin/users/:userId/history`
+  - `POST /api/admin/users/:userId/notes`
+  - `POST /api/admin/users/:userId/suspend`
+  - `POST /api/admin/users/:userId/ban`
+  - `POST /api/admin/users/:userId/unban`
+  - `POST /api/admin/users/:userId/force-logout`
+- Camada de dominio frontend adicionada para escalabilidade:
+  - tipos: `src/features/admin/types/adminUsers.ts`
+  - service: `src/features/admin/services/adminUsersService.ts`
+  - hooks React Query: `src/features/admin/hooks/useAdminUsers.ts`
+- Navegacao por role admin reativada no registry de rotas:
+  - `src/routes/admin.ts` deixou de estar vazio e volta a expor o menu admin.
+- Qualidade automatizada:
+  - teste unitario novo: `src/__tests__/features/admin/adminUsersService.test.ts`.
+  - validacao frontend apos entrega:
+    - `yarn lint` -> PASS (warnings nao bloqueantes ja existentes).
+    - `yarn test --runInBand` -> PASS (12 suites, 112 testes).
+    - `yarn build` -> PASS.
+    - `yarn test:e2e` -> PASS (3/3 smoke).
+
+## 22) CI remoto (GitHub Actions) validado para os 2 repositorios (2026-02-19)
+- `API_finhub` com workflow CI verde em `main`.
+- `FinHub-Vite` com workflow CI verde em `master`.

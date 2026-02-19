@@ -15,7 +15,7 @@ Escopo: pasta `dcos`
 2. Frontend
 - `FinHub-Vite` -> `npm run typecheck:p1` PASS.
 - `FinHub-Vite` -> `npm run build` PASS.
-- `FinHub-Vite` -> `npm run test -- --runInBand` PASS (11 suites, 108 testes).
+- `FinHub-Vite` -> `npm run test -- --runInBand` PASS (12 suites, 112 testes).
 - `FinHub-Vite` -> `npm run test:e2e` PASS (Playwright smoke, 3 testes).
 
 3. Plano
@@ -46,6 +46,16 @@ Escopo: pasta `dcos`
   - historico de sancoes/anotacoes por utilizador.
   - auth reforcado com `tokenVersion` e bloqueio por `accountStatus`.
   - validacao backend apos entrega: `npm run test:pre-p1` + `npm run typecheck` + `npm run build` -> PASS.
+- P2.1 frontend arrancado com entrega operacional da pagina `/admin/users`:
+  - listagem admin de users com filtros de pesquisa/role/status/read-only/atividade.
+  - acoes com motivo obrigatorio: `suspend`, `ban`, `unban`, `force-logout`.
+  - registo de notas internas e consulta de historico por utilizador.
+  - hooks React Query e service dedicados ao dominio admin users.
+  - teste unitario novo para `adminUsersService`.
+
+4. CI remoto (GitHub Actions)
+- `API_finhub` (branch `main`) com workflow CI verde no remoto.
+- `FinHub-Vite` (branch `master`) com workflow CI verde no remoto.
 
 ## Fontes de verdade para seguimento
 - Estado detalhado: `dcos/ESTADO_IMPLEMENTADO.md`
@@ -55,3 +65,4 @@ Escopo: pasta `dcos`
 - Warnings de build em mocks legados e avisos de deprecacao de plugin.
 - Divida tecnica fora de escopo imediato: tipagem global de modulos legados para eventual retorno do gate full `tsc -b`.
 - Expansao de E2E para full business flows continua recomendada como reforco de qualidade (atualmente existe smoke).
+- P2 segue para os itens seguintes apos P2.1 users (P2.2 moderacao de conteudo, P2.3 acesso assistido, P2.4 metricas).

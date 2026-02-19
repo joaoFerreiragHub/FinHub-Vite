@@ -96,7 +96,7 @@ Data da consolidacao: 2026-02-19 (revisto apos fecho de P1.3 frontend).
 - Suspender, banir, desbanir e forcar logout global.
 - Historico de sancoes e anotacoes internas por utilizador.
 - Gate de aceite: ciclo completo "encontrar user -> agir -> auditar" funcional.
-- Estado atual: EM CURSO (backend base entregue em 2026-02-19).
+- Estado atual: EM CURSO (backend + frontend operacional entregues em 2026-02-19).
   - API backend entregue:
     - `GET /api/admin/users` (filtros por `search`, `role`, `accountStatus`, `adminReadOnly`, `activeSinceDays`).
     - `POST /api/admin/users/:userId/suspend`
@@ -113,6 +113,18 @@ Data da consolidacao: 2026-02-19 (revisto apos fecho de P1.3 frontend).
     - `API_finhub` -> `npm run test:pre-p1` -> PASS (13 passos).
     - `API_finhub` -> `npm run typecheck` -> PASS.
     - `API_finhub` -> `npm run build` -> PASS.
+  - Frontend operacional entregue:
+    - pagina real `src/features/admin/pages/UsersManagementPage.tsx` (sem placeholder).
+    - filtros, paginacao e listagem admin.
+    - dialogos de acao com motivo obrigatorio e nota opcional.
+    - historico por utilizador com consulta dedicada.
+    - service/hooks/tipos novos para dominio admin users.
+    - teste unitario de service admin users adicionado.
+    - validacao apos entrega frontend:
+      - `yarn lint` -> PASS (warnings nao bloqueantes existentes).
+      - `yarn test --runInBand` -> PASS (12 suites, 112 testes).
+      - `yarn build` -> PASS.
+      - `yarn test:e2e` -> PASS (3/3 smoke).
 
 2. P2.2 Moderacao de conteudo.
 - Fila de moderacao unificada (artigos, cursos, videos, lives, podcasts, books, comentarios/reviews).
@@ -175,6 +187,10 @@ Data da consolidacao: 2026-02-19 (revisto apos fecho de P1.3 frontend).
 - `npm run test:e2e` verde (3 cenarios: SSR, navegacao publica e fallback de noticias).
 6. Divida tecnica fora do escopo imediato de P1.1:
 - limpeza de tipagem global em modulos legados (`creators/tools/mock`) para eventualmente reintroduzir gate full `tsc -b` sem escopo.
+
+## Estado de CI remoto (GitHub Actions)
+1. `API_finhub` em `main`: verde.
+2. `FinHub-Vite` em `master`: verde.
 
 ## Sequencia pragmatica sugerida
 1. Iniciar P2.0 (fundacao de seguranca e governanca) como bloqueante.
