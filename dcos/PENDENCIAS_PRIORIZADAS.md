@@ -220,6 +220,14 @@ Data da consolidacao: 2026-02-20 (revisto apos fecho de P2.5 e hardening do REIT
 - Alertas internos para acoes criticas (ban, hide massivo, delegated access).
 - Runbook de incidentes admin + documentacao operacional.
 - Gate de aceite: CI cobre os fluxos criticos admin e runbook esta validado.
+- Estado atual: EM CURSO (arranque em 2026-02-20).
+  - Fechado no arranque:
+    - nova suite `e2e/admin.p2.6.spec.ts` com cenarios positivo/negativo de permissao e guardrails.
+    - validacao `yarn test:e2e` -> PASS (5/5: 3 smoke + 2 admin).
+  - Pendente para fecho total do P2.6:
+    - cobertura E2E adicional para moderacao e sessao assistida (revogar/start com asserts de trilha).
+    - mecanismo de alertas internos para eventos criticos.
+    - runbook operacional admin validado em `dcos`.
 
 ## Itens extra incorporados no MVP Admin
 1. Tickets internos de suporte/moderacao com ligacao a user e conteudo.

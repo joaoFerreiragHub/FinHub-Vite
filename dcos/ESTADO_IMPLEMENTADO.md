@@ -627,3 +627,13 @@ Data de referencia: 2026-02-20 (atualizado apos fecho de P2.5 e hardening do REI
     - `yarn test --runInBand` -> PASS (15 suites, 120 testes)
     - `yarn build` -> PASS
     - `yarn test:e2e` -> PASS (3/3 smoke)
+
+## 32) P2.6 arranque - suite E2E admin (2026-02-20)
+- Frontend (`FinHub-Vite`) com cobertura E2E admin expandida para cenarios positivos/negativos:
+  - novo ficheiro `e2e/admin.p2.6.spec.ts`.
+  - cenarios cobertos:
+    - admin com escopo `admin.users.write` executa sancao (`suspend`) com guardrail de confirmacao dupla (`CONFIRMAR`).
+    - admin em `read-only` nao executa acoes destrutivas e apenas ve modulos permitidos pelos seus escopos.
+  - testes usam sessao admin injetada em `localStorage` + mocks de endpoints `/api/admin/**` para validar comportamento de permissao e guardrails sem dependencia externa.
+- Resultado da suite E2E apos arranque P2.6:
+  - `yarn test:e2e` -> PASS (5/5; 3 smoke + 2 admin).

@@ -79,6 +79,10 @@ Escopo: pasta `dcos`
   - guardrails destrutivos aplicados em users/conteudo/suporte com resumo de impacto + confirmacao dupla (`CONFIRMAR`).
   - wrappers admin Vike alinhados, incluindo rota dedicada `/admin/suporte`.
   - validacao do ciclo: backend `typecheck/build/contract` + frontend `lint/test/build/test:e2e` -> PASS.
+- P2.6 hardening operacional INICIADO:
+  - suite E2E admin adicionada em `e2e/admin.p2.6.spec.ts` com cenarios positivo/negativo de permissao e acoes destrutivas.
+  - validacao `yarn test:e2e` apos arranque -> PASS (5/5: 3 smoke + 2 admin).
+  - escopo remanescente para fecho P2.6: alertas internos criticos + runbook operacional admin.
 - Acesso admin estabilizado no frontend:
   - rotas ativas: `/admin`, `/admin/users`, `/admin/conteudo`, `/admin/suporte`, `/admin/recursos`, `/admin/stats`.
   - header ajustado para conta admin abrir `/admin` (evita falso erro em `/perfil`).
@@ -96,4 +100,4 @@ Escopo: pasta `dcos`
 - Warnings de build em mocks legados e avisos de deprecacao de plugin.
 - Divida tecnica fora de escopo imediato: tipagem global de modulos legados para eventual retorno do gate full `tsc -b`.
 - Expansao de E2E para full business flows continua recomendada como reforco de qualidade (atualmente existe smoke).
-- Proximo bloco de P2 apos fecho de P2.5: P2.6 hardening operacional.
+- Bloco atual em execucao: P2.6 hardening operacional.
