@@ -73,6 +73,12 @@ Escopo: pasta `dcos`
   - backend com melhorias de fidelidade no DDM (frequencia real de pagamentos, forward yield, confidence gating) e FFO (multi-fonte com NAREIT/simplified/not-applicable para mREIT).
   - frontend com toggle de vista FFO (`NAREIT`, `Estimativa`, `CF Op.`), aviso de baixa confianca no DDM, cenarios de NAV negativo e score de valorizacao ponderado.
   - validacao do ciclo: backend `typecheck/build/contract` + frontend `lint/test/build/test:e2e` -> PASS.
+- P2.5 painel admin unificado FECHADO (frontend + validacao):
+  - `/admin` consolidado como entrypoint operacional unico com tabs para users, moderacao, suporte e metricas.
+  - navegacao admin passa a ser controlada por escopos (`adminScopes`) com fallback compativel para admins legados.
+  - guardrails destrutivos aplicados em users/conteudo/suporte com resumo de impacto + confirmacao dupla (`CONFIRMAR`).
+  - wrappers admin Vike alinhados, incluindo rota dedicada `/admin/suporte`.
+  - validacao do ciclo: backend `typecheck/build/contract` + frontend `lint/test/build/test:e2e` -> PASS.
 - Acesso admin estabilizado no frontend:
   - rotas ativas: `/admin`, `/admin/users`, `/admin/conteudo`, `/admin/suporte`, `/admin/recursos`, `/admin/stats`.
   - header ajustado para conta admin abrir `/admin` (evita falso erro em `/perfil`).
@@ -90,4 +96,4 @@ Escopo: pasta `dcos`
 - Warnings de build em mocks legados e avisos de deprecacao de plugin.
 - Divida tecnica fora de escopo imediato: tipagem global de modulos legados para eventual retorno do gate full `tsc -b`.
 - Expansao de E2E para full business flows continua recomendada como reforco de qualidade (atualmente existe smoke).
-- Proximos blocos de P2 apos fecho de P2.4: P2.5 painel unificado e P2.6 hardening.
+- Proximo bloco de P2 apos fecho de P2.5: P2.6 hardening operacional.

@@ -66,6 +66,8 @@ const STATUS_LABEL: Record<AssistedSessionStatus, string> = {
   expired: 'Expirada',
 }
 
+const DOUBLE_CONFIRM_TOKEN = 'CONFIRMAR'
+
 const statusBadgeVariant = (
   status: AssistedSessionStatus,
 ): 'default' | 'secondary' | 'outline' | 'destructive' => {
@@ -80,7 +82,11 @@ interface RevokeDialogState {
   session: AssistedSessionRecord
 }
 
-export default function AssistedSessionsPage() {
+interface AssistedSessionsPageProps {
+  embedded?: boolean
+}
+
+export default function AssistedSessionsPage({ embedded = false }: AssistedSessionsPageProps) {
   const navigate = useNavigate()
 
   const authUser = useAuthStore((state) => state.user)
@@ -103,6 +109,7 @@ export default function AssistedSessionsPage() {
   const [revokeReason, setRevokeReason] = useState(
     'Encerramento administrativo da sessao assistida.',
   )
+  const [revokeConfirmText, setRevokeConfirmText] = useState('')
 
   const sessionsQuery = useAdminAssistedSessions({
     status: statusFilter === 'all' ? undefined : statusFilter,
@@ -190,6 +197,10 @@ export default function AssistedSessionsPage() {
       toast.error('Motivo obrigatorio para revogar.')
       return
     }
+    if (revokeConfirmText.trim().toUpperCase() !== DOUBLE_CONFIRM_TOKEN) {
+      toast.error(`Escreve "${DOUBLE_CONFIRM_TOKEN}" para confirmar a revogacao.`)
+      return
+    }
 
     try {
       const response = await revokeMutation.mutateAsync({
@@ -199,6 +210,7 @@ export default function AssistedSessionsPage() {
       toast.success(response.message)
       setRevokeDialog(null)
       setRevokeReason('Encerramento administrativo da sessao assistida.')
+      setRevokeConfirmText('')
     } catch (error) {
       toast.error(getErrorMessage(error))
     }
@@ -216,13 +228,22 @@ export default function AssistedSessionsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Acesso assistido</h1>
-        <p className="text-sm text-muted-foreground">
-          Sessao delegada temporaria com consentimento explicito, escopo minimo e auditoria de todas
-          as requisicoes.
-        </p>
-      </div>
+      {embedded ? (
+        <div className="space-y-1">
+          <h2 className="text-xl font-semibold tracking-tight">Acesso assistido</h2>
+          <p className="text-sm text-muted-foreground">
+            Sessao delegada temporaria com consentimento explicito e trilha detalhada.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">Acesso assistido</h1>
+          <p className="text-sm text-muted-foreground">
+            Sessao delegada temporaria com consentimento explicito, escopo minimo e auditoria de
+            todas as requisicoes.
+          </p>
+        </div>
+      )}
 
       <Card>
         <CardHeader>
@@ -431,6 +452,7 @@ export default function AssistedSessionsPage() {
                             onClick={() => {
                               setRevokeDialog({ session })
                               setRevokeReason('Encerramento administrativo da sessao assistida.')
+                              setRevokeConfirmText('')
                             }}
                           >
                             <ShieldX className="h-4 w-4" />
@@ -582,12 +604,33 @@ export default function AssistedSessionsPage() {
                 @{revokeDialog?.session.targetUser?.username ?? '-'}
               </p>
             </div>
+            <div className="rounded-md border border-border/70 bg-muted/20 p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Resumo de impacto
+              </p>
+              <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+                <li>Revogacao encerra de imediato a sessao assistida ativa ou pendente.</li>
+                <li>O admin perde o contexto delegado e deve regressar a sessao propria.</li>
+                <li>Evento de revogacao fica auditado com motivo e timestamp.</li>
+              </ul>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="revoke-reason">Motivo</Label>
               <Input
                 id="revoke-reason"
                 value={revokeReason}
                 onChange={(event) => setRevokeReason(event.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="revoke-confirm">
+                Confirmacao dupla (escreve {DOUBLE_CONFIRM_TOKEN})
+              </Label>
+              <Input
+                id="revoke-confirm"
+                value={revokeConfirmText}
+                onChange={(event) => setRevokeConfirmText(event.target.value)}
+                placeholder={DOUBLE_CONFIRM_TOKEN}
               />
             </div>
           </div>
@@ -599,7 +642,10 @@ export default function AssistedSessionsPage() {
               type="button"
               variant="destructive"
               onClick={handleRevoke}
-              disabled={revokeMutation.isPending}
+              disabled={
+                revokeMutation.isPending ||
+                revokeConfirmText.trim().toUpperCase() !== DOUBLE_CONFIRM_TOKEN
+              }
             >
               {revokeMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               Revogar

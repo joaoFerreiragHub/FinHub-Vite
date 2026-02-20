@@ -72,6 +72,10 @@ interface CurrentAdminMeta {
   adminScopes?: string[]
 }
 
+interface UsersManagementPageProps {
+  embedded?: boolean
+}
+
 const PAGE_SIZE = 20
 
 const INITIAL_FILTERS: FilterState = {
@@ -125,6 +129,9 @@ const DEFAULT_ACTION_REASON: Record<UserActionKind, string> = {
   'force-logout': 'Revogacao administrativa de sessao',
   note: 'Nota interna',
 }
+
+const DOUBLE_CONFIRM_TOKEN = 'CONFIRMAR'
+const DESTRUCTIVE_USER_ACTIONS: UserActionKind[] = ['suspend', 'ban', 'force-logout']
 
 const STATUS_LABEL: Record<AdminUserAccountStatus, string> = {
   active: 'Ativo',
@@ -186,7 +193,50 @@ const toQueryFilters = (filters: FilterState, page: number): AdminUserListQuery 
   return query
 }
 
-export default function UsersManagementPage() {
+const isDestructiveAction = (kind: UserActionKind): boolean =>
+  DESTRUCTIVE_USER_ACTIONS.includes(kind)
+
+const getImpactSummary = (kind: UserActionKind, user: AdminUserRecord): string[] => {
+  if (kind === 'suspend') {
+    return [
+      `A conta de @${user.username} passa para estado "suspended".`,
+      'Login e refresh token ficam bloqueados ate nova acao administrativa.',
+      'Evento de moderacao e auditoria admin serao registados com motivo.',
+    ]
+  }
+
+  if (kind === 'ban') {
+    return [
+      `A conta de @${user.username} passa para estado "banned".`,
+      'Utilizador deixa de ter acesso a qualquer sessao ativa ou futura.',
+      'Acao critica com historico permanente em auditoria administrativa.',
+    ]
+  }
+
+  if (kind === 'force-logout') {
+    return [
+      `Todas as sessoes ativas de @${user.username} serao invalidadas.`,
+      'Nova autenticacao passa a exigir login completo no cliente.',
+      'A acao fica auditada para rastreabilidade operacional.',
+    ]
+  }
+
+  if (kind === 'unban') {
+    return [
+      `A conta de @${user.username} regressa ao estado "active".`,
+      'Login volta a estar permitido apos a reavaliacao.',
+      'O historico da reversao fica guardado para compliance.',
+    ]
+  }
+
+  return [
+    `Nota interna associada ao utilizador @${user.username}.`,
+    'Registo visivel no historico de moderacao para contexto futuro.',
+    'Nao altera estado da conta nem sessoes ativas.',
+  ]
+}
+
+export default function UsersManagementPage({ embedded = false }: UsersManagementPageProps) {
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS)
   const [queryFilters, setQueryFilters] = useState<FilterState>(INITIAL_FILTERS)
   const [page, setPage] = useState(1)
@@ -194,6 +244,7 @@ export default function UsersManagementPage() {
   const [actionDialog, setActionDialog] = useState<UserActionDialogState | null>(null)
   const [actionReason, setActionReason] = useState('')
   const [actionNote, setActionNote] = useState('')
+  const [actionConfirmText, setActionConfirmText] = useState('')
 
   const [historyUser, setHistoryUser] = useState<AdminUserRecord | null>(null)
   const [historyPage, setHistoryPage] = useState(1)
@@ -230,6 +281,9 @@ export default function UsersManagementPage() {
     unbanMutation.isPending ||
     forceLogoutMutation.isPending ||
     addNoteMutation.isPending
+  const requiresDoubleConfirm = actionDialog ? isDestructiveAction(actionDialog.kind) : false
+  const isDoubleConfirmValid =
+    !requiresDoubleConfirm || actionConfirmText.trim().toUpperCase() === DOUBLE_CONFIRM_TOKEN
 
   const applyFilters = () => {
     setQueryFilters(filters)
@@ -246,6 +300,7 @@ export default function UsersManagementPage() {
     setActionDialog({ kind, user })
     setActionReason(DEFAULT_ACTION_REASON[kind])
     setActionNote('')
+    setActionConfirmText('')
   }
 
   const closeActionDialog = (force = false) => {
@@ -253,6 +308,7 @@ export default function UsersManagementPage() {
     setActionDialog(null)
     setActionReason('')
     setActionNote('')
+    setActionConfirmText('')
   }
 
   const closeHistoryDialog = () => {
@@ -266,6 +322,10 @@ export default function UsersManagementPage() {
     const reason = actionReason.trim()
     if (!reason) {
       toast.error('Motivo obrigatorio para executar a acao.')
+      return
+    }
+    if (!isDoubleConfirmValid) {
+      toast.error(`Escreve "${DOUBLE_CONFIRM_TOKEN}" para confirmar esta acao critica.`)
       return
     }
 
@@ -321,13 +381,22 @@ export default function UsersManagementPage() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Gestao de utilizadores</h1>
-        <p className="text-sm text-muted-foreground">
-          Operacoes administrativas de estado de conta, revogacao de sessao e historico de
-          moderacao.
-        </p>
-      </div>
+      {embedded ? (
+        <div className="space-y-1">
+          <h2 className="text-xl font-semibold tracking-tight">Gestao de utilizadores</h2>
+          <p className="text-sm text-muted-foreground">
+            Operacoes de estado de conta, revogacao de sessao e historico auditavel.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">Gestao de utilizadores</h1>
+          <p className="text-sm text-muted-foreground">
+            Operacoes administrativas de estado de conta, revogacao de sessao e historico de
+            moderacao.
+          </p>
+        </div>
+      )}
 
       {!canWriteUsers && (
         <Card className="border-yellow-500/40 bg-yellow-500/5">
@@ -708,6 +777,17 @@ export default function UsersManagementPage() {
                 </p>
               </div>
 
+              <div className="rounded-md border border-border/70 bg-muted/20 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Resumo de impacto
+                </p>
+                <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+                  {getImpactSummary(actionDialog.kind, actionDialog.user).map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="admin-action-reason">Motivo</Label>
                 <Input
@@ -732,6 +812,20 @@ export default function UsersManagementPage() {
                   placeholder="Detalhes operacionais para auditoria interna."
                 />
               </div>
+
+              {requiresDoubleConfirm ? (
+                <div className="space-y-2">
+                  <Label htmlFor="admin-action-confirm">
+                    Confirmacao dupla (escreve {DOUBLE_CONFIRM_TOKEN})
+                  </Label>
+                  <Input
+                    id="admin-action-confirm"
+                    value={actionConfirmText}
+                    onChange={(event) => setActionConfirmText(event.target.value)}
+                    placeholder={DOUBLE_CONFIRM_TOKEN}
+                  />
+                </div>
+              ) : null}
             </div>
           )}
 
@@ -747,7 +841,7 @@ export default function UsersManagementPage() {
             <Button
               type="button"
               onClick={handleActionSubmit}
-              disabled={isActionPending || !actionDialog}
+              disabled={isActionPending || !actionDialog || !isDoubleConfirmValid}
             >
               {isActionPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               {actionDialog ? ACTION_COPY[actionDialog.kind].confirmLabel : 'Confirmar'}

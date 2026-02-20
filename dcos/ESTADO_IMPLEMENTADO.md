@@ -1,6 +1,6 @@
 # Estado Implementado
 
-Data de referencia: 2026-02-20 (atualizado apos fecho de P2.4 e hardening do REIT toolkit).
+Data de referencia: 2026-02-20 (atualizado apos fecho de P2.5 e hardening do REIT toolkit).
 
 ## 1) Foundation e arquitetura
 - Estrutura feature-based e separacao por modulos.
@@ -588,3 +588,42 @@ Data de referencia: 2026-02-20 (atualizado apos fecho de P2.4 e hardening do REI
     - `yarn test --runInBand` -> PASS (15 suites, 120 testes)
     - `yarn test:e2e` -> PASS (3/3 smoke)
     - `yarn build` -> PASS (execucao sequencial, sem erro `ENOTEMPTY`)
+
+## 31) P2.5 fechado - painel admin unificado (2026-02-20)
+- Frontend (`FinHub-Vite`) consolidado para operacao diaria num unico entrypoint (`/admin`):
+  - dashboard admin reestruturado como painel unificado com tabs por modulo:
+    - visao geral
+    - utilizadores
+    - moderacao de conteudo
+    - suporte assistido
+    - metricas
+    - recursos (quando permitido)
+  - cada tab renderiza o modulo operacional em modo embebido (sem duplicar logica de dominio).
+  - wrappers Vike alinhados ao mesmo fluxo, incluindo nova pagina `src/pages/admin/suporte/index.page.tsx`.
+- Navegacao por permissoes entregue:
+  - nova camada de acesso por escopos em `src/features/admin/lib/access.ts`.
+  - `AdminSidebar` passa a mostrar/esconder modulos conforme `adminScopes`.
+  - modulo em read-only passa a aparecer com indicacao visual e sem escrita.
+  - compatibilidade mantida: admin sem lista explicita de escopos continua com acesso total.
+- Guardrails de UX para acoes destrutivas entregue:
+  - gestao de utilizadores:
+    - dialogos com `Resumo de impacto` contextual.
+    - confirmacao dupla obrigatoria (`CONFIRMAR`) para `suspend`, `ban` e `force-logout`.
+  - moderacao de conteudo:
+    - dialogos com `Resumo de impacto` contextual.
+    - confirmacao dupla obrigatoria (`CONFIRMAR`) para `hide` e `restrict`.
+  - suporte assistido:
+    - revogacao com resumo de impacto e confirmacao dupla (`CONFIRMAR`).
+- Qualidade de implementacao:
+  - hooks admin atualizados com suporte a `enabled` para evitar chamadas nao autorizadas em modulos sem escopo.
+  - dashboard usa esses flags para ativar queries apenas nos modulos permitidos.
+- Validacao do ciclo P2.5:
+  - backend:
+    - `npm run typecheck` -> PASS
+    - `npm run build` -> PASS
+    - `npm run contract:openapi` -> PASS
+  - frontend:
+    - `yarn lint` -> PASS (warnings nao bloqueantes existentes)
+    - `yarn test --runInBand` -> PASS (15 suites, 120 testes)
+    - `yarn build` -> PASS
+    - `yarn test:e2e` -> PASS (3/3 smoke)

@@ -68,6 +68,10 @@ interface CurrentAdminMeta {
   adminScopes?: string[]
 }
 
+interface ContentModerationPageProps {
+  embedded?: boolean
+}
+
 const PAGE_SIZE = 20
 
 const INITIAL_FILTERS: FilterState = {
@@ -143,6 +147,9 @@ const DEFAULT_ACTION_REASON: Record<ContentActionKind, string> = {
   restrict: 'Restricao administrativa',
 }
 
+const DOUBLE_CONFIRM_TOKEN = 'CONFIRMAR'
+const DESTRUCTIVE_CONTENT_ACTIONS: ContentActionKind[] = ['hide', 'restrict']
+
 const toQueueQuery = (filters: FilterState, page: number): AdminContentQueueQuery => {
   const query: AdminContentQueueQuery = {
     page,
@@ -155,6 +162,35 @@ const toQueueQuery = (filters: FilterState, page: number): AdminContentQueueQuer
   if (filters.publishStatus !== 'all') query.publishStatus = filters.publishStatus
 
   return query
+}
+
+const isDestructiveAction = (kind: ContentActionKind): boolean =>
+  DESTRUCTIVE_CONTENT_ACTIONS.includes(kind)
+
+const getImpactSummary = (kind: ContentActionKind, content: AdminContentQueueItem): string[] => {
+  const target = `${CONTENT_TYPE_LABEL[content.contentType]} /${content.slug}`
+
+  if (kind === 'hide') {
+    return [
+      `${target} deixa de aparecer nas superficies publicas.`,
+      'Acesso por slug/listagens publicas fica indisponivel para utilizadores.',
+      'Acao de risco moderado com rasto de auditoria e evento de moderacao.',
+    ]
+  }
+
+  if (kind === 'restrict') {
+    return [
+      `${target} fica marcado como "restricted".`,
+      'Conteudo e removido da visibilidade publica ate nova decisao.',
+      'Acao critica com impacto imediato e rastreabilidade completa.',
+    ]
+  }
+
+  return [
+    `${target} volta ao estado visivel.`,
+    'Item regressa a listagens/publicacao conforme estado editorial.',
+    'Reversao fica registada no historico para compliance.',
+  ]
 }
 
 const formatDateTime = (value: string | null): string => {
@@ -172,7 +208,7 @@ const formatActor = (actor: AdminContentQueueItem['creator']): string => {
   return actor.name || actor.username || actor.email || actor.id
 }
 
-export default function ContentModerationPage() {
+export default function ContentModerationPage({ embedded = false }: ContentModerationPageProps) {
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS)
   const [queryFilters, setQueryFilters] = useState<FilterState>(INITIAL_FILTERS)
   const [page, setPage] = useState(1)
@@ -180,6 +216,7 @@ export default function ContentModerationPage() {
   const [actionDialog, setActionDialog] = useState<ContentActionDialogState | null>(null)
   const [actionReason, setActionReason] = useState('')
   const [actionNote, setActionNote] = useState('')
+  const [actionConfirmText, setActionConfirmText] = useState('')
 
   const [historyTarget, setHistoryTarget] = useState<AdminContentQueueItem | null>(null)
   const [historyPage, setHistoryPage] = useState(1)
@@ -215,6 +252,9 @@ export default function ContentModerationPage() {
 
   const isActionPending =
     hideMutation.isPending || unhideMutation.isPending || restrictMutation.isPending
+  const requiresDoubleConfirm = actionDialog ? isDestructiveAction(actionDialog.kind) : false
+  const isDoubleConfirmValid =
+    !requiresDoubleConfirm || actionConfirmText.trim().toUpperCase() === DOUBLE_CONFIRM_TOKEN
 
   const pagination = moderationQueue.data?.pagination
   const items = moderationQueue.data?.items ?? []
@@ -239,6 +279,7 @@ export default function ContentModerationPage() {
     setActionDialog({ kind, content })
     setActionReason(DEFAULT_ACTION_REASON[kind])
     setActionNote('')
+    setActionConfirmText('')
   }
 
   const closeActionDialog = (force = false) => {
@@ -246,6 +287,7 @@ export default function ContentModerationPage() {
     setActionDialog(null)
     setActionReason('')
     setActionNote('')
+    setActionConfirmText('')
   }
 
   const closeHistoryDialog = () => {
@@ -259,6 +301,10 @@ export default function ContentModerationPage() {
     const reason = actionReason.trim()
     if (!reason) {
       toast.error('Motivo obrigatorio para executar a acao.')
+      return
+    }
+    if (!isDoubleConfirmValid) {
+      toast.error(`Escreve "${DOUBLE_CONFIRM_TOKEN}" para confirmar esta acao critica.`)
       return
     }
 
@@ -299,13 +345,22 @@ export default function ContentModerationPage() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Moderacao de conteudo</h1>
-        <p className="text-sm text-muted-foreground">
-          Fila unificada para conteudos, comentarios e reviews com trilha auditavel de
-          hide/unhide/restrict.
-        </p>
-      </div>
+      {embedded ? (
+        <div className="space-y-1">
+          <h2 className="text-xl font-semibold tracking-tight">Moderacao de conteudo</h2>
+          <p className="text-sm text-muted-foreground">
+            Fila unificada para conteudos, comentarios e reviews com trilha auditavel.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">Moderacao de conteudo</h1>
+          <p className="text-sm text-muted-foreground">
+            Fila unificada para conteudos, comentarios e reviews com trilha auditavel de
+            hide/unhide/restrict.
+          </p>
+        </div>
+      )}
 
       {!canReadContent && (
         <Card className="border-destructive/40 bg-destructive/5">
@@ -677,6 +732,17 @@ export default function ContentModerationPage() {
                 </p>
               </div>
 
+              <div className="rounded-md border border-border/70 bg-muted/20 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Resumo de impacto
+                </p>
+                <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+                  {getImpactSummary(actionDialog.kind, actionDialog.content).map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="admin-content-action-reason">Motivo</Label>
                 <Input
@@ -697,6 +763,20 @@ export default function ContentModerationPage() {
                   placeholder="Detalhes operacionais para auditoria interna."
                 />
               </div>
+
+              {requiresDoubleConfirm ? (
+                <div className="space-y-2">
+                  <Label htmlFor="admin-content-action-confirm">
+                    Confirmacao dupla (escreve {DOUBLE_CONFIRM_TOKEN})
+                  </Label>
+                  <Input
+                    id="admin-content-action-confirm"
+                    value={actionConfirmText}
+                    onChange={(event) => setActionConfirmText(event.target.value)}
+                    placeholder={DOUBLE_CONFIRM_TOKEN}
+                  />
+                </div>
+              ) : null}
             </div>
           )}
 
@@ -712,7 +792,7 @@ export default function ContentModerationPage() {
             <Button
               type="button"
               onClick={submitAction}
-              disabled={isActionPending || !actionDialog}
+              disabled={isActionPending || !actionDialog || !isDoubleConfirmValid}
             >
               {isActionPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               {actionDialog ? ACTION_COPY[actionDialog.kind].confirmLabel : 'Confirmar'}

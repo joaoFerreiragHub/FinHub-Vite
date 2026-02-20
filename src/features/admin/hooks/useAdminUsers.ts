@@ -16,10 +16,15 @@ interface AdminAddNoteMutationInput {
   payload: AdminAddNotePayload
 }
 
-export function useAdminUsers(query: AdminUserListQuery) {
+interface AdminUsersQueryOptions {
+  enabled?: boolean
+}
+
+export function useAdminUsers(query: AdminUserListQuery, options?: AdminUsersQueryOptions) {
   return useQuery({
     queryKey: ['admin', 'users', query],
     queryFn: () => adminUsersService.listUsers(query),
+    enabled: options?.enabled ?? true,
   })
 }
 

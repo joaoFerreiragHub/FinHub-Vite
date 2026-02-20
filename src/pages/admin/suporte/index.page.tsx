@@ -1,16 +1,16 @@
-import AdminDashboardPage from '@/features/admin/pages/AdminDashboardPage'
+import AssistedSessionsPage from '@/features/admin/pages/AssistedSessionsPage'
 import { ProtectedRoute } from '@/shared/guards'
 
-function AdminIndexPage() {
+function AdminSupportPage() {
   return (
     <ProtectedRoute allowedRoles={['admin']}>
       <div className="mx-auto max-w-7xl p-6">
-        <AdminDashboardPage />
+        <AssistedSessionsPage />
       </div>
     </ProtectedRoute>
   )
 }
 
 export default {
-  Page: AdminIndexPage,
+  Page: AdminSupportPage,
 }

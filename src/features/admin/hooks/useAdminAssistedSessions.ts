@@ -13,10 +13,18 @@ interface ListAdminAssistedSessionsQuery {
   limit?: number
 }
 
-export function useAdminAssistedSessions(query: ListAdminAssistedSessionsQuery = {}) {
+interface AdminAssistedSessionsQueryOptions {
+  enabled?: boolean
+}
+
+export function useAdminAssistedSessions(
+  query: ListAdminAssistedSessionsQuery = {},
+  options?: AdminAssistedSessionsQueryOptions,
+) {
   return useQuery({
     queryKey: ['admin', 'support', 'sessions', query],
     queryFn: () => adminAssistedSessionsService.listSessions(query),
+    enabled: options?.enabled ?? true,
   })
 }
 

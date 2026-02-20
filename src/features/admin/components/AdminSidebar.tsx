@@ -9,6 +9,8 @@ import {
   LifeBuoy,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import { type AdminModuleKey, getAccessibleAdminModules } from '@/features/admin/lib/access'
 
 interface AdminSidebarProps {
   className?: string
@@ -16,16 +18,31 @@ interface AdminSidebarProps {
 }
 
 const links = [
-  { path: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true, soon: false },
-  { path: '/admin/users', label: 'Utilizadores', icon: Users, exact: false, soon: false },
-  { path: '/admin/conteudo', label: 'Moderacao', icon: ShieldCheck, exact: false, soon: false },
-  { path: '/admin/suporte', label: 'Suporte', icon: LifeBuoy, exact: false, soon: false },
-  { path: '/admin/recursos', label: 'Recursos', icon: Layers, exact: false, soon: true },
-  { path: '/admin/stats', label: 'Estatisticas', icon: BarChart3, exact: false, soon: false },
+  { key: 'dashboard' as AdminModuleKey, icon: LayoutDashboard, exact: true },
+  { key: 'users' as AdminModuleKey, icon: Users, exact: false },
+  { key: 'content' as AdminModuleKey, icon: ShieldCheck, exact: false },
+  { key: 'support' as AdminModuleKey, icon: LifeBuoy, exact: false },
+  { key: 'brands' as AdminModuleKey, icon: Layers, exact: false },
+  { key: 'stats' as AdminModuleKey, icon: BarChart3, exact: false },
 ]
 
 export default function AdminSidebar({ className, onNavigate }: AdminSidebarProps) {
   const location = useLocation()
+  const user = useAuthStore((state) => state.user)
+
+  const visibleLinks = getAccessibleAdminModules(user)
+    .map((moduleConfig) => {
+      const iconMeta = links.find((item) => item.key === moduleConfig.key)
+      if (!iconMeta) return null
+      return {
+        path: moduleConfig.path,
+        label: moduleConfig.label,
+        icon: iconMeta.icon,
+        exact: iconMeta.exact,
+        operational: moduleConfig.operational,
+      }
+    })
+    .filter((item): item is NonNullable<typeof item> => Boolean(item))
 
   return (
     <aside className={cn('h-full w-72 border-r border-border bg-card', className)}>
@@ -37,6 +54,11 @@ export default function AdminSidebar({ className, onNavigate }: AdminSidebarProp
           <div>
             <p className="text-sm font-bold leading-none text-foreground">FinHub Admin</p>
             <p className="mt-0.5 text-xs text-muted-foreground">Painel de controlo</p>
+            {user?.adminReadOnly ? (
+              <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
+                Modo read-only
+              </p>
+            ) : null}
           </div>
         </div>
       </div>
@@ -46,7 +68,7 @@ export default function AdminSidebar({ className, onNavigate }: AdminSidebarProp
           Navegacao
         </p>
         <div className="space-y-0.5">
-          {links.map((link) => {
+          {visibleLinks.map((link) => {
             const isActive = link.exact
               ? location.pathname === link.path
               : location.pathname.startsWith(link.path)
@@ -70,7 +92,7 @@ export default function AdminSidebar({ className, onNavigate }: AdminSidebarProp
                   )}
                 />
                 <span className="flex-1 truncate">{link.label}</span>
-                {link.soon && (
+                {!link.operational && (
                   <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                     Em breve
                   </span>
@@ -78,6 +100,11 @@ export default function AdminSidebar({ className, onNavigate }: AdminSidebarProp
               </Link>
             )
           })}
+          {visibleLinks.length === 0 ? (
+            <p className="rounded-md border border-dashed border-border/70 px-3 py-2 text-xs text-muted-foreground">
+              Sem modulos visiveis para os escopos atuais.
+            </p>
+          ) : null}
         </div>
       </nav>
     </aside>

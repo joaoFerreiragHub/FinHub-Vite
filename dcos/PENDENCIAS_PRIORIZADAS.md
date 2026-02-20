@@ -1,6 +1,6 @@
 # Pendencias Priorizadas
 
-Data da consolidacao: 2026-02-20 (revisto apos fecho de P2.4 e hardening do REIT toolkit).
+Data da consolidacao: 2026-02-20 (revisto apos fecho de P2.5 e hardening do REIT toolkit).
 
 ## Prioridade 0 - Fechada (2026-02-18)
 1. P0.1 contratos social frontend x backend fechados.
@@ -200,6 +200,20 @@ Data da consolidacao: 2026-02-20 (revisto apos fecho de P2.4 e hardening do REIT
 - Navegacao por permissoes (mostrar/esconder modulos conforme role admin).
 - Guardrails de UX para acoes destrutivas (confirmacao dupla, resumo do impacto).
 - Gate de aceite: admin consegue operar o fluxo diario completo num unico painel.
+- Estado atual: FECHADO (frontend + validacao em 2026-02-20).
+  - Entregue:
+    - `/admin` convertido em painel unificado com tabs operacionais (visao, users, conteudo, suporte, metricas e recursos quando permitido).
+    - `AdminSidebar` com navegacao por escopos reais (`adminScopes`) e indicacao de read-only.
+    - camada unificada de acesso em `src/features/admin/lib/access.ts`.
+    - wrappers de pagina admin alinhados ao painel (inclui `/admin/suporte` em Vike).
+  - Guardrails UX aplicados em acoes destrutivas:
+    - users: `suspend`, `ban`, `force-logout`.
+    - conteudo: `hide`, `restrict`.
+    - suporte: `revoke`.
+    - em todos os casos: resumo de impacto + confirmacao dupla (`CONFIRMAR`).
+  - Validacao do ciclo:
+    - backend `typecheck + build + contract:openapi` -> PASS.
+    - frontend `lint + test + build + test:e2e` -> PASS (lint com warnings nao bloqueantes conhecidos).
 
 6. P2.6 Hardening operacional admin.
 - Suite E2E admin (positivo/negativo) para permissao, moderacao, sancao e sessao assistida.
@@ -246,6 +260,5 @@ Data da consolidacao: 2026-02-20 (revisto apos fecho de P2.4 e hardening do REIT
 2. `FinHub-Vite` em `master`: verde.
 
 ## Sequencia pragmatica sugerida
-1. Avancar para P2.5 (painel admin unificado do MVP).
-2. Fechar P2.6 (hardening operacional admin).
-3. So depois entrar em Prioridade 3 (livros, ferramentas, brokers/websites e restantes frentes).
+1. Fechar P2.6 (hardening operacional admin).
+2. So depois entrar em Prioridade 3 (livros, ferramentas, brokers/websites e restantes frentes).

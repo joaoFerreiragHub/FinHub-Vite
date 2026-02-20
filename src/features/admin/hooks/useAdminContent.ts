@@ -12,10 +12,18 @@ interface AdminContentMutationInput {
   payload: AdminContentModerationActionPayload
 }
 
-export function useAdminContentQueue(query: AdminContentQueueQuery) {
+interface AdminContentQueueOptions {
+  enabled?: boolean
+}
+
+export function useAdminContentQueue(
+  query: AdminContentQueueQuery,
+  options?: AdminContentQueueOptions,
+) {
   return useQuery({
     queryKey: ['admin', 'content', 'queue', query],
     queryFn: () => adminContentService.listQueue(query),
+    enabled: options?.enabled ?? true,
   })
 }
 

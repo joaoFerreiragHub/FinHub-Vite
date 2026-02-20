@@ -91,7 +91,11 @@ function KpiCard({ title, value, description, icon: Icon, tone = 'default' }: Kp
   )
 }
 
-export default function StatsPage() {
+interface StatsPageProps {
+  embedded?: boolean
+}
+
+export default function StatsPage({ embedded = false }: StatsPageProps) {
   const metricsQuery = useAdminMetricsOverview()
   const metrics = metricsQuery.data
 
@@ -122,7 +126,11 @@ export default function StatsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Estatisticas e metricas</h1>
+          {embedded ? (
+            <h2 className="text-xl font-semibold tracking-tight">Estatisticas e metricas</h2>
+          ) : (
+            <h1 className="text-2xl font-semibold tracking-tight">Estatisticas e metricas</h1>
+          )}
           <p className="text-sm text-muted-foreground">
             Visao consolidada de utilizacao, moderacao e operacao admin.
           </p>
