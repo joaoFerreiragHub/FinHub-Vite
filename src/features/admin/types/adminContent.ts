@@ -1,6 +1,14 @@
 import type { AdminActorSummary, AdminPagination } from './adminUsers'
 
-export type AdminContentType = 'article' | 'video' | 'course' | 'live' | 'podcast' | 'book'
+export type AdminContentType =
+  | 'article'
+  | 'video'
+  | 'course'
+  | 'live'
+  | 'podcast'
+  | 'book'
+  | 'comment'
+  | 'review'
 export type AdminContentModerationStatus = 'visible' | 'hidden' | 'restricted'
 export type AdminContentPublishStatus = 'draft' | 'published' | 'archived'
 export type AdminContentModerationAction = 'hide' | 'unhide' | 'restrict'

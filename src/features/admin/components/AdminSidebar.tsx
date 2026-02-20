@@ -1,5 +1,13 @@
 import { Link, useLocation } from 'react-router-dom'
-import { BarChart3, LayoutDashboard, ShieldCheck, Users, Layers, Shield } from 'lucide-react'
+import {
+  BarChart3,
+  LayoutDashboard,
+  ShieldCheck,
+  Users,
+  Layers,
+  Shield,
+  LifeBuoy,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface AdminSidebarProps {
@@ -11,6 +19,7 @@ const links = [
   { path: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true, soon: false },
   { path: '/admin/users', label: 'Utilizadores', icon: Users, exact: false, soon: false },
   { path: '/admin/conteudo', label: 'Moderação', icon: ShieldCheck, exact: false, soon: false },
+  { path: '/admin/suporte', label: 'Suporte', icon: LifeBuoy, exact: false, soon: false },
   { path: '/admin/recursos', label: 'Recursos', icon: Layers, exact: false, soon: true },
   { path: '/admin/stats', label: 'Estatísticas', icon: BarChart3, exact: false, soon: true },
 ]

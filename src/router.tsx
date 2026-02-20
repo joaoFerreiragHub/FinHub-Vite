@@ -93,6 +93,7 @@ import UsersManagementPage from '@/features/admin/pages/UsersManagementPage'
 import ContentModerationPage from '@/features/admin/pages/ContentModerationPage'
 import BrandsManagementPage from '@/features/admin/pages/BrandsManagementPage'
 import StatsPage from '@/features/admin/pages/StatsPage'
+import AssistedSessionsPage from '@/features/admin/pages/AssistedSessionsPage'
 
 // Static pages
 import AboutPage from '@/pages/AboutPage'
@@ -458,6 +459,10 @@ const router = createBrowserRouter([
       {
         path: 'conteudo',
         element: <ContentModerationPage />,
+      },
+      {
+        path: 'suporte',
+        element: <AssistedSessionsPage />,
       },
       {
         path: 'recursos',

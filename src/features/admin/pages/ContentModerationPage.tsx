@@ -84,6 +84,8 @@ const CONTENT_TYPE_LABEL: Record<AdminContentType, string> = {
   live: 'Live',
   podcast: 'Podcast',
   book: 'Livro',
+  comment: 'Comentario',
+  review: 'Review',
 }
 
 const MODERATION_STATUS_LABEL: Record<AdminContentModerationStatus, string> = {
@@ -300,8 +302,8 @@ export default function ContentModerationPage() {
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">Moderacao de conteudo</h1>
         <p className="text-sm text-muted-foreground">
-          Fila unificada para artigos, videos, cursos, lives, podcasts e livros com trilha auditavel
-          de hide/unhide/restrict.
+          Fila unificada para conteudos, comentarios e reviews com trilha auditavel de
+          hide/unhide/restrict.
         </p>
       </div>
 
@@ -412,6 +414,8 @@ export default function ContentModerationPage() {
                 <SelectItem value="live">Lives</SelectItem>
                 <SelectItem value="podcast">Podcasts</SelectItem>
                 <SelectItem value="book">Livros</SelectItem>
+                <SelectItem value="comment">Comentarios</SelectItem>
+                <SelectItem value="review">Reviews</SelectItem>
               </SelectContent>
             </Select>
           </div>

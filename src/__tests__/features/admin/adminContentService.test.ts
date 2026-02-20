@@ -78,6 +78,73 @@ describe('adminContentService', () => {
     })
   })
 
+  it('maps comment and review queue items from backend', async () => {
+    mockedApiClient.get.mockResolvedValueOnce({
+      data: {
+        items: [
+          {
+            id: 'comment-1',
+            contentType: 'comment',
+            title: 'Comentario ofensivo',
+            slug: 'comment-1',
+            description: 'Comentario em article:abc',
+            category: 'article',
+            status: 'published',
+            moderationStatus: 'hidden',
+            moderationReason: 'Abuso',
+            moderationNote: null,
+            moderatedAt: '2026-02-20T11:00:00.000Z',
+            creator: { id: 'user-1', name: 'User 1', role: 'free' },
+            moderatedBy: { id: 'admin-1', name: 'Admin', role: 'admin' },
+            createdAt: '2026-02-20T10:00:00.000Z',
+            updatedAt: '2026-02-20T11:00:00.000Z',
+          },
+          {
+            id: 'review-1',
+            contentType: 'review',
+            title: 'Review 1/5',
+            slug: 'review-1',
+            description: 'Spam',
+            category: 'course',
+            status: 'published',
+            moderationStatus: 'restricted',
+            moderationReason: 'Spam',
+            moderationNote: null,
+            moderatedAt: null,
+            creator: { id: 'user-2', name: 'User 2', role: 'premium' },
+            moderatedBy: null,
+            createdAt: '2026-02-20T09:00:00.000Z',
+            updatedAt: '2026-02-20T09:00:00.000Z',
+          },
+        ],
+        pagination: {
+          page: 1,
+          limit: 20,
+          total: 2,
+          pages: 1,
+        },
+      },
+    })
+
+    const result = await adminContentService.listQueue({
+      contentType: 'comment',
+      page: 1,
+      limit: 20,
+    })
+
+    expect(result.items).toHaveLength(2)
+    expect(result.items[0]).toMatchObject({
+      id: 'comment-1',
+      contentType: 'comment',
+      moderationStatus: 'hidden',
+    })
+    expect(result.items[1]).toMatchObject({
+      id: 'review-1',
+      contentType: 'review',
+      moderationStatus: 'restricted',
+    })
+  })
+
   it('maps content moderation history records', async () => {
     mockedApiClient.get.mockResolvedValueOnce({
       data: {

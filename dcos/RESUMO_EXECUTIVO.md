@@ -12,7 +12,7 @@ Escopo: pasta `dcos`
 2. Frontend
 - `FinHub-Vite` -> `npm run typecheck:p1` PASS.
 - `FinHub-Vite` -> `npm run build` PASS.
-- `FinHub-Vite` -> `npm run test -- --runInBand` PASS (13 suites, 115 testes).
+- `FinHub-Vite` -> `npm run test -- --runInBand` PASS (14 suites, 119 testes).
 - `FinHub-Vite` -> `npm run test:e2e` PASS (Playwright smoke, 3 testes).
 - `FinHub-Vite` -> `yarn lint` PASS (warnings nao bloqueantes existentes).
 
@@ -53,13 +53,18 @@ Escopo: pasta `dcos`
 - P2.1 oficialmente FECHADO apos confirmacao remota do commit `99a03f9`:
   - check run `build` (id `64226562508`) com conclusao `success`.
   - workflow run `22204921602` concluido em `2026-02-19T23:45:53Z`.
-- P2.2 moderacao de conteudo entregue (backend + frontend):
-  - backend com estados de moderacao no `BaseContent`, fila/admin actions `hide|unhide|restrict` e historico dedicado por conteudo.
-  - frontend `/admin/conteudo` operacional com filtros, fila, dialogos de acao e historico por item.
+- P2.2 moderacao de conteudo FECHADO (backend + frontend):
+  - backend com estados de moderacao no `BaseContent`, `Comment` e `Rating`, fila/admin actions `hide|unhide|restrict` e historico dedicado por item.
+  - frontend `/admin/conteudo` operacional com filtros, fila, dialogos de acao e historico para conteudos, comentarios e reviews.
   - novo teste unitario `adminContentService`.
   - ciclo de validacao completo executado e verde (lint/test/build/e2e no frontend + typecheck/build/contract no backend).
+- P2.3 acesso assistido com consentimento FECHADO (backend + frontend):
+  - backend com sessao delegada temporaria (`read_only`), consentimento explicito, expiracao curta, revogacao imediata e auditoria detalhada por request.
+  - novos endpoints admin (`/api/admin/support/sessions*`) e auth (`/api/auth/assisted-sessions*`) para request/consent/start/revoke/history.
+  - frontend com modulo `/admin/suporte`, centro de consentimento em `/conta` e banner permanente durante sessao assistida.
+  - novo teste unitario `adminAssistedSessionsService`.
 - Acesso admin estabilizado no frontend:
-  - rotas ativas: `/admin`, `/admin/users`, `/admin/conteudo`, `/admin/recursos`, `/admin/stats`.
+  - rotas ativas: `/admin`, `/admin/users`, `/admin/conteudo`, `/admin/suporte`, `/admin/recursos`, `/admin/stats`.
   - header ajustado para conta admin abrir `/admin` (evita falso erro em `/perfil`).
 
 4. CI remoto (GitHub Actions)
@@ -75,5 +80,4 @@ Escopo: pasta `dcos`
 - Warnings de build em mocks legados e avisos de deprecacao de plugin.
 - Divida tecnica fora de escopo imediato: tipagem global de modulos legados para eventual retorno do gate full `tsc -b`.
 - Expansao de E2E para full business flows continua recomendada como reforco de qualidade (atualmente existe smoke).
-- Remanescente de P2.2 para fecho total: comentarios/reviews na fila de moderacao e decisao final sobre evolucao de estados (`pending|approved|rejected` vs manter `visible|hidden|restricted`).
-- Proximos blocos de P2 apos fecho de P2.2: P2.3 acesso assistido, P2.4 metricas, P2.5 painel unificado e P2.6 hardening.
+- Proximos blocos de P2 apos fecho de P2.3: P2.4 metricas, P2.5 painel unificado e P2.6 hardening.

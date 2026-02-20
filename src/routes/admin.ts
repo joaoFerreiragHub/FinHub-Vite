@@ -1,5 +1,5 @@
 import { UserRole } from '@/features/auth/types'
-import { BarChart3, LayoutDashboard, Layers, ShieldCheck, Users } from 'lucide-react'
+import { BarChart3, LayoutDashboard, Layers, ShieldCheck, Users, LifeBuoy } from 'lucide-react'
 
 export const adminRoutes = [
   {
@@ -18,6 +18,12 @@ export const adminRoutes = [
     path: '/admin/conteudo',
     label: 'Moderacao',
     icon: ShieldCheck,
+    allowedRoles: ['admin'] as UserRole[],
+  },
+  {
+    path: '/admin/suporte',
+    label: 'Suporte assistido',
+    icon: LifeBuoy,
     allowedRoles: ['admin'] as UserRole[],
   },
   {

@@ -1,6 +1,6 @@
 # Pendencias Priorizadas
 
-Data da consolidacao: 2026-02-20 (revisto apos entrega de P2.2 moderacao de conteudo).
+Data da consolidacao: 2026-02-20 (revisto apos entrega de P2.3 acesso assistido).
 
 ## Prioridade 0 - Fechada (2026-02-18)
 1. P0.1 contratos social frontend x backend fechados.
@@ -130,13 +130,13 @@ Data da consolidacao: 2026-02-20 (revisto apos entrega de P2.2 moderacao de cont
     - run `22204921602`, check run `64226562508`.
 
 2. P2.2 Moderacao de conteudo.
-- Fila de moderacao unificada (fase 1 entregue para artigos, cursos, videos, lives, podcasts e books).
+- Fila de moderacao unificada (artigos, cursos, videos, lives, podcasts, books, comentarios e reviews).
 - Acoes de ocultar/desocultar/restringir com motivo padronizado.
-- Estados em producao nesta fase: `visible`, `hidden`, `restricted` com historico.
+- Estados em producao: `visible`, `hidden`, `restricted` com historico.
 - Gate de aceite: conteudo problematico pode ser removido da visibilidade em minutos, com rasto completo.
-- Estado atual: EM CURSO (fase 1 backend+frontend entregue em 2026-02-20).
+- Estado atual: FECHADO (backend + frontend + validacao em 2026-02-20).
   - Backend entregue:
-    - estados `visible|hidden|restricted` no modelo base de conteudo.
+    - estados `visible|hidden|restricted` no modelo base de conteudo, comments e reviews.
     - fila admin unificada `GET /api/admin/content/queue`.
     - acoes admin com motivo obrigatorio:
       - `POST /api/admin/content/:contentType/:contentId/hide`
@@ -145,24 +145,35 @@ Data da consolidacao: 2026-02-20 (revisto apos entrega de P2.2 moderacao de cont
     - historico por item:
       - `GET /api/admin/content/:contentType/:contentId/history`
     - trilha dedicada `ContentModerationEvent` + auditoria admin por middleware.
-    - enforcement publico aplicado (itens `hidden/restricted` fora de listagens/slug).
+    - enforcement publico aplicado (itens `hidden/restricted` fora de listagens/slug e fora de comments/reviews publicos).
   - Frontend entregue:
-    - `/admin/conteudo` operacional com filtros, fila, dialogos de acao e historico.
+    - `/admin/conteudo` operacional com filtros, fila, dialogos de acao e historico para conteudos, comentarios e reviews.
     - camada dedicada (`types/service/hooks`) para admin content moderation.
     - teste unitario novo para `adminContentService`.
   - Validacao do ciclo:
     - backend `typecheck + build + contract:openapi` -> PASS.
     - frontend `lint + test + build + test:e2e` -> PASS.
-  - Remanescente para fecho total de P2.2:
-    - estender a fila/admin actions para comentarios/reviews.
-    - decidir (produto + backend) se evolui para maquina de estados `pending|approved|rejected` ou se mantem `visible|hidden|restricted`.
-    - acrescentar cenarios E2E admin especificos de moderacao (positivo/negativo).
 
 3. P2.3 Acesso assistido a conta com consentimento explicito.
 - Sessao delegada temporaria (nao "impersonation" livre) com escopo minimo.
 - Consentimento explicito do user, expiracao curta, revogacao imediata e notificacao ao utilizador.
 - Banner permanente durante sessao assistida e log detalhado de todas as acoes.
 - Gate de aceite: sem consentimento valido nao existe acesso assistido.
+- Estado atual: FECHADO (backend + frontend + validacao em 2026-02-20).
+  - Backend entregue:
+    - modelos: `AssistedSession` + `AssistedSessionAuditLog`.
+    - endpoints admin: `/api/admin/support/sessions` (+ `request`, `start`, `revoke`, `history`).
+    - endpoints auth: `/api/auth/assisted-sessions` (+ `pending`, `active`, `consent`, `revoke`).
+    - JWT com claim `assistedSession`, expiracao curta e enforce de escopo `read_only`.
+    - auditoria detalhada por request em sessao assistida.
+  - Frontend entregue:
+    - modulo admin em `/admin/suporte`.
+    - centro de consentimento/revogacao em `/conta`.
+    - banner permanente durante sessao assistida.
+    - teste unitario novo para `adminAssistedSessionsService`.
+  - Validacao do ciclo:
+    - backend `typecheck + build + contract:openapi` -> PASS.
+    - frontend `lint + test + build + test:e2e` -> PASS.
 
 4. P2.4 Metricas e observabilidade admin.
 - Dashboard de utilizacao (DAU/WAU/MAU, engagement, retencao, funnel, conteudo e social).
@@ -220,8 +231,6 @@ Data da consolidacao: 2026-02-20 (revisto apos entrega de P2.2 moderacao de cont
 
 ## Sequencia pragmatica sugerida
 1. Iniciar P2.0 (fundacao de seguranca e governanca) como bloqueante.
-2. Fechar remanescentes de P2.2 (comentarios/reviews + decisao final de estados de governanca).
-3. Fechar P2.3 (acesso assistido com consentimento).
-4. Fechar P2.4 e P2.5 (metricas + painel unificado).
-5. Fechar P2.6 (hardening operacional admin).
-6. So depois entrar em Prioridade 3 (livros, ferramentas, brokers/websites e restantes frentes).
+2. Avancar para P2.4 e P2.5 (metricas + painel unificado).
+3. Fechar P2.6 (hardening operacional admin).
+4. So depois entrar em Prioridade 3 (livros, ferramentas, brokers/websites e restantes frentes).

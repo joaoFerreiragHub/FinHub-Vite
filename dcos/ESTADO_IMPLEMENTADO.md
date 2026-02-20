@@ -1,6 +1,6 @@
 # Estado Implementado
 
-Data de referencia: 2026-02-20 (atualizado apos fecho de P2.2 moderacao de conteudo).
+Data de referencia: 2026-02-20 (atualizado apos entrega de P2.3 acesso assistido com consentimento).
 
 ## 1) Foundation e arquitetura
 - Estrutura feature-based e separacao por modulos.
@@ -387,7 +387,7 @@ Data de referencia: 2026-02-20 (atualizado apos fecho de P2.2 moderacao de conte
     - `npm run contract:openapi` -> PASS
   - frontend:
     - `yarn lint` -> PASS (warnings nao bloqueantes existentes)
-    - `yarn test --runInBand` -> PASS (13 suites, 115 testes)
+    - `yarn test --runInBand` -> PASS (13 suites, 116 testes)
     - `yarn build` -> PASS
     - `yarn test:e2e` -> PASS (3/3 smoke)
 
@@ -445,6 +445,85 @@ Data de referencia: 2026-02-20 (atualizado apos fecho de P2.2 moderacao de conte
   - apos promover um user para admin no backend, fazer logout/login para renovar token e claims de role/scopes no frontend.
 - Revalidacao frontend apos estes ajustes:
   - `yarn lint` -> PASS (warnings nao bloqueantes existentes)
-  - `yarn test --runInBand` -> PASS (13 suites, 115 testes)
+  - `yarn test --runInBand` -> PASS (13 suites, 116 testes)
   - `yarn build` -> PASS
   - `yarn test:e2e` -> PASS (3/3 smoke)
+
+## 27) P2.2 remanescente fechado - comentarios/reviews (2026-02-20)
+- Backend (`API_finhub`) expandido para moderacao de comentarios e reviews:
+  - `ContentModerationEvent` passa a aceitar `comment` e `review`.
+  - `Comment` e `Rating` passam a ter metadados de moderacao:
+    - `moderationStatus`, `moderationReason`, `moderationNote`, `moderatedBy`, `moderatedAt`.
+  - fila/admin actions existentes passam a operar tambem sobre:
+    - `contentType=comment`
+    - `contentType=review`
+  - enforcement publico aplicado:
+    - comments e reviews deixam de aparecer nas listagens/stats publicas quando `hidden` ou `restricted`.
+- Frontend (`FinHub-Vite`) alinhado ao novo escopo:
+  - tipos/admin service atualizados para suportar `comment` e `review`.
+  - pagina `/admin/conteudo` com filtros e labels para comentarios/reviews.
+  - teste unitario de `adminContentService` expandido para validar mapeamento desses tipos.
+- Validacao do ciclo apos fecho do remanescente:
+  - backend:
+    - `npm run typecheck` -> PASS
+    - `npm run build` -> PASS
+    - `npm run contract:openapi` -> PASS
+  - frontend:
+    - `yarn lint` -> PASS (warnings nao bloqueantes existentes)
+    - `yarn test --runInBand` -> PASS (13 suites, 116 testes)
+    - `yarn build` -> PASS
+    - `yarn test:e2e` -> PASS (3/3 smoke)
+
+## 28) P2.3 fechado - acesso assistido com consentimento (2026-02-20)
+- Backend (`API_finhub`) entregue com fluxo completo de sessao assistida:
+  - novo dominio/modelos:
+    - `src/models/AssistedSession.ts`
+    - `src/models/AssistedSessionAuditLog.ts`
+    - `src/services/assistedSession.service.ts`
+    - `src/services/assistedSessionAudit.service.ts`
+  - endpoints admin suporte:
+    - `GET /api/admin/support/sessions`
+    - `POST /api/admin/support/sessions/request`
+    - `POST /api/admin/support/sessions/:sessionId/start`
+    - `POST /api/admin/support/sessions/:sessionId/revoke`
+    - `GET /api/admin/support/sessions/:sessionId/history`
+  - endpoints de consentimento do utilizador:
+    - `GET /api/auth/assisted-sessions/pending`
+    - `GET /api/auth/assisted-sessions/active`
+    - `POST /api/auth/assisted-sessions/:sessionId/consent`
+    - `POST /api/auth/assisted-sessions/:sessionId/revoke`
+  - seguranca/governanca aplicada:
+    - claim de sessao assistida no JWT (`assistedSession`).
+    - validacao de claim + expiracao em `authenticate`/`refresh`.
+    - escopo minimo enforce (`read_only`: bloqueio de writes durante sessao assistida).
+    - auditoria detalhada por request em modo assistido.
+    - notificacao ao utilizador/admin em request/consentimento/start/revogacao.
+- Frontend (`FinHub-Vite`) integrado com os novos contratos:
+  - modulo admin suporte:
+    - pagina `/admin/suporte` (`src/features/admin/pages/AssistedSessionsPage.tsx`)
+    - services/hooks/tipos dedicados:
+      - `src/features/admin/services/adminAssistedSessionsService.ts`
+      - `src/features/admin/hooks/useAdminAssistedSessions.ts`
+      - `src/features/admin/types/assistedSessions.ts`
+    - runtime de backup/restauro da sessao admin:
+      - `src/features/admin/services/assistedSessionRuntime.ts`
+  - consentimento do utilizador:
+    - `src/features/user/pages/UserSettingsPage.tsx` deixou de placeholder e passou a centro de consentimento/revogacao.
+    - `src/features/auth/services/assistedSessionService.ts`.
+  - banner permanente durante sessao assistida:
+    - `src/features/admin/components/AssistedSessionBanner.tsx`
+    - integrado em `MainLayout`, `AdminLayout` e `DashboardLayout`.
+  - navegacao admin atualizada:
+    - nova rota `'/admin/suporte'` em `router.tsx`, `routes/admin.ts` e sidebar admin.
+  - novo teste unitario:
+    - `src/__tests__/features/admin/adminAssistedSessionsService.test.ts`.
+- Validacao tecnica do ciclo P2.3:
+  - backend:
+    - `npm run typecheck` -> PASS
+    - `npm run build` -> PASS
+    - `npm run contract:openapi` -> PASS
+  - frontend:
+    - `yarn lint` -> PASS (warnings nao bloqueantes existentes)
+    - `yarn test --runInBand` -> PASS (14 suites, 119 testes)
+    - `yarn build` -> PASS
+    - `yarn test:e2e` -> PASS (3/3 smoke)

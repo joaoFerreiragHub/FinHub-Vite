@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import AdminSidebar from '../components/AdminSidebar'
 import Header from '@/components/layout/Header'
+import AssistedSessionBanner from '../components/AssistedSessionBanner'
 import { cn } from '@/lib/utils'
 
 /**
@@ -22,6 +23,7 @@ export default function AdminLayout() {
         onSidebarToggle={() => setMobileOpen((prev) => !prev)}
         sidebarToggleLabel="Abrir menu de administracao"
       />
+      <AssistedSessionBanner />
 
       <div className="mx-auto flex w-full max-w-[1600px]">
         <AdminSidebar className="sticky top-16 hidden h-[calc(100vh-4rem)] lg:block" />

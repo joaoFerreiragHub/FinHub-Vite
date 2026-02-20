@@ -46,6 +46,7 @@ const DEV_MOCK_TOKENS = {
 }
 
 const DEV_ROLE_STORAGE_KEY = 'auth-dev-role'
+const ASSISTED_BACKUP_STORAGE_KEY = 'assisted-session-admin-backup'
 
 const isValidRole = (role: unknown): role is UserRole => {
   return typeof role === 'string' && Object.values(UserRole).includes(role as UserRole)
@@ -158,6 +159,9 @@ export const useAuthStore = create<AuthStore>()(
         }
 
         // Limpar state local
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem(ASSISTED_BACKUP_STORAGE_KEY)
+        }
         set({
           user: null,
           accessToken: null,
@@ -209,6 +213,9 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       clearAuth: () => {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem(ASSISTED_BACKUP_STORAGE_KEY)
+        }
         set({
           user: null,
           accessToken: null,

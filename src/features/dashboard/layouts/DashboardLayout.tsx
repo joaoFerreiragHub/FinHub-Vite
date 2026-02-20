@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import DashboardSidebar from '../components/DashboardSidebar'
 import Header from '@/components/layout/Header'
+import AssistedSessionBanner from '@/features/admin/components/AssistedSessionBanner'
 import { cn } from '@/lib/utils'
 
 /**
@@ -22,6 +23,7 @@ export default function DashboardLayout() {
         onSidebarToggle={() => setMobileOpen((prev) => !prev)}
         sidebarToggleLabel="Abrir menu do dashboard"
       />
+      <AssistedSessionBanner />
 
       <div className="mx-auto flex w-full max-w-[1600px]">
         <DashboardSidebar className="sticky top-16 hidden h-[calc(100vh-4rem)] lg:block" />

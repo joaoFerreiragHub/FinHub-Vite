@@ -97,6 +97,8 @@ const toContentType = (value: string | undefined): AdminContentType | null => {
   if (value === 'live') return 'live'
   if (value === 'podcast') return 'podcast'
   if (value === 'book') return 'book'
+  if (value === 'comment') return 'comment'
+  if (value === 'review') return 'review'
   return null
 }
 
