@@ -1,6 +1,6 @@
 # Pendencias Priorizadas
 
-Data da consolidacao: 2026-02-19 (revisto apos fecho de P1.3 frontend).
+Data da consolidacao: 2026-02-20 (revisto apos entrega de P2.2 moderacao de conteudo).
 
 ## Prioridade 0 - Fechada (2026-02-18)
 1. P0.1 contratos social frontend x backend fechados.
@@ -96,7 +96,7 @@ Data da consolidacao: 2026-02-19 (revisto apos fecho de P1.3 frontend).
 - Suspender, banir, desbanir e forcar logout global.
 - Historico de sancoes e anotacoes internas por utilizador.
 - Gate de aceite: ciclo completo "encontrar user -> agir -> auditar" funcional.
-- Estado atual: EM CURSO (backend + frontend operacional entregues em 2026-02-19).
+- Estado atual: FECHADO (backend + frontend + validacao + confirmacao de Actions em 2026-02-20).
   - API backend entregue:
     - `GET /api/admin/users` (filtros por `search`, `role`, `accountStatus`, `adminReadOnly`, `activeSinceDays`).
     - `POST /api/admin/users/:userId/suspend`
@@ -125,12 +125,38 @@ Data da consolidacao: 2026-02-19 (revisto apos fecho de P1.3 frontend).
       - `yarn test --runInBand` -> PASS (12 suites, 112 testes).
       - `yarn build` -> PASS.
       - `yarn test:e2e` -> PASS (3/3 smoke).
+  - Confirmacao remota de fecho (GitHub Actions):
+    - commit `99a03f9` validado com `build` remoto `success`.
+    - run `22204921602`, check run `64226562508`.
 
 2. P2.2 Moderacao de conteudo.
-- Fila de moderacao unificada (artigos, cursos, videos, lives, podcasts, books, comentarios/reviews).
+- Fila de moderacao unificada (fase 1 entregue para artigos, cursos, videos, lives, podcasts e books).
 - Acoes de ocultar/desocultar/restringir com motivo padronizado.
-- Estados de moderacao (`pending`, `approved`, `rejected`, `hidden`) com historico.
+- Estados em producao nesta fase: `visible`, `hidden`, `restricted` com historico.
 - Gate de aceite: conteudo problematico pode ser removido da visibilidade em minutos, com rasto completo.
+- Estado atual: EM CURSO (fase 1 backend+frontend entregue em 2026-02-20).
+  - Backend entregue:
+    - estados `visible|hidden|restricted` no modelo base de conteudo.
+    - fila admin unificada `GET /api/admin/content/queue`.
+    - acoes admin com motivo obrigatorio:
+      - `POST /api/admin/content/:contentType/:contentId/hide`
+      - `POST /api/admin/content/:contentType/:contentId/unhide`
+      - `POST /api/admin/content/:contentType/:contentId/restrict`
+    - historico por item:
+      - `GET /api/admin/content/:contentType/:contentId/history`
+    - trilha dedicada `ContentModerationEvent` + auditoria admin por middleware.
+    - enforcement publico aplicado (itens `hidden/restricted` fora de listagens/slug).
+  - Frontend entregue:
+    - `/admin/conteudo` operacional com filtros, fila, dialogos de acao e historico.
+    - camada dedicada (`types/service/hooks`) para admin content moderation.
+    - teste unitario novo para `adminContentService`.
+  - Validacao do ciclo:
+    - backend `typecheck + build + contract:openapi` -> PASS.
+    - frontend `lint + test + build + test:e2e` -> PASS.
+  - Remanescente para fecho total de P2.2:
+    - estender a fila/admin actions para comentarios/reviews.
+    - decidir (produto + backend) se evolui para maquina de estados `pending|approved|rejected` ou se mantem `visible|hidden|restricted`.
+    - acrescentar cenarios E2E admin especificos de moderacao (positivo/negativo).
 
 3. P2.3 Acesso assistido a conta com consentimento explicito.
 - Sessao delegada temporaria (nao "impersonation" livre) com escopo minimo.
@@ -194,6 +220,8 @@ Data da consolidacao: 2026-02-19 (revisto apos fecho de P1.3 frontend).
 
 ## Sequencia pragmatica sugerida
 1. Iniciar P2.0 (fundacao de seguranca e governanca) como bloqueante.
-2. Fechar P2.1 e P2.2 (users + moderacao), depois P2.3 (acesso assistido com consentimento).
-3. Fechar P2.4 e P2.5 (metricas + painel unificado), seguido de P2.6 (hardening).
-4. So depois entrar em Prioridade 3 (livros, ferramentas, brokers/websites e restantes frentes).
+2. Fechar remanescentes de P2.2 (comentarios/reviews + decisao final de estados de governanca).
+3. Fechar P2.3 (acesso assistido com consentimento).
+4. Fechar P2.4 e P2.5 (metricas + painel unificado).
+5. Fechar P2.6 (hardening operacional admin).
+6. So depois entrar em Prioridade 3 (livros, ferramentas, brokers/websites e restantes frentes).

@@ -1,5 +1,8 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { ProtectedRoute } from '@/shared/guards'
+import { useAdminUsers } from '@/features/admin/hooks/useAdminUsers'
+import { useAdminContentQueue } from '@/features/admin/hooks/useAdminContent'
+import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import {
   Users,
   ShieldCheck,
@@ -15,9 +18,6 @@ import {
   Shield,
   Calendar,
 } from 'lucide-react'
-import { useAdminUsers } from '../hooks/useAdminUsers'
-import { useAdminContentQueue } from '../hooks/useAdminContent'
-import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { cn } from '@/lib/utils'
 
 // ── Stat card ──────────────────────────────────────────────────────────────────
@@ -67,21 +67,21 @@ function StatCard({ label, value, icon: Icon, loading, highlight }: StatCardProp
   )
 }
 
-// ── Navigation card ────────────────────────────────────────────────────────────
+// ── Navigation card — uses <a> (SSR-safe, no Router context needed) ─────────────
 
 interface NavCardProps {
   title: string
   description: string
   icon: React.ElementType
-  to: string
+  href: string
   operational: boolean
   alertCount?: number
 }
 
-function NavCard({ title, description, icon: Icon, to, operational, alertCount }: NavCardProps) {
+function NavCard({ title, description, icon: Icon, href, operational, alertCount }: NavCardProps) {
   return (
-    <Link
-      to={to}
+    <a
+      href={href}
       className="group flex flex-col gap-4 rounded-xl border bg-card p-6 transition-all hover:border-primary/40 hover:shadow-md"
     >
       <div className="flex items-start justify-between gap-3">
@@ -117,16 +117,15 @@ function NavCard({ title, description, icon: Icon, to, operational, alertCount }
         Aceder ao módulo
         <ArrowRight className="h-3 w-3" />
       </div>
-    </Link>
+    </a>
   )
 }
 
-// ── Main page ──────────────────────────────────────────────────────────────────
+// ── Dashboard content ──────────────────────────────────────────────────────────
 
-export default function AdminDashboardPage() {
+function AdminDashboardContent() {
   const user = useAuthStore((s) => s.user)
 
-  // User stats — 3 lightweight queries (limit: 1 only fetches totals)
   const { data: allUsers, isLoading: loadingAll } = useAdminUsers({ limit: 1 })
   const { data: suspendedData, isLoading: loadingSuspended } = useAdminUsers({
     accountStatus: 'suspended',
@@ -137,7 +136,6 @@ export default function AdminDashboardPage() {
     limit: 1,
   })
 
-  // Content stats
   const { data: allContent, isLoading: loadingContent } = useAdminContentQueue({ limit: 1 })
   const { data: hiddenData, isLoading: loadingHidden } = useAdminContentQueue({
     moderationStatus: 'hidden',
@@ -261,7 +259,7 @@ export default function AdminDashboardPage() {
             title="Gestão de Utilizadores"
             description="Listar e pesquisar contas. Suspender, banir, forçar logout e registar anotações internas com histórico completo."
             icon={Users}
-            to="/admin/users"
+            href="/admin/users"
             operational
             alertCount={suspended + banned}
           />
@@ -269,7 +267,7 @@ export default function AdminDashboardPage() {
             title="Moderação de Conteúdo"
             description="Fila unificada de moderação. Ocultar, desbloquear e restringir artigos, vídeos, cursos, podcasts e livros."
             icon={ShieldCheck}
-            to="/admin/conteudo"
+            href="/admin/conteudo"
             operational
             alertCount={(hidden ?? 0) + (restricted ?? 0)}
           />
@@ -277,14 +275,14 @@ export default function AdminDashboardPage() {
             title="Recursos e Marcas"
             description="Gerir brokers, plataformas, exchanges, apps, sites e outros recursos disponíveis na plataforma."
             icon={Layers}
-            to="/admin/recursos"
+            href="/admin/recursos"
             operational={false}
           />
           <NavCard
             title="Estatísticas e Métricas"
             description="DAU/WAU/MAU, engagement, retenção, KPIs de moderação e métricas operacionais da plataforma."
             icon={BarChart3}
-            to="/admin/stats"
+            href="/admin/stats"
             operational={false}
           />
         </div>
@@ -307,4 +305,20 @@ export default function AdminDashboardPage() {
       </section>
     </div>
   )
+}
+
+// ── Vike page export ───────────────────────────────────────────────────────────
+
+function AdminIndexPage() {
+  return (
+    <ProtectedRoute allowedRoles={['admin']}>
+      <div className="mx-auto max-w-6xl p-6">
+        <AdminDashboardContent />
+      </div>
+    </ProtectedRoute>
+  )
+}
+
+export default {
+  Page: AdminIndexPage,
 }

@@ -230,7 +230,12 @@ apiClient.interceptors.response.use(
  */
 export function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
-    return error.response?.data?.message || error.message || 'Erro desconhecido'
+    const payload = error.response?.data as
+      | { message?: string; error?: string; details?: string }
+      | undefined
+    return (
+      payload?.error || payload?.message || payload?.details || error.message || 'Erro desconhecido'
+    )
   }
 
   if (error instanceof Error) {

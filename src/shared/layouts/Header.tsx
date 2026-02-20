@@ -7,6 +7,7 @@ export function Header() {
   const user = useAuthStore((state) => state.user)
   const role = useAuthStore((state) => state.getRole())
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const profileHref = role === 'admin' ? '/admin' : '/perfil'
 
   return (
     <header className="w-full px-6 py-3 border-b bg-background flex items-center justify-between gap-4">
@@ -37,7 +38,7 @@ export function Header() {
 
         {isAuthenticated && user && (
           <a
-            href="/perfil"
+            href={profileHref}
             className="flex items-center gap-2 rounded-md px-2 py-1 transition-colors hover:bg-accent"
           >
             {user.avatar ? (

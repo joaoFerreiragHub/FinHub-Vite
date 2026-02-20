@@ -1,6 +1,6 @@
 # Estado Implementado
 
-Data de referencia: 2026-02-19 (atualizado apos fecho de P1.3 frontend).
+Data de referencia: 2026-02-20 (atualizado apos fecho de P2.2 moderacao de conteudo).
 
 ## 1) Foundation e arquitetura
 - Estrutura feature-based e separacao por modulos.
@@ -339,6 +339,112 @@ Data de referencia: 2026-02-19 (atualizado apos fecho de P1.3 frontend).
     - `yarn build` -> PASS.
     - `yarn test:e2e` -> PASS (3/3 smoke).
 
-## 22) CI remoto (GitHub Actions) validado para os 2 repositorios (2026-02-19)
+## 22) Fecho oficial de P2.1 users (2026-02-20)
+- Confirmacao do commit de fecho frontend P2.1:
+  - SHA curto: `99a03f9`
+  - SHA completo: `99a03f985595ff0a5d320807eba982554dbdff43`
+  - mensagem: `feat(p2.1): deliver admin users frontend ops and ci docs update`
+- Confirmacao de GitHub Actions para esse commit:
+  - check run `build` id `64226562508`
+  - workflow run `22204921602`
+  - estado final: `completed` com conclusao `success`
+  - janela de execucao: `2026-02-19T23:44:04Z` ate `2026-02-19T23:45:53Z`
+
+## 23) P2.2 moderacao de conteudo - backend + frontend (2026-02-20)
+- Backend (`API_finhub`) entregue para moderacao administrativa de conteudo:
+  - extensao do modelo base de conteudo com estados/metadados de moderacao em `src/models/BaseContent.ts`:
+    - `moderationStatus: visible|hidden|restricted`
+    - `moderationReason`, `moderationNote`, `moderatedBy`, `moderatedAt`
+  - novo historico dedicado de moderacao de conteudo:
+    - `src/models/ContentModerationEvent.ts`
+  - novo dominio admin content:
+    - service `src/services/adminContent.service.ts`
+    - controller `src/controllers/adminContent.controller.ts`
+    - rotas integradas em `src/routes/admin.routes.ts`
+  - endpoints admin content disponiveis:
+    - `GET /api/admin/content/queue`
+    - `GET /api/admin/content/:contentType/:contentId/history`
+    - `POST /api/admin/content/:contentType/:contentId/hide`
+    - `POST /api/admin/content/:contentType/:contentId/unhide`
+    - `POST /api/admin/content/:contentType/:contentId/restrict`
+  - enforcement publico aplicado nos services de conteudo (`article/book/course/live/podcast/video`):
+    - conteudos `hidden` e `restricted` deixam de aparecer nas listagens publicas e no acesso por slug.
+- Frontend (`FinHub-Vite`) integrado com os novos contratos:
+  - pagina `/admin/conteudo` deixou de ser placeholder:
+    - `src/features/admin/pages/ContentModerationPage.tsx`
+  - camada de dominio dedicada:
+    - tipos `src/features/admin/types/adminContent.ts`
+    - service `src/features/admin/services/adminContentService.ts`
+    - hooks React Query `src/features/admin/hooks/useAdminContent.ts`
+  - teste unitario novo:
+    - `src/__tests__/features/admin/adminContentService.test.ts`
+  - melhoria de erro API global para payloads `error/message/details`:
+    - `src/lib/api/client.ts`
+- Validacao tecnica do ciclo P2.2:
+  - backend:
+    - `npm run typecheck` -> PASS
+    - `npm run build` -> PASS
+    - `npm run contract:openapi` -> PASS
+  - frontend:
+    - `yarn lint` -> PASS (warnings nao bloqueantes existentes)
+    - `yarn test --runInBand` -> PASS (13 suites, 115 testes)
+    - `yarn build` -> PASS
+    - `yarn test:e2e` -> PASS (3/3 smoke)
+
+## 24) CI remoto (GitHub Actions) validado para os 2 repositorios (2026-02-20)
 - `API_finhub` com workflow CI verde em `main`.
 - `FinHub-Vite` com workflow CI verde em `master`.
+
+## 25) Admin Dashboard operacional + sidebar melhorada (2026-02-20)
+- Dashboard `/admin` deixou de ser placeholder e passou a ecra operacional real.
+- Ficheiros alterados:
+  - `src/features/admin/pages/AdminDashboardPage.tsx` (reescrito de raiz)
+  - `src/features/admin/components/AdminSidebar.tsx` (melhorado visualmente)
+- Funcionalidades do dashboard:
+  - secao de utilizadores com 4 metricas reais via API:
+    - Total de utilizadores (`GET /api/admin/users?limit=1`)
+    - Activos (total - suspensos - banidos)
+    - Suspensos (`accountStatus: suspended`)
+    - Banidos (`accountStatus: banned`)
+  - secao de moderacao com 3 metricas reais via API:
+    - Fila total (`GET /api/admin/content/queue?limit=1`)
+    - Ocultos (`moderationStatus: hidden`)
+    - Restritos (`moderationStatus: restricted`)
+  - cards de navigacao para os 4 modulos admin com:
+    - estado operacional/em desenvolvimento por modulo
+    - contador de alertas activos (suspensos+banidos, ocultos+restritos)
+    - hover com seta de accao
+  - secao roadmap P2 com fases pendentes
+  - loading states com skeleton animado em todos os valores
+  - highlight visual condicional (amber para warn, red para danger) em metricas de risco
+- Melhorias no AdminSidebar:
+  - branding "FinHub Admin" com icone shield no topo
+  - label "Painel de controlo" como subtitulo
+  - secao "Navegacao" com etiqueta discreta
+  - badge "Em breve" nas rotas nao operacionais (Recursos, Estatisticas)
+  - activacao por prefixo de rota (startsWith) em vez de igualdade exacta
+- Correcao critica de SSR: pagina Vike `src/pages/admin/index.page.tsx` reescrita:
+  - causa do erro original: `PlaceholderPage` e `AdminDashboardPage` usavam `Link` de `react-router-dom` sem contexto de Router no SSR do Vike → `ReactDOMServer.renderToString` lancava `useHref() may be used only in the context of a Router` → Vike renderizava `_error.page.tsx` ("Ocorreu um erro 😢")
+  - solucao: pagina Vike agora auto-contem o dashboard com `<a href>` em vez de `Link`; hooks React Query e Zustand funcionam durante SSR (retornam estado inicial sem fetch)
+- Validacao tecnica:
+  - `npm run typecheck:p1` -> PASS
+  - `yarn build` -> PASS
+  - `yarn test --runInBand` -> PASS
+  - `yarn test:e2e` -> PASS (3/3 smoke)
+
+## 26) Acesso admin estabilizado (2026-02-20)
+- Rotas admin ativas e validadas via paginas Vike:
+  - `/admin`
+  - `/admin/users`
+  - `/admin/conteudo`
+  - `/admin/recursos`
+  - `/admin/stats`
+- Correcao de navegacao aplicada no header:
+  - para utilizador com role `admin`, avatar/perfil aponta para `/admin` (e nao para `/perfil`).
+- Nota operacional para evitar falso negativo de acesso:
+  - apos promover um user para admin no backend, fazer logout/login para renovar token e claims de role/scopes no frontend.
+- Revalidacao frontend apos estes ajustes:
+  - `yarn lint` -> PASS (warnings nao bloqueantes existentes)
+  - `yarn test --runInBand` -> PASS (13 suites, 115 testes)
+  - `yarn build` -> PASS
+  - `yarn test:e2e` -> PASS (3/3 smoke)

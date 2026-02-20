@@ -1,22 +1,20 @@
 # Resumo Executivo - Documentacao Consolidada
 
-Data da consolidacao: 2026-02-19
+Data da consolidacao: 2026-02-20
 Escopo: pasta `dcos`
 
 ## Estado atual validado
 1. Backend
-- `API_finhub` -> `npm run test:pre-p1` PASS (12 passos).
-- Smoke dedicado P1.1 PASS para:
-  - `POST /api/ratings/:id/reaction` (like/dislike/none + idempotencia)
-  - `GET /api/ratings/:id/reaction/my`
-  - `GET /api/ratings/:targetType/:targetId?sort=helpful`
-  - `GET /api/ratings/:targetType/:targetId/stats` com `reviews.withText/totalLikes/totalDislikes`
+- `API_finhub` -> `npm run typecheck` PASS.
+- `API_finhub` -> `npm run build` PASS.
+- `API_finhub` -> `npm run contract:openapi` PASS.
 
 2. Frontend
 - `FinHub-Vite` -> `npm run typecheck:p1` PASS.
 - `FinHub-Vite` -> `npm run build` PASS.
-- `FinHub-Vite` -> `npm run test -- --runInBand` PASS (12 suites, 112 testes).
+- `FinHub-Vite` -> `npm run test -- --runInBand` PASS (13 suites, 115 testes).
 - `FinHub-Vite` -> `npm run test:e2e` PASS (Playwright smoke, 3 testes).
+- `FinHub-Vite` -> `yarn lint` PASS (warnings nao bloqueantes existentes).
 
 3. Plano
 - P1.1 global esta FECHADO (backend + frontend + validacao integrada).
@@ -52,17 +50,30 @@ Escopo: pasta `dcos`
   - registo de notas internas e consulta de historico por utilizador.
   - hooks React Query e service dedicados ao dominio admin users.
   - teste unitario novo para `adminUsersService`.
+- P2.1 oficialmente FECHADO apos confirmacao remota do commit `99a03f9`:
+  - check run `build` (id `64226562508`) com conclusao `success`.
+  - workflow run `22204921602` concluido em `2026-02-19T23:45:53Z`.
+- P2.2 moderacao de conteudo entregue (backend + frontend):
+  - backend com estados de moderacao no `BaseContent`, fila/admin actions `hide|unhide|restrict` e historico dedicado por conteudo.
+  - frontend `/admin/conteudo` operacional com filtros, fila, dialogos de acao e historico por item.
+  - novo teste unitario `adminContentService`.
+  - ciclo de validacao completo executado e verde (lint/test/build/e2e no frontend + typecheck/build/contract no backend).
+- Acesso admin estabilizado no frontend:
+  - rotas ativas: `/admin`, `/admin/users`, `/admin/conteudo`, `/admin/recursos`, `/admin/stats`.
+  - header ajustado para conta admin abrir `/admin` (evita falso erro em `/perfil`).
 
 4. CI remoto (GitHub Actions)
 - `API_finhub` (branch `main`) com workflow CI verde no remoto.
 - `FinHub-Vite` (branch `master`) com workflow CI verde no remoto.
+- evidencias P2.1: commit `99a03f9` com `build` remoto `success` (run `22204921602`).
 
 ## Fontes de verdade para seguimento
 - Estado detalhado: `dcos/ESTADO_IMPLEMENTADO.md`
 - Backlog priorizado: `dcos/PENDENCIAS_PRIORIZADAS.md`
 
-## Pontos remanescentes (nao bloqueantes para P1.1)
+## Pontos remanescentes (nao bloqueantes para operacao atual)
 - Warnings de build em mocks legados e avisos de deprecacao de plugin.
 - Divida tecnica fora de escopo imediato: tipagem global de modulos legados para eventual retorno do gate full `tsc -b`.
 - Expansao de E2E para full business flows continua recomendada como reforco de qualidade (atualmente existe smoke).
-- P2 segue para os itens seguintes apos P2.1 users (P2.2 moderacao de conteudo, P2.3 acesso assistido, P2.4 metricas).
+- Remanescente de P2.2 para fecho total: comentarios/reviews na fila de moderacao e decisao final sobre evolucao de estados (`pending|approved|rejected` vs manter `visible|hidden|restricted`).
+- Proximos blocos de P2 apos fecho de P2.2: P2.3 acesso assistido, P2.4 metricas, P2.5 painel unificado e P2.6 hardening.
