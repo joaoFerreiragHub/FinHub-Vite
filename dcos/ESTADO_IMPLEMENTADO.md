@@ -1,6 +1,6 @@
 # Estado Implementado
 
-Data de referencia: 2026-02-20 (atualizado apos entrega de P2.3 acesso assistido com consentimento).
+Data de referencia: 2026-02-20 (atualizado apos fecho de P2.4 e hardening do REIT toolkit).
 
 ## 1) Foundation e arquitetura
 - Estrutura feature-based e separacao por modulos.
@@ -562,3 +562,29 @@ Data de referencia: 2026-02-20 (atualizado apos entrega de P2.3 acesso assistido
     - `yarn test --runInBand` -> PASS (15 suites, 120 testes)
     - `yarn build` -> PASS
     - `yarn test:e2e` -> PASS (3/3 smoke)
+
+## 30) REIT toolkit hardening (2026-02-20)
+- Backend (`API_finhub`) refinado para maior fidelidade dos calculos:
+  - DDM com detecao automatica de frequencia de pagamentos, `currentDividend`, `forwardAnnualDividend`, `forwardDividendYield` e gating de confianca (`ddmConfidence`, `ddmConfidenceNote`).
+  - FFO com estrategia multi-fonte:
+    - prioridade a `ffoPerShare` de `key-metrics` (proxy NAREIT) quando disponivel.
+    - fallback para estimativa simplificada (NI + D&A total), com tratamento especifico para specialty REITs e mREITs.
+    - `operatingCashFlow` com guarda de plausibilidade para zeros espurios e flag `operatingCFPerShareApprox` quando shares sao estimadas.
+  - `reportPeriod` adicionado nas respostas de FFO e NAV para contexto temporal explicito.
+- Frontend (`FinHub-Vite`) evoluido no modulo de REITs:
+  - toggle de visualizacao do bloco FFO: `NAREIT` | `Estimativa` | `CF Operacional`.
+  - DDM com aviso de baixa confianca e supressao do badge de valuation quando aplicavel.
+  - metricas adicionais de dividendo (atual, TTM com N pagamentos, forward).
+  - tratamento explicito para cenarios de NAV economico negativo.
+  - novo card `Score de Valorizacao` (0-100) com ponderacao de P/FFO, payout, divida/EBITDA e desvio vs NAV.
+  - contratos frontend atualizados em `marketToolsApi` para os novos campos.
+- Validacao do ciclo apos os refinamentos:
+  - backend:
+    - `npm run typecheck` -> PASS
+    - `npm run build` -> PASS
+    - `npm run contract:openapi` -> PASS
+  - frontend:
+    - `yarn lint` -> PASS (warnings nao bloqueantes existentes)
+    - `yarn test --runInBand` -> PASS (15 suites, 120 testes)
+    - `yarn test:e2e` -> PASS (3/3 smoke)
+    - `yarn build` -> PASS (execucao sequencial, sem erro `ENOTEMPTY`)

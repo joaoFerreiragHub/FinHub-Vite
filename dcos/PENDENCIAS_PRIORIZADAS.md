@@ -1,6 +1,6 @@
 # Pendencias Priorizadas
 
-Data da consolidacao: 2026-02-20 (revisto apos entrega de P2.3 acesso assistido).
+Data da consolidacao: 2026-02-20 (revisto apos fecho de P2.4 e hardening do REIT toolkit).
 
 ## Prioridade 0 - Fechada (2026-02-18)
 1. P0.1 contratos social frontend x backend fechados.
@@ -218,6 +218,8 @@ Data da consolidacao: 2026-02-20 (revisto apos entrega de P2.3 acesso assistido)
 ## Prioridade 3 - Medio (apos MVP Admin)
 1. Livros completos (replies, filtros, destaques, categorias) no frontend ativo.
 2. Ferramentas financeiras legadas expostas no router principal (fundo emergencia, juros compostos, ETF analyzer, REIT valuation, debt snowball).
+ - estado parcial (2026-02-20): REIT valuation/toolkit ja recebeu hardening tecnico (DDM com confidence gating, FFO multi-fonte com toggle NAREIT/estimativa/CF Op e score de valorizacao).
+ - pendente neste item: consolidar as restantes ferramentas legadas no router principal com o mesmo nivel de rigor operacional.
 3. Blocos e paginas completas de brokers/websites.
 4. Eventos end-to-end (criacao, aprovacao, status e tracking).
 5. Glossario financeiro.

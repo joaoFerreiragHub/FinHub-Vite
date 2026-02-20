@@ -12,7 +12,7 @@ Escopo: pasta `dcos`
 2. Frontend
 - `FinHub-Vite` -> `npm run typecheck:p1` PASS.
 - `FinHub-Vite` -> `npm run build` PASS.
-- `FinHub-Vite` -> `npm run test -- --runInBand` PASS (14 suites, 119 testes).
+- `FinHub-Vite` -> `npm run test -- --runInBand` PASS (15 suites, 120 testes).
 - `FinHub-Vite` -> `npm run test:e2e` PASS (Playwright smoke, 3 testes).
 - `FinHub-Vite` -> `yarn lint` PASS (warnings nao bloqueantes existentes).
 
@@ -68,6 +68,10 @@ Escopo: pasta `dcos`
   - dashboard de KPIs de utilizacao, engagement, moderacao e operacao sem consulta manual direta a BD.
   - frontend com `/admin/stats` operacional (sem placeholder), refresh e detalhamento por secoes.
   - nova camada `adminMetrics` (types/service/hooks) e teste unitario `adminMetricsService`.
+  - validacao do ciclo: backend `typecheck/build/contract` + frontend `lint/test/build/test:e2e` -> PASS.
+- REIT toolkit hardening FECHADO (backend + frontend):
+  - backend com melhorias de fidelidade no DDM (frequencia real de pagamentos, forward yield, confidence gating) e FFO (multi-fonte com NAREIT/simplified/not-applicable para mREIT).
+  - frontend com toggle de vista FFO (`NAREIT`, `Estimativa`, `CF Op.`), aviso de baixa confianca no DDM, cenarios de NAV negativo e score de valorizacao ponderado.
   - validacao do ciclo: backend `typecheck/build/contract` + frontend `lint/test/build/test:e2e` -> PASS.
 - Acesso admin estabilizado no frontend:
   - rotas ativas: `/admin`, `/admin/users`, `/admin/conteudo`, `/admin/suporte`, `/admin/recursos`, `/admin/stats`.

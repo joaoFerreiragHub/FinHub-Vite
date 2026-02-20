@@ -37,8 +37,12 @@ export interface ReitDdmResponse {
   symbol?: string
   companyName?: string
   price?: number | string
+  currentDividend?: number | string | null
+  paymentsPerYear?: number
   annualDividend?: number | string
   dividendYield?: number | string
+  forwardAnnualDividend?: number | string | null
+  forwardDividendYield?: number | string | null
   dividendCagr?: number | string
   requiredReturn?: number | string
   growthRateUsed?: number | string
@@ -46,20 +50,44 @@ export interface ReitDdmResponse {
   difference?: number | string | null
   cagr?: number | string
   valuation?: string | null
+  ddmConfidence?: 'high' | 'low'
+  ddmConfidenceNote?: string | null
+  // Phase 2: Period tag
+  ddmDataPeriod?: string | null
+  // Phase 5: Profile detection
+  reitProfile?: 'growth' | 'income' | 'mixed'
+  profileConfidence?: 'high' | 'low'
 }
 
 export interface ReitFfoResponse {
   symbol?: string
   companyName?: string
+  industry?: string
   price?: number | string
+  reportPeriod?: string | null
+  // Valor recomendado (melhor fonte disponível)
   ffo?: number | string | null
   ffoPerShare?: number | string | null
   pFFO?: number | string | null
+  /** key-metrics: FMP NAREIT | simplified: padrão | simplified-specialty: estimativa (data center/torres) | not-applicable: mREIT */
+  ffoSource?: 'key-metrics' | 'simplified' | 'simplified-specialty' | 'not-applicable'
+  ffoNote?: string | null
+  // Fontes individuais para o toggle
+  ffoNaraitPerShare?: number | string | null
+  pFFONarait?: number | string | null
+  ffoSimplifiedPerShare?: number | string | null
+  pFFOSimplified?: number | string | null
   operatingCashFlow?: number | string | null
   operatingCFPerShare?: number | string | null
+  operatingCFPerShareApprox?: boolean
   ffoPayoutRatio?: number | string | null
   debtToEbitda?: number | string | null
   debtToEquity?: number | string | null
+  // Phase 2: Period tag
+  ffoDataPeriod?: string | null
+  // Phase 4: Confidence
+  ffoConfidence?: 'high' | 'medium' | 'low'
+  ffoConfidenceReasons?: string[]
 }
 
 export interface EconomicNAVScenario {
@@ -75,6 +103,7 @@ export interface ReitNavResponse {
   companyName?: string
   price?: number | string
   marketCap?: number | string
+  reportPeriod?: string | null
   nav?: number | string | null
   navPerShare?: number | string | null
   priceToNAV?: number | string | null
@@ -89,6 +118,13 @@ export interface ReitNavResponse {
       conservative?: EconomicNAVScenario
     }
   }
+  // Phase 2: Period tag
+  navDataPeriod?: string | null
+  // Phase 4: Confidence
+  navConfidence?: 'high' | 'medium' | 'low'
+  navConfidenceReasons?: string[]
+  // Phase 6: Implied cap rate
+  impliedCapRate?: number | null
 }
 
 interface WatchlistQuickAnalysisResponse {
