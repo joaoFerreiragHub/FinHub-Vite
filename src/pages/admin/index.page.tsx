@@ -283,7 +283,7 @@ function AdminDashboardContent() {
             description="DAU/WAU/MAU, engagement, retenção, KPIs de moderação e métricas operacionais da plataforma."
             icon={BarChart3}
             href="/admin/stats"
-            operational={false}
+            operational
           />
         </div>
       </section>

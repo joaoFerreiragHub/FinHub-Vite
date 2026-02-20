@@ -285,7 +285,7 @@ export default function AdminDashboardPage() {
             description="DAU/WAU/MAU, engagement, retenção, KPIs de moderação e métricas operacionais da plataforma."
             icon={BarChart3}
             to="/admin/stats"
-            operational={false}
+            operational
           />
         </div>
       </section>

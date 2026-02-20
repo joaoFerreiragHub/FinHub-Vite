@@ -180,6 +180,20 @@ Data da consolidacao: 2026-02-20 (revisto apos entrega de P2.3 acesso assistido)
 - KPIs de moderacao (tempo medio de resolucao, volume por tipo, reincidencia).
 - KPIs operacionais (erros, latencia, disponibilidade dos servicos principais).
 - Gate de aceite: equipa responde perguntas de negocio e operacao sem consulta manual a BD.
+- Estado atual: FECHADO (backend + frontend + validacao em 2026-02-20).
+  - Backend entregue:
+    - endpoint consolidado `GET /api/admin/metrics/overview` com enforcement de `admin.metrics.read` e auditoria.
+    - KPIs de utilizacao (DAU/WAU/MAU, novos users, retencao 30d->7d, distribuicao por role e funnel).
+    - KPIs de engagement (interacoes social 24h/7d/30d e conteudo publicado por tipo).
+    - KPIs de moderacao (queue total/hidden/restricted, volume por tipo, tempo medio/mediano de resolucao e reincidencia).
+    - KPIs operacionais (error rate, disponibilidade, latencia media, top rotas lentas/erro e auditoria admin 24h).
+  - Frontend entregue:
+    - `/admin/stats` operacional (sem placeholder) com cards, tabelas e refresh manual.
+    - nova camada `types/service/hooks` (`adminMetrics`) e teste unitario `adminMetricsService`.
+    - sidebar/dashboard admin atualizados para `Estatisticas` como modulo operacional.
+  - Validacao do ciclo:
+    - backend `typecheck + build + contract:openapi` -> PASS.
+    - frontend `lint + test + build + test:e2e` -> PASS (lint com warnings nao bloqueantes conhecidos).
 
 5. P2.5 Painel admin unificado (UI final do MVP Admin).
 - Integrar users, moderacao, suporte assistido e metricas num painel unico.
@@ -230,7 +244,6 @@ Data da consolidacao: 2026-02-20 (revisto apos entrega de P2.3 acesso assistido)
 2. `FinHub-Vite` em `master`: verde.
 
 ## Sequencia pragmatica sugerida
-1. Iniciar P2.0 (fundacao de seguranca e governanca) como bloqueante.
-2. Avancar para P2.4 e P2.5 (metricas + painel unificado).
-3. Fechar P2.6 (hardening operacional admin).
-4. So depois entrar em Prioridade 3 (livros, ferramentas, brokers/websites e restantes frentes).
+1. Avancar para P2.5 (painel admin unificado do MVP).
+2. Fechar P2.6 (hardening operacional admin).
+3. So depois entrar em Prioridade 3 (livros, ferramentas, brokers/websites e restantes frentes).

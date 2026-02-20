@@ -63,6 +63,12 @@ Escopo: pasta `dcos`
   - novos endpoints admin (`/api/admin/support/sessions*`) e auth (`/api/auth/assisted-sessions*`) para request/consent/start/revoke/history.
   - frontend com modulo `/admin/suporte`, centro de consentimento em `/conta` e banner permanente durante sessao assistida.
   - novo teste unitario `adminAssistedSessionsService`.
+- P2.4 metricas admin e observabilidade FECHADO (backend + frontend):
+  - backend com endpoint consolidado `GET /api/admin/metrics/overview` (RBAC `admin.metrics.read` + auditoria).
+  - dashboard de KPIs de utilizacao, engagement, moderacao e operacao sem consulta manual direta a BD.
+  - frontend com `/admin/stats` operacional (sem placeholder), refresh e detalhamento por secoes.
+  - nova camada `adminMetrics` (types/service/hooks) e teste unitario `adminMetricsService`.
+  - validacao do ciclo: backend `typecheck/build/contract` + frontend `lint/test/build/test:e2e` -> PASS.
 - Acesso admin estabilizado no frontend:
   - rotas ativas: `/admin`, `/admin/users`, `/admin/conteudo`, `/admin/suporte`, `/admin/recursos`, `/admin/stats`.
   - header ajustado para conta admin abrir `/admin` (evita falso erro em `/perfil`).
@@ -80,4 +86,4 @@ Escopo: pasta `dcos`
 - Warnings de build em mocks legados e avisos de deprecacao de plugin.
 - Divida tecnica fora de escopo imediato: tipagem global de modulos legados para eventual retorno do gate full `tsc -b`.
 - Expansao de E2E para full business flows continua recomendada como reforco de qualidade (atualmente existe smoke).
-- Proximos blocos de P2 apos fecho de P2.3: P2.4 metricas, P2.5 painel unificado e P2.6 hardening.
+- Proximos blocos de P2 apos fecho de P2.4: P2.5 painel unificado e P2.6 hardening.

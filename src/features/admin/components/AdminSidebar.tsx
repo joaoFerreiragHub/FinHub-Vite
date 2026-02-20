@@ -18,10 +18,10 @@ interface AdminSidebarProps {
 const links = [
   { path: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true, soon: false },
   { path: '/admin/users', label: 'Utilizadores', icon: Users, exact: false, soon: false },
-  { path: '/admin/conteudo', label: 'Moderação', icon: ShieldCheck, exact: false, soon: false },
+  { path: '/admin/conteudo', label: 'Moderacao', icon: ShieldCheck, exact: false, soon: false },
   { path: '/admin/suporte', label: 'Suporte', icon: LifeBuoy, exact: false, soon: false },
   { path: '/admin/recursos', label: 'Recursos', icon: Layers, exact: false, soon: true },
-  { path: '/admin/stats', label: 'Estatísticas', icon: BarChart3, exact: false, soon: true },
+  { path: '/admin/stats', label: 'Estatisticas', icon: BarChart3, exact: false, soon: false },
 ]
 
 export default function AdminSidebar({ className, onNavigate }: AdminSidebarProps) {
@@ -29,7 +29,6 @@ export default function AdminSidebar({ className, onNavigate }: AdminSidebarProp
 
   return (
     <aside className={cn('h-full w-72 border-r border-border bg-card', className)}>
-      {/* Brand */}
       <div className="border-b border-border px-4 py-5">
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -42,10 +41,9 @@ export default function AdminSidebar({ className, onNavigate }: AdminSidebarProp
         </div>
       </div>
 
-      {/* Navigation */}
       <nav className="p-3">
         <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">
-          Navegação
+          Navegacao
         </p>
         <div className="space-y-0.5">
           {links.map((link) => {

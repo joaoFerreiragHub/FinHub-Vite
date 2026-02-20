@@ -527,3 +527,38 @@ Data de referencia: 2026-02-20 (atualizado apos entrega de P2.3 acesso assistido
     - `yarn test --runInBand` -> PASS (14 suites, 119 testes)
     - `yarn build` -> PASS
     - `yarn test:e2e` -> PASS (3/3 smoke)
+
+## 29) P2.4 fechado - metricas admin e observabilidade (2026-02-20)
+- Backend (`API_finhub`) com novo dominio de metricas admin:
+  - service: `src/services/adminMetrics.service.ts`.
+  - controller: `src/controllers/adminMetrics.controller.ts`.
+  - rota nova em `src/routes/admin.routes.ts`:
+    - `GET /api/admin/metrics/overview`
+    - governance aplicada: `requireAdminScope('admin.metrics.read')` + `auditAdminAction`.
+  - cobertura de KPIs no payload consolidado:
+    - utilizacao: DAU/WAU/MAU, novos utilizadores, retencao 30d->7d, distribuicao por role e funnel.
+    - engagement: interacoes (follows/favorites/comments/reviews) em 24h/7d/30d e conteudo publicado por tipo.
+    - moderacao: queue total/hidden/restricted, volume por tipo, tempo medio/mediano de resolucao e reincidencia.
+    - operacao: error rate, disponibilidade, latencia media, top rotas lentas/erro, estado Mongo e auditoria admin 24h.
+- Frontend (`FinHub-Vite`) com modulo real em `/admin/stats`:
+  - placeholder removido em `src/features/admin/pages/StatsPage.tsx`.
+  - nova camada de integracao:
+    - `src/features/admin/types/adminMetrics.ts`
+    - `src/features/admin/services/adminMetricsService.ts`
+    - `src/features/admin/hooks/useAdminMetrics.ts`
+  - navegacao/admin dashboard alinhados:
+    - `src/features/admin/components/AdminSidebar.tsx`
+    - `src/features/admin/pages/AdminDashboardPage.tsx`
+    - `src/pages/admin/index.page.tsx`
+  - novo teste unitario:
+    - `src/__tests__/features/admin/adminMetricsService.test.ts`.
+- Validacao tecnica do ciclo P2.4:
+  - backend:
+    - `npm run typecheck` -> PASS
+    - `npm run build` -> PASS
+    - `npm run contract:openapi` -> PASS
+  - frontend:
+    - `yarn lint` -> PASS (warnings nao bloqueantes existentes)
+    - `yarn test --runInBand` -> PASS (15 suites, 120 testes)
+    - `yarn build` -> PASS
+    - `yarn test:e2e` -> PASS (3/3 smoke)
