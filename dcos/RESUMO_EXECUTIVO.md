@@ -1,6 +1,6 @@
 # Resumo Executivo - Documentacao Consolidada
 
-Data da consolidacao: 2026-02-20
+Data da consolidacao: 2026-02-21
 Escopo: pasta `dcos`
 
 ## Estado atual validado
@@ -13,7 +13,7 @@ Escopo: pasta `dcos`
 - `FinHub-Vite` -> `npm run typecheck:p1` PASS.
 - `FinHub-Vite` -> `npm run build` PASS.
 - `FinHub-Vite` -> `npm run test -- --runInBand` PASS (15 suites, 120 testes).
-- `FinHub-Vite` -> `npm run test:e2e` PASS (Playwright smoke, 3 testes).
+- `FinHub-Vite` -> `npm run test:e2e` PASS (Playwright, 8 testes: 3 smoke + 5 admin).
 - `FinHub-Vite` -> `yarn lint` PASS (warnings nao bloqueantes existentes).
 
 3. Plano
@@ -32,8 +32,14 @@ Escopo: pasta `dcos`
   - P2.4 metricas admin
   - P2.5 painel admin unificado
   - P2.6 hardening operacional
+- Decisao de produto (2026-02-21): P2 e oficialmente FECHADO como ciclo Admin-first.
+- Replaneamento oficial (2026-02-21):
+  - novo P3 passa a focar a qualidade da analise de stocks (cobertura de metricas atuais por setor/industria e benchmark dinamico robusto).
+  - P3 focado exclusivamente na Analise Rapida de stocks.
+  - Analise Detalhada de stocks adiada para P4.
+  - o P3 anterior (livros/ferramentas legadas/brokers-websites) foi adiado e passa para P4.
 - Itens extra foram incorporados ao backlog de P2 (tickets internos, feature flags, compliance/log retention, alertas, modo read-only admin junior e bulk actions protegidas).
-- Livros/ferramentas/brokers-websites foram reclassificados para Prioridade 3 apos fecho do MVP Admin.
+- Livros/ferramentas/brokers-websites foram reclassificados para Prioridade 4 apos o novo replaneamento de 2026-02-21.
 - Arranque tecnico de P2.0 iniciado no backend:
   - escopos admin granulares + modo read-only.
   - auditoria admin estruturada com rota de consulta (`GET /api/admin/audit-logs`).
@@ -79,13 +85,28 @@ Escopo: pasta `dcos`
   - guardrails destrutivos aplicados em users/conteudo/suporte com resumo de impacto + confirmacao dupla (`CONFIRMAR`).
   - wrappers admin Vike alinhados, incluindo rota dedicada `/admin/suporte`.
   - validacao do ciclo: backend `typecheck/build/contract` + frontend `lint/test/build/test:e2e` -> PASS.
-- P2.6 hardening operacional INICIADO:
-  - suite E2E admin adicionada em `e2e/admin.p2.6.spec.ts` com cenarios positivo/negativo de permissao e acoes destrutivas.
-  - validacao `yarn test:e2e` apos arranque -> PASS (5/5: 3 smoke + 2 admin).
-  - escopo remanescente para fecho P2.6: alertas internos criticos + runbook operacional admin.
+- P2.6 hardening operacional FECHADO (backend + frontend):
+  - backend com endpoint `GET /api/admin/alerts/internal` e deteccao de eventos criticos (`ban_applied`, `content_hide_spike`, `delegated_access_started`).
+  - frontend `/admin` integrado com bloco de alertas internos por severidade e detalhe operacional.
+  - suite `e2e/admin.p2.6.spec.ts` expandida para moderacao e suporte (start/revoke), total `8/8` testes.
+  - runbook operacional validado e versionado em `dcos/RUNBOOK_ADMIN_OPERACIONAL.md`.
 - Acesso admin estabilizado no frontend:
   - rotas ativas: `/admin`, `/admin/users`, `/admin/conteudo`, `/admin/suporte`, `/admin/recursos`, `/admin/stats`.
   - header ajustado para conta admin abrir `/admin` (evita falso erro em `/perfil`).
+
+- P3.2 (Analise Rapida) marcado como FECHADO no escopo atual:
+  - motor derivado com fallback multi-fonte + formulas para metricas atuais ausentes.
+  - cobertura confirmada no ciclo para ROE, ROIC, PEG, Margem EBITDA, Divida / Capitais Proprios e Payout Ratio.
+- P3.3 em ARRANQUE TECNICO CONCLUIDO:
+  - matriz setorial formal `core|optional|nao_aplicavel` publicada em `dcos/P3_MATRIZ_SETORIAL_ANALISE_RAPIDA.md`.
+  - contrato `quickMetric*` com prioridade setorial (`sectorPolicy`, `sectorPriority`, `requiredForSector`, `resolvedSector`, resumo `core/optional`).
+  - normalizacao de setor por `sector + industry` aplicada (ex.: GOOGL -> Communication Services).
+- P3.3 validacao operacional executada (amostra 1 ticker por setor):
+  - tabela gerada em `dcos/P3_COBERTURA_SETORIAL_QUICK_ANALYSIS.md`.
+  - script backend versionado em `API_finhub/scripts/quick-metrics-sector-coverage.js`.
+- P3.4 em ARRANQUE TECNICO CONCLUIDO:
+  - quick analysis com resumo de estados por metrica (`Direto`, `Calculado`, `Nao aplicavel`, `Sem dado atual`, `Erro fonte`).
+  - cards setoriais passam a exibir badge de estado e eliminam `-` ambiguo para estados nao aplicavel/sem dado atual/erro.
 
 4. CI remoto (GitHub Actions)
 - `API_finhub` (branch `main`) com workflow CI verde no remoto.
@@ -100,4 +121,5 @@ Escopo: pasta `dcos`
 - Warnings de build em mocks legados e avisos de deprecacao de plugin.
 - Divida tecnica fora de escopo imediato: tipagem global de modulos legados para eventual retorno do gate full `tsc -b`.
 - Expansao de E2E para full business flows continua recomendada como reforco de qualidade (atualmente existe smoke).
-- Bloco atual em execucao: P2.6 hardening operacional.
+- Proximo bloco sugerido: Prioridade 3 (hardening da analise de stocks: metricas atuais, fallback por fonte e consistencia cross-setor).
+

@@ -1,6 +1,6 @@
 # Pendencias Priorizadas
 
-Data da consolidacao: 2026-02-20 (revisto apos fecho de P2.5 e hardening do REIT toolkit).
+Data da consolidacao: 2026-02-21 (revisto apos fecho oficial de P2 Admin-first e replaneamento de roadmap).
 
 ## Prioridade 0 - Fechada (2026-02-18)
 1. P0.1 contratos social frontend x backend fechados.
@@ -82,14 +82,16 @@ Data da consolidacao: 2026-02-20 (revisto apos fecho de P2.5 e hardening do REIT
   - `npm run test:e2e` -> PASS (3 cenarios smoke).
 - estado do item: FECHADO.
 
-## Prioridade 2 - Critico (Admin-first MVP)
+## Prioridade 2 - Fechada (Admin-first MVP)
 0. P2.0 Fundacao de seguranca e governanca (bloqueante).
 - RBAC granular (`admin.super`, `admin.ops`, `admin.support`) no backend e frontend.
 - Audit log imutavel para todas as acoes admin (quem, quando, alvo, antes/depois, motivo).
 - Controlo de risco: rate limit admin, confirmacao forte para acoes criticas e motivo obrigatorio.
 - Gate de aceite: nenhuma acao critica executa sem permissao explicita e sem rasto de auditoria.
-- Estado atual: EM CURSO.
-  - arranque backend concluido com escopos admin granulares, middleware de auditoria e rota de leitura de logs (`/api/admin/audit-logs`).
+- Estado atual: FECHADO (baseline de governanca concluido e consolidado no fecho global de P2 em 2026-02-21).
+  - RBAC granular ativo no backend/frontend.
+  - auditoria admin estruturada e consultavel em producao (`GET /api/admin/audit-logs`).
+  - guardrails de motivo/confirmacao aplicados nas acoes destrutivas dos modulos admin.
 
 1. P2.1 Gestao de utilizadores.
 - Listar/pesquisar users com filtros por role, estado e atividade.
@@ -220,14 +222,15 @@ Data da consolidacao: 2026-02-20 (revisto apos fecho de P2.5 e hardening do REIT
 - Alertas internos para acoes criticas (ban, hide massivo, delegated access).
 - Runbook de incidentes admin + documentacao operacional.
 - Gate de aceite: CI cobre os fluxos criticos admin e runbook esta validado.
-- Estado atual: EM CURSO (arranque em 2026-02-20).
-  - Fechado no arranque:
-    - nova suite `e2e/admin.p2.6.spec.ts` com cenarios positivo/negativo de permissao e guardrails.
-    - validacao `yarn test:e2e` -> PASS (5/5: 3 smoke + 2 admin).
-  - Pendente para fecho total do P2.6:
-    - cobertura E2E adicional para moderacao e sessao assistida (revogar/start com asserts de trilha).
-    - mecanismo de alertas internos para eventos criticos.
-    - runbook operacional admin validado em `dcos`.
+- Estado atual: FECHADO (backend + frontend + validacao em 2026-02-20).
+  - Entregas do fecho:
+    - backend com endpoint `GET /api/admin/alerts/internal` (RBAC `admin.audit.read`) e deteccao de `ban_applied`, `content_hide_spike` e `delegated_access_started`.
+    - frontend `/admin` com bloco operacional de alertas internos (resumo por severidade + lista de eventos).
+    - suite `e2e/admin.p2.6.spec.ts` expandida para moderacao e suporte (start/revoke), total `8/8` testes E2E.
+    - runbook operacional versionado em `dcos/RUNBOOK_ADMIN_OPERACIONAL.md`.
+  - Validacao tecnica do fecho:
+    - backend `typecheck + build + contract:openapi` -> PASS.
+    - frontend `lint + test + build + test:e2e` -> PASS (lint com warnings nao bloqueantes conhecidos).
 
 ## Itens extra incorporados no MVP Admin
 1. Tickets internos de suporte/moderacao com ligacao a user e conteudo.
@@ -237,16 +240,104 @@ Data da consolidacao: 2026-02-20 (revisto apos fecho de P2.5 e hardening do REIT
 5. Modo `read-only` para perfis admin junior (sem acoes destrutivas).
 6. Bulk actions protegidas (limites por operacao, confirmacao dupla, auditoria reforcada).
 
-## Prioridade 3 - Medio (apos MVP Admin)
-1. Livros completos (replies, filtros, destaques, categorias) no frontend ativo.
-2. Ferramentas financeiras legadas expostas no router principal (fundo emergencia, juros compostos, ETF analyzer, REIT valuation, debt snowball).
+## Prioridade 3 - Critico (Analise Rapida de stocks)
+Escopo oficial do P3: **apenas Analise Rapida**. A Analise Detalhada fica fora deste ciclo e passa para P4.
+
+0. P3.0 Contrato de metricas e governacao de dados (bloqueante).
+- Definir catalogo oficial de metricas por categoria (crescimento, rentabilidade, retorno sobre capital, multiplos, estrutura de capital, risco e metricas setoriais).
+- Para cada metrica, documentar:
+  - fonte primaria
+  - fallback por ordem
+  - formula de calculo quando nao vier pronta da API
+  - unidade e periodicidade (`TTM`, `FY`, `Q`)
+  - aplicabilidade por setor
+- Introduzir semantica explicita de disponibilidade:
+  - `ok`
+  - `calculated`
+  - `nao_aplicavel`
+  - `sem_dado_atual`
+  - `erro_fonte`
+- Gate de aceite: contrato backend e tipos frontend alinhados para todas as metricas da Analise Rapida.
+
+1. P3.1 Ingestao multi-fonte e normalizacao temporal.
+- Harmonizar disponibilidade entre fontes (FMP `ratios-ttm`/`key-metrics-ttm`/`growth` + snapshots + fallback Yahoo).
+- Resolver aliases PT/EN e variacoes de nomenclatura por setor.
+- Normalizar periodo e timestamp por metrica (`asOf`, `dataPeriod`) para evitar mistura de `TTM`, `FY` e `Q`.
+- Gate de aceite: endpoint da quick analysis devolve valor + periodo + fonte + estado para cada metrica alvo.
+- Estado atual: ARRANQUE TECNICO CONCLUIDO.
+  - contrato `quickMetric*` ativo no payload da quick analysis (`contractVersion`, `catalog`, `states`, `ingestion`, `summary`).
+  - `states` ja devolvem `source`, `dataPeriod`, `benchmarkSource` e `benchmarkDataPeriod` por metrica.
+  - proximo subpasso: ampliar cobertura de fontes por metrica para reduzir lacunas de valor atual.
+
+2. P3.2 Motor de calculo para metricas atuais ausentes.
+- Calcular automaticamente metricas quando os componentes estiverem disponiveis:
+  - ROE
+  - ROIC
+  - PEG
+  - Margem EBITDA
+  - Divida / Capitais Proprios
+  - e outras do nucleo da quick analysis.
+- Regras robustas para denominadores nulos/negativos e qualidade minima de input.
+- Gate de aceite: eliminar `-` nos cards quando o valor for calculavel com confianca.
+- Estado atual: FECHADO.
+  - motor derivado ativo com cadeia de fallback por fontes (`ratios`, `key-metrics`, historico de `ratios` e `key-metrics`) + formulas (`income`, `balance`, `cashflow`, `growth`).
+  - metricas com cobertura confirmada no ciclo: ROE, ROIC, PEG, Margem EBITDA, Divida / Capitais Proprios e Payout Ratio.
+  - `quickMetricStates` marca preenchimentos como `calculated` com `source` e `formula`.
+  - validacao cross-setor executada com smoke de referencia (GOOGL/XOM/NFE/JPM/etc.).
+
+3. P3.3 Regras setoriais e categorias dinamicas.
+- Definir matriz setor -> categorias e metricas obrigatorias/opcionais.
+- Exibir metricas setoriais relevantes e tratar `nao_aplicavel` de forma explicita (sem falso erro).
+- Gate de aceite: para cada setor principal, os blocos da quick analysis mostram metricas coerentes com o negocio.
+- Estado atual: VALIDACAO OPERACIONAL CONCLUIDA (amostra 11/11 setores).
+  - matriz formal versionada em `dcos/P3_MATRIZ_SETORIAL_ANALISE_RAPIDA.md`.
+  - tabela operacional versionada em `dcos/P3_COBERTURA_SETORIAL_QUICK_ANALYSIS.md` (1 ticker por setor).
+  - contrato `quickMetric*` expandido com prioridade setorial:
+    - `sectorPolicy` por metrica
+    - `sectorPriority` e `requiredForSector` por estado
+    - `resolvedSector` em `quickMetricIngestion`
+    - cobertura `core/optional` em `quickMetricSummary`
+  - normalizacao de setor por `sector + industry` implementada para evitar classificacao errada (ex.: GOOGL -> Communication Services).
+
+4. P3.4 UX da Analise Rapida (valor atual vs benchmark).
+- Clarificar visualmente origem do valor:
+  - direto da fonte
+  - calculado
+  - benchmark/fallback
+- Diferenciar no UI:
+  - valor indisponivel no periodo
+  - metrica nao aplicavel
+  - falha tecnica da fonte
+- Gate de aceite: utilizador consegue distinguir ausencia real de dado vs nao aplicabilidade.
+- Estado atual: ARRANQUE TECNICO CONCLUIDO.
+  - resumo de cobertura/states no bloco de quick analysis (setor resolvido + contagens por estado).
+  - cards de indicadores com badge de estado por metrica (`Direto`, `Calculado`, `Nao aplicavel`, `Sem dado atual`, `Erro fonte`).
+  - cards com estado `nao_aplicavel|sem_dado_atual|erro_fonte` deixam de apresentar valor ambiguo.
+
+5. P3.5 Qualidade, validacao cruzada e fecho.
+- Matriz de validacao por setores com tickers de referencia (tech, financials, energy, industrials, healthcare, utilities, consumer e real estate).
+- Gatilhos de qualidade:
+  - `lint`
+  - `test`
+  - `build`
+  - `e2e`
+  - smoke funcional dos endpoints de quick analysis
+- Meta operacional: cobertura alta de metricas atuais nos cards nucleares sem regressao cross-setor.
+- Gate de aceite: P3 fechado com documentacao de fonte/fallback/formula por metrica.
+
+Estado atual do P3: EM CURSO (arranque tecnico ja iniciado; falta fechar cobertura e consistencia cross-setor).
+
+## Prioridade 4 - Medio (adiado apos novo P3)
+1. Analise detalhada de stocks (novo escopo adiado do P3).
+2. Livros completos (replies, filtros, destaques, categorias) no frontend ativo.
+3. Ferramentas financeiras legadas expostas no router principal (fundo emergencia, juros compostos, ETF analyzer, REIT valuation, debt snowball).
  - estado parcial (2026-02-20): REIT valuation/toolkit ja recebeu hardening tecnico (DDM com confidence gating, FFO multi-fonte com toggle NAREIT/estimativa/CF Op e score de valorizacao).
  - pendente neste item: consolidar as restantes ferramentas legadas no router principal com o mesmo nivel de rigor operacional.
-3. Blocos e paginas completas de brokers/websites.
-4. Eventos end-to-end (criacao, aprovacao, status e tracking).
-5. Glossario financeiro.
-6. Paginas dinamicas por topico.
-7. Regular user dashboard e about completo.
+4. Blocos e paginas completas de brokers/websites.
+5. Eventos end-to-end (criacao, aprovacao, status e tracking).
+6. Glossario financeiro.
+7. Paginas dinamicas por topico.
+8. Regular user dashboard e about completo.
 
 ## Pendencias tecnicas observadas em checklists
 1. Sem bloqueadores tecnicos pre-P1 ativos neste momento.
@@ -268,5 +359,6 @@ Data da consolidacao: 2026-02-20 (revisto apos fecho de P2.5 e hardening do REIT
 2. `FinHub-Vite` em `master`: verde.
 
 ## Sequencia pragmatica sugerida
-1. Fechar P2.6 (hardening operacional admin).
-2. So depois entrar em Prioridade 3 (livros, ferramentas, brokers/websites e restantes frentes).
+1. Fechar primeiro o novo P3 (hardening de analise de stocks e cobertura de metricas atuais).
+2. Mover para P4 apenas apos gate de aceite do novo P3 estar verde (lint/test/build/e2e + verificacao funcional cross-setor).
+

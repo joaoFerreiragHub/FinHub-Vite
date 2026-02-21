@@ -1,6 +1,6 @@
 # Estado Implementado
 
-Data de referencia: 2026-02-20 (atualizado apos fecho de P2.5 e hardening do REIT toolkit).
+Data de referencia: 2026-02-21 (atualizado apos fecho oficial de P2 e replaneamento de roadmap).
 
 ## 1) Foundation e arquitetura
 - Estrutura feature-based e separacao por modulos.
@@ -424,7 +424,7 @@ Data de referencia: 2026-02-20 (atualizado apos fecho de P2.5 e hardening do REI
   - badge "Em breve" nas rotas nao operacionais (Recursos, Estatisticas)
   - activacao por prefixo de rota (startsWith) em vez de igualdade exacta
 - Correcao critica de SSR: pagina Vike `src/pages/admin/index.page.tsx` reescrita:
-  - causa do erro original: `PlaceholderPage` e `AdminDashboardPage` usavam `Link` de `react-router-dom` sem contexto de Router no SSR do Vike → `ReactDOMServer.renderToString` lancava `useHref() may be used only in the context of a Router` → Vike renderizava `_error.page.tsx` ("Ocorreu um erro 😢")
+  - causa do erro original: `PlaceholderPage` e `AdminDashboardPage` usavam `Link` de `react-router-dom` sem contexto de Router no SSR do Vike -> `ReactDOMServer.renderToString` lancava `useHref() may be used only in the context of a Router` -> Vike renderizava `_error.page.tsx` ("Ocorreu um erro").
   - solucao: pagina Vike agora auto-contem o dashboard com `<a href>` em vez de `Link`; hooks React Query e Zustand funcionam durante SSR (retornam estado inicial sem fetch)
 - Validacao tecnica:
   - `npm run typecheck:p1` -> PASS
@@ -637,3 +637,145 @@ Data de referencia: 2026-02-20 (atualizado apos fecho de P2.5 e hardening do REI
   - testes usam sessao admin injetada em `localStorage` + mocks de endpoints `/api/admin/**` para validar comportamento de permissao e guardrails sem dependencia externa.
 - Resultado da suite E2E apos arranque P2.6:
   - `yarn test:e2e` -> PASS (5/5; 3 smoke + 2 admin).
+
+## 33) P2.6 fechado - hardening operacional admin (2026-02-20)
+- Backend (`API_finhub`) com mecanismo operacional de alertas internos:
+  - novo endpoint `GET /api/admin/alerts/internal` (RBAC `admin.audit.read`).
+  - sinais criticos suportados:
+    - `ban_applied` (acao `admin.users.ban`, severidade `critical`).
+    - `content_hide_spike` (acao `admin.content.hide` por actor, threshold `>=5` em 30min).
+    - `delegated_access_started` (acao `admin.support.sessions.start`, severidade `high`).
+  - payload de resposta inclui `summary`, `thresholds` e lista ordenada de alertas para triagem.
+- Frontend (`FinHub-Vite`) integrado com os novos contratos:
+  - novo hook/servico/tipos para `admin/alerts/internal`.
+  - dashboard `/admin` com bloco "Alertas internos" (critico/high/medio + detalhe por evento).
+  - hardening adicional no modulo de suporte: removida dependencia de `useNavigate` fora de Router para evitar crash do tab embebido.
+- Cobertura E2E admin expandida para os cenarios remanescentes de P2.6:
+  - moderacao: hide com confirmacao dupla.
+  - suporte: start de sessao assistida e revoke com guardrail de confirmacao.
+  - suite final: `yarn test:e2e` -> PASS (8/8; 3 smoke + 5 admin).
+- Runbook operacional validado e versionado:
+  - novo ficheiro `dcos/RUNBOOK_ADMIN_OPERACIONAL.md`.
+- Validacao tecnica do fecho P2.6:
+  - backend:
+    - `npm run typecheck` -> PASS
+    - `npm run build` -> PASS
+    - `npm run contract:openapi` -> PASS
+  - frontend:
+    - `yarn lint` -> PASS (warnings nao bloqueantes existentes)
+    - `yarn test --runInBand` -> PASS (15 suites, 120 testes)
+    - `yarn build` -> PASS
+    - `yarn test:e2e` -> PASS (8/8; 3 smoke + 5 admin)
+
+## 34) Fecho oficial de P2 e transicao para novo P3 (2026-02-21)
+- Decisao de produto registada:
+  - P2 e considerado FECHADO como ciclo Admin-first (P2.0 a P2.6).
+  - o trabalho de melhoria da analise de stocks deixa de competir com backlog admin e passa para o novo P3.
+  - o P3 anterior (livros/ferramentas legadas/brokers-websites) foi adiado para P4.
+- Contexto tecnico que motivou a mudanca:
+  - na analise rapida de stocks existem casos com comparativo (`vs.`/`Y-1`) disponivel e valor atual em `-`.
+  - este comportamento ocorre em multiplos setores e nao apenas no caso da Google (`GOOGL`), sobretudo em metricas como `ROIC`, `ROE`, `PEG`, `Margem EBITDA` e `Divida / Capitais Proprios`.
+  - causa principal: cobertura assimetrica de fontes/periodos (TTM/FY/Q), nomenclatura heterogenea por endpoint e lacunas de reporte por setor.
+- Direcao do novo P3:
+  - hardening de pipeline de metricas atuais com fallback multi-fonte e normalizacao temporal explicita.
+  - semantica de dados ausentes diferenciada (`sem_dado_atual`, `nao_aplicavel`, `erro_fonte`) para evitar `-` ambiguo.
+  - validacao funcional cross-setor com matriz de tickers de referencia e gate tecnico completo (lint/test/build/e2e).
+
+## 35) P3.1 arranque tecnico - ingestao e normalizacao (2026-02-21)
+- Backend (`API_finhub`) com primeiro contrato formal de governanca para a Analise Rapida:
+  - novo util `src/utils/quickAnalysisMetrics.ts`.
+  - payload da quick analysis enriquecido com:
+    - `quickMetricContractVersion`
+    - `quickMetricCatalog`
+    - `quickMetricStates`
+    - `quickMetricIngestion`
+    - `quickMetricSummary`
+- Regras iniciais implementadas:
+  - catalogo de metricas nucleares por categoria com fonte primaria/fallback e unidade.
+  - estados por metrica (`ok`, `calculated`, `nao_aplicavel`, `sem_dado_atual`, `erro_fonte`).
+  - normalizacao temporal explicita (`TTM`, `FY`, `Q`, `MIXED`) e mapeamento de periodo de benchmark por source.
+  - contexto de ingestao com `currentDataPeriodRaw`, `currentDataPeriodNormalized`, `benchmarkAsOf` e distribuicao de fontes observadas.
+- Frontend (`FinHub-Vite`) alinhado ao novo contrato:
+  - tipos extendidos em `src/features/tools/stocks/types/stocks.ts`.
+  - merge de payload atualizado em `src/features/tools/stocks/utils/mergeStockData.ts`.
+- Validacao tecnica apos arranque P3.1:
+  - backend: `npm run typecheck` -> PASS.
+  - frontend: `npm run typecheck:p1` -> PASS.
+
+## 36) P3.2 arranque tecnico - motor derivado de atuais (2026-02-21)
+- Backend (`API_finhub`) com preenchimento derivado de metricas atuais ausentes na Analise Rapida:
+  - novo util `src/utils/quickAnalysisDerivedMetrics.ts`.
+  - calculos/fallbacks iniciais aplicados para:
+    - `ROE`
+    - `ROIC`
+    - `PEG`
+    - `Margem EBITDA`
+    - `Divida / Capitais Proprios`
+  - estrategia:
+    - priorizar campos diretos de `ratios` quando disponiveis.
+    - usar formulas derivadas quando necessario (ex.: `PEG = (P/L) / abs(CAGR_EPS_percent)`).
+    - preservar `-` apenas quando nao houver base de calculo confiavel.
+- Integracao no fluxo da quick analysis:
+  - `src/controllers/stock.controller.ts` passa a enriquecer `indicadores` antes de construir o contrato `quickMetric*`.
+  - `quickMetricStates` agora classifica valores preenchidos por este motor como `calculated` com `source`/`reason` de formula.
+- Validacao tecnica apos arranque P3.2:
+  - backend: `npm run typecheck` -> PASS.
+  - frontend: `npm run typecheck:p1` -> PASS.
+
+## 37) P3.2 fechado + P3.3 arranque tecnico concluido (2026-02-21)
+- Fecho oficial de P3.2 (motor de calculo de atuais ausentes):
+  - fallback expandido para fontes adicionais do ecossistema FMP (`ratios`, `key-metrics`, historico de `ratios` e `key-metrics`).
+  - fallback por formula quando o valor atual nao vem pronto na fonte:
+    - ROE = netIncome / avgShareholderEquity
+    - ROIC = NOPAT / investedCapital
+    - Divida / Capitais Proprios = totalDebt / totalShareholderEquity
+    - Margem EBITDA = EBITDA / revenue
+    - Payout Ratio = abs(dividendsPaid) / abs(netIncome)
+    - PEG = (P/L) / abs(growth_percent)
+  - estados `quickMetricStates` refletem estes preenchimentos com `status=calculated`, `source` e `formula`.
+- Arranque tecnico de P3.3 concluido (matriz setorial + categorias dinamicas):
+  - resolucao de setor de analise por `sector + industry` para evitar classificacao errada da fonte (`sectorRaw` vs setor canonico de analise).
+  - contrato `quickMetric*` expandido com semantica setorial:
+    - `sectorPolicy` no catalogo
+    - `sectorPriority` e `requiredForSector` nos estados
+    - `resolvedSector` em ingestao
+    - resumo de cobertura `core*` e `optional*`
+- Matriz formal publicada:
+  - `dcos/P3_MATRIZ_SETORIAL_ANALISE_RAPIDA.md`
+- Validacao tecnica apos fecho:
+  - backend: `npm run typecheck` -> PASS.
+  - frontend: `npm run typecheck:p1` -> PASS.
+- Smoke funcional setorial (amostra):
+  - GOOGL classificado em Communication Services (com `sectorRaw=Technology`).
+  - XOM classificado em Energy.
+  - NFE classificado em Utilities.
+  - JPM com ROIC e Divida/EBITDA em `nao_aplicavel` (comportamento esperado para Financial Services).
+
+## 38) P3.3 validacao operacional + P3.4 arranque tecnico (2026-02-21)
+- Validacao operacional cross-setor (1 ticker por setor) automatizada:
+  - novo script backend: `API_finhub/scripts/quick-metrics-sector-coverage.js`.
+  - novo comando backend: `npm run quick-metrics:coverage`.
+  - robustez adicionada ao script com retries + intervalo entre requests para reduzir erros transientes de fonte.
+  - artefacto de validacao gerado em:
+    - `FinHub-Vite/dcos/P3_COBERTURA_SETORIAL_QUICK_ANALYSIS.md`.
+- Resultado da tabela operacional:
+  - 11/11 setores com setor resolvido esperado na amostra executada.
+  - cobertura core total em 9 setores (`17/17` ou equivalente setorial).
+  - excecoes coerentes com politica setorial:
+    - Financial Services: `ROIC` e `Divida/EBITDA` em `nao_aplicavel`.
+    - Utilities: `2` metricas em `sem_dado_atual` (core `14/15`, optional `1/2`).
+- P3.4 arranque tecnico entregue no frontend (Analise Rapida):
+  - novo resumo de governanca de metricas na pagina (setor resolvido + contagens por estado).
+  - estados por metrica visiveis diretamente nos cards:
+    - `Direto`
+    - `Calculado`
+    - `Nao aplicavel`
+    - `Sem dado atual`
+    - `Erro fonte`
+  - valor apresentado no card deixa de ser ambiguo para estados sem valor atual/nao aplicavel/erro de fonte.
+  - contexto de governanca partilhado entre quick analysis e componentes setoriais:
+    - `QuickMetricGovernanceContext`
+    - `QuickMetricCoverageSummary`
+- Validacao tecnica deste ciclo:
+  - backend: `npm run typecheck` -> PASS.
+  - frontend: `npm run typecheck:p1` -> PASS.
