@@ -185,6 +185,8 @@ export function QuickAnalysis({ data, onPeerClick }: QuickAnalysisProps) {
             name: peer.name,
             price: peer.price,
             change: peer.changesPercentage || 0,
+            marketCap: peer.marketCap ?? null,
+            pe: peer.pe ?? null,
           }))}
           onPeerClick={onPeerClick}
         />

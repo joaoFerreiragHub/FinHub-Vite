@@ -22,6 +22,73 @@ interface CategoriasLayoutProps {
   complementares?: Record<string, any>
 }
 
+const DASH_VALUES = new Set(['—', '-', '--', 'N/A', ''])
+
+// Métricas onde um valor mais baixo é melhor (PE, dívida, beta, etc.)
+const LOWER_IS_BETTER_NORM = new Set([
+  'p l',
+  'p s',
+  'peg',
+  'divida ebitda',
+  'endividamento',
+  'divida capitais proprios',
+  'divida patrimonio',
+  'debt equity',
+  'divida total patrimonio',
+  'beta',
+  'capex receita',
+  'sga receita',
+])
+
+function normForComparison(label: string): string {
+  return String(label || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9 ]/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase()
+}
+
+function isLowerBetterLabel(label: string): boolean {
+  return LOWER_IS_BETTER_NORM.has(normForComparison(label))
+}
+
+const CATALOG_LABELS = new Set(
+  [
+    'Crescimento Receita',
+    'Crescimento da Receita',
+    'CAGR EPS',
+    'EPS',
+    'Margem Bruta',
+    'Margem EBITDA',
+    'Margem Liquida',
+    'Margem Operacional',
+    'ROIC',
+    'ROE',
+    'P/L',
+    'P/S',
+    'PEG',
+    'Divida/EBITDA',
+    'Endividamento',
+    'Liquidez Corrente',
+    'Divida / Capitais Proprios',
+    'Divida/Patrimonio',
+    'Debt/Equity',
+    'Divida Total/Patrimonio',
+    'Cash Ratio',
+    'Beta',
+  ].map((l) => l.toLowerCase()),
+)
+
+function isCatalogMetric(label: string): boolean {
+  const norm = normalizeMetricLabel(label)
+  if (CATALOG_LABELS.has(norm)) return true
+  return GOVERNANCE_ALIAS_GROUPS.some((aliases) =>
+    aliases.some((alias) => normalizeMetricLabel(alias) === norm),
+  )
+}
+
 const GOVERNANCE_ALIAS_GROUPS: string[][] = [
   ['Crescimento Receita', 'Crescimento da Receita'],
   ['CAGR EPS'],
@@ -86,6 +153,7 @@ function resolveGovernanceState(
   stateEntries: Array<[string, QuickMetricState]>,
 ): QuickMetricState | null {
   if (!stateEntries.length) return null
+  if (!isCatalogMetric(label)) return null
 
   const candidates = buildCandidateLabels(label)
   for (const candidate of candidates) {
@@ -153,11 +221,100 @@ function getCurrentValueDisplay(
   formatValue: (valor: string, chave: string) => string,
   state: QuickMetricState | null,
 ): string {
-  if (!state) return formatValue(rawValue, key)
-  if (state.status === 'nao_aplicavel') return 'N/A'
-  if (state.status === 'sem_dado_atual' || state.status === 'erro_fonte') return '-'
+  if (state?.status === 'nao_aplicavel') return 'N/A'
+  if (state?.status === 'sem_dado_atual' || state?.status === 'erro_fonte') return '—'
+  if (!state && DASH_VALUES.has(rawValue)) return '—'
   return formatValue(rawValue, key)
 }
+
+// ─── Sub-componentes visuais ──────────────────────────────────────────────────
+
+/** Seta SVG com percentagem de variação YoY.
+ *  Verde = valor subiu, vermelho = valor desceu — convenção universal de mercado.
+ *  A avaliação de "bom/mau" é feita pelo badge de score e pela barra de benchmark. */
+function TrendArrow({ current, prev }: { current: number; prev: number; label: string }) {
+  if (isNaN(current) || isNaN(prev) || prev === 0) return null
+
+  const changePct = ((current - prev) / Math.abs(prev)) * 100
+  if (!isFinite(changePct)) return null
+
+  const wentUp = current > prev
+
+  const absChange = Math.abs(changePct)
+  const formatted = absChange >= 10 ? `${Math.round(absChange)}%` : `${absChange.toFixed(1)}%`
+
+  const colorClass = wentUp
+    ? 'text-emerald-600 dark:text-emerald-400'
+    : 'text-red-500 dark:text-red-400'
+
+  return (
+    <div
+      className={`flex items-center gap-0.5 text-[11px] font-semibold tabular-nums ${colorClass}`}
+    >
+      {wentUp ? (
+        <svg viewBox="0 0 8 8" className="size-2.5 shrink-0" fill="currentColor">
+          <path d="M4 1L7.5 6.5H.5L4 1Z" />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 8 8" className="size-2.5 shrink-0" fill="currentColor">
+          <path d="M4 7L.5 1.5H7.5L4 7Z" />
+        </svg>
+      )}
+      {formatted}
+    </div>
+  )
+}
+
+/** Barra de posição vs benchmark setorial */
+function BenchmarkBar({
+  current,
+  benchmarkRaw,
+  label,
+}: {
+  current: number
+  benchmarkRaw: string | null | undefined
+  label: string
+}) {
+  if (!benchmarkRaw) return null
+
+  const benchmark = parseFloat(benchmarkRaw.replace(/[%,$]/g, '').replace(',', '.').trim())
+  if (!isFinite(benchmark) || benchmark === 0 || !isFinite(current)) return null
+
+  const lowerBetter = isLowerBetterLabel(label)
+
+  // ratio > 1 = melhor que benchmark, < 1 = pior
+  const ratio = lowerBetter ? benchmark / current : current / benchmark
+
+  // Mapeia ratio para posição 0-100%, benchmark = 50%
+  const position = Math.min(97, Math.max(3, 50 + (ratio - 1) * 40))
+  const isFavorable = position >= 50
+
+  const dotColor = isFavorable ? 'bg-emerald-500 dark:bg-emerald-400' : 'bg-red-500 dark:bg-red-400'
+
+  return (
+    <div className="mt-2 space-y-1">
+      <div className="relative h-1 w-full rounded-full bg-border">
+        {/* Linha de benchmark no centro */}
+        <div
+          className="absolute top-1/2 -translate-y-1/2 w-px h-3 bg-muted-foreground/40 rounded-full"
+          style={{ left: '50%' }}
+        />
+        {/* Dot de posição actual */}
+        <div
+          className={`absolute top-1/2 -translate-y-1/2 size-2.5 rounded-full border-2 border-background shadow-sm ${dotColor}`}
+          style={{ left: `calc(${position}% - 5px)` }}
+        />
+      </div>
+      <div className="flex justify-between text-[9px] text-muted-foreground/60 leading-none select-none">
+        <span>{lowerBetter ? 'Melhor' : 'Abaixo'}</span>
+        <span>Benchmark</span>
+        <span>{lowerBetter ? 'Pior' : 'Acima'}</span>
+      </div>
+    </div>
+  )
+}
+
+// ─── Componente principal ─────────────────────────────────────────────────────
 
 export function CategoriasLayout({
   categorias,
@@ -172,15 +329,13 @@ export function CategoriasLayout({
     <div className="space-y-4">
       {Object.entries(categorias).map(([categoria, indicadores]) => {
         const indicadoresValidos = indicadores.filter(({ label, valor }) => {
+          if (DASH_VALUES.has(valor)) return true
           const numeric = parseFloat(valor)
           const { apenasInformativo } = avaliarIndicadorComContexto(
             setor as Setor,
             label,
             numeric,
-            {
-              valorAnterior: undefined,
-              complementares,
-            },
+            { valorAnterior: undefined, complementares },
           )
           return !apenasInformativo
         })
@@ -205,27 +360,45 @@ export function CategoriasLayout({
                 const governanceState = resolveGovernanceState(label, stateEntries)
                 const stateMeta = governanceState ? getStateMeta(governanceState) : null
 
+                const isMissingData = !governanceState && DASH_VALUES.has(valor)
+                const missingMeta = isMissingData
+                  ? {
+                      label: 'Sem dado',
+                      className:
+                        'bg-amber-500/10 text-amber-700 border border-amber-500/30 dark:text-amber-300',
+                      hint: 'Dado não disponível para este ticker.',
+                    }
+                  : null
+                const effectiveStateMeta = stateMeta ?? missingMeta
+
                 const { score, explicacaoCustom } = avaliarIndicadorComContexto(
                   setor as Setor,
                   label,
                   numeric,
-                  {
-                    valorAnterior: prev,
-                    complementares,
-                  },
+                  { valorAnterior: prev, complementares },
                 )
 
-                const canCompare = !shouldHideCurrentValueByState(governanceState)
-                const hasImprovement =
-                  canCompare && prev !== undefined && !isNaN(prev) && numeric > prev
-                const hasDeterioration =
-                  canCompare && prev !== undefined && !isNaN(prev) && numeric < prev
+                const canCompare = !isMissingData && !shouldHideCurrentValueByState(governanceState)
+                const showTrend =
+                  canCompare &&
+                  prev !== undefined &&
+                  !isNaN(prev) &&
+                  !isNaN(numeric) &&
+                  prev !== numeric
+
+                // Benchmark bar: só se tiver valor numérico válido e benchmark disponível
+                const hasBenchmark =
+                  !isMissingData &&
+                  !shouldHideCurrentValueByState(governanceState) &&
+                  governanceState?.benchmarkValue != null &&
+                  !isNaN(numeric)
 
                 return (
                   <div
                     key={label}
                     className="rounded-lg border border-border bg-background px-4 py-3 hover:bg-muted/40 transition-colors duration-150"
                   >
+                    {/* ── Header: icon + label + badges ── */}
                     <div className="flex items-start justify-between mb-2.5">
                       <div className="flex items-center gap-2 min-w-0">
                         {icon && <span className="text-base shrink-0">{icon}</span>}
@@ -239,46 +412,56 @@ export function CategoriasLayout({
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-1.5">
-                        <IndicatorValuePro
-                          score={score}
-                          tooltip={
-                            explicacaoCustom?.trim()
-                              ? explicacaoCustom
-                              : `Benchmark definido para "${label}".`
-                          }
-                        />
-                        {stateMeta && (
+                      <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                        {!isMissingData && (
+                          <IndicatorValuePro
+                            score={score}
+                            tooltip={
+                              explicacaoCustom?.trim()
+                                ? explicacaoCustom
+                                : `Benchmark definido para "${label}".`
+                            }
+                          />
+                        )}
+                        {effectiveStateMeta && (
                           <span
-                            className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium ${stateMeta.className}`}
+                            className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium ${effectiveStateMeta.className}`}
                           >
-                            {stateMeta.label}
+                            {effectiveStateMeta.label}
                           </span>
                         )}
                       </div>
                     </div>
 
+                    {/* ── Valor + Seta YoY ── */}
                     <div className="flex items-end justify-between gap-2">
                       <span className="text-xl font-bold text-foreground tabular-nums leading-none">
                         {getCurrentValueDisplay(valor, chave, formatValue, governanceState)}
                       </span>
-                      {anterior && canCompare && (
-                        <div className="flex items-center gap-0.5 text-xs text-muted-foreground">
-                          <span>vs.</span>
-                          <span>{formatValue(anterior, chave)}</span>
-                          {hasImprovement && (
-                            <span className="text-green-500 font-semibold">^</span>
-                          )}
-                          {hasDeterioration && (
-                            <span className="text-red-500 font-semibold">v</span>
-                          )}
+
+                      {showTrend && prev !== undefined && (
+                        <div className="flex flex-col items-end gap-0.5 pb-0.5">
+                          <TrendArrow current={numeric} prev={prev} label={label} />
+                          <span className="text-[9px] text-muted-foreground/70 leading-none">
+                            vs {formatValue(anterior!, chave)}
+                          </span>
                         </div>
                       )}
                     </div>
 
-                    {stateMeta && (
+                    {/* ── Barra de posição vs benchmark ── */}
+                    {hasBenchmark && (
+                      <BenchmarkBar
+                        current={numeric}
+                        benchmarkRaw={governanceState?.benchmarkValue}
+                        label={label}
+                      />
+                    )}
+
+                    {/* ── Hint de governance ── */}
+                    {effectiveStateMeta && !hasBenchmark && (
                       <p className="mt-2 text-[10px] text-muted-foreground leading-tight">
-                        {stateMeta.hint}
+                        {effectiveStateMeta.hint}
                       </p>
                     )}
                   </div>

@@ -1,15 +1,15 @@
 ﻿import { CategoriasLayout } from './CategoriasLayout'
-// âœ… COMPONENTE RATINGSCOMMUNICATION OTIMIZADO
+// ✅ COMPONENTE RATINGSCOMMUNICATION OTIMIZADO
 import {
   buildCommunicationServicesComplementares,
   RatingsCommunicationProps,
 } from '@/features/tools/stocks/utils/complementares/communicationServicesComplementares'
 
 export function RatingsCommunication(props: RatingsCommunicationProps) {
-  // âœ… NOVO: ConstrÃ³i complementares especÃ­ficos para Communication Services
+  // ✅ NOVO: Constrói complementares específicos para Communication Services
   const complementares = buildCommunicationServicesComplementares(props)
 
-  console.log('ðŸ”§ Communication Services Complementares:', complementares)
+  console.log('🔧 Communication Services Complementares:', complementares)
 
   const categorias: Record<
     string,
@@ -22,29 +22,29 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
       description?: string
     }[]
   > = {
-    'Core do NegÃ³cio': [
+    'Core do Negócio': [
       {
-        label: 'Crescimento de UsuÃ¡rios',
+        label: 'Crescimento de Usuários',
         chave: 'userGrowth',
         valor: props.userGrowth || '—',
         anterior: props.userGrowthAnoAnterior,
-        icon: 'ðŸ‘¥',
-        description: 'Taxa de crescimento da base de usuÃ¡rios',
+        icon: '👥',
+        description: 'Taxa de crescimento da base de usuários',
       },
       {
         label: 'ARPU',
         chave: 'arpu',
         valor: props.arpu || '—',
         anterior: props.arpuAnoAnterior,
-        icon: 'ðŸ’°',
-        description: 'Receita mÃ©dia por usuÃ¡rio',
+        icon: '💰',
+        description: 'Receita média por usuário',
       },
       {
         label: 'Churn Rate',
         chave: 'churnRate',
         valor: props.churnRate || '—',
         anterior: props.churnRateAnoAnterior,
-        icon: 'ðŸ”„',
+        icon: '🔄',
         description: 'Taxa de cancelamento',
       },
       {
@@ -52,8 +52,8 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
         chave: 'contentInvestment',
         valor: props.contentInvestment || '—',
         anterior: props.contentInvestmentAnoAnterior,
-        icon: 'ðŸŽ¬',
-        description: '% da receita investida em conteÃºdo',
+        icon: '🎬',
+        description: '% da receita investida em conteúdo',
       },
     ],
 
@@ -63,7 +63,7 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
         chave: 'crescimentoReceita',
         valor: props.crescimentoReceita,
         anterior: props.crescimentoReceitaAnoAnterior,
-        icon: 'ðŸ“ˆ',
+        icon: '📈',
         description: 'Crescimento anual da receita',
       },
       {
@@ -71,7 +71,7 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
         chave: 'receitaCagr3y',
         valor: props.receitaCagr3y,
         anterior: props.receitaCagr3yAnoAnterior,
-        icon: 'ðŸ“Š',
+        icon: '📊',
         description: 'Taxa de crescimento composta (3 anos)',
       },
       {
@@ -79,7 +79,7 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
         chave: 'crescimentoEbitda',
         valor: props.crescimentoEbitda,
         anterior: props.crescimentoEbitdaAnoAnterior,
-        icon: 'ðŸš€',
+        icon: '🚀',
         description: 'Crescimento do EBITDA',
       },
     ],
@@ -90,15 +90,15 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
         chave: 'roe',
         valor: props.roe,
         anterior: props.roeAnoAnterior,
-        icon: 'ðŸ“ˆ',
-        description: 'Retorno sobre patrimÃ´nio lÃ­quido',
+        icon: '📈',
+        description: 'Retorno sobre patrimônio líquido',
       },
       {
         label: 'ROIC',
         chave: 'roic',
         valor: props.roic,
         anterior: props.roicAnoAnterior,
-        icon: 'ðŸŽ¯',
+        icon: '🎯',
         description: 'Retorno sobre capital investido',
       },
       {
@@ -106,7 +106,7 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
         chave: 'ebitdaMargin',
         valor: props.ebitdaMargin,
         anterior: props.ebitdaMarginAnoAnterior,
-        icon: 'ðŸ“Š',
+        icon: '📊',
         description: 'Margem EBITDA',
       },
       {
@@ -114,51 +114,51 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
         chave: 'grossMargin',
         valor: props.grossMargin,
         anterior: props.grossMarginAnoAnterior,
-        icon: 'ðŸ’°',
+        icon: '💰',
         description: 'Margem bruta',
       },
       {
-        label: 'Margem LÃ­quida',
+        label: 'Margem Líquida',
         chave: 'margemLiquida',
         valor: props.margemLiquida,
         anterior: props.margemLiquidaAnoAnterior,
-        icon: 'ðŸŽ¯',
-        description: 'Margem lÃ­quida',
+        icon: '🎯',
+        description: 'Margem líquida',
       },
       {
         label: 'Margem Operacional',
         chave: 'margemOperacional',
         valor: props.margemOperacional,
         anterior: props.margemOperacionalAnoAnterior,
-        icon: 'âš™ï¸',
+        icon: '⚙️',
         description: 'Margem operacional',
       },
     ],
 
-    'MÃºltiplos de AvaliaÃ§Ã£o': [
+    'Múltiplos de Avaliação': [
       {
         label: 'P/L',
         chave: 'pe',
         valor: props.pe,
         anterior: props.peAnoAnterior,
-        icon: 'ðŸ’²',
-        description: 'PreÃ§o sobre lucro',
+        icon: '💲',
+        description: 'Preço sobre lucro',
       },
       {
         label: 'P/S',
         chave: 'ps',
         valor: props.ps,
         anterior: props.psAnoAnterior,
-        icon: 'ðŸ“Š',
-        description: 'PreÃ§o sobre vendas',
+        icon: '📊',
+        description: 'Preço sobre vendas',
       },
       {
         label: 'P/VPA',
         chave: 'pb',
         valor: props.pb,
         anterior: props.pbAnoAnterior,
-        icon: 'ðŸ“š',
-        description: 'PreÃ§o sobre valor patrimonial',
+        icon: '📚',
+        description: 'Preço sobre valor patrimonial',
       },
     ],
 
@@ -168,7 +168,7 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
         chave: 'freeCashFlow',
         valor: props.freeCashFlow,
         anterior: props.freeCashFlowAnoAnterior,
-        icon: 'ðŸ’¸',
+        icon: '💸',
         description: 'Fluxo de caixa livre',
       },
       {
@@ -176,7 +176,7 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
         chave: 'fcfYield',
         valor: props.fcfYield,
         anterior: props.fcfYieldAnoAnterior,
-        icon: 'ðŸ’°',
+        icon: '💰',
         description: 'Rendimento do fluxo de caixa',
       },
       {
@@ -184,18 +184,18 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
         chave: 'capexRevenue',
         valor: props.capexRevenue,
         anterior: props.capexRevenueAnoAnterior,
-        icon: 'ðŸ—ï¸',
+        icon: '🏗️',
         description: 'Intensidade de investimentos',
       },
     ],
 
     'Estrutura Financeira': [
       {
-        label: 'DÃ­vida/EBITDA',
+        label: 'Dívida/EBITDA',
         chave: 'dividaEbitda',
         valor: props.dividaEbitda,
         anterior: props.dividaEbitdaAnoAnterior,
-        icon: 'âš–ï¸',
+        icon: '⚖️',
         description: 'Endividamento',
       },
       {
@@ -203,7 +203,7 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
         chave: 'coberturaJuros',
         valor: props.coberturaJuros,
         anterior: props.coberturaJurosAnoAnterior,
-        icon: 'ðŸ›¡ï¸',
+        icon: '🛡️',
         description: 'Capacidade de pagamento de juros',
       },
       {
@@ -211,15 +211,15 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
         chave: 'liquidezCorrente',
         valor: props.liquidezCorrente,
         anterior: props.liquidezCorrenteAnoAnterior,
-        icon: 'ðŸ’§',
+        icon: '💧',
         description: 'Liquidez de curto prazo',
       },
       {
-        label: 'DÃ­vida/PatrimÃ´nio',
+        label: 'Dívida/Patrimônio',
         chave: 'debtEquity',
         valor: props.debtEquity,
         anterior: props.debtEquityAnoAnterior,
-        icon: 'ðŸ“Š',
+        icon: '📊',
         description: 'Alavancagem financeira',
       },
     ],
@@ -230,7 +230,7 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
         chave: 'dividendYield',
         valor: props.dividendYield,
         anterior: props.dividendYieldAnoAnterior,
-        icon: 'ðŸ’Ž',
+        icon: '💎',
         description: 'Rendimento de dividendos',
       },
       {
@@ -238,8 +238,8 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
         chave: 'payoutRatio',
         valor: props.payoutRatio,
         anterior: props.payoutRatioAnoAnterior,
-        icon: 'ðŸ“¤',
-        description: '% dos lucros distribuÃ­dos',
+        icon: '📤',
+        description: '% dos lucros distribuídos',
       },
     ],
 
@@ -249,13 +249,13 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
         chave: 'beta',
         valor: props.beta,
         anterior: props.betaAnoAnterior,
-        icon: 'ðŸ“‰',
+        icon: '📉',
         description: 'Volatilidade vs. mercado',
       },
     ],
   }
 
-  // FunÃ§Ã£o para formatar valores
+  // Função para formatar valores
   const formatValue = (valor: string, chave: string) => {
     const cleanValue = valor.replace('%', '').replace('$', '').replace(',', '').trim()
     const num = parseFloat(cleanValue)
@@ -286,7 +286,7 @@ export function RatingsCommunication(props: RatingsCommunicationProps) {
       return `${num.toFixed(2)}%`
     }
 
-    // Valores monetÃ¡rios grandes (FCF, ARPU)
+    // Valores monetários grandes (FCF, ARPU)
     if (chave === 'freeCashFlow' && Math.abs(num) > 1000000) {
       return `${(num / 1000000).toFixed(1)}M`
     }

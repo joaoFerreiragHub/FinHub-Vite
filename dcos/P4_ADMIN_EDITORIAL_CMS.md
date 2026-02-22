@@ -1,7 +1,7 @@
-# P4 - Admin Editorial CMS (Conteudo e Curadoria)
+﻿# P4 - Admin Editorial CMS (Conteudo e Curadoria)
 
-Data: 2026-02-22  
-Status: PLANEADO (apos fecho de P2 Admin-first operacional).
+Data: 2026-02-22
+Status: EM CURSO (Fase A backend entregue em 2026-02-22).
 
 ## 1) Objetivo de negocio
 Permitir que o admin opere como "bootstrap creator/editorial" quando a rede de creators ainda e reduzida, garantindo:
@@ -113,7 +113,7 @@ Perfis sugeridos:
 
 ## 5) Modelo de dados (alto nivel)
 
-### 5.1 Entidades novas (propostas)
+### 5.1 Entidades novas
 1. `EditorialSection`
 - chave, titulo, subtitulo, tipo, ordem, flags de visibilidade
 2. `EditorialSectionItem`
@@ -136,25 +136,25 @@ Perfis sugeridos:
 
 ## 6) API alvo (MVP)
 
-### 6.1 Curadoria homepage
+### 6.1 Curadoria homepage (admin)
 1. `GET /api/admin/editorial/sections`
 2. `POST /api/admin/editorial/sections`
-3. `PATCH /api/admin/editorial/sections/:id`
-4. `POST /api/admin/editorial/sections/:id/items`
-5. `PATCH /api/admin/editorial/sections/:id/items/reorder`
-6. `DELETE /api/admin/editorial/sections/:id/items/:itemId`
+3. `PATCH /api/admin/editorial/sections/:sectionId`
+4. `POST /api/admin/editorial/sections/:sectionId/items`
+5. `PATCH /api/admin/editorial/sections/:sectionId/items/reorder`
+6. `DELETE /api/admin/editorial/sections/:sectionId/items/:itemId`
 
-### 6.2 Diretorios
+### 6.2 Diretorios (admin)
 1. `GET /api/admin/directories/:vertical`
 2. `POST /api/admin/directories/:vertical`
-3. `PATCH /api/admin/directories/:vertical/:id`
-4. `POST /api/admin/directories/:vertical/:id/publish`
-5. `POST /api/admin/directories/:vertical/:id/archive`
+3. `PATCH /api/admin/directories/:vertical/:entryId`
+4. `POST /api/admin/directories/:vertical/:entryId/publish`
+5. `POST /api/admin/directories/:vertical/:entryId/archive`
 
-### 6.3 Claim e ownership
+### 6.3 Claim e ownership (admin)
 1. `GET /api/admin/claims`
-2. `POST /api/admin/claims/:id/approve`
-3. `POST /api/admin/claims/:id/reject`
+2. `POST /api/admin/claims/:claimId/approve`
+3. `POST /api/admin/claims/:claimId/reject`
 4. `POST /api/admin/ownership/transfer`
 
 ### 6.4 Leitura publica (consumo frontend)
@@ -175,32 +175,36 @@ Perfis sugeridos:
 - drag/drop de ordenacao (ou ordem por input no MVP)
 - confirmacao dupla para publish/unpublish/archive
 
-## 8) Fases de execucao sugeridas
+## 8) Fases de execucao
 
-### Fase A - Fundacao (bloqueante)
-1. schema + migrações
-2. escopos RBAC + auditoria
-3. contrato OpenAPI dos endpoints
+### Fase A - Fundacao (backend) - ENTREGUE
+1. schema/modelos base entregues.
+2. RBAC dedicado e auditoria nas rotas admin entregue.
+3. contrato OpenAPI atualizado para os novos endpoints.
+4. validacao tecnica backend:
+- `npm run typecheck` -> PASS
+- `npm run build` -> PASS
+- `npm run contract:openapi` -> PASS
 
-### Fase B - Curadoria Home
-1. CRUD de secoes
-2. CRUD/reorder de itens
-3. endpoint publico `/api/editorial/home`
+### Fase B - Curadoria Home (frontend + integracao)
+1. UI admin de secoes e itens ligada aos endpoints.
+2. reorder/pin com guardrails UX.
+3. preview operacional da home curada.
 
 ### Fase C - Diretorios verticais
-1. CRUD de `DirectoryEntry`
-2. visibilidade/destaque
-3. landing/show-all por vertical
+1. UI admin de diretorios por vertical.
+2. visibilidade/destaque/publish/archive.
+3. landing/show-all publico por vertical com filtros.
 
 ### Fase D - Seed content + claim
-1. ownerType/sourceType/claimable
-2. fluxo de claim review
-3. transfer de ownership com log
+1. ownerType/sourceType/claimable na operacao editorial.
+2. fluxo de claim review fim-a-fim no frontend.
+3. transfer de ownership com log e historico consultavel.
 
 ### Fase E - Hardening
-1. E2E de fluxo editorial completo
-2. rate limits e guardrails de bulk
-3. playbook operacional de rollback
+1. E2E de fluxo editorial completo.
+2. guardrails de bulk actions e rate limits dedicados.
+3. playbook operacional de rollback.
 
 ## 9) Criterios de aceite (definition of done)
 1. Admin consegue criar/publicar conteudo seed de pelo menos 4 tipos (article/video/podcast/evento).
@@ -212,25 +216,7 @@ Perfis sugeridos:
 - backend: `typecheck`, `build`, `contract:openapi`
 - frontend: `typecheck:p1`, `lint`, `test`, `build`, `test:e2e`
 
-## 10) Riscos e mitigacoes
-1. Risco: duplicacao de entidades seed vs creator.
-- Mitigacao: chave canonical por URL externa + workflow de merge.
-2. Risco: homepage degradar performance.
-- Mitigacao: cache por secao + invalidador por update editorial.
-3. Risco: abuso operacional de publish em massa.
-- Mitigacao: limites por batch + confirmacao dupla + motivo + auditoria.
-4. Risco: claims fraudulentos.
-- Mitigacao: prova de posse de canal/link oficial + revisao humana.
-
-## 11) Dependencias
-1. Base P2 (RBAC/auditoria/guardrails) ja entregue.
-2. Alinhamento de modelos de conteudo e profiles de creator.
-3. Priorizacao de produto para ordenar:
-- P3 (Analise Rapida)
-- P4 Admin CMS
-- P4 restantes itens legados.
-
-## 12) Sequencia pragmatica recomendada
-1. Finalizar fecho tecnico de P3.
-2. Iniciar Fase A e B do Admin CMS em paralelo de design de UX.
-3. Entrar em diretorios + claim apos estabilidade da curadoria home.
+## 10) Proximo passo recomendado
+1. Fechar Fase B (frontend admin de curadoria home) com consumo real dos endpoints entregues.
+2. Em seguida, avançar para Fase C (diretorios) e D (claims/ownership) no mesmo ciclo de validacao.
+3. Fechar com Fase E e E2E antes de abrir novos blocos de roadmap.

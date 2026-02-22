@@ -1,7 +1,6 @@
 import { Card, CardContent, Button, Badge } from '@/components/ui'
 import {
   StockDetails,
-  StockPeers,
   StocksSearchBar,
   useStockSearch,
   useWatchlist,
@@ -54,13 +53,6 @@ export default function MarketStocksPage() {
                   isInWatchlist={isInWatchlist(data.symbol)}
                   onToggleWatchlist={() => toggle(data.symbol)}
                 />
-              </CardContent>
-            </Card>
-
-            <Card className="border border-border/60 bg-card/75">
-              <CardContent className="p-6">
-                <h2 className="mb-2 text-lg font-semibold text-foreground">Acoes relacionadas</h2>
-                <StockPeers peers={data.peers} onPeerClick={(symbol) => setTicker(symbol)} />
               </CardContent>
             </Card>
           </>

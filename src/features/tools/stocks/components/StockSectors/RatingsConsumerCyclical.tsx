@@ -14,7 +14,7 @@ interface Categoria {
 }
 
 export function RatingsConsumerCyclical(props: RatingsConsumerCyclicalProps) {
-  // Calcular mÃ©tricas especÃ­ficas de consumer cyclical
+  // Calcular métricas específicas de consumer cyclical
   const calculateConsumerCyclicalMetrics = () => {
     const roeNum = parseFloat(props.roe) || 0
     const grossMarginNum = parseFloat(props.grossMargin) || 0
@@ -24,7 +24,7 @@ export function RatingsConsumerCyclical(props: RatingsConsumerCyclicalProps) {
     const endividamentoNum = parseFloat(props.endividamento) || 0
 
     return {
-      // Score de Sensibilidade CÃ­clica
+      // Score de Sensibilidade Cíclica
       sensibilidadeCiclica:
         betaNum > 1.2 && receitaCagr3yNum > 8
           ? '90'
@@ -32,7 +32,7 @@ export function RatingsConsumerCyclical(props: RatingsConsumerCyclicalProps) {
             ? '75'
             : '50',
 
-      // Score de EficiÃªncia Operacional
+      // Score de Eficiência Operacional
       eficienciaOperacional:
         rotatividadeEstoquesNum > 6 && grossMarginNum > 30
           ? '85'
@@ -40,7 +40,7 @@ export function RatingsConsumerCyclical(props: RatingsConsumerCyclicalProps) {
             ? '70'
             : '45',
 
-      // Score de ResiliÃªncia Financeira
+      // Score de Resiliência Financeira
       resilienciaFinanceira:
         endividamentoNum < 2 && roeNum > 15
           ? '95'
@@ -52,13 +52,13 @@ export function RatingsConsumerCyclical(props: RatingsConsumerCyclicalProps) {
 
   const calculatedMetrics = calculateConsumerCyclicalMetrics()
 
-  // âœ… NOVO: Usar build function (como Technology e Energy)
+  // ✅ NOVO: Usar build function (como Technology e Energy)
   const baseComplementares = buildConsumerCyclicalComplementares(props)
 
-  // âœ… NOVO: Combinar com mÃ©tricas calculadas
+  // ✅ NOVO: Combinar com métricas calculadas
   const complementares = {
     ...baseComplementares,
-    // Adicionar mÃ©tricas calculadas
+    // Adicionar métricas calculadas
     sensibilidadeCiclica: parseFloat(calculatedMetrics.sensibilidadeCiclica || '0'),
     eficienciaOperacional: parseFloat(calculatedMetrics.eficienciaOperacional || '0'),
     resilienciaFinanceira: parseFloat(calculatedMetrics.resilienciaFinanceira || '0'),
@@ -71,50 +71,50 @@ export function RatingsConsumerCyclical(props: RatingsConsumerCyclicalProps) {
         chave: 'pe',
         valor: props.pe,
         anterior: props.peAnoAnterior,
-        icon: 'ðŸ’²',
-        description: 'PreÃ§o sobre Lucro',
+        icon: '💲',
+        description: 'Preço sobre Lucro',
       },
       {
         label: 'P/S',
         chave: 'ps',
         valor: props.ps,
         anterior: props.psAnoAnterior,
-        icon: 'ðŸ“Š',
-        description: 'PreÃ§o sobre Vendas',
+        icon: '📊',
+        description: 'Preço sobre Vendas',
       },
       {
         label: 'P/VPA',
         chave: 'pb',
         valor: props.pb,
         anterior: props.pbAnoAnterior,
-        icon: 'ðŸ“š',
-        description: 'PreÃ§o sobre Valor Patrimonial',
+        icon: '📚',
+        description: 'Preço sobre Valor Patrimonial',
       },
       {
         label: 'ROE',
         chave: 'roe',
         valor: props.roe,
         anterior: props.roeAnoAnterior,
-        icon: 'ðŸ“ˆ',
-        description: 'Retorno sobre PatrimÃ´nio LÃ­quido',
+        icon: '📈',
+        description: 'Retorno sobre Patrimônio Líquido',
       },
       {
         label: 'ROIC',
         chave: 'roic',
         valor: props.roic,
         anterior: props.roicAnoAnterior,
-        icon: 'ðŸŽ¯',
+        icon: '🎯',
         description: 'Retorno sobre Capital Investido',
       },
     ],
 
-    'Margens e EficiÃªncia': [
+    'Margens e Eficiência': [
       {
         label: 'Margem Bruta',
         chave: 'grossMargin',
         valor: props.grossMargin,
         anterior: props.grossMarginAnoAnterior,
-        icon: 'ðŸ’°',
+        icon: '💰',
         description: 'Margem Bruta',
       },
       {
@@ -122,23 +122,23 @@ export function RatingsConsumerCyclical(props: RatingsConsumerCyclicalProps) {
         chave: 'ebitdaMargin',
         valor: props.ebitdaMargin,
         anterior: props.ebitdaMarginAnoAnterior,
-        icon: 'ðŸ“Š',
+        icon: '📊',
         description: 'Margem EBITDA',
       },
       {
-        label: 'Margem LÃ­quida',
+        label: 'Margem Líquida',
         chave: 'margemLiquida',
         valor: props.margemLiquida,
         anterior: props.margemLiquidaAnoAnterior,
-        icon: 'ðŸŽ¯',
-        description: 'Margem LÃ­quida',
+        icon: '🎯',
+        description: 'Margem Líquida',
       },
       {
         label: 'Margem Operacional',
         chave: 'margemOperacional',
         valor: props.margemOperacional,
         anterior: props.margemOperacionalAnoAnterior,
-        icon: 'âš™ï¸',
+        icon: '⚙️',
         description: 'Margem Operacional',
       },
     ],
@@ -149,7 +149,7 @@ export function RatingsConsumerCyclical(props: RatingsConsumerCyclicalProps) {
         chave: 'receitaCagr3y',
         valor: props.receitaCagr3y,
         anterior: props.receitaCagr3yAnoAnterior,
-        icon: 'ðŸ“ˆ',
+        icon: '📈',
         description: 'CAGR de 3 anos da Receita',
       },
       {
@@ -157,7 +157,7 @@ export function RatingsConsumerCyclical(props: RatingsConsumerCyclicalProps) {
         chave: 'crescimentoReceita',
         valor: props.crescimentoReceita,
         anterior: props.crescimentoReceitaAnoAnterior,
-        icon: 'ðŸ“Š',
+        icon: '📊',
         description: 'Crescimento Anual da Receita',
       },
       {
@@ -165,26 +165,26 @@ export function RatingsConsumerCyclical(props: RatingsConsumerCyclicalProps) {
         chave: 'crescimentoEbitda',
         valor: props.crescimentoEbitda,
         anterior: props.crescimentoEbitdaAnoAnterior,
-        icon: 'ðŸ“ˆ',
+        icon: '📈',
         description: 'Crescimento do EBITDA',
       },
     ],
 
-    'Estrutura de Capital e SolvÃªncia': [
+    'Estrutura de Capital e Solvência': [
       {
         label: 'Endividamento',
         chave: 'endividamento',
         valor: props.endividamento,
         anterior: props.endividamentoAnoAnterior,
-        icon: 'âš–ï¸',
-        description: 'DÃ­vida/EBITDA',
+        icon: '⚖️',
+        description: 'Dívida/EBITDA',
       },
       {
         label: 'Cobertura de Juros',
         chave: 'coberturaJuros',
         valor: props.coberturaJuros,
         anterior: props.coberturaJurosAnoAnterior,
-        icon: 'ðŸ›¡ï¸',
+        icon: '🛡️',
         description: 'Capacidade de Pagamento de Juros',
       },
       {
@@ -192,42 +192,42 @@ export function RatingsConsumerCyclical(props: RatingsConsumerCyclicalProps) {
         chave: 'liquidezCorrente',
         valor: props.liquidezCorrente,
         anterior: props.liquidezCorrenteAnoAnterior,
-        icon: 'ðŸ’§',
+        icon: '💧',
         description: 'Liquidez de Curto Prazo',
       },
       {
-        label: 'DÃ­vida/PatrimÃ´nio',
+        label: 'Dívida/Patrimônio',
         chave: 'debtEquity',
         valor: props.debtEquity,
         anterior: props.debtEquityAnoAnterior,
-        icon: 'ðŸ“Š',
+        icon: '📊',
         description: 'Alavancagem Financeira',
       },
     ],
 
-    'EficiÃªncia Operacional': [
+    'Eficiência Operacional': [
       {
         label: 'Rotatividade de Estoques',
         chave: 'rotatividadeEstoques',
         valor: props.rotatividadeEstoques,
         anterior: props.rotatividadeEstoquesAnoAnterior,
-        icon: 'ðŸ“¦',
-        description: 'Giro de InventÃ¡rio',
+        icon: '📦',
+        description: 'Giro de Inventário',
       },
       {
         label: 'Working Capital Turnover',
         chave: 'workingCapitalTurnover',
         valor: props.workingCapitalTurnover,
         anterior: props.workingCapitalTurnoverAnoAnterior,
-        icon: 'ðŸ”„',
-        description: 'EficiÃªncia do Capital de Giro',
+        icon: '🔄',
+        description: 'Eficiência do Capital de Giro',
       },
       {
         label: 'Asset Turnover',
         chave: 'assetTurnover',
         valor: props.assetTurnover,
         anterior: props.assetTurnoverAnoAnterior,
-        icon: 'ðŸ­',
+        icon: '🏭',
         description: 'Giro de Ativos',
       },
       {
@@ -235,8 +235,8 @@ export function RatingsConsumerCyclical(props: RatingsConsumerCyclicalProps) {
         chave: 'receivablesTurnover',
         valor: props.receivablesTurnover,
         anterior: props.receivablesTurnoverAnoAnterior,
-        icon: 'ðŸ’³',
-        description: 'Giro de RecebÃ­veis',
+        icon: '💳',
+        description: 'Giro de Recebíveis',
       },
     ],
 
@@ -246,7 +246,7 @@ export function RatingsConsumerCyclical(props: RatingsConsumerCyclicalProps) {
         chave: 'freeCashFlow',
         valor: props.freeCashFlow,
         anterior: props.freeCashFlowAnoAnterior,
-        icon: 'ðŸ’¸',
+        icon: '💸',
         description: 'Fluxo de Caixa Livre',
       },
       {
@@ -254,7 +254,7 @@ export function RatingsConsumerCyclical(props: RatingsConsumerCyclicalProps) {
         chave: 'fcfYield',
         valor: props.fcfYield,
         anterior: props.fcfYieldAnoAnterior,
-        icon: 'ðŸ’°',
+        icon: '💰',
         description: 'Rendimento do Fluxo de Caixa',
       },
       {
@@ -262,7 +262,7 @@ export function RatingsConsumerCyclical(props: RatingsConsumerCyclicalProps) {
         chave: 'capexRevenue',
         valor: props.capexRevenue,
         anterior: props.capexRevenueAnoAnterior,
-        icon: 'ðŸ—ï¸',
+        icon: '🏗️',
         description: 'Intensidade de Investimentos',
       },
     ],
@@ -273,7 +273,7 @@ export function RatingsConsumerCyclical(props: RatingsConsumerCyclicalProps) {
         chave: 'dividendYield',
         valor: props.dividendYield,
         anterior: props.dividendYieldAnoAnterior,
-        icon: 'ðŸ’Ž',
+        icon: '💎',
         description: 'Rendimento de Dividendos',
       },
       {
@@ -281,18 +281,18 @@ export function RatingsConsumerCyclical(props: RatingsConsumerCyclicalProps) {
         chave: 'payoutRatio',
         valor: props.payoutRatio,
         anterior: props.payoutRatioAnoAnterior,
-        icon: 'ðŸ“¤',
-        description: '% dos lucros distribuÃ­dos',
+        icon: '📤',
+        description: '% dos lucros distribuídos',
       },
     ],
 
-    'Volatilidade e AvaliaÃ§Ã£o': [
+    'Volatilidade e Avaliação': [
       {
         label: 'Beta',
         chave: 'beta',
         valor: props.beta,
         anterior: props.betaAnoAnterior,
-        icon: 'ðŸ“‰',
+        icon: '📉',
         description: 'Volatilidade vs. mercado',
       },
       {
@@ -300,12 +300,12 @@ export function RatingsConsumerCyclical(props: RatingsConsumerCyclicalProps) {
         chave: 'leveredDcf',
         valor: props.leveredDcf,
         anterior: props.leveredDcfAnoAnterior,
-        icon: 'ðŸ“Š',
+        icon: '📊',
         description: 'Fluxo de Caixa Descontado',
       },
     ],
 
-    'MÃ©tricas EspecÃ­ficas de Consumer Cyclical': [
+    'Métricas Específicas de Consumer Cyclical': [
       ...(props.seasonalityIndex
         ? [
             {
@@ -313,20 +313,20 @@ export function RatingsConsumerCyclical(props: RatingsConsumerCyclicalProps) {
               chave: 'seasonalityIndex',
               valor: props.seasonalityIndex,
               anterior: props.seasonalityIndexAnoAnterior,
-              icon: 'ðŸŒŠ',
-              description: 'Ãndice de Sazonalidade',
+              icon: '🌊',
+              description: 'Índice de Sazonalidade',
             },
           ]
         : []),
       ...(props.consumerConfidence
         ? [
             {
-              label: 'ConfianÃ§a do Consumidor',
+              label: 'Confiança do Consumidor',
               chave: 'consumerConfidence',
               valor: props.consumerConfidence,
               anterior: props.consumerConfidenceAnoAnterior,
-              icon: 'ðŸ˜Š',
-              description: 'CorrelaÃ§Ã£o com ConfianÃ§a do Consumidor',
+              icon: '😊',
+              description: 'Correlação com Confiança do Consumidor',
             },
           ]
         : []),
@@ -337,36 +337,36 @@ export function RatingsConsumerCyclical(props: RatingsConsumerCyclicalProps) {
               chave: 'marketShare',
               valor: props.marketShare,
               anterior: props.marketShareAnoAnterior,
-              icon: 'ðŸŽ¯',
-              description: 'ParticipaÃ§Ã£o de Mercado',
+              icon: '🎯',
+              description: 'Participação de Mercado',
             },
           ]
         : []),
       {
-        label: 'Sensibilidade CÃ­clica',
+        label: 'Sensibilidade Cíclica',
         chave: 'sensibilidadeCiclica',
         valor: calculatedMetrics.sensibilidadeCiclica,
-        icon: 'ðŸ”„',
-        description: 'Score de sensibilidade a ciclos econÃ´micos',
+        icon: '🔄',
+        description: 'Score de sensibilidade a ciclos econômicos',
       },
       {
-        label: 'EficiÃªncia Operacional',
+        label: 'Eficiência Operacional',
         chave: 'eficienciaOperacional',
         valor: calculatedMetrics.eficienciaOperacional,
-        icon: 'âš™ï¸',
-        description: 'Score de eficiÃªncia operacional',
+        icon: '⚙️',
+        description: 'Score de eficiência operacional',
       },
       {
-        label: 'ResiliÃªncia Financeira',
+        label: 'Resiliência Financeira',
         chave: 'resilienciaFinanceira',
         valor: calculatedMetrics.resilienciaFinanceira,
-        icon: 'ðŸ›¡ï¸',
-        description: 'Score de resiliÃªncia em downturns',
+        icon: '🛡️',
+        description: 'Score de resiliência em downturns',
       },
     ],
   }
 
-  // FormataÃ§Ã£o adequada para consumer cyclical
+  // Formatação adequada para consumer cyclical
   const formatValue = (valor: string, chave: string) => {
     const num = parseFloat(valor)
     if (isNaN(num)) return valor
@@ -396,7 +396,7 @@ export function RatingsConsumerCyclical(props: RatingsConsumerCyclicalProps) {
       return `${num.toFixed(2)}%`
     }
 
-    // Valores monetÃ¡rios (DCF, FCF)
+    // Valores monetários (DCF, FCF)
     if (['leveredDcf', 'precoAtual', 'freeCashFlow'].includes(chave)) {
       return `${num.toFixed(2)}`
     }
@@ -413,7 +413,7 @@ export function RatingsConsumerCyclical(props: RatingsConsumerCyclicalProps) {
       return `${num.toFixed(2)}x`
     }
 
-    // Ãndices especiais
+    // Índices especiais
     if (['seasonalityIndex', 'consumerConfidence'].includes(chave)) {
       return `${num.toFixed(1)}`
     }

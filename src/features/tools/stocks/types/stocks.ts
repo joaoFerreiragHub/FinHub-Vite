@@ -3,6 +3,8 @@ export interface PeerQuote {
   name: string
   price: number
   changesPercentage: number | null
+  marketCap?: number | null
+  pe?: number | null
 }
 
 export interface Alert {

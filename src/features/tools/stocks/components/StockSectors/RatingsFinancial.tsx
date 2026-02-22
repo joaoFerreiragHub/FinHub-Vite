@@ -14,7 +14,7 @@ interface Categoria {
 }
 
 export function RatingsFinancials(props: RatingsFinancialsProps) {
-  // âœ… UNIVERSAL: Detectar tipo de instituiÃ§Ã£o financeira
+  // ✅ UNIVERSAL: Detectar tipo de instituição financeira
   const detectFinancialType = () => {
     const hasBasileia = props.basileia && parseFloat(props.basileia) > 0
     const hasNIM = props.nim && parseFloat(props.nim) > 0 && props.nim !== 'N/A'
@@ -25,13 +25,13 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
     return {
       isBanco: hasBasileia || hasNIM || hasInadimplencia,
       isPaymentProcessor: !hasBasileia && !hasNIM && roeNum > 30,
-      isFintech: true, // Todos podem usar mÃ©tricas bÃ¡sicas
+      isFintech: true, // Todos podem usar métricas básicas
     }
   }
 
   const financialType = detectFinancialType()
 
-  // âœ… UNIVERSAL: MÃ©tricas calculadas adaptÃ¡veis
+  // ✅ UNIVERSAL: Métricas calculadas adaptáveis
   const calculateUniversalMetrics = () => {
     const roeNum = parseFloat(props.roe) || 0
     const eficienciaNum = parseFloat(props.eficiencia) || 0
@@ -45,7 +45,7 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
       rentabilidadeScore:
         roeNum > 25 ? '95' : roeNum > 20 ? '90' : roeNum > 15 ? '80' : roeNum > 10 ? '65' : '45',
 
-      // Score de EficiÃªncia AdaptÃ¡vel
+      // Score de Eficiência Adaptável
       eficienciaScore: financialType.isBanco
         ? eficienciaNum > 0 && eficienciaNum < 45
           ? '90'
@@ -98,7 +98,7 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
 
   const calculatedMetrics = calculateUniversalMetrics()
 
-  // âœ… Build complementares universal
+  // ✅ Build complementares universal
   const baseComplementares = buildFinancialComplementares(props)
   const complementares = {
     ...baseComplementares,
@@ -109,15 +109,15 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
   }
 
   const categorias: Record<string, Categoria[]> = {
-    // ðŸ¦ CATEGORIA UNIVERSAL - Rentabilidade (todos)
+    // 🏦 CATEGORIA UNIVERSAL - Rentabilidade (todos)
     'Rentabilidade e Performance': [
       {
         label: 'ROE',
         chave: 'roe',
         valor: props.roe,
         anterior: props.roeAnoAnterior,
-        icon: 'ðŸ“ˆ',
-        description: 'Retorno sobre PatrimÃ´nio LÃ­quido',
+        icon: '📈',
+        description: 'Retorno sobre Patrimônio Líquido',
       },
       ...(props.roa && props.roa !== 'N/A'
         ? [
@@ -126,7 +126,7 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
               chave: 'roa',
               valor: props.roa,
               anterior: props.roaAnoAnterior,
-              icon: 'ðŸŽ¯',
+              icon: '🎯',
               description: 'Retorno sobre Ativos',
             },
           ]
@@ -138,9 +138,9 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
               chave: 'nim',
               valor: props.nim,
               anterior: props.nimAnoAnterior,
-              icon: 'ðŸ’°',
+              icon: '💰',
               description: financialType.isBanco
-                ? 'Margem Financeira LÃ­quida'
+                ? 'Margem Financeira Líquida'
                 : 'Margem Financeira (proxy)',
             },
           ]
@@ -148,12 +148,12 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
       ...(props.eficiencia && props.eficiencia !== 'N/A' && parseFloat(props.eficiencia) > 0
         ? [
             {
-              label: 'EficiÃªncia Operacional',
+              label: 'Eficiência Operacional',
               chave: 'eficiencia',
               valor: props.eficiencia,
               anterior: props.eficienciaAnoAnterior,
-              icon: 'âš™ï¸',
-              description: 'Ãndice de EficiÃªncia (quanto menor, melhor)',
+              icon: '⚙️',
+              description: 'Índice de Eficiência (quanto menor, melhor)',
             },
           ]
         : []),
@@ -161,15 +161,15 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
         label: 'Score de Rentabilidade',
         chave: 'rentabilidadeScore',
         valor: calculatedMetrics.rentabilidadeScore,
-        icon: 'ðŸ†',
+        icon: '🏆',
         description: 'Score geral de rentabilidade',
       },
     ],
 
-    // ðŸ›¡ï¸ CATEGORIA CONDICIONAL - Solidez (bancos e seguradoras)
+    // 🛡️ CATEGORIA CONDICIONAL - Solidez (bancos e seguradoras)
     ...(financialType.isBanco
       ? {
-          'Solidez e CapitalizaÃ§Ã£o': [
+          'Solidez e Capitalização': [
             ...(props.basileia && props.basileia !== 'N/A' && parseFloat(props.basileia) > 0
               ? [
                   {
@@ -177,8 +177,8 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
                     chave: 'basileia',
                     valor: props.basileia,
                     anterior: props.basileiaAnoAnterior,
-                    icon: 'ðŸ›ï¸',
-                    description: 'Ãndice de Basileia',
+                    icon: '🏛️',
+                    description: 'Índice de Basileia',
                   },
                 ]
               : []),
@@ -189,7 +189,7 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
                     chave: 'tier1',
                     valor: props.tier1,
                     anterior: props.tier1AnoAnterior,
-                    icon: 'ðŸ›¡ï¸',
+                    icon: '🛡️',
                     description: 'Capital Principal',
                   },
                 ]
@@ -198,21 +198,21 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
               label: 'Score de Solidez',
               chave: 'solidezScore',
               valor: calculatedMetrics.solidezScore,
-              icon: 'ðŸ›ï¸',
+              icon: '🏛️',
               description: 'Score de solidez patrimonial',
             },
           ],
         }
       : {}),
 
-    // âš–ï¸ CATEGORIA UNIVERSAL - Estrutura de Capital
+    // ⚖️ CATEGORIA UNIVERSAL - Estrutura de Capital
     'Estrutura de Capital e Liquidez': [
       {
         label: 'Liquidez',
         chave: 'liquidez',
         valor: props.liquidez,
         anterior: props.liquidezAnoAnterior,
-        icon: 'ðŸ’§',
+        icon: '💧',
         description: 'Liquidez Corrente',
       },
       ...(props.alavancagem && props.alavancagem !== 'N/A' && parseFloat(props.alavancagem) > 0
@@ -222,8 +222,8 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
               chave: 'alavancagem',
               valor: props.alavancagem,
               anterior: props.alavancagemAnoAnterior,
-              icon: 'âš–ï¸',
-              description: 'Ãndice de Alavancagem',
+              icon: '⚖️',
+              description: 'Índice de Alavancagem',
             },
           ]
         : []),
@@ -232,7 +232,7 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
         chave: 'beta',
         valor: props.beta,
         anterior: props.betaAnoAnterior,
-        icon: 'ðŸ“‰',
+        icon: '📉',
         description: 'Volatilidade vs. mercado',
       },
     ],
@@ -240,18 +240,18 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
     // Categoria condicional - risco (bancos principalmente)
     ...(financialType.isBanco
       ? {
-          'GestÃ£o de Risco': [
+          'Gestão de Risco': [
             ...(props.inadimplencia &&
             props.inadimplencia !== 'N/A' &&
             parseFloat(props.inadimplencia) > 0
               ? [
                   {
-                    label: 'InadimplÃªncia',
+                    label: 'Inadimplência',
                     chave: 'inadimplencia',
                     valor: props.inadimplencia,
                     anterior: props.inadimplenciaAnoAnterior,
-                    icon: 'âš ï¸',
-                    description: 'Taxa de InadimplÃªncia',
+                    icon: '⚠️',
+                    description: 'Taxa de Inadimplência',
                   },
                 ]
               : []),
@@ -262,20 +262,20 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
                     chave: 'cobertura',
                     valor: props.cobertura,
                     anterior: props.coberturaAnoAnterior,
-                    icon: 'ðŸ›¡ï¸',
-                    description: 'Cobertura de ProvisÃµes',
+                    icon: '🛡️',
+                    description: 'Cobertura de Provisões',
                   },
                 ]
               : []),
             ...(props.custoCredito && props.custoCredito !== 'N/A'
               ? [
                   {
-                    label: 'Custo do CrÃ©dito',
+                    label: 'Custo do Crédito',
                     chave: 'custoCredito',
                     valor: props.custoCredito,
                     anterior: props.custoCreditoAnoAnterior,
-                    icon: 'ðŸ’¸',
-                    description: 'Custo do Risco de CrÃ©dito',
+                    icon: '💸',
+                    description: 'Custo do Risco de Crédito',
                   },
                 ]
               : []),
@@ -283,22 +283,22 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
               label: 'Qualidade de Ativos',
               chave: 'qualidadeAtivos',
               valor: calculatedMetrics.qualidadeAtivos,
-              icon: 'ðŸ…',
+              icon: '🏅',
               description: 'Score de qualidade da carteira',
             },
           ],
         }
       : {}),
 
-    // ðŸ’² CATEGORIA UNIVERSAL - AvaliaÃ§Ã£o
-    'MÃºltiplos e AvaliaÃ§Ã£o': [
+    // 💲 CATEGORIA UNIVERSAL - Avaliação
+    'Múltiplos e Avaliação': [
       {
         label: 'P/L',
         chave: 'pl',
         valor: props.pl,
         anterior: props.plAnoAnterior,
-        icon: 'ðŸ’²',
-        description: 'PreÃ§o sobre Lucro',
+        icon: '💲',
+        description: 'Preço sobre Lucro',
       },
       ...(props.pvpa && props.pvpa !== 'N/A' && parseFloat(props.pvpa) > 0
         ? [
@@ -307,10 +307,10 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
               chave: 'pvpa',
               valor: props.pvpa,
               anterior: props.pvpaAnoAnterior,
-              icon: financialType.isBanco ? 'ðŸ¦' : 'ðŸ“Š',
+              icon: financialType.isBanco ? '🏦' : '📊',
               description: financialType.isBanco
-                ? 'PreÃ§o sobre Valor Patrimonial'
-                : 'MÃºltiplo de receita (proxy P/VPA)',
+                ? 'Preço sobre Valor Patrimonial'
+                : 'Múltiplo de receita (proxy P/VPA)',
             },
           ]
         : []),
@@ -321,15 +321,15 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
               chave: 'leveredDcf',
               valor: props.leveredDcf,
               anterior: props.leveredDcfAnoAnterior,
-              icon: 'ðŸ“Š',
+              icon: '📊',
               description: 'Fluxo de Caixa Descontado',
             },
           ]
         : []),
     ],
 
-    // ðŸ’° CATEGORIA UNIVERSAL - Dividendos
-    'Dividendos e DistribuiÃ§Ã£o': [
+    // 💰 CATEGORIA UNIVERSAL - Dividendos
+    'Dividendos e Distribuição': [
       ...(props.dividendYield &&
       props.dividendYield !== 'N/A' &&
       parseFloat(props.dividendYield) > 0
@@ -339,7 +339,7 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
               chave: 'dividendYield',
               valor: props.dividendYield,
               anterior: props.dividendYieldAnoAnterior,
-              icon: 'ðŸ’°',
+              icon: '💰',
               description: 'Rendimento de Dividendos',
             },
           ]
@@ -349,15 +349,15 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
         chave: 'payoutRatio',
         valor: props.payoutRatio,
         anterior: props.payoutRatioAnoAnterior,
-        icon: 'ðŸ’¸',
-        description: '% dos lucros distribuÃ­dos',
+        icon: '💸',
+        description: '% dos lucros distribuídos',
       },
     ],
 
-    // ðŸ”„ CATEGORIA CONDICIONAL - MÃ©tricas EspecÃ­ficas
+    // 🔄 CATEGORIA CONDICIONAL - Métricas Específicas
     ...(props.ldr || props.crescimentoCarteira || props.eficiencia
       ? {
-          'MÃ©tricas Operacionais': [
+          'Métricas Operacionais': [
             ...(props.ldr && props.ldr !== 'N/A' && parseFloat(props.ldr) > 0
               ? [
                   {
@@ -365,7 +365,7 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
                     chave: 'ldr',
                     valor: props.ldr,
                     anterior: props.ldrAnoAnterior,
-                    icon: 'ðŸ”„',
+                    icon: '🔄',
                     description: 'Loan-to-Deposit Ratio',
                   },
                 ]
@@ -377,26 +377,26 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
                     chave: 'crescimentoCarteira',
                     valor: props.crescimentoCarteira,
                     anterior: props.crescimentoCarteiraAnoAnterior,
-                    icon: 'ðŸ“ˆ',
+                    icon: '📈',
                     description: financialType.isBanco
-                      ? 'Crescimento da carteira de crÃ©dito'
+                      ? 'Crescimento da carteira de crédito'
                       : 'Crescimento da receita (proxy)',
                   },
                 ]
               : []),
             {
-              label: 'Score de EficiÃªncia',
+              label: 'Score de Eficiência',
               chave: 'eficienciaScore',
               valor: calculatedMetrics.eficienciaScore,
-              icon: 'âš™ï¸',
-              description: 'Score de eficiÃªncia operacional',
+              icon: '⚙️',
+              description: 'Score de eficiência operacional',
             },
           ],
         }
       : {}),
   }
 
-  // âœ… FORMATAÃ‡ÃƒO UNIVERSAL
+  // ✅ FORMATAÇÃO UNIVERSAL
   const formatValue = (valor: string, chave: string) => {
     const num = parseFloat(valor)
     if (isNaN(num)) return valor
@@ -426,7 +426,7 @@ export function RatingsFinancials(props: RatingsFinancialsProps) {
       return `${num.toFixed(2)}%`
     }
 
-    // Valores monetÃ¡rios
+    // Valores monetários
     if (['leveredDcf', 'precoAtual'].includes(chave)) {
       return `${num.toFixed(2)}`
     }

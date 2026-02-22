@@ -7,10 +7,10 @@ import {
 import { CategoriasLayout } from './CategoriasLayout'
 
 export function RatingsTech(props: RatingsTechProps) {
-  // âœ… NOVO: ConstrÃ³i complementares especÃ­ficos para Technology
+  // ✅ NOVO: Constrói complementares específicos para Technology
   const complementares = buildTechnologyComplementares(props)
 
-  console.log('ðŸ”§ Technology Complementares:', complementares)
+  console.log('🔧 Technology Complementares:', complementares)
 
   const categorias: Record<
     string,
@@ -29,7 +29,7 @@ export function RatingsTech(props: RatingsTechProps) {
         chave: 'crescimentoReceita',
         valor: props.crescimentoReceita,
         anterior: props.crescimentoReceitaAnoAnterior,
-        icon: 'ðŸ“ˆ',
+        icon: '📈',
         description: 'Taxa de crescimento da receita',
       },
       {
@@ -37,7 +37,7 @@ export function RatingsTech(props: RatingsTechProps) {
         chave: 'cagrEps',
         valor: props.cagrEps,
         anterior: props.cagrEpsAnoAnterior,
-        icon: 'ðŸ“Š',
+        icon: '📊',
         description: 'Taxa de Crescimento Anual Composta do EPS',
       },
       {
@@ -45,8 +45,8 @@ export function RatingsTech(props: RatingsTechProps) {
         chave: 'eps',
         valor: props.eps,
         anterior: props.epsAnoAnterior,
-        icon: 'ðŸ†',
-        description: 'Lucro por AÃ§Ã£o',
+        icon: '🏆',
+        description: 'Lucro por Ação',
       },
     ],
     Rentabilidade: [
@@ -55,28 +55,28 @@ export function RatingsTech(props: RatingsTechProps) {
         chave: 'margemBruta',
         valor: props.margemBruta,
         anterior: props.margemBrutaAnoAnterior,
-        icon: 'ðŸ’°',
+        icon: '💰',
       },
       {
         label: 'Margem EBITDA',
         chave: 'margemEbitda',
         valor: props.margemEbitda,
         anterior: props.margemEbitdaAnoAnterior,
-        icon: 'ðŸ“Š',
+        icon: '📊',
       },
       {
-        label: 'Margem LÃ­quida',
+        label: 'Margem Líquida',
         chave: 'margemLiquida',
         valor: props.margemLiquida,
         anterior: props.margemLiquidaAnoAnterior,
-        icon: 'ðŸ’Ž',
+        icon: '💎',
       },
       {
         label: 'Margem Operacional',
         chave: 'margemOperacional',
         valor: props.margemOperacional,
         anterior: props.margemOperacionalAnoAnterior,
-        icon: 'âš™ï¸',
+        icon: '⚙️',
       },
     ],
     'Retorno sobre Capital': [
@@ -85,7 +85,7 @@ export function RatingsTech(props: RatingsTechProps) {
         chave: 'roic',
         valor: props.roic,
         anterior: props.roicAnoAnterior,
-        icon: 'ðŸŽ¯',
+        icon: '🎯',
         description: 'Retorno sobre Capital Investido',
       },
       {
@@ -93,51 +93,51 @@ export function RatingsTech(props: RatingsTechProps) {
         chave: 'roe',
         valor: props.roe,
         anterior: props.roeAnoAnterior,
-        icon: 'ðŸ“ˆ',
-        description: 'Retorno sobre PatrimÃ´nio LÃ­quido',
+        icon: '📈',
+        description: 'Retorno sobre Patrimônio Líquido',
       },
     ],
-    'MÃºltiplos de AvaliaÃ§Ã£o': [
+    'Múltiplos de Avaliação': [
       {
         label: 'P/L',
         chave: 'pl',
         valor: props.pl,
         anterior: props.plAnoAnterior,
-        icon: 'ðŸ’²',
-        description: 'PreÃ§o sobre Lucro',
+        icon: '💲',
+        description: 'Preço sobre Lucro',
       },
       {
         label: 'P/S',
         chave: 'ps',
         valor: props.ps,
         anterior: props.psAnoAnterior,
-        icon: 'ðŸ’°',
-        description: 'PreÃ§o sobre Vendas',
+        icon: '💰',
+        description: 'Preço sobre Vendas',
       },
       {
         label: 'PEG',
         chave: 'peg',
         valor: props.peg,
         anterior: props.pegAnoAnterior,
-        icon: 'âš–ï¸',
+        icon: '⚖️',
         description: 'P/L ajustado pelo crescimento',
       },
     ],
     'Estrutura de Capital e Liquidez': [
       {
-        label: 'DÃ­vida/EBITDA',
+        label: 'Dívida/EBITDA',
         chave: 'debtToEbitda',
         valor: props.debtToEbitda,
         anterior: props.debtToEbitdaAnoAnterior,
-        icon: 'âš ï¸',
-        description: 'Endividamento em relaÃ§Ã£o ao EBITDA',
+        icon: '⚠️',
+        description: 'Endividamento em relação ao EBITDA',
       },
       {
         label: 'Liquidez Corrente',
         chave: 'liquidezCorrente',
         valor: props.liquidezCorrente,
         anterior: props.liquidezCorrenteAnoAnterior,
-        icon: 'ðŸ’§',
+        icon: '💧',
         description: 'Capacidade de pagamento a curto prazo',
       },
       {
@@ -145,26 +145,26 @@ export function RatingsTech(props: RatingsTechProps) {
         chave: 'cashRatio',
         valor: props.cashRatio,
         anterior: props.cashRatioAnoAnterior,
-        icon: 'ðŸ’µ',
+        icon: '💵',
         description: 'Ratio de liquidez imediata (agora calculado!)',
       },
 
-      // ðŸ†• NOVO: Adicionar se quiserem mostrar as receitas recorrentes
+      // 🆕 NOVO: Adicionar se quiserem mostrar as receitas recorrentes
       {
         label: 'Receitas Recorrentes',
         chave: 'receitasRecorrentes',
         valor: props.receitasRecorrentes || '—',
         anterior: undefined,
-        icon: 'ðŸ”„',
+        icon: '🔄',
         description: 'Percentual de receitas recorrentes',
       },
       {
-        label: 'DÃ­vida / Capitais PrÃ³prios',
+        label: 'Dívida / Capitais Próprios',
         chave: 'debtEquity',
         valor: props.debtEquity ?? '—',
         anterior: props.debtEquityAnoAnterior,
-        icon: 'âš–ï¸',
-        description: 'DÃ­vida sobre PatrimÃ´nio',
+        icon: '⚖️',
+        description: 'Dívida sobre Patrimônio',
       },
     ],
     'Risco e Volatilidade': [
@@ -173,40 +173,40 @@ export function RatingsTech(props: RatingsTechProps) {
         chave: 'beta',
         valor: props.beta,
         anterior: props.betaAnoAnterior,
-        icon: 'ðŸ“‰',
-        description: 'Volatilidade em relaÃ§Ã£o ao mercado',
+        icon: '📉',
+        description: 'Volatilidade em relação ao mercado',
       },
     ],
-    'MÃ©tricas EspecÃ­ficas de Tech': [
+    'Métricas Específicas de Tech': [
       {
         label: 'P&D / Receita',
         chave: 'investimentoPD',
         valor: props.investimentoPD,
         anterior: props.investimentoPDAnoAnterior,
-        icon: 'ðŸ”¬',
+        icon: '🔬',
         description: 'Investimento em Pesquisa e Desenvolvimento',
       },
       {
-        label: 'EficiÃªncia de P&D',
+        label: 'Eficiência de P&D',
         chave: 'rAnddEfficiency',
         valor: props.rAnddEfficiency,
         anterior: props.rAnddEfficiencyAnoAnterior,
-        icon: 'ðŸ§ª',
-        description: 'EficiÃªncia dos investimentos em P&D',
+        icon: '🧪',
+        description: 'Eficiência dos investimentos em P&D',
       },
       {
         label: 'Cash Flow / CapEx',
         chave: 'cashFlowOverCapex',
         valor: props.cashFlowOverCapex,
         anterior: props.cashFlowOverCapexAnoAnterior,
-        icon: 'ðŸ”„',
+        icon: '🔄',
       },
       {
         label: 'Free Cash Flow',
         chave: 'fcf',
         valor: props.fcf,
         anterior: props.fcfAnoAnterior,
-        icon: 'ðŸ’µ',
+        icon: '💵',
         description: 'Fluxo de Caixa Livre',
       },
       {
@@ -221,13 +221,13 @@ export function RatingsTech(props: RatingsTechProps) {
         chave: 'payoutRatio',
         valor: props.payoutRatio,
         anterior: props.payoutRatioAnoAnterior,
-        icon: 'ðŸ’¸',
-        description: 'Percentual de lucros distribuÃ­dos',
+        icon: '💸',
+        description: 'Percentual de lucros distribuídos',
       },
     ],
   }
 
-  // FunÃ§Ã£o para formatar valores
+  // Função para formatar valores
   const formatValue = (valor: string, chave: string) => {
     const cleanValue = valor.replace('%', '').trim()
     const num = parseFloat(cleanValue)
@@ -255,7 +255,7 @@ export function RatingsTech(props: RatingsTechProps) {
       return `${num.toFixed(2)}%`
     }
 
-    // Valores monetÃ¡rios grandes (FCF)
+    // Valores monetários grandes (FCF)
     if (chave === 'fcf' && Math.abs(num) > 1000000) {
       return `${(num / 1000000).toFixed(1)}M`
     }

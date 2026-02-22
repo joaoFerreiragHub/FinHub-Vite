@@ -540,9 +540,13 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
           liquidezCorrenteAnoAnterior={
             indicadores['Liquidez Corrente (Y-1)'] ?? indicadores['Liquidez Corrente_anterior']
           }
-          debtEquity={indicadores['Dívida/Patrimônio'] ?? '—'}
+          debtEquity={
+            indicadores['Dívida / Capitais Próprios'] ?? indicadores['Dívida/Patrimônio'] ?? '—'
+          }
           debtEquityAnoAnterior={
-            indicadores['Dívida/Patrimônio (Y-1)'] ?? indicadores['Dívida/Patrimônio_anterior']
+            indicadores['Dívida / Capitais Próprios (Y-1)'] ??
+            indicadores['Dívida/Patrimônio (Y-1)'] ??
+            indicadores['Dívida/Patrimônio_anterior']
           }
           freeCashFlow={indicadores['Free Cash Flow'] ?? '—'}
           freeCashFlowAnoAnterior={
@@ -698,8 +702,14 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
           liquidezCorrenteAnoAnterior={
             indicadores['Liquidez Corrente (Y-1)'] ?? indicadores['Liquidez Corrente_anterior']
           }
-          debtEquity={indicadores['Dívida/Patrimônio'] ?? indicadores['Debt/Equity'] ?? '—'}
+          debtEquity={
+            indicadores['Dívida / Capitais Próprios'] ??
+            indicadores['Dívida/Patrimônio'] ??
+            indicadores['Debt/Equity'] ??
+            '—'
+          }
           debtEquityAnoAnterior={
+            indicadores['Dívida / Capitais Próprios (Y-1)'] ??
             indicadores['Dívida/Patrimônio (Y-1)'] ??
             indicadores['Debt/Equity (Y-1)'] ??
             indicadores['Dívida/Patrimônio_anterior']
@@ -874,8 +884,14 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
           liquidezCorrenteAnoAnterior={
             indicadores['Liquidez Corrente (Y-1)'] ?? indicadores['Liquidez Corrente_anterior']
           }
-          debtEquity={indicadores['Dívida/Patrimônio'] ?? indicadores['Debt/Equity'] ?? '—'}
+          debtEquity={
+            indicadores['Dívida / Capitais Próprios'] ??
+            indicadores['Dívida/Patrimônio'] ??
+            indicadores['Debt/Equity'] ??
+            '—'
+          }
           debtEquityAnoAnterior={
+            indicadores['Dívida / Capitais Próprios (Y-1)'] ??
             indicadores['Dívida/Patrimônio (Y-1)'] ??
             indicadores['Debt/Equity (Y-1)'] ??
             indicadores['Dívida/Patrimônio_anterior']
@@ -1038,8 +1054,14 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
           liquidezCorrenteAnoAnterior={
             indicadores['Liquidez Corrente (Y-1)'] ?? indicadores['Liquidez Corrente_anterior']
           }
-          debtEquity={indicadores['Dívida/Patrimônio'] ?? indicadores['Debt/Equity'] ?? '—'}
+          debtEquity={
+            indicadores['Dívida / Capitais Próprios'] ??
+            indicadores['Dívida/Patrimônio'] ??
+            indicadores['Debt/Equity'] ??
+            '—'
+          }
           debtEquityAnoAnterior={
+            indicadores['Dívida / Capitais Próprios (Y-1)'] ??
             indicadores['Dívida/Patrimônio (Y-1)'] ??
             indicadores['Debt/Equity (Y-1)'] ??
             indicadores['Dívida/Patrimônio_anterior']
@@ -1329,8 +1351,14 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
           liquidezCorrenteAnoAnterior={
             indicadores['Liquidez Corrente (Y-1)'] ?? indicadores['Liquidez Corrente_anterior']
           }
-          debtEquity={indicadores['Dívida/Patrimônio'] ?? indicadores['Debt/Equity'] ?? '—'}
+          debtEquity={
+            indicadores['Dívida / Capitais Próprios'] ??
+            indicadores['Dívida/Patrimônio'] ??
+            indicadores['Debt/Equity'] ??
+            '—'
+          }
           debtEquityAnoAnterior={
+            indicadores['Dívida / Capitais Próprios (Y-1)'] ??
             indicadores['Dívida/Patrimônio (Y-1)'] ??
             indicadores['Debt/Equity (Y-1)'] ??
             indicadores['Dívida/Patrimônio_anterior']

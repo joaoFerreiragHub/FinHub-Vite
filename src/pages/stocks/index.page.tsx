@@ -1,5 +1,5 @@
 import { useStockSearch, useWatchlist } from '@/features/tools/stocks/components'
-import { StockPeers, StocksSearchBar, StockDetails } from '@/features/tools/stocks/components'
+import { StocksSearchBar, StockDetails } from '@/features/tools/stocks/components'
 import { HomepageLayout } from '@/components/home/HomepageLayout'
 import { PageHero } from '@/components/public'
 import { Card, CardContent } from '@/components/ui'
@@ -40,13 +40,6 @@ export function Page() {
                     isInWatchlist={isInWatchlist(data.symbol)}
                     onToggleWatchlist={() => toggle(data.symbol)}
                   />
-                </CardContent>
-              </Card>
-
-              <Card className="border border-border/60 bg-card/75">
-                <CardContent className="p-6">
-                  <h2 className="mb-2 text-lg font-semibold text-foreground">Acoes relacionadas</h2>
-                  <StockPeers peers={data.peers} onPeerClick={(symbol) => setTicker(symbol)} />
                 </CardContent>
               </Card>
             </>

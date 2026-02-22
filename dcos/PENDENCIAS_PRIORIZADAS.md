@@ -327,7 +327,7 @@ Escopo oficial do P3: **apenas Analise Rapida**. A Analise Detalhada fica fora d
 
 Estado atual do P3: EM CURSO (arranque tecnico ja iniciado; falta fechar cobertura e consistencia cross-setor).
 
-## Prioridade 4 - Medio (adiado apos novo P3)
+## Prioridade 4 - Medio (P4 em curso)
 1. Admin Editorial CMS (novo bloco formal de produto apos P2).
 - objetivo: permitir seed/curadoria de conteudo e diretorios pelo admin enquanto a base de creators cresce.
 - documento tecnico de referencia:
@@ -338,6 +338,17 @@ Estado atual do P3: EM CURSO (arranque tecnico ja iniciado; falta fechar cobertu
   - diretorios verticais (corretoras, exchanges, apps, sites) com landing/show-all.
   - workflow de claim e transferencia de ownership `admin_seeded -> creator_owned`.
   - RBAC dedicado (`admin.home.curate`, `admin.directory.manage`, `admin.claim.review`, etc.) + auditoria.
+- estado atual: EM CURSO (Fase A backend entregue em 2026-02-22).
+  - entregue em backend:
+    - novos scopes RBAC editorial/claim/publish/archive.
+    - modelos: `EditorialSection`, `EditorialSectionItem`, `DirectoryEntry`, `ClaimRequest`, `OwnershipTransferLog`.
+    - extensao de `BaseContent` com `ownerType`, `sourceType`, `claimable`, `editorialVisibility`.
+    - endpoints admin de secoes, diretorios, claims e ownership transfer.
+    - endpoints publicos `/api/editorial/home`, `/api/editorial/:vertical`, `/api/editorial/:vertical/show-all`.
+    - validacao tecnica verde: `typecheck`, `build`, `contract:openapi`.
+  - proximo foco imediato (Fase B):
+    - integrar frontend admin `Editorial/CMS` aos novos endpoints.
+    - fechar UX de curadoria (reorder/pin/guardrails) e preview operacional.
 
 2. Analise detalhada de stocks (novo escopo adiado do P3).
 3. Livros completos (replies, filtros, destaques, categorias) no frontend ativo.
@@ -371,9 +382,7 @@ Estado atual do P3: EM CURSO (arranque tecnico ja iniciado; falta fechar cobertu
 
 ## Sequencia pragmatica sugerida
 1. Fechar primeiro o novo P3 (hardening de analise de stocks e cobertura de metricas atuais).
-2. Iniciar em seguida o bloco P4 Admin Editorial CMS pela Fase A+B:
-- Fundacao (schema + RBAC + auditoria + contratos OpenAPI)
-- Curadoria Home (secoes + itens + ordering + endpoint publico)
-3. Avancar depois para Diretorios + Claim/Ownership transfer.
-4. Mover para os restantes itens de P4 apos gate de aceite do Admin CMS MVP.
+2. Continuar P4 com Fase B (frontend admin de curadoria home) sobre a Fase A backend ja entregue.
+3. Avancar para Fase C + D (diretorios e claims/ownership) no mesmo ciclo de qualidade.
+4. Fechar Fase E (E2E/hardening operacional) antes de mover para os restantes itens de P4.
 
