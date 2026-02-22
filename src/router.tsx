@@ -91,6 +91,7 @@ import ProfileEditPage from '@/features/dashboard/pages/ProfileEditPage'
 import AdminDashboardPage from '@/features/admin/pages/AdminDashboardPage'
 import UsersManagementPage from '@/features/admin/pages/UsersManagementPage'
 import ContentModerationPage from '@/features/admin/pages/ContentModerationPage'
+import EditorialCmsPage from '@/features/admin/pages/EditorialCmsPage'
 import BrandsManagementPage from '@/features/admin/pages/BrandsManagementPage'
 import StatsPage from '@/features/admin/pages/StatsPage'
 import AssistedSessionsPage from '@/features/admin/pages/AssistedSessionsPage'
@@ -459,6 +460,10 @@ const router = createBrowserRouter([
       {
         path: 'conteudo',
         element: <ContentModerationPage />,
+      },
+      {
+        path: 'editorial',
+        element: <EditorialCmsPage />,
       },
       {
         path: 'suporte',

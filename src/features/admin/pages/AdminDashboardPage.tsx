@@ -8,6 +8,7 @@ import {
   Layers,
   LifeBuoy,
   Lock,
+  Newspaper,
   Shield,
   ShieldAlert,
   ShieldCheck,
@@ -46,12 +47,13 @@ import ContentModerationPage from './ContentModerationPage'
 import AssistedSessionsPage from './AssistedSessionsPage'
 import StatsPage from './StatsPage'
 import BrandsManagementPage from './BrandsManagementPage'
+import EditorialCmsPage from './EditorialCmsPage'
 import type {
   AdminOperationalAlertSeverity,
   AdminOperationalAlertType,
 } from '../types/adminOperationalAlerts'
 
-type DashboardTab = 'overview' | 'users' | 'content' | 'support' | 'stats' | 'brands'
+type DashboardTab = 'overview' | 'users' | 'content' | 'editorial' | 'support' | 'stats' | 'brands'
 
 interface StatCardProps {
   label: string
@@ -107,6 +109,7 @@ const MODULE_ICONS: Record<AdminModuleConfig['key'], ElementType> = {
   dashboard: BarChart3,
   users: Users,
   content: ShieldCheck,
+  editorial: Newspaper,
   support: LifeBuoy,
   brands: Layers,
   stats: BarChart3,
@@ -210,6 +213,7 @@ export default function AdminDashboardPage() {
 
   const canReadUsers = Boolean(moduleAccess.users?.canRead)
   const canReadContent = Boolean(moduleAccess.content?.canRead)
+  const canReadEditorial = Boolean(moduleAccess.editorial?.canRead)
   const canReadSupport = Boolean(moduleAccess.support?.canRead)
   const canReadStats = Boolean(moduleAccess.stats?.canRead)
   const canReadAudit = hasAdminScope(user, 'admin.audit.read')
@@ -300,11 +304,19 @@ export default function AdminDashboardPage() {
     const tabs: Array<{ key: DashboardTab; label: string }> = [{ key: 'overview', label: 'Visao' }]
     if (canReadUsers) tabs.push({ key: 'users', label: 'Utilizadores' })
     if (canReadContent) tabs.push({ key: 'content', label: 'Moderacao' })
+    if (canReadEditorial) tabs.push({ key: 'editorial', label: 'Editorial' })
     if (canReadSupport) tabs.push({ key: 'support', label: 'Suporte' })
     if (canReadStats) tabs.push({ key: 'stats', label: 'Metricas' })
     if (moduleAccess.brands?.canRead) tabs.push({ key: 'brands', label: 'Recursos' })
     return tabs
-  }, [canReadUsers, canReadContent, canReadSupport, canReadStats, moduleAccess.brands?.canRead])
+  }, [
+    canReadUsers,
+    canReadContent,
+    canReadEditorial,
+    canReadSupport,
+    canReadStats,
+    moduleAccess.brands?.canRead,
+  ])
 
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview')
 
@@ -328,7 +340,7 @@ export default function AdminDashboardPage() {
           <p className="text-sm capitalize text-muted-foreground">{today}</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight">Painel admin unificado</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Operacao diaria centralizada de utilizadores, conteudo, suporte e metricas.
+            Operacao diaria centralizada de utilizadores, moderacao, editorial, suporte e metricas.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -591,6 +603,12 @@ export default function AdminDashboardPage() {
         {canReadContent ? (
           <TabsContent value="content">
             <ContentModerationPage embedded />
+          </TabsContent>
+        ) : null}
+
+        {canReadEditorial ? (
+          <TabsContent value="editorial">
+            <EditorialCmsPage embedded />
           </TabsContent>
         ) : null}
 

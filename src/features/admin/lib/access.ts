@@ -5,6 +5,8 @@ export const ADMIN_SCOPES = [
   'admin.users.write',
   'admin.content.read',
   'admin.content.moderate',
+  'admin.home.curate',
+  'admin.directory.manage',
   'admin.brands.read',
   'admin.brands.write',
   'admin.uploads.read',
@@ -16,7 +18,14 @@ export const ADMIN_SCOPES = [
 
 export type AdminScope = (typeof ADMIN_SCOPES)[number]
 
-export type AdminModuleKey = 'dashboard' | 'users' | 'content' | 'support' | 'brands' | 'stats'
+export type AdminModuleKey =
+  | 'dashboard'
+  | 'users'
+  | 'content'
+  | 'editorial'
+  | 'support'
+  | 'brands'
+  | 'stats'
 
 export interface AdminModuleConfig {
   key: AdminModuleKey
@@ -52,6 +61,14 @@ export const ADMIN_MODULES: AdminModuleConfig[] = [
     path: '/admin/conteudo',
     readScopes: ['admin.content.read'],
     writeScopes: ['admin.content.moderate'],
+    operational: true,
+  },
+  {
+    key: 'editorial',
+    label: 'Editorial CMS',
+    path: '/admin/editorial',
+    readScopes: ['admin.home.curate'],
+    writeScopes: ['admin.home.curate'],
     operational: true,
   },
   {

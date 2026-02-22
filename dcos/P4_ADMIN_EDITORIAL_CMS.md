@@ -1,7 +1,7 @@
 ﻿# P4 - Admin Editorial CMS (Conteudo e Curadoria)
 
 Data: 2026-02-22
-Status: EM CURSO (Fase A backend entregue em 2026-02-22).
+Status: EM CURSO (Fases A e B entregues em 2026-02-22).
 
 ## 1) Objetivo de negocio
 Permitir que o admin opere como "bootstrap creator/editorial" quando a rede de creators ainda e reduzida, garantindo:
@@ -186,10 +186,33 @@ Perfis sugeridos:
 - `npm run build` -> PASS
 - `npm run contract:openapi` -> PASS
 
-### Fase B - Curadoria Home (frontend + integracao)
-1. UI admin de secoes e itens ligada aos endpoints.
-2. reorder/pin com guardrails UX.
-3. preview operacional da home curada.
+### Fase B - Curadoria Home (frontend + integracao) - ENTREGUE
+1. Novo modulo admin operacional em `/admin/editorial`:
+- CRUD de secoes (`list/create/update`) ligado ao backend real.
+- operacao de itens por secao (`add/reorder/remove`) com guardrails de UX.
+2. Integracao de navegacao/permissoes no painel admin:
+- modulo `Editorial CMS` adicionado na sidebar, rotas e dashboard unificado (`/admin` tab embebido).
+- enforcement por escopo `admin.home.curate` e bloqueio de escrita em `adminReadOnly`.
+3. Preview operacional em tempo real:
+- bloco de preview ligado a `GET /api/editorial/home` para validar resultado publico da curadoria.
+4. Camada tecnica frontend entregue:
+- tipos: `src/features/admin/types/adminEditorialCms.ts`
+- service: `src/features/admin/services/adminEditorialCmsService.ts`
+- hooks: `src/features/admin/hooks/useAdminEditorialCms.ts`
+- pagina: `src/features/admin/pages/EditorialCmsPage.tsx`
+- wrapper de rota: `src/pages/admin/editorial/index.page.tsx`
+- teste unitario: `src/__tests__/features/admin/adminEditorialCmsService.test.ts`
+5. Validacao tecnica de fecho da Fase B:
+- frontend:
+  - `npm run typecheck:p1` -> PASS
+  - `npm run lint` -> PASS (warnings nao bloqueantes existentes)
+  - `npm run test -- --runInBand` -> PASS
+  - `npm run build` -> PASS
+  - `npm run test:e2e` -> PASS (8/8)
+- backend:
+  - `npm run typecheck` -> PASS
+  - `npm run build` -> PASS
+  - `npm run contract:openapi` -> PASS
 
 ### Fase C - Diretorios verticais
 1. UI admin de diretorios por vertical.

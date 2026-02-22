@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { AlertTriangle, TrendingDown, DollarSign, Zap, CheckCircle2 } from 'lucide-react'
+import { AlertTriangle, TrendingDown, DollarSign, Zap, CheckCircle2, BarChart2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface AlertItem {
@@ -46,12 +46,33 @@ const defaultAlerts: AlertItem[] = [
   },
 ]
 
+const CHECKED_CRITERIA = [
+  { icon: <AlertTriangle className="w-3 h-3" />, label: 'Endividamento' },
+  { icon: <TrendingDown className="w-3 h-3" />, label: 'Lucros' },
+  { icon: <BarChart2 className="w-3 h-3" />, label: 'Receita' },
+  { icon: <DollarSign className="w-3 h-3" />, label: 'Fluxo de Caixa' },
+  { icon: <Zap className="w-3 h-3" />, label: 'Dividendos' },
+]
+
 export const RiskAlert = memo(function RiskAlert({ alerts = defaultAlerts }: RiskAlertProps) {
   if (!alerts.length) {
     return (
-      <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 dark:bg-green-950/40 dark:border-green-900 px-4 py-2.5 text-sm text-green-700 dark:text-green-400">
-        <CheckCircle2 className="w-4 h-4 shrink-0" />
-        <span className="font-medium">Sem alertas de risco detectados</span>
+      <div className="rounded-lg border border-green-200 bg-green-50 dark:bg-green-950/40 dark:border-green-900 px-4 py-2.5 text-sm text-green-700 dark:text-green-400">
+        <div className="flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
+          <span className="font-medium">Sem alertas de risco detectados</span>
+        </div>
+        <div className="mt-1.5 flex flex-wrap gap-1.5 pl-6">
+          {CHECKED_CRITERIA.map((c) => (
+            <span
+              key={c.label}
+              className="inline-flex items-center gap-1 rounded-full border border-green-300 dark:border-green-800 bg-green-100 dark:bg-green-900/40 px-2 py-0.5 text-xs opacity-80"
+            >
+              {c.icon}
+              {c.label}
+            </span>
+          ))}
+        </div>
       </div>
     )
   }

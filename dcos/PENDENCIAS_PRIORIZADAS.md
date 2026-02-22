@@ -338,7 +338,7 @@ Estado atual do P3: EM CURSO (arranque tecnico ja iniciado; falta fechar cobertu
   - diretorios verticais (corretoras, exchanges, apps, sites) com landing/show-all.
   - workflow de claim e transferencia de ownership `admin_seeded -> creator_owned`.
   - RBAC dedicado (`admin.home.curate`, `admin.directory.manage`, `admin.claim.review`, etc.) + auditoria.
-- estado atual: EM CURSO (Fase A backend entregue em 2026-02-22).
+- estado atual: EM CURSO (Fases A e B entregues em 2026-02-22).
   - entregue em backend:
     - novos scopes RBAC editorial/claim/publish/archive.
     - modelos: `EditorialSection`, `EditorialSectionItem`, `DirectoryEntry`, `ClaimRequest`, `OwnershipTransferLog`.
@@ -346,9 +346,17 @@ Estado atual do P3: EM CURSO (arranque tecnico ja iniciado; falta fechar cobertu
     - endpoints admin de secoes, diretorios, claims e ownership transfer.
     - endpoints publicos `/api/editorial/home`, `/api/editorial/:vertical`, `/api/editorial/:vertical/show-all`.
     - validacao tecnica verde: `typecheck`, `build`, `contract:openapi`.
-  - proximo foco imediato (Fase B):
-    - integrar frontend admin `Editorial/CMS` aos novos endpoints.
-    - fechar UX de curadoria (reorder/pin/guardrails) e preview operacional.
+  - entregue em frontend (Fase B):
+    - novo modulo `/admin/editorial` integrado aos endpoints reais de secoes/itens (`admin/editorial/sections*`).
+    - guardrails operacionais no CMS (read-only por escopo, confirmacao dupla para remocao e controlo de limite por secao).
+    - preview da home curada ligado a `GET /api/editorial/home`.
+    - modulo integrado ao painel admin unificado (sidebar + rota + tab embebido em `/admin`).
+  - validacao tecnica do ciclo:
+    - frontend `typecheck:p1 + lint + test --runInBand + build + test:e2e` -> PASS.
+    - backend `typecheck + build + contract:openapi` -> PASS.
+  - proximo foco imediato (Fase C):
+    - UI admin de diretorios por vertical (broker/exchange/site/app/podcast/event/other).
+    - controlo publish/archive e flags de visibilidade por vertical (landing/show-all).
 
 2. Analise detalhada de stocks (novo escopo adiado do P3).
 3. Livros completos (replies, filtros, destaques, categorias) no frontend ativo.

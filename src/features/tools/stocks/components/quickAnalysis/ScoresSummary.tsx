@@ -79,11 +79,11 @@ interface ScoresSummaryProps {
 
 const VALUATION_PCT: Record<string, number> = { A: 90, B: 75, C: 55, D: 35, F: 20 }
 const VALUATION_LABEL: Record<string, string> = {
-  A: 'Muito atrativo',
-  B: 'Atrativo',
-  C: 'Razoável',
-  D: 'Caro',
-  F: 'Muito caro',
+  A: 'Subavaliada · Forte oportunidade',
+  B: 'Ligeiramente atrativa',
+  C: 'Preço justo · Sem margem',
+  D: 'Sobreavaliada · Aguardar',
+  F: 'Cara · Evitar',
 }
 
 export function ScoresSummary({ data }: ScoresSummaryProps) {
@@ -134,7 +134,7 @@ export function ScoresSummary({ data }: ScoresSummaryProps) {
         pct={VALUATION_PCT[valuationGrade] ?? 55}
         color={valColor}
         sublabel={VALUATION_LABEL[valuationGrade] ?? '—'}
-        tooltip={`Nota baseada em múltiplos e DCF (FMP).\nA/B → Atrativo  |  C → Razoável  |  D/F → Caro`}
+        tooltip={`Rating composto FMP (DCF · ROE · ROA · D/E · P/E):\nA → Subavaliada — forte oportunidade de entrada\nB → Ligeiramente atrativa — preço ainda favorável\nC → Preço justo — sem margem de segurança clara\nD → Sobreavaliada — preço acima do valor estimado\nF → Fortemente cara — evitar ou aguardar correção`}
       />
       <ScoreCard
         label="Risco"

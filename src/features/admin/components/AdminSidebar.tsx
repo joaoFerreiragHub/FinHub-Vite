@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import {
   BarChart3,
   LayoutDashboard,
+  Newspaper,
   ShieldCheck,
   Users,
   Layers,
@@ -21,6 +22,7 @@ const links = [
   { key: 'dashboard' as AdminModuleKey, icon: LayoutDashboard, exact: true },
   { key: 'users' as AdminModuleKey, icon: Users, exact: false },
   { key: 'content' as AdminModuleKey, icon: ShieldCheck, exact: false },
+  { key: 'editorial' as AdminModuleKey, icon: Newspaper, exact: false },
   { key: 'support' as AdminModuleKey, icon: LifeBuoy, exact: false },
   { key: 'brands' as AdminModuleKey, icon: Layers, exact: false },
   { key: 'stats' as AdminModuleKey, icon: BarChart3, exact: false },

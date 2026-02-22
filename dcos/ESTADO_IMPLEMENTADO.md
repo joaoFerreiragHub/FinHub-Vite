@@ -791,3 +791,42 @@ Data de referencia: 2026-02-21 (atualizado apos fecho oficial de P2 e replaneame
 - Alinhamento de roadmap/documentacao efetuado:
   - `dcos/PENDENCIAS_PRIORIZADAS.md` atualizado com o bloco "Admin Editorial CMS" em Prioridade 4.
   - `dcos/RESUMO_EXECUTIVO.md` atualizado com referencia explicita ao novo plano.
+
+## 40) P4 Fase B fechada - curadoria home frontend integrada (2026-02-22)
+- Frontend (`FinHub-Vite`) com modulo editorial admin operacional:
+  - nova pagina `src/features/admin/pages/EditorialCmsPage.tsx` ligada aos endpoints reais:
+    - `GET/POST/PATCH /api/admin/editorial/sections`
+    - `POST /api/admin/editorial/sections/:sectionId/items`
+    - `PATCH /api/admin/editorial/sections/:sectionId/items/reorder`
+    - `DELETE /api/admin/editorial/sections/:sectionId/items/:itemId`
+  - preview operacional da home curada ligado a:
+    - `GET /api/editorial/home`
+  - guardrails de operacao aplicados:
+    - bloqueio de escrita em `adminReadOnly`
+    - enforcement por escopo `admin.home.curate`
+    - confirmacao dupla para remocao de item
+    - bloqueio de add quando secao atinge `maxItems`
+- Integracao no painel admin unificado:
+  - rota adicionada: `/admin/editorial`
+  - navegação atualizada em:
+    - `src/features/admin/lib/access.ts`
+    - `src/features/admin/components/AdminSidebar.tsx`
+    - `src/routes/admin.ts`
+    - `src/router.tsx`
+    - `src/features/admin/pages/AdminDashboardPage.tsx` (tab embebido)
+- Camada de dominio frontend adicionada:
+  - tipos: `src/features/admin/types/adminEditorialCms.ts`
+  - service: `src/features/admin/services/adminEditorialCmsService.ts`
+  - hooks: `src/features/admin/hooks/useAdminEditorialCms.ts`
+  - teste unitario: `src/__tests__/features/admin/adminEditorialCmsService.test.ts`
+- Validacao tecnica do ciclo:
+  - frontend:
+    - `npm run typecheck:p1` -> PASS
+    - `npm run lint` -> PASS (warnings nao bloqueantes ja existentes)
+    - `npm run test -- --runInBand` -> PASS (16 suites, 124 testes)
+    - `npm run build` -> PASS
+    - `npm run test:e2e` -> PASS (8/8)
+  - backend:
+    - `npm run typecheck` -> PASS
+    - `npm run build` -> PASS
+    - `npm run contract:openapi` -> PASS

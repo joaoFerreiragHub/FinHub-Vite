@@ -1,4 +1,4 @@
-import { AlertTriangle, TrendingDown, DollarSign, Zap } from 'lucide-react'
+import { AlertTriangle, TrendingDown, DollarSign, Zap, BarChart2 } from 'lucide-react'
 import { Alert } from '@/features/tools/stocks/types/stocks'
 import { ReactNode } from 'react'
 
@@ -16,10 +16,12 @@ export function mapAlertsToAlertItems(alerts: Alert[]): AlertItem[] {
 
     const title = alert.title.toLowerCase()
 
-    if (title.includes('dívida')) {
+    if (title.includes('endividamento') || title.includes('dívida')) {
       icon = <AlertTriangle className="w-5 h-5" />
     } else if (title.includes('lucro')) {
       icon = <TrendingDown className="w-5 h-5" />
+    } else if (title.includes('receita')) {
+      icon = <BarChart2 className="w-5 h-5" />
     } else if (title.includes('dividendo')) {
       icon = <Zap className="w-5 h-5" />
     } else if (title.includes('caixa')) {
