@@ -1,3 +1,4 @@
+import { CategoriasLayout } from './CategoriasLayout'
 // src/components/ratings/RatingsEnergy.tsx
 
 import {
@@ -9,8 +10,6 @@ import {
   calculateEnergyEfficiency,
   calculateFinancialSolidity,
 } from '@/features/tools/stocks/utils/energyCalculations'
-import { avaliarIndicadorComContexto } from '../hooks/avaliarIndicadorComContexto'
-import { IndicatorValuePro } from '../quickAnalysis/IndicatorValuePro'
 
 export function RatingsEnergy(props: RatingsEnergyProps) {
   // ✅ NOVO: Constrói complementares específicos para Energy
@@ -351,120 +350,11 @@ export function RatingsEnergy(props: RatingsEnergyProps) {
   }
 
   return (
-    <div className="mt-6 space-y-8">
-      {Object.entries(categorias).map(([categoria, indicadores]) => {
-        // Filtrar indicadores válidos antes de renderizar a categoria
-        const indicadoresValidos = indicadores.filter(({ label, valor, chave }) => {
-          const numeric = parseFloat(valor.replace('%', ''))
-
-          // Para métricas calculadas, validar se realmente têm dados
-          if (['eficienciaOperacional', 'solidezFinanceira', 'geracaoCaixa'].includes(chave)) {
-            // Se é uma métrica calculada e tem valor padrão (50) ou inválido, filtrar
-            if (isNaN(numeric) || numeric === 50 || numeric <= 0) {
-              return false
-            }
-          }
-
-          // ✅ IGUAL AO TECHNOLOGY: Usar complementares específicos de Energy
-          try {
-            const { apenasInformativo } = avaliarIndicadorComContexto('Energy', label, numeric, {
-              valorAnterior: undefined,
-              complementares, // ✅ Agora só contém indicadores de Energy
-            })
-            return !apenasInformativo
-          } catch (error) {
-            console.warn(`Erro ao avaliar indicador ${label}:`, error)
-            return false
-          }
-        })
-
-        // Se não há indicadores válidos, não renderizar a categoria
-        if (indicadoresValidos.length === 0) return null
-
-        return (
-          <div
-            key={categoria}
-            className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden"
-          >
-            <div className="bg-gradient-to-r from-orange-50 to-amber-50 px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-                {categoria}
-                <span className="text-sm font-normal text-gray-500 ml-2">
-                  ({indicadoresValidos.length} indicador
-                  {indicadoresValidos.length !== 1 ? 'es' : ''})
-                </span>
-              </h3>
-            </div>
-
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {indicadoresValidos.map(({ label, valor, anterior, icon, description, chave }) => {
-                  const numeric = parseFloat(valor.replace('%', ''))
-                  const prev = anterior ? parseFloat(anterior.replace('%', '')) : undefined
-
-                  // ✅ NOVO: Usar complementares específicos de Energy
-                  const { score, explicacaoCustom } = avaliarIndicadorComContexto(
-                    'Energy',
-                    label,
-                    numeric,
-                    {
-                      valorAnterior: prev,
-                      complementares, // ✅ Agora só contém indicadores de Energy
-                    },
-                  )
-
-                  // ✅ IGUAL AO TECHNOLOGY: Lógica simples de melhoria/deterioração
-                  const hasImprovement = prev !== undefined && numeric > prev
-                  const hasDeterioration = prev !== undefined && numeric < prev
-
-                  return (
-                    <div
-                      key={label}
-                      className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-200"
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          {icon && <span className="text-lg">{icon}</span>}
-                          <div>
-                            <h4 className="font-medium text-gray-800 text-sm">{label}</h4>
-                            {description && (
-                              <p className="text-xs text-gray-500 mt-1">{description}</p>
-                            )}
-                          </div>
-                        </div>
-                        <IndicatorValuePro
-                          score={score}
-                          tooltip={
-                            explicacaoCustom && explicacaoCustom.trim() !== ''
-                              ? explicacaoCustom
-                              : `Benchmark definido para o indicador "${label}".`
-                          }
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold text-gray-900">
-                          {formatValue(valor, chave)}
-                        </span>
-
-                        {anterior && (
-                          <div className="flex items-center gap-1 text-xs">
-                            <span className="text-gray-500">vs.</span>
-                            <span className="text-gray-600">{formatValue(anterior, chave)}</span>
-                            {hasImprovement && <span className="text-green-500">↗</span>}
-                            {hasDeterioration && <span className="text-red-500">↘</span>}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        )
-      })}
-    </div>
+    <CategoriasLayout
+      categorias={categorias}
+      setor="Energy"
+      formatValue={formatValue}
+      complementares={complementares}
+    />
   )
 }

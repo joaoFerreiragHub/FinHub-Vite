@@ -1,11 +1,10 @@
+import { CategoriasLayout } from './CategoriasLayout'
 // src/components/ratings/RatingsREITs.tsx
 
 import {
   buildRealEstateComplementares,
   RatingsREITsProps,
 } from '@/features/tools/stocks/utils/complementares/realEstateComplementares'
-import { avaliarIndicadorComContexto } from '../hooks/avaliarIndicadorComContexto'
-import { IndicatorValuePro } from '../quickAnalysis/IndicatorValuePro'
 
 export function RatingsREITs(props: RatingsREITsProps) {
   // ✅ NOVO: Constrói complementares específicos para REITs
@@ -272,138 +271,12 @@ export function RatingsREITs(props: RatingsREITsProps) {
     return num.toFixed(2)
   }
 
-  // ✅ MELHORADO: Validação mais robusta de indicadores
-  const isValidIndicator = (valor: string): boolean => {
-    if (!valor || valor === 'N/A' || valor === 'undefined' || valor === '0') return false
-
-    const cleanValue = valor.replace('%', '').trim()
-    const num = parseFloat(cleanValue)
-
-    return !isNaN(num) && isFinite(num)
-  }
-
   return (
-    <div className="mt-6 space-y-8">
-      {Object.entries(categorias).map(([categoria, indicadores]) => {
-        // ✅ MELHORADO: Filtro mais inteligente de indicadores válidos
-        const indicadoresValidos = indicadores.filter(({ label, valor, anterior }) => {
-          // Primeiro verificar se o valor é válido
-          if (!isValidIndicator(valor)) return false
-
-          const numeric = parseFloat(valor.replace('%', ''))
-
-          // ✅ NOVO: Usar complementares específicos de REITs
-          const { apenasInformativo } = avaliarIndicadorComContexto('Real Estate', label, numeric, {
-            valorAnterior: anterior ? parseFloat(anterior.replace('%', '')) : undefined,
-            complementares, // ✅ Agora só contém indicadores de REITs
-          })
-          return !apenasInformativo
-        })
-
-        // Se não há indicadores válidos, não renderizar a categoria
-        if (indicadoresValidos.length === 0) return null
-
-        return (
-          <div
-            key={categoria}
-            className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden"
-          >
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                {categoria}
-                <span className="text-sm font-normal text-gray-500 ml-2">
-                  ({indicadoresValidos.length} indicador
-                  {indicadoresValidos.length !== 1 ? 'es' : ''})
-                </span>
-              </h3>
-            </div>
-
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {indicadoresValidos.map(({ label, valor, anterior, icon, description, chave }) => {
-                  const numeric = parseFloat(valor.replace('%', ''))
-                  const prev = anterior ? parseFloat(anterior.replace('%', '')) : undefined
-
-                  // ✅ NOVO: Usar complementares específicos de REITs
-                  const { score, explicacaoCustom } = avaliarIndicadorComContexto(
-                    'Real Estate',
-                    label,
-                    numeric,
-                    {
-                      valorAnterior: prev,
-                      complementares, // ✅ Agora só contém indicadores de REITs
-                    },
-                  )
-
-                  // ✅ MELHORADO: Lógica de melhoria/deterioração mais precisa
-                  const hasImprovement = prev !== undefined && numeric > prev
-                  const hasDeterioration = prev !== undefined && numeric < prev
-
-                  return (
-                    <div
-                      key={label}
-                      className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-200"
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          {icon && <span className="text-lg">{icon}</span>}
-                          <div>
-                            <h4 className="font-medium text-gray-800 text-sm">{label}</h4>
-                            {description && (
-                              <p className="text-xs text-gray-500 mt-1">{description}</p>
-                            )}
-                          </div>
-                        </div>
-                        <IndicatorValuePro
-                          score={score}
-                          tooltip={
-                            explicacaoCustom && explicacaoCustom.trim() !== ''
-                              ? explicacaoCustom
-                              : `Benchmark específico para REITs: "${label}".`
-                          }
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold text-gray-900">
-                          {formatValue(valor, chave)}
-                        </span>
-
-                        {anterior && isValidIndicator(anterior) && (
-                          <div className="flex items-center gap-1 text-xs">
-                            <span className="text-gray-500">vs.</span>
-                            <span className="text-gray-600">{formatValue(anterior, chave)}</span>
-                            {hasImprovement && <span className="text-green-500 text-sm">↗</span>}
-                            {hasDeterioration && <span className="text-red-500 text-sm">↘</span>}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        )
-      })}
-
-      {/* ✅ ATUALIZADO: Aviso melhorado sobre métricas REITs */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex items-start gap-3">
-          <span className="text-blue-600 text-lg">✅</span>
-          <div className="text-sm text-blue-800">
-            <p className="font-medium mb-1">Métricas Específicas para REITs</p>
-            <p className="text-xs text-blue-700">
-              Esta análise inclui indicadores reais para REITs:{' '}
-              <strong>FFO, AFFO, P/FFO, FFO Payout Ratio e FFO per Share</strong> são calculados
-              automaticamente com dados da API. A cobertura de dividendos usa FFO real quando
-              disponível. Algumas métricas como ocupação e NOI same-store ainda usam proxies
-              baseados em dados financeiros.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <CategoriasLayout
+      categorias={categorias}
+      setor="Real Estate"
+      formatValue={formatValue}
+      complementares={complementares}
+    />
   )
 }

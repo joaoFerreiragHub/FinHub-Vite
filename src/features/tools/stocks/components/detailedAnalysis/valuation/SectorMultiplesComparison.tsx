@@ -2,7 +2,7 @@ import { ArrowDown, ArrowUp } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui'
 import { cn } from '@/lib/utils'
 
-interface Multiples {
+export interface Multiples {
   pe: number
   ps: number
   pb: number

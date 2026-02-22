@@ -18,11 +18,11 @@ interface PerformanceRadarChartProps {
 }
 
 const defaultData: ScoreData[] = [
-  { metric: 'Valuation', value: 70 },
+  { metric: 'Valuation (barato)', value: 70 },
   { metric: 'Rentabilidade', value: 80 },
   { metric: 'Crescimento', value: 65 },
   { metric: 'Solidez', value: 75 },
-  { metric: 'Risco', value: 40 },
+  { metric: 'Segurança', value: 60 },
   { metric: 'Dividendos', value: 60 },
 ]
 

@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import { Loader2, Play, RefreshCcw, ShieldCheck, ShieldX } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import {
   Badge,
@@ -87,8 +86,6 @@ interface AssistedSessionsPageProps {
 }
 
 export default function AssistedSessionsPage({ embedded = false }: AssistedSessionsPageProps) {
-  const navigate = useNavigate()
-
   const authUser = useAuthStore((state) => state.user)
   const accessToken = useAuthStore((state) => state.accessToken)
   const refreshToken = useAuthStore((state) => state.refreshToken)
@@ -183,7 +180,9 @@ export default function AssistedSessionsPage({ embedded = false }: AssistedSessi
 
       setUser(response.actingUser, response.tokens.accessToken, response.tokens.refreshToken)
       toast.success('Sessao assistida ativa. Escopo minimo: leitura apenas.')
-      navigate('/conta')
+      if (typeof window !== 'undefined') {
+        window.location.assign('/conta')
+      }
     } catch (error) {
       clearAssistedSessionAdminBackup()
       toast.error(getErrorMessage(error))

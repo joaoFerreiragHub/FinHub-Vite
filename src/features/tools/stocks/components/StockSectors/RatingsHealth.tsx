@@ -1,10 +1,9 @@
+import { CategoriasLayout } from './CategoriasLayout'
 // ✅ COMPONENTE RATINGSHEALTHCARE OTIMIZADO
 import {
   buildHealthcareComplementares,
   RatingsHealthcareProps,
 } from '@/features/tools/stocks/utils/complementares/healthcareComplementares'
-import { avaliarIndicadorComContexto } from '../hooks/avaliarIndicadorComContexto'
-import { IndicatorValuePro } from '../quickAnalysis/IndicatorValuePro'
 
 export function RatingsHealthcare(props: RatingsHealthcareProps) {
   // ✅ NOVO: Constrói complementares específicos para Healthcare
@@ -258,106 +257,11 @@ export function RatingsHealthcare(props: RatingsHealthcareProps) {
   }
 
   return (
-    <div className="mt-6 space-y-8">
-      {Object.entries(categorias).map(([categoria, indicadores]) => {
-        // Filtrar indicadores válidos antes de renderizar a categoria
-        const indicadoresValidos = indicadores.filter(({ label, valor }) => {
-          const numeric = parseFloat(valor)
-
-          // ✅ NOVO: Usar complementares específicos de Healthcare
-          const { apenasInformativo } = avaliarIndicadorComContexto('Healthcare', label, numeric, {
-            valorAnterior: undefined,
-            complementares, // ✅ Agora só contém indicadores de Healthcare
-          })
-          return !apenasInformativo
-        })
-
-        // Se não há indicadores válidos, não renderizar a categoria
-        if (indicadoresValidos.length === 0) return null
-
-        return (
-          <div
-            key={categoria}
-            className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden"
-          >
-            <div className="bg-gradient-to-r from-emerald-50 to-green-50 px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
-                {categoria}
-                <span className="text-sm font-normal text-gray-500 ml-2">
-                  ({indicadoresValidos.length} indicador
-                  {indicadoresValidos.length !== 1 ? 'es' : ''})
-                </span>
-              </h3>
-            </div>
-
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {indicadoresValidos.map(({ label, valor, anterior, icon, description, chave }) => {
-                  const numeric = parseFloat(valor)
-                  const prev = anterior ? parseFloat(anterior) : undefined
-
-                  // ✅ NOVO: Usar complementares específicos de Healthcare
-                  const { score, explicacaoCustom } = avaliarIndicadorComContexto(
-                    'Healthcare',
-                    label,
-                    numeric,
-                    {
-                      valorAnterior: prev,
-                      complementares, // ✅ Agora só contém indicadores de Healthcare
-                    },
-                  )
-
-                  const hasImprovement = prev !== undefined && numeric > prev
-                  const hasDeterioration = prev !== undefined && numeric < prev
-
-                  return (
-                    <div
-                      key={label}
-                      className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-200"
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          {icon && <span className="text-lg">{icon}</span>}
-                          <div>
-                            <h4 className="font-medium text-gray-800 text-sm">{label}</h4>
-                            {description && (
-                              <p className="text-xs text-gray-500 mt-1">{description}</p>
-                            )}
-                          </div>
-                        </div>
-                        <IndicatorValuePro
-                          score={score}
-                          tooltip={
-                            explicacaoCustom && explicacaoCustom.trim() !== ''
-                              ? explicacaoCustom
-                              : `Benchmark definido para o indicador "${label}".`
-                          }
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold text-gray-900">
-                          {formatValue(valor, chave)}
-                        </span>
-
-                        {anterior && (
-                          <div className="flex items-center gap-1 text-xs">
-                            <span className="text-gray-500">vs.</span>
-                            <span className="text-gray-600">{formatValue(anterior, chave)}</span>
-                            {hasImprovement && <span className="text-green-500">↗</span>}
-                            {hasDeterioration && <span className="text-red-500">↘</span>}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        )
-      })}
-    </div>
+    <CategoriasLayout
+      categorias={categorias}
+      setor="Healthcare"
+      formatValue={formatValue}
+      complementares={complementares}
+    />
   )
 }

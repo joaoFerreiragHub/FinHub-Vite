@@ -1,6 +1,7 @@
 // components/stocks/StockDetails.tsx
 import { useState } from 'react'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui'
+import { Tabs, TabsList, TabsTrigger, TabsContent, Button } from '@/components/ui'
+import { ExternalLink } from 'lucide-react'
 
 import { WatchlistButton } from './WatchlistButton'
 import { GeneralInfoSection } from './sections/GeneralInfoSection'
@@ -38,22 +39,36 @@ export function StockDetails({ stockData, isInWatchlist, onToggleWatchlist }: St
 
   console.log('quickData', quickData)
 
+  const googleFinanceUrl = displaySymbol
+    ? `https://www.google.com/finance/quote/${displaySymbol}`
+    : null
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 flex-wrap">
         {displayImage && (
           <img
             src={displayImage}
             alt={`Logo da ${displayName}`}
-            className="w-10 h-10 rounded shadow-sm"
+            className="w-10 h-10 rounded shadow-sm shrink-0"
           />
         )}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-          <h2 className="text-xl font-bold">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 min-w-0">
+          <h2 className="text-xl font-bold truncate">
             {displayName} <span className="text-muted-foreground">({displaySymbol})</span>
           </h2>
         </div>
-        <WatchlistButton isInWatchlist={isInWatchlist} onToggle={onToggleWatchlist} />
+        <div className="ml-auto flex items-center gap-2 shrink-0">
+          <WatchlistButton isInWatchlist={isInWatchlist} onToggle={onToggleWatchlist} />
+          {googleFinanceUrl && (
+            <Button variant="outline" size="sm" asChild>
+              <a href={googleFinanceUrl} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="w-4 h-4 mr-1.5" />
+                Google Finance
+              </a>
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* 🆕 Updated Tabs with ML Predictions */}
@@ -79,14 +94,10 @@ export function StockDetails({ stockData, isInWatchlist, onToggleWatchlist }: St
           ) : error ? (
             <p className="text-red-500">{error}</p>
           ) : quickData ? (
-            <>
+            <div className="space-y-4">
               <GeneralInfoSection data={mergedData} />
-              <QuickAnalysis
-                data={quickData}
-                onToggleWatchlist={onToggleWatchlist}
-                onPeerClick={handlePeerClick}
-              />
-            </>
+              <QuickAnalysis data={quickData} onPeerClick={handlePeerClick} />
+            </div>
           ) : (
             // Fallback: se não há quickData, usa apenas stockData
             <GeneralInfoSection data={stockData} />

@@ -38,6 +38,10 @@ Escopo: pasta `dcos`
   - P3 focado exclusivamente na Analise Rapida de stocks.
   - Analise Detalhada de stocks adiada para P4.
   - o P3 anterior (livros/ferramentas legadas/brokers-websites) foi adiado e passa para P4.
+- Reforco de roadmap (2026-02-22):
+  - bloco "Admin Editorial CMS" formalizado para P4 como extensao natural do P2.
+  - objetivo: permitir ao admin operar seed/curadoria de conteudo e diretorios enquanto creators externos aderem.
+  - referencia tecnica: `dcos/P4_ADMIN_EDITORIAL_CMS.md`.
 - Itens extra foram incorporados ao backlog de P2 (tickets internos, feature flags, compliance/log retention, alertas, modo read-only admin junior e bulk actions protegidas).
 - Livros/ferramentas/brokers-websites foram reclassificados para Prioridade 4 apos o novo replaneamento de 2026-02-21.
 - Arranque tecnico de P2.0 iniciado no backend:
@@ -116,10 +120,13 @@ Escopo: pasta `dcos`
 ## Fontes de verdade para seguimento
 - Estado detalhado: `dcos/ESTADO_IMPLEMENTADO.md`
 - Backlog priorizado: `dcos/PENDENCIAS_PRIORIZADAS.md`
+- Plano Admin CMS (P4): `dcos/P4_ADMIN_EDITORIAL_CMS.md`
 
 ## Pontos remanescentes (nao bloqueantes para operacao atual)
 - Warnings de build em mocks legados e avisos de deprecacao de plugin.
 - Divida tecnica fora de escopo imediato: tipagem global de modulos legados para eventual retorno do gate full `tsc -b`.
 - Expansao de E2E para full business flows continua recomendada como reforco de qualidade (atualmente existe smoke).
-- Proximo bloco sugerido: Prioridade 3 (hardening da analise de stocks: metricas atuais, fallback por fonte e consistencia cross-setor).
+- Proximo bloco sugerido:
+  1. fechar P3 (Analise Rapida) com gate tecnico completo.
+  2. iniciar P4 Admin CMS (fundacao + curadoria home) para desbloquear operacao editorial bootstrap.
 

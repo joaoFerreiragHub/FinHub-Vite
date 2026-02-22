@@ -328,16 +328,27 @@ Escopo oficial do P3: **apenas Analise Rapida**. A Analise Detalhada fica fora d
 Estado atual do P3: EM CURSO (arranque tecnico ja iniciado; falta fechar cobertura e consistencia cross-setor).
 
 ## Prioridade 4 - Medio (adiado apos novo P3)
-1. Analise detalhada de stocks (novo escopo adiado do P3).
-2. Livros completos (replies, filtros, destaques, categorias) no frontend ativo.
-3. Ferramentas financeiras legadas expostas no router principal (fundo emergencia, juros compostos, ETF analyzer, REIT valuation, debt snowball).
+1. Admin Editorial CMS (novo bloco formal de produto apos P2).
+- objetivo: permitir seed/curadoria de conteudo e diretorios pelo admin enquanto a base de creators cresce.
+- documento tecnico de referencia:
+  - `dcos/P4_ADMIN_EDITORIAL_CMS.md`
+- escopo resumido:
+  - CRUD editorial admin para conteudos (artigos/cursos/videos/lives/podcasts/books).
+  - curadoria de homepage por secoes (ordem, pin, janela temporal, show/hide).
+  - diretorios verticais (corretoras, exchanges, apps, sites) com landing/show-all.
+  - workflow de claim e transferencia de ownership `admin_seeded -> creator_owned`.
+  - RBAC dedicado (`admin.home.curate`, `admin.directory.manage`, `admin.claim.review`, etc.) + auditoria.
+
+2. Analise detalhada de stocks (novo escopo adiado do P3).
+3. Livros completos (replies, filtros, destaques, categorias) no frontend ativo.
+4. Ferramentas financeiras legadas expostas no router principal (fundo emergencia, juros compostos, ETF analyzer, REIT valuation, debt snowball).
  - estado parcial (2026-02-20): REIT valuation/toolkit ja recebeu hardening tecnico (DDM com confidence gating, FFO multi-fonte com toggle NAREIT/estimativa/CF Op e score de valorizacao).
  - pendente neste item: consolidar as restantes ferramentas legadas no router principal com o mesmo nivel de rigor operacional.
-4. Blocos e paginas completas de brokers/websites.
-5. Eventos end-to-end (criacao, aprovacao, status e tracking).
-6. Glossario financeiro.
-7. Paginas dinamicas por topico.
-8. Regular user dashboard e about completo.
+5. Blocos e paginas completas de brokers/websites.
+6. Eventos end-to-end (criacao, aprovacao, status e tracking).
+7. Glossario financeiro.
+8. Paginas dinamicas por topico.
+9. Regular user dashboard e about completo.
 
 ## Pendencias tecnicas observadas em checklists
 1. Sem bloqueadores tecnicos pre-P1 ativos neste momento.
@@ -360,5 +371,9 @@ Estado atual do P3: EM CURSO (arranque tecnico ja iniciado; falta fechar cobertu
 
 ## Sequencia pragmatica sugerida
 1. Fechar primeiro o novo P3 (hardening de analise de stocks e cobertura de metricas atuais).
-2. Mover para P4 apenas apos gate de aceite do novo P3 estar verde (lint/test/build/e2e + verificacao funcional cross-setor).
+2. Iniciar em seguida o bloco P4 Admin Editorial CMS pela Fase A+B:
+- Fundacao (schema + RBAC + auditoria + contratos OpenAPI)
+- Curadoria Home (secoes + itens + ordering + endpoint publico)
+3. Avancar depois para Diretorios + Claim/Ownership transfer.
+4. Mover para os restantes itens de P4 apos gate de aceite do Admin CMS MVP.
 

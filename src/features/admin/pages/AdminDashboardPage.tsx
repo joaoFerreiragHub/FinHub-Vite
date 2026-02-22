@@ -3,6 +3,7 @@ import {
   Activity,
   AlertTriangle,
   BarChart3,
+  BellRing,
   EyeOff,
   Layers,
   LifeBuoy,
@@ -33,16 +34,22 @@ import {
   type AdminModuleConfig,
   canReadAdminModule,
   canWriteAdminModule,
+  hasAdminScope,
 } from '../lib/access'
 import { useAdminUsers } from '../hooks/useAdminUsers'
 import { useAdminContentQueue } from '../hooks/useAdminContent'
 import { useAdminAssistedSessions } from '../hooks/useAdminAssistedSessions'
 import { useAdminMetricsOverview } from '../hooks/useAdminMetrics'
+import { useAdminOperationalAlerts } from '../hooks/useAdminOperationalAlerts'
 import UsersManagementPage from './UsersManagementPage'
 import ContentModerationPage from './ContentModerationPage'
 import AssistedSessionsPage from './AssistedSessionsPage'
 import StatsPage from './StatsPage'
 import BrandsManagementPage from './BrandsManagementPage'
+import type {
+  AdminOperationalAlertSeverity,
+  AdminOperationalAlertType,
+} from '../types/adminOperationalAlerts'
 
 type DashboardTab = 'overview' | 'users' | 'content' | 'support' | 'stats' | 'brands'
 
@@ -103,6 +110,35 @@ const MODULE_ICONS: Record<AdminModuleConfig['key'], ElementType> = {
   support: LifeBuoy,
   brands: Layers,
   stats: BarChart3,
+}
+
+const ALERT_TYPE_LABEL: Record<AdminOperationalAlertType, string> = {
+  ban_applied: 'Banimento',
+  content_hide_spike: 'Spike hide',
+  delegated_access_started: 'Acesso delegado',
+}
+
+const ALERT_SEVERITY_LABEL: Record<AdminOperationalAlertSeverity, string> = {
+  critical: 'Critico',
+  high: 'High',
+  medium: 'Medio',
+}
+
+const alertSeverityVariant = (
+  severity: AdminOperationalAlertSeverity,
+): 'destructive' | 'outline' | 'secondary' => {
+  if (severity === 'critical') return 'destructive'
+  if (severity === 'high') return 'outline'
+  return 'secondary'
+}
+
+const formatDateTime = (value: string): string => {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '-'
+  return new Intl.DateTimeFormat('pt-PT', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(date)
 }
 
 function ModuleCard({ moduleConfig, canWrite, alertCount }: ModuleCardProps) {
@@ -176,6 +212,7 @@ export default function AdminDashboardPage() {
   const canReadContent = Boolean(moduleAccess.content?.canRead)
   const canReadSupport = Boolean(moduleAccess.support?.canRead)
   const canReadStats = Boolean(moduleAccess.stats?.canRead)
+  const canReadAudit = hasAdminScope(user, 'admin.audit.read')
 
   const { data: allUsers, isLoading: loadingAllUsers } = useAdminUsers(
     { limit: 1 },
@@ -215,6 +252,8 @@ export default function AdminDashboardPage() {
   const { data: metricsOverview, isLoading: loadingMetricsOverview } = useAdminMetricsOverview({
     enabled: canReadStats,
   })
+  const { data: operationalAlerts, isLoading: loadingOperationalAlerts } =
+    useAdminOperationalAlerts({ windowHours: 24, limit: 6 }, { enabled: canReadAudit })
 
   const totalUsers = allUsers?.pagination.total
   const suspendedCount = suspendedUsers?.pagination.total ?? 0
@@ -228,6 +267,8 @@ export default function AdminDashboardPage() {
 
   const pendingSupportCount = pendingSupport?.pagination.total ?? 0
   const activeSupportCount = activeSupport?.pagination.total ?? 0
+  const criticalOperationalAlerts = operationalAlerts?.summary.critical ?? 0
+  const highOperationalAlerts = operationalAlerts?.summary.high ?? 0
 
   const moduleCards = useMemo(
     () =>
@@ -403,8 +444,93 @@ export default function AdminDashboardPage() {
                 loading={canReadContent && loadingRestrictedContent}
                 highlight="danger"
               />
+              <StatCard
+                label="Alertas criticos"
+                value={criticalOperationalAlerts}
+                icon={BellRing}
+                loading={canReadAudit && loadingOperationalAlerts}
+                highlight="danger"
+              />
+              <StatCard
+                label="Alertas high"
+                value={highOperationalAlerts}
+                icon={BellRing}
+                loading={canReadAudit && loadingOperationalAlerts}
+                highlight="warn"
+              />
             </div>
           </section>
+
+          {canReadAudit ? (
+            <section>
+              <div className="mb-3 flex items-center gap-2">
+                <BellRing className="h-4 w-4 text-muted-foreground" />
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  Alertas internos
+                </h2>
+              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Eventos criticos de operacao admin</CardTitle>
+                  <CardDescription>
+                    Janela {operationalAlerts?.windowHours ?? 24}h, atualizado em{' '}
+                    {operationalAlerts ? formatDateTime(operationalAlerts.generatedAt) : '...'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="destructive">
+                      Critico: {operationalAlerts?.summary.critical ?? 0}
+                    </Badge>
+                    <Badge variant="outline">High: {operationalAlerts?.summary.high ?? 0}</Badge>
+                    <Badge variant="secondary">
+                      Medio: {operationalAlerts?.summary.medium ?? 0}
+                    </Badge>
+                  </div>
+
+                  {loadingOperationalAlerts ? (
+                    <div className="space-y-2">
+                      <div className="h-14 animate-pulse rounded-md bg-muted" />
+                      <div className="h-14 animate-pulse rounded-md bg-muted" />
+                    </div>
+                  ) : (operationalAlerts?.items.length ?? 0) === 0 ? (
+                    <div className="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
+                      Sem alertas criticos na janela configurada.
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {operationalAlerts?.items.map((alert) => (
+                        <div key={alert.id} className="rounded-md border border-border/70 p-3">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <Badge variant={alertSeverityVariant(alert.severity)}>
+                                {ALERT_SEVERITY_LABEL[alert.severity]}
+                              </Badge>
+                              <Badge variant="outline">{ALERT_TYPE_LABEL[alert.type]}</Badge>
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              {formatDateTime(alert.detectedAt)}
+                            </span>
+                          </div>
+                          <p className="mt-2 text-sm font-medium">{alert.title}</p>
+                          <p className="text-xs text-muted-foreground">{alert.description}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Actor:{' '}
+                            {alert.actor?.name ||
+                              alert.actor?.username ||
+                              alert.actor?.email ||
+                              alert.actor?.id ||
+                              'N/A'}{' '}
+                            - Acao: {alert.action}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </section>
+          ) : null}
 
           <section>
             <div className="mb-3 flex items-center gap-2">

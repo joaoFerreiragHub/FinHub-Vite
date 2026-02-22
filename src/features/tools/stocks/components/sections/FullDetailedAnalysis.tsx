@@ -7,10 +7,10 @@ import { FinancialHealthSection } from '../sections/FinancialHealthSection'
 import { DebtSection } from '../sections/DebtSection'
 import { RisksSection } from '../sections/RisksSection'
 import { DividendsSection } from '../sections/DividendsSection'
-import { ValuationSimulator } from '../detailedAnalysis/valuation/ValuationSimulator'
-import { ValuationComparison } from '../detailedAnalysis/valuation/ValuationComparison'
-import { HistoricalMultiplesChart } from '../detailedAnalysis/valuation/HistoricalMultiplesChart'
-import { SectorMultiplesComparison } from '../detailedAnalysis/valuation/SectorMultiplesComparison'
+import {
+  SectorMultiplesComparison,
+  type Multiples,
+} from '../detailedAnalysis/valuation/SectorMultiplesComparison'
 import { BalanceSheetChart } from '../detailedAnalysis/performance/BalanceSheetChart'
 import { CashFlowChart } from '../detailedAnalysis/performance/CashFlowChart'
 import { FinancialStatementsChart } from '../detailedAnalysis/performance/FinancialStatementsChart'
@@ -32,36 +32,29 @@ interface Props {
   data: StockData
 }
 
+function parseInd(val: string | undefined, stripSuffix?: string): number {
+  if (!val || val === '\u2014' || val === 'N/A') return NaN
+  const clean = stripSuffix
+    ? val.replace(new RegExp(stripSuffix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$'), '')
+    : val
+  return parseFloat(clean)
+}
+
 export function FullDetailedAnalysis({ data }: Props) {
-  // Mock para props obrigatórios
-  const precoAtual = 230
-  const valuation = 250
+  const ind = data.indicadores ?? {}
 
-  const companyMultiples = {
-    pe: 15.2,
-    ps: 4.5,
-    pb: 2.8,
-    evEbitda: 10.4,
-    roe: 18.2,
-    ebitdaMargin: 32.5,
+  // E1: companyMultiples de indicadores
+  const companyMultiples: Multiples = {
+    pe: parseInd(ind['P/L']),
+    ps: parseInd(ind['P/S']),
+    pb: parseInd(ind['P/VPA']),
+    evEbitda: parseInd(ind['EV/EBITDA'], 'x'),
+    roe: parseInd(ind['ROE'], '%'),
+    ebitdaMargin: parseInd(ind['Margem EBITDA'], '%'),
   }
 
-  const sectorMultiples = {
-    pe: 17.6,
-    ps: 4.2,
-    pb: 2.5,
-    evEbitda: 11.1,
-    roe: 14.7,
-    ebitdaMargin: 28.9,
-  }
-
-  const historicalMultiplesData = [
-    { year: '2019', pe: 18.2, ps: 3.2, pb: 3.1, evEbitda: 11.5 },
-    { year: '2020', pe: 22.7, ps: 4.1, pb: 3.4, evEbitda: 12.8 },
-    { year: '2021', pe: 19.5, ps: 3.5, pb: 2.9, evEbitda: 10.2 },
-    { year: '2022', pe: 16.3, ps: 3.1, pb: 2.7, evEbitda: 9.8 },
-    { year: '2023', pe: 17.1, ps: 3.6, pb: 2.8, evEbitda: 10.5 },
-  ]
+  // Só mostra comparação sectorial se tiver métricas reais da empresa
+  const hasCompanyMultiples = !isNaN(companyMultiples.pe) && !isNaN(companyMultiples.roe)
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6">
@@ -74,11 +67,10 @@ export function FullDetailedAnalysis({ data }: Props) {
       <RisksSection data={data} />
       <DividendsSection data={data} />
 
-      {/* Valuation e Múltiplos */}
-      <ValuationSimulator precoAtual={precoAtual} />
-      <ValuationComparison valuation={valuation} currentPrice={precoAtual} />
-      <HistoricalMultiplesChart data={historicalMultiplesData} />
-      <SectorMultiplesComparison company={companyMultiples} sector={sectorMultiples} />
+      {/* Comparação com o Setor (só com dados reais da empresa) */}
+      {hasCompanyMultiples && (
+        <SectorMultiplesComparison company={companyMultiples} sector={companyMultiples} />
+      )}
 
       {/* Performance Financeira */}
       <BalanceSheetChart />
@@ -87,7 +79,12 @@ export function FullDetailedAnalysis({ data }: Props) {
 
       {/* Qualidade e Risco */}
       <ValueCreationChart />
-      <QualityScores data={{ piotroskiScore: 7, altmanZScore: 3.1, earningsQuality: 82 }} />
+      <QualityScores
+        data={{
+          piotroskiScore: data.qualityScore ?? undefined,
+          altmanZScore: data.riskScore ?? undefined,
+        }}
+      />
       <ProfitVsDebtChart
         data={[
           { year: '2019', roe: 15, debtRatio: 0.4 },

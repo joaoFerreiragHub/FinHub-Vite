@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { AlertTriangle, TrendingDown, DollarSign, Zap } from 'lucide-react'
+import { AlertTriangle, TrendingDown, DollarSign, Zap, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface AlertItem {
@@ -48,7 +48,12 @@ const defaultAlerts: AlertItem[] = [
 
 export const RiskAlert = memo(function RiskAlert({ alerts = defaultAlerts }: RiskAlertProps) {
   if (!alerts.length) {
-    return <p className="text-muted-foreground text-sm">Sem alertas de risco no momento.</p>
+    return (
+      <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 dark:bg-green-950/40 dark:border-green-900 px-4 py-2.5 text-sm text-green-700 dark:text-green-400">
+        <CheckCircle2 className="w-4 h-4 shrink-0" />
+        <span className="font-medium">Sem alertas de risco detectados</span>
+      </div>
+    )
   }
 
   return (

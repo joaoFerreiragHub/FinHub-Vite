@@ -1,17 +1,16 @@
-// src/components/ratings/RatingsTech.tsx
+﻿// src/components/ratings/RatingsTech.tsx
 
 import {
   buildTechnologyComplementares,
   RatingsTechProps,
 } from '@/features/tools/stocks/utils/complementares/technologyComplementares'
-import { avaliarIndicadorComContexto } from '../hooks/avaliarIndicadorComContexto'
-import { IndicatorValuePro } from '../quickAnalysis/IndicatorValuePro'
+import { CategoriasLayout } from './CategoriasLayout'
 
 export function RatingsTech(props: RatingsTechProps) {
-  // ✅ NOVO: Constrói complementares específicos para Technology
+  // âœ… NOVO: ConstrÃ³i complementares especÃ­ficos para Technology
   const complementares = buildTechnologyComplementares(props)
 
-  console.log('🔧 Technology Complementares:', complementares)
+  console.log('ðŸ”§ Technology Complementares:', complementares)
 
   const categorias: Record<
     string,
@@ -30,7 +29,7 @@ export function RatingsTech(props: RatingsTechProps) {
         chave: 'crescimentoReceita',
         valor: props.crescimentoReceita,
         anterior: props.crescimentoReceitaAnoAnterior,
-        icon: '📈',
+        icon: 'ðŸ“ˆ',
         description: 'Taxa de crescimento da receita',
       },
       {
@@ -38,7 +37,7 @@ export function RatingsTech(props: RatingsTechProps) {
         chave: 'cagrEps',
         valor: props.cagrEps,
         anterior: props.cagrEpsAnoAnterior,
-        icon: '📊',
+        icon: 'ðŸ“Š',
         description: 'Taxa de Crescimento Anual Composta do EPS',
       },
       {
@@ -46,8 +45,8 @@ export function RatingsTech(props: RatingsTechProps) {
         chave: 'eps',
         valor: props.eps,
         anterior: props.epsAnoAnterior,
-        icon: '🏆',
-        description: 'Lucro por Ação',
+        icon: 'ðŸ†',
+        description: 'Lucro por AÃ§Ã£o',
       },
     ],
     Rentabilidade: [
@@ -56,28 +55,28 @@ export function RatingsTech(props: RatingsTechProps) {
         chave: 'margemBruta',
         valor: props.margemBruta,
         anterior: props.margemBrutaAnoAnterior,
-        icon: '💰',
+        icon: 'ðŸ’°',
       },
       {
         label: 'Margem EBITDA',
         chave: 'margemEbitda',
         valor: props.margemEbitda,
         anterior: props.margemEbitdaAnoAnterior,
-        icon: '📊',
+        icon: 'ðŸ“Š',
       },
       {
-        label: 'Margem Líquida',
+        label: 'Margem LÃ­quida',
         chave: 'margemLiquida',
         valor: props.margemLiquida,
         anterior: props.margemLiquidaAnoAnterior,
-        icon: '💎',
+        icon: 'ðŸ’Ž',
       },
       {
         label: 'Margem Operacional',
         chave: 'margemOperacional',
         valor: props.margemOperacional,
         anterior: props.margemOperacionalAnoAnterior,
-        icon: '⚙️',
+        icon: 'âš™ï¸',
       },
     ],
     'Retorno sobre Capital': [
@@ -86,7 +85,7 @@ export function RatingsTech(props: RatingsTechProps) {
         chave: 'roic',
         valor: props.roic,
         anterior: props.roicAnoAnterior,
-        icon: '🎯',
+        icon: 'ðŸŽ¯',
         description: 'Retorno sobre Capital Investido',
       },
       {
@@ -94,51 +93,51 @@ export function RatingsTech(props: RatingsTechProps) {
         chave: 'roe',
         valor: props.roe,
         anterior: props.roeAnoAnterior,
-        icon: '📈',
-        description: 'Retorno sobre Patrimônio Líquido',
+        icon: 'ðŸ“ˆ',
+        description: 'Retorno sobre PatrimÃ´nio LÃ­quido',
       },
     ],
-    'Múltiplos de Avaliação': [
+    'MÃºltiplos de AvaliaÃ§Ã£o': [
       {
         label: 'P/L',
         chave: 'pl',
         valor: props.pl,
         anterior: props.plAnoAnterior,
-        icon: '💲',
-        description: 'Preço sobre Lucro',
+        icon: 'ðŸ’²',
+        description: 'PreÃ§o sobre Lucro',
       },
       {
         label: 'P/S',
         chave: 'ps',
         valor: props.ps,
         anterior: props.psAnoAnterior,
-        icon: '💰',
-        description: 'Preço sobre Vendas',
+        icon: 'ðŸ’°',
+        description: 'PreÃ§o sobre Vendas',
       },
       {
         label: 'PEG',
         chave: 'peg',
         valor: props.peg,
         anterior: props.pegAnoAnterior,
-        icon: '⚖️',
+        icon: 'âš–ï¸',
         description: 'P/L ajustado pelo crescimento',
       },
     ],
     'Estrutura de Capital e Liquidez': [
       {
-        label: 'Dívida/EBITDA',
+        label: 'DÃ­vida/EBITDA',
         chave: 'debtToEbitda',
         valor: props.debtToEbitda,
         anterior: props.debtToEbitdaAnoAnterior,
-        icon: '⚠️',
-        description: 'Endividamento em relação ao EBITDA',
+        icon: 'âš ï¸',
+        description: 'Endividamento em relaÃ§Ã£o ao EBITDA',
       },
       {
         label: 'Liquidez Corrente',
         chave: 'liquidezCorrente',
         valor: props.liquidezCorrente,
         anterior: props.liquidezCorrenteAnoAnterior,
-        icon: '💧',
+        icon: 'ðŸ’§',
         description: 'Capacidade de pagamento a curto prazo',
       },
       {
@@ -146,26 +145,26 @@ export function RatingsTech(props: RatingsTechProps) {
         chave: 'cashRatio',
         valor: props.cashRatio,
         anterior: props.cashRatioAnoAnterior,
-        icon: '💵',
+        icon: 'ðŸ’µ',
         description: 'Ratio de liquidez imediata (agora calculado!)',
       },
 
-      // 🆕 NOVO: Adicionar se quiserem mostrar as receitas recorrentes
+      // ðŸ†• NOVO: Adicionar se quiserem mostrar as receitas recorrentes
       {
         label: 'Receitas Recorrentes',
         chave: 'receitasRecorrentes',
-        valor: props.receitasRecorrentes || '0%',
+        valor: props.receitasRecorrentes || '—',
         anterior: undefined,
-        icon: '🔄',
+        icon: 'ðŸ”„',
         description: 'Percentual de receitas recorrentes',
       },
       {
-        label: 'Dívida / Capitais Próprios',
+        label: 'DÃ­vida / Capitais PrÃ³prios',
         chave: 'debtEquity',
-        valor: props.debtEquity ?? '0',
+        valor: props.debtEquity ?? '—',
         anterior: props.debtEquityAnoAnterior,
-        icon: '⚖️',
-        description: 'Dívida sobre Patrimônio',
+        icon: 'âš–ï¸',
+        description: 'DÃ­vida sobre PatrimÃ´nio',
       },
     ],
     'Risco e Volatilidade': [
@@ -174,40 +173,40 @@ export function RatingsTech(props: RatingsTechProps) {
         chave: 'beta',
         valor: props.beta,
         anterior: props.betaAnoAnterior,
-        icon: '📉',
-        description: 'Volatilidade em relação ao mercado',
+        icon: 'ðŸ“‰',
+        description: 'Volatilidade em relaÃ§Ã£o ao mercado',
       },
     ],
-    'Métricas Específicas de Tech': [
+    'MÃ©tricas EspecÃ­ficas de Tech': [
       {
         label: 'P&D / Receita',
         chave: 'investimentoPD',
         valor: props.investimentoPD,
         anterior: props.investimentoPDAnoAnterior,
-        icon: '🔬',
+        icon: 'ðŸ”¬',
         description: 'Investimento em Pesquisa e Desenvolvimento',
       },
       {
-        label: 'Eficiência de P&D',
+        label: 'EficiÃªncia de P&D',
         chave: 'rAnddEfficiency',
         valor: props.rAnddEfficiency,
         anterior: props.rAnddEfficiencyAnoAnterior,
-        icon: '🧪',
-        description: 'Eficiência dos investimentos em P&D',
+        icon: 'ðŸ§ª',
+        description: 'EficiÃªncia dos investimentos em P&D',
       },
       {
         label: 'Cash Flow / CapEx',
         chave: 'cashFlowOverCapex',
         valor: props.cashFlowOverCapex,
         anterior: props.cashFlowOverCapexAnoAnterior,
-        icon: '🔄',
+        icon: 'ðŸ”„',
       },
       {
         label: 'Free Cash Flow',
         chave: 'fcf',
         valor: props.fcf,
         anterior: props.fcfAnoAnterior,
-        icon: '💵',
+        icon: 'ðŸ’µ',
         description: 'Fluxo de Caixa Livre',
       },
       {
@@ -215,20 +214,20 @@ export function RatingsTech(props: RatingsTechProps) {
         chave: 'sgaOverRevenue',
         valor: props.sgaOverRevenue,
         anterior: props.sgaOverRevenueAnoAnterior,
-        icon: '🏢',
+        icon: 'ðŸ¢',
       },
       {
         label: 'Payout Ratio',
         chave: 'payoutRatio',
         valor: props.payoutRatio,
         anterior: props.payoutRatioAnoAnterior,
-        icon: '💸',
-        description: 'Percentual de lucros distribuídos',
+        icon: 'ðŸ’¸',
+        description: 'Percentual de lucros distribuÃ­dos',
       },
     ],
   }
 
-  // Função para formatar valores
+  // FunÃ§Ã£o para formatar valores
   const formatValue = (valor: string, chave: string) => {
     const cleanValue = valor.replace('%', '').trim()
     const num = parseFloat(cleanValue)
@@ -256,7 +255,7 @@ export function RatingsTech(props: RatingsTechProps) {
       return `${num.toFixed(2)}%`
     }
 
-    // Valores monetários grandes (FCF)
+    // Valores monetÃ¡rios grandes (FCF)
     if (chave === 'fcf' && Math.abs(num) > 1000000) {
       return `${(num / 1000000).toFixed(1)}M`
     }
@@ -266,106 +265,11 @@ export function RatingsTech(props: RatingsTechProps) {
   }
 
   return (
-    <div className="mt-6 space-y-8">
-      {Object.entries(categorias).map(([categoria, indicadores]) => {
-        // Filtrar indicadores válidos antes de renderizar a categoria
-        const indicadoresValidos = indicadores.filter(({ label, valor }) => {
-          const numeric = parseFloat(valor)
-
-          // ✅ NOVO: Usar complementares específicos de Technology
-          const { apenasInformativo } = avaliarIndicadorComContexto('Technology', label, numeric, {
-            valorAnterior: undefined,
-            complementares, // ✅ Agora só contém indicadores de Tech
-          })
-          return !apenasInformativo
-        })
-
-        // Se não há indicadores válidos, não renderizar a categoria
-        if (indicadoresValidos.length === 0) return null
-
-        return (
-          <div
-            key={categoria}
-            className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden"
-          >
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                {categoria}
-                <span className="text-sm font-normal text-gray-500 ml-2">
-                  ({indicadoresValidos.length} indicador
-                  {indicadoresValidos.length !== 1 ? 'es' : ''})
-                </span>
-              </h3>
-            </div>
-
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {indicadoresValidos.map(({ label, valor, anterior, icon, description, chave }) => {
-                  const numeric = parseFloat(valor)
-                  const prev = anterior ? parseFloat(anterior) : undefined
-
-                  // ✅ NOVO: Usar complementares específicos de Technology
-                  const { score, explicacaoCustom } = avaliarIndicadorComContexto(
-                    'Technology',
-                    label,
-                    numeric,
-                    {
-                      valorAnterior: prev,
-                      complementares, // ✅ Agora só contém indicadores de Tech
-                    },
-                  )
-
-                  const hasImprovement = prev !== undefined && numeric > prev
-                  const hasDeterioration = prev !== undefined && numeric < prev
-
-                  return (
-                    <div
-                      key={label}
-                      className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-200"
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          {icon && <span className="text-lg">{icon}</span>}
-                          <div>
-                            <h4 className="font-medium text-gray-800 text-sm">{label}</h4>
-                            {description && (
-                              <p className="text-xs text-gray-500 mt-1">{description}</p>
-                            )}
-                          </div>
-                        </div>
-                        <IndicatorValuePro
-                          score={score}
-                          tooltip={
-                            explicacaoCustom && explicacaoCustom.trim() !== ''
-                              ? explicacaoCustom
-                              : `Benchmark definido para o indicador "${label}".`
-                          }
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold text-gray-900">
-                          {formatValue(valor, chave)}
-                        </span>
-
-                        {anterior && (
-                          <div className="flex items-center gap-1 text-xs">
-                            <span className="text-gray-500">vs.</span>
-                            <span className="text-gray-600">{formatValue(anterior, chave)}</span>
-                            {hasImprovement && <span className="text-green-500">↗</span>}
-                            {hasDeterioration && <span className="text-red-500">↘</span>}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        )
-      })}
-    </div>
+    <CategoriasLayout
+      categorias={categorias}
+      setor="Technology"
+      formatValue={formatValue}
+      complementares={complementares}
+    />
   )
 }

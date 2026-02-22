@@ -12,6 +12,8 @@ export function mergeStockData(stockData: StockData, quickData: any): StockData 
     ...(quickData.image && { image: quickData.image }),
     ...(quickData.industry && { industry: quickData.industry }),
     ...(quickData.sector && { sector: quickData.sector }),
+    ...(quickData.sectorRaw && { sectorRaw: quickData.sectorRaw }),
+    ...(quickData.analysisSectorReason && { analysisSectorReason: quickData.analysisSectorReason }),
     ...(quickData.price && { price: quickData.price }),
     ...(quickData.marketCap && { marketCap: quickData.marketCap.toString() }),
     ...(quickData.enterpriseValue && { enterpriseValue: quickData.enterpriseValue.toString() }),
@@ -46,7 +48,9 @@ export function mergeStockData(stockData: StockData, quickData: any): StockData 
 
     // Dividendos
     ...(quickData.dividendYield && { dividendYield: quickData.dividendYield.toString() }),
-    ...(quickData.dividend_pershare && { dividend_pershare: quickData.dividend_pershare.toString() }),
+    ...(quickData.dividend_pershare && {
+      dividend_pershare: quickData.dividend_pershare.toString(),
+    }),
     ...(quickData.payoutRatio && { payoutRatio: quickData.payoutRatio.toString() }),
 
     // Saúde financeira
@@ -65,7 +69,9 @@ export function mergeStockData(stockData: StockData, quickData: any): StockData 
 
     // Riscos e custos
     ...(quickData.riskFreeRate && { riskFreeRate: quickData.riskFreeRate.toString() }),
-    ...(quickData.marketRiskPremium && { marketRiskPremium: quickData.marketRiskPremium.toString() }),
+    ...(quickData.marketRiskPremium && {
+      marketRiskPremium: quickData.marketRiskPremium.toString(),
+    }),
     ...(quickData.beta && { beta: quickData.beta.toString() }),
     ...(quickData.costOfEquity && { costOfEquity: quickData.costOfEquity.toString() }),
     ...(quickData.costOfDebt && { costOfDebt: quickData.costOfDebt.toString() }),
@@ -98,5 +104,23 @@ export function mergeStockData(stockData: StockData, quickData: any): StockData 
     ...(quickData.alerts && { alerts: quickData.alerts }),
     ...(quickData.peers && { peers: quickData.peers }),
     ...(quickData.peersQuotes && { peersQuotes: quickData.peersQuotes }),
+    ...(quickData.benchmarkComparisons && { benchmarkComparisons: quickData.benchmarkComparisons }),
+    ...(quickData.benchmarkMetadata && { benchmarkMetadata: quickData.benchmarkMetadata }),
+    ...(quickData.benchmarkContext && { benchmarkContext: quickData.benchmarkContext }),
+    ...(quickData.quickMetricContractVersion && {
+      quickMetricContractVersion: quickData.quickMetricContractVersion,
+    }),
+    ...(quickData.quickMetricCatalog && { quickMetricCatalog: quickData.quickMetricCatalog }),
+    ...(quickData.quickMetricStates && { quickMetricStates: quickData.quickMetricStates }),
+    ...(quickData.quickMetricIngestion && { quickMetricIngestion: quickData.quickMetricIngestion }),
+    ...(quickData.quickMetricSummary && { quickMetricSummary: quickData.quickMetricSummary }),
+    ...(quickData.sectorContextScore && { sectorContextScore: quickData.sectorContextScore }),
+    ...(quickData.dataQualityScore && { dataQualityScore: quickData.dataQualityScore }),
+
+    // Novos campos (B2 + A2)
+    ...(quickData.finHubScore != null && { finHubScore: quickData.finHubScore }),
+    ...(quickData.finHubLabel && { finHubLabel: quickData.finHubLabel }),
+    ...(quickData.finHubCoverage != null && { finHubCoverage: quickData.finHubCoverage }),
+    ...(quickData.dataPeriod && { dataPeriod: quickData.dataPeriod }),
   }
 }

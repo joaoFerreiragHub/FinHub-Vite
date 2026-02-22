@@ -6,9 +6,9 @@ interface ScoreBadgeProps {
 
 const getColor = (score: number, label?: string) => {
   if (label === 'Risco') {
-    // Score baixo = risco alto (vermelho), score alto = risco baixo (verde)
-    if (score >= 40) return 'bg-red-500'
-    if (score >= 70) return 'bg-yellow-400'
+    // Score inverted: 0 = sem risco (verde), 100 = risco máximo (vermelho)
+    if (score >= 60) return 'bg-red-500'
+    if (score >= 30) return 'bg-yellow-400'
     return 'bg-green-500'
   }
 

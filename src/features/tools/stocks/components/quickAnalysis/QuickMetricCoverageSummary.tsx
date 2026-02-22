@@ -39,8 +39,10 @@ const STATUS_META: Record<QuickMetricStatus, { label: string; className: string 
 export function QuickMetricCoverageSummary({ data }: QuickMetricCoverageSummaryProps) {
   const summary = data.quickMetricSummary
   const ingestion = data.quickMetricIngestion
+  const contextScore = data.sectorContextScore
+  const qualityScore = data.dataQualityScore
 
-  if (!summary && !ingestion) return null
+  if (!summary && !ingestion && !contextScore && !qualityScore) return null
 
   const resolvedSector = ingestion?.resolvedSector || data.sector || 'Setor nao identificado'
   const coreLabel =
@@ -85,6 +87,39 @@ export function QuickMetricCoverageSummary({ data }: QuickMetricCoverageSummaryP
               {STATUS_META[status].label}: {summary[status]}
             </span>
           ))}
+        </div>
+      )}
+
+      {(contextScore || qualityScore) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
+          {contextScore && (
+            <div className="rounded-md border border-border bg-muted/20 px-3 py-2">
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                Score Contextual Setorial
+              </p>
+              <p className="text-sm font-semibold text-foreground">
+                {contextScore.score}/100 · {contextScore.label}
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                Cobertura core {contextScore.coreCoverage}% · confianca {contextScore.confidence}% ·
+                comparaveis {contextScore.benchmarkComparableCore}
+              </p>
+            </div>
+          )}
+          {qualityScore && (
+            <div className="rounded-md border border-border bg-muted/20 px-3 py-2">
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                Qualidade de Dados
+              </p>
+              <p className="text-sm font-semibold text-foreground">
+                {qualityScore.score}/100 · {qualityScore.label}
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                Direto {qualityScore.directRate}% · Calculado {qualityScore.calculatedRate}% ·
+                Missing {qualityScore.missingRate}%
+              </p>
+            </div>
+          )}
         </div>
       )}
     </section>

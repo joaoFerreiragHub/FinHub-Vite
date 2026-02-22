@@ -1,9 +1,8 @@
+﻿import { CategoriasLayout } from './CategoriasLayout'
 import {
   buildBasicMaterialsComplementares,
   RatingsBasicMaterialsProps,
 } from '@/features/tools/stocks/utils/complementares/basicMaterialsComplementares'
-import { avaliarIndicadorComContexto } from '../hooks/avaliarIndicadorComContexto'
-import { IndicatorValuePro } from '../quickAnalysis/IndicatorValuePro'
 
 interface Categoria {
   label: string
@@ -15,12 +14,12 @@ interface Categoria {
 }
 
 export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
-  // ✅ NOVO: Constrói complementares específicos para Basic Materials
+  // âœ… NOVO: ConstrÃ³i complementares especÃ­ficos para Basic Materials
   const complementares = buildBasicMaterialsComplementares(props)
 
-  console.log('🔧 Basic Materials Complementares:', complementares)
+  console.log('ðŸ”§ Basic Materials Complementares:', complementares)
 
-  // Calcular métricas específicas de basic materials
+  // Calcular mÃ©tricas especÃ­ficas de basic materials
   const calculateBasicMaterialsMetrics = () => {
     const roicNum = parseFloat(props.roic) || 0
     const margemEbitdaNum = parseFloat(props.margemEbitda) || 0
@@ -29,7 +28,7 @@ export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
     const inventoryTurnoverNum = parseFloat(props.inventoryTurnover || '0') || 0
 
     return {
-      // Score de Eficiência Operacional
+      // Score de EficiÃªncia Operacional
       eficienciaOperacional:
         margemEbitdaNum > 25 && roicNum > 12
           ? '90'
@@ -37,7 +36,7 @@ export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
             ? '75'
             : '50',
 
-      // Score de Gestão de Capital
+      // Score de GestÃ£o de Capital
       gestaoCapital:
         inventoryTurnoverNum > 6 && dividaEbitdaNum < 2.5
           ? '95'
@@ -45,7 +44,7 @@ export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
             ? '80'
             : '60',
 
-      // Score de Geração de Valor
+      // Score de GeraÃ§Ã£o de Valor
       geracaoValor: freeCashFlowNum > 0 && roicNum > 10 ? '85' : freeCashFlowNum > 0 ? '70' : '45',
     }
   }
@@ -59,42 +58,42 @@ export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
         chave: 'pe',
         valor: props.pe,
         anterior: props.peAnoAnterior,
-        icon: '💲',
-        description: 'Preço sobre Lucro',
+        icon: 'ðŸ’²',
+        description: 'PreÃ§o sobre Lucro',
       },
       {
         label: 'P/B',
         chave: 'pb',
         valor: props.pb,
         anterior: props.pbAnoAnterior,
-        icon: '📚',
-        description: 'Preço sobre Valor Contábil',
+        icon: 'ðŸ“š',
+        description: 'PreÃ§o sobre Valor ContÃ¡bil',
       },
       {
         label: 'ROE',
         chave: 'roe',
         valor: props.roe,
         anterior: props.roeAnoAnterior,
-        icon: '📈',
-        description: 'Retorno sobre Patrimônio Líquido',
+        icon: 'ðŸ“ˆ',
+        description: 'Retorno sobre PatrimÃ´nio LÃ­quido',
       },
       {
         label: 'ROIC',
         chave: 'roic',
         valor: props.roic,
         anterior: props.roicAnoAnterior,
-        icon: '🎯',
+        icon: 'ðŸŽ¯',
         description: 'Retorno sobre Capital Investido',
       },
     ],
 
-    'Margens e Eficiência': [
+    'Margens e EficiÃªncia': [
       {
         label: 'Margem EBITDA',
         chave: 'margemEbitda',
         valor: props.margemEbitda,
         anterior: props.margemEbitdaAnoAnterior,
-        icon: '📊',
+        icon: 'ðŸ“Š',
         description: 'Margem EBITDA',
       },
       {
@@ -102,42 +101,42 @@ export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
         chave: 'margemBruta',
         valor: props.margemBruta,
         anterior: props.margemBrutaAnoAnterior,
-        icon: '💰',
+        icon: 'ðŸ’°',
         description: 'Margem Bruta',
       },
       {
-        label: 'Margem Líquida',
+        label: 'Margem LÃ­quida',
         chave: 'margemLiquida',
         valor: props.margemLiquida,
         anterior: props.margemLiquidaAnoAnterior,
-        icon: '🎯',
-        description: 'Margem Líquida',
+        icon: 'ðŸŽ¯',
+        description: 'Margem LÃ­quida',
       },
       {
         label: 'Margem Operacional',
         chave: 'margemOperacional',
         valor: props.margemOperacional,
         anterior: props.margemOperacionalAnoAnterior,
-        icon: '⚙️',
+        icon: 'âš™ï¸',
         description: 'Margem Operacional',
       },
     ],
 
-    'Estrutura de Capital e Solvência': [
+    'Estrutura de Capital e SolvÃªncia': [
       {
-        label: 'Dívida/EBITDA',
+        label: 'DÃ­vida/EBITDA',
         chave: 'dividaEbitda',
         valor: props.dividaEbitda,
         anterior: props.dividaEbitdaAnoAnterior,
-        icon: '⚖️',
-        description: 'Endividamento vs. Geração de Caixa',
+        icon: 'âš–ï¸',
+        description: 'Endividamento vs. GeraÃ§Ã£o de Caixa',
       },
       {
         label: 'Cobertura de Juros',
         chave: 'coberturaJuros',
         valor: props.coberturaJuros,
         anterior: props.coberturaJurosAnoAnterior,
-        icon: '🛡️',
+        icon: 'ðŸ›¡ï¸',
         description: 'Capacidade de Pagamento de Juros',
       },
       {
@@ -145,26 +144,26 @@ export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
         chave: 'liquidezCorrente',
         valor: props.liquidezCorrente,
         anterior: props.liquidezCorrenteAnoAnterior,
-        icon: '💧',
+        icon: 'ðŸ’§',
         description: 'Liquidez de Curto Prazo',
       },
       {
-        label: 'Dívida/Patrimônio',
+        label: 'DÃ­vida/PatrimÃ´nio',
         chave: 'debtEquity',
         valor: props.debtEquity,
         anterior: props.debtEquityAnoAnterior,
-        icon: '📊',
+        icon: 'ðŸ“Š',
         description: 'Alavancagem Financeira',
       },
     ],
 
-    'Fluxo de Caixa e Eficiência de Capital': [
+    'Fluxo de Caixa e EficiÃªncia de Capital': [
       {
         label: 'Free Cash Flow',
         chave: 'freeCashFlow',
         valor: props.freeCashFlow,
         anterior: props.freeCashFlowAnoAnterior,
-        icon: '💸',
+        icon: 'ðŸ’¸',
         description: 'Fluxo de Caixa Livre',
       },
       {
@@ -172,7 +171,7 @@ export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
         chave: 'capexRevenue',
         valor: props.capexRevenue,
         anterior: props.capexRevenueAnoAnterior,
-        icon: '🏗️',
+        icon: 'ðŸ—ï¸',
         description: 'Intensidade de Investimentos',
       },
       {
@@ -180,7 +179,7 @@ export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
         chave: 'fcfYield',
         valor: props.fcfYield,
         anterior: props.fcfYieldAnoAnterior,
-        icon: '💰',
+        icon: 'ðŸ’°',
         description: 'Rendimento do Fluxo de Caixa',
       },
       {
@@ -188,8 +187,8 @@ export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
         chave: 'workingCapitalTurnover',
         valor: props.workingCapitalTurnover,
         anterior: props.workingCapitalTurnoverAnoAnterior,
-        icon: '🔄',
-        description: 'Eficiência do Capital de Giro',
+        icon: 'ðŸ”„',
+        description: 'EficiÃªncia do Capital de Giro',
       },
     ],
 
@@ -199,7 +198,7 @@ export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
         chave: 'crescimentoReceita',
         valor: props.crescimentoReceita,
         anterior: props.crescimentoReceitaAnoAnterior,
-        icon: '📈',
+        icon: 'ðŸ“ˆ',
         description: 'Crescimento da Receita',
       },
       {
@@ -207,7 +206,7 @@ export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
         chave: 'crescimentoEbitda',
         valor: props.crescimentoEbitda,
         anterior: props.crescimentoEbitdaAnoAnterior,
-        icon: '📊',
+        icon: 'ðŸ“Š',
         description: 'Crescimento do EBITDA',
       },
     ],
@@ -218,7 +217,7 @@ export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
         chave: 'dividendYield',
         valor: props.dividendYield,
         anterior: props.dividendYieldAnoAnterior,
-        icon: '💎',
+        icon: 'ðŸ’Ž',
         description: 'Rendimento de Dividendos',
       },
       {
@@ -226,18 +225,18 @@ export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
         chave: 'payoutRatio',
         valor: props.payoutRatio,
         anterior: props.payoutRatioAnoAnterior,
-        icon: '📤',
-        description: '% dos lucros distribuídos',
+        icon: 'ðŸ“¤',
+        description: '% dos lucros distribuÃ­dos',
       },
     ],
 
-    'Volatilidade e Avaliação': [
+    'Volatilidade e AvaliaÃ§Ã£o': [
       {
         label: 'Beta',
         chave: 'beta',
         valor: props.beta,
         anterior: props.betaAnoAnterior,
-        icon: '📉',
+        icon: 'ðŸ“‰',
         description: 'Volatilidade vs. mercado',
       },
       {
@@ -245,12 +244,12 @@ export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
         chave: 'leveredDcf',
         valor: props.leveredDcf,
         anterior: props.leveredDcfAnoAnterior,
-        icon: '📊',
+        icon: 'ðŸ“Š',
         description: 'Fluxo de Caixa Descontado',
       },
     ],
 
-    'Métricas Específicas de Basic Materials': [
+    'MÃ©tricas EspecÃ­ficas de Basic Materials': [
       ...(props.inventoryTurnover
         ? [
             {
@@ -258,8 +257,8 @@ export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
               chave: 'inventoryTurnover',
               valor: props.inventoryTurnover,
               anterior: props.inventoryTurnoverAnoAnterior,
-              icon: '📦',
-              description: 'Giro de Inventário',
+              icon: 'ðŸ“¦',
+              description: 'Giro de InventÃ¡rio',
             },
           ]
         : []),
@@ -270,7 +269,7 @@ export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
               chave: 'assetTurnover',
               valor: props.assetTurnover,
               anterior: props.assetTurnoverAnoAnterior,
-              icon: '🏭',
+              icon: 'ðŸ­',
               description: 'Giro de Ativos',
             },
           ]
@@ -282,36 +281,36 @@ export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
               chave: 'capacityUtilization',
               valor: props.capacityUtilization,
               anterior: props.capacityUtilizationAnoAnterior,
-              icon: '⚡',
-              description: 'Utilização da Capacidade',
+              icon: 'âš¡',
+              description: 'UtilizaÃ§Ã£o da Capacidade',
             },
           ]
         : []),
       {
-        label: 'Eficiência Operacional',
+        label: 'EficiÃªncia Operacional',
         chave: 'eficienciaOperacional',
         valor: calculatedMetrics.eficienciaOperacional,
-        icon: '⚙️',
-        description: 'Score de eficiência operacional',
+        icon: 'âš™ï¸',
+        description: 'Score de eficiÃªncia operacional',
       },
       {
-        label: 'Gestão de Capital',
+        label: 'GestÃ£o de Capital',
         chave: 'gestaoCapital',
         valor: calculatedMetrics.gestaoCapital,
-        icon: '💼',
-        description: 'Score de gestão de capital',
+        icon: 'ðŸ’¼',
+        description: 'Score de gestÃ£o de capital',
       },
       {
-        label: 'Geração de Valor',
+        label: 'GeraÃ§Ã£o de Valor',
         chave: 'geracaoValor',
         valor: calculatedMetrics.geracaoValor,
-        icon: '💎',
-        description: 'Score de geração de valor',
+        icon: 'ðŸ’Ž',
+        description: 'Score de geraÃ§Ã£o de valor',
       },
     ],
   }
 
-  // Formatação adequada para basic materials
+  // FormataÃ§Ã£o adequada para basic materials
   const formatValue = (valor: string, chave: string) => {
     const num = parseFloat(valor)
     if (isNaN(num)) return valor
@@ -340,7 +339,7 @@ export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
       return `${num.toFixed(2)}%`
     }
 
-    // Valores monetários (DCF, FCF)
+    // Valores monetÃ¡rios (DCF, FCF)
     if (['leveredDcf', 'precoAtual', 'freeCashFlow'].includes(chave)) {
       if (Math.abs(num) > 1000000) {
         return `${(num / 1000000).toFixed(1)}M`
@@ -358,111 +357,11 @@ export function RatingsBasicMaterials(props: RatingsBasicMaterialsProps) {
   }
 
   return (
-    <div className="mt-6 space-y-8">
-      {Object.entries(categorias).map(([categoria, indicadores]) => {
-        // Filtrar indicadores válidos antes de renderizar a categoria
-        const indicadoresValidos = indicadores.filter(({ label, valor }) => {
-          const numeric = parseFloat(valor)
-
-          // ✅ NOVO: Usar complementares específicos de Basic Materials
-          const { apenasInformativo } = avaliarIndicadorComContexto(
-            'Basic Materials',
-            label,
-            numeric,
-            {
-              valorAnterior: undefined,
-              complementares, // ✅ Agora só contém indicadores de Basic Materials
-            },
-          )
-          return !apenasInformativo
-        })
-
-        // Se não há indicadores válidos, não renderizar a categoria
-        if (indicadoresValidos.length === 0) return null
-
-        return (
-          <div
-            key={categoria}
-            className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden"
-          >
-            <div className="bg-gradient-to-r from-amber-50 to-yellow-50 px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                <span className="w-2 h-2 bg-amber-600 rounded-full"></span>
-                {categoria}
-                <span className="text-sm font-normal text-gray-500 ml-2">
-                  ({indicadoresValidos.length} indicador
-                  {indicadoresValidos.length !== 1 ? 'es' : ''})
-                </span>
-              </h3>
-            </div>
-
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {indicadoresValidos.map(({ label, valor, anterior, icon, description, chave }) => {
-                  const numeric = parseFloat(valor)
-                  const prev = anterior ? parseFloat(anterior) : undefined
-
-                  // ✅ NOVO: Usar complementares específicos de Basic Materials
-                  const { score, explicacaoCustom } = avaliarIndicadorComContexto(
-                    'Basic Materials',
-                    label,
-                    numeric,
-                    {
-                      valorAnterior: prev,
-                      complementares, // ✅ Agora só contém indicadores de Basic Materials
-                    },
-                  )
-
-                  const hasImprovement = prev !== undefined && numeric > prev
-                  const hasDeterioration = prev !== undefined && numeric < prev
-
-                  return (
-                    <div
-                      key={label}
-                      className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-200"
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          {icon && <span className="text-lg">{icon}</span>}
-                          <div>
-                            <h4 className="font-medium text-gray-800 text-sm">{label}</h4>
-                            {description && (
-                              <p className="text-xs text-gray-500 mt-1">{description}</p>
-                            )}
-                          </div>
-                        </div>
-                        <IndicatorValuePro
-                          score={score}
-                          tooltip={
-                            explicacaoCustom && explicacaoCustom.trim() !== ''
-                              ? explicacaoCustom
-                              : `Benchmark definido para o indicador "${label}".`
-                          }
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold text-gray-900">
-                          {formatValue(valor, chave)}
-                        </span>
-
-                        {anterior && (
-                          <div className="flex items-center gap-1 text-xs">
-                            <span className="text-gray-500">vs.</span>
-                            <span className="text-gray-600">{formatValue(anterior, chave)}</span>
-                            {hasImprovement && <span className="text-green-500">↗</span>}
-                            {hasDeterioration && <span className="text-red-500">↘</span>}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        )
-      })}
-    </div>
+    <CategoriasLayout
+      categorias={categorias}
+      setor="Basic Materials"
+      formatValue={formatValue}
+      complementares={complementares}
+    />
   )
 }

@@ -1,9 +1,8 @@
+import { CategoriasLayout } from './CategoriasLayout'
 import {
   buildUtilitiesComplementares,
   RatingsUtilitiesProps,
 } from '@/features/tools/stocks/utils/complementares/utilitiesComplementares'
-import { avaliarIndicadorComContexto } from '../hooks/avaliarIndicadorComContexto'
-import { IndicatorValuePro } from '../quickAnalysis/IndicatorValuePro'
 
 interface Categoria {
   label: string
@@ -19,6 +18,13 @@ interface ValidationResult {
   isValid: boolean
   warning?: string
   severity?: 'low' | 'medium' | 'high' | 'critical'
+}
+
+function calculateDCFUpside(dcf: string, precoAtual: string): string {
+  const dcfNum = parseFloat(dcf)
+  const precoNum = parseFloat(precoAtual)
+  if (isNaN(dcfNum) || isNaN(precoNum) || precoNum === 0) return 'N/A'
+  return ((dcfNum / precoNum - 1) * 100).toFixed(2)
 }
 
 function validateUtilitiesIndicator(chave: string, valor: number): ValidationResult {
@@ -471,232 +477,12 @@ export function RatingsUtilities(props: RatingsUtilitiesProps) {
     return num.toFixed(2)
   }
 
-  // ✅ NOVO: Filtro inteligente de relevância
-  const isIndicadorRelevante = (label: string, valor: string): boolean => {
-    // Sempre mostrar indicadores core de Utilities
-    const coreIndicators = [
-      'Dividend Yield',
-      'Payout Ratio',
-      'ROE',
-      'ROIC',
-      'Cobertura de Juros',
-      'Dívida/EBITDA',
-      'Margem EBITDA',
-      'CapEx/Receita',
-    ]
-
-    if (coreIndicators.includes(label)) return true
-
-    // Para outros, verificar se tem valor válido
-    if (!valor || valor === 'N/A' || valor.trim() === '') return false
-
-    const numeric = parseFloat(valor.replace('%', ''))
-    if (isNaN(numeric)) return false
-
-    // Aplicar filtro normal de relevância
-    const { apenasInformativo } = avaliarIndicadorComContexto('utilities', label, numeric, {
-      complementares,
-    })
-
-    return !apenasInformativo
-  }
-
   return (
-    <div className="mt-6 space-y-8">
-      {/* ✅ NOVO: Avisos críticos no topo */}
-      {globalValidationIssues.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <h4 className="text-red-800 font-medium mb-2 flex items-center gap-2">
-            🚨 Problemas Críticos Detectados
-          </h4>
-          <ul className="text-red-700 text-sm space-y-1">
-            {globalValidationIssues.map((issue, index) => (
-              <li key={index}>• {issue.warning}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {Object.entries(categorias).map(([categoria, indicadores]) => {
-        // ✅ MELHORADO: Filtro de relevância inteligente
-        const indicadoresValidos = indicadores.filter(({ label, valor }) =>
-          isIndicadorRelevante(label, valor),
-        )
-
-        // Se não há indicadores válidos, não renderizar a categoria
-        if (indicadoresValidos.length === 0) return null
-
-        return (
-          <div
-            key={categoria}
-            className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden"
-          >
-            <div className="bg-gradient-to-r from-blue-50 to-cyan-50 px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                {categoria}
-                <span className="text-sm font-normal text-gray-500 ml-2">
-                  ({indicadoresValidos.length} indicador
-                  {indicadoresValidos.length !== 1 ? 'es' : ''})
-                </span>
-              </h3>
-            </div>
-
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {indicadoresValidos.map(({ label, valor, anterior, icon, description, chave }) => {
-                  const valorFormatado = formatValue(valor, chave)
-                  const anteriorFormatado = anterior ? formatValue(anterior, chave) : undefined
-
-                  // ✅ ADICIONADO: Validação individual do indicador
-                  let validationWarning = ''
-                  let validationSeverity: 'low' | 'medium' | 'high' | 'critical' = 'low'
-
-                  if (valorFormatado !== 'N/A') {
-                    const numeric = parseFloat(valor.replace('%', ''))
-                    if (!isNaN(numeric)) {
-                      const validation = validateUtilitiesIndicator(chave, numeric)
-                      if (validation.warning) {
-                        validationWarning = validation.warning
-                        validationSeverity = validation.severity || 'low'
-                      }
-                    }
-                  }
-
-                  // Só avaliar se temos valor numérico válido
-                  let score: 'good' | 'medium' | 'bad' = 'medium'
-                  let explicacaoCustom = ''
-
-                  if (valorFormatado !== 'N/A') {
-                    const numeric = parseFloat(valor.replace('%', ''))
-                    const prev = anterior ? parseFloat(anterior.replace('%', '')) : undefined
-
-                    const avaliacao = avaliarIndicadorComContexto('utilities', label, numeric, {
-                      valorAnterior: prev,
-                      complementares,
-                    })
-
-                    score = avaliacao.score
-                    explicacaoCustom = avaliacao.explicacaoCustom || ''
-                  }
-
-                  const numericAtual =
-                    valorFormatado !== 'N/A' ? parseFloat(valor.replace('%', '')) : null
-                  const numericAnterior =
-                    anteriorFormatado && anteriorFormatado !== 'N/A'
-                      ? parseFloat(anterior!.replace('%', ''))
-                      : null
-
-                  const hasImprovement =
-                    numericAtual !== null &&
-                    numericAnterior !== null &&
-                    numericAtual > numericAnterior
-                  const hasDeterioration =
-                    numericAtual !== null &&
-                    numericAnterior !== null &&
-                    numericAtual < numericAnterior
-
-                  // ✅ NOVO: Classes CSS baseadas na severidade
-                  const getSeverityClasses = () => {
-                    if (!validationWarning) return ''
-                    switch (validationSeverity) {
-                      case 'critical':
-                        return 'border-l-4 border-red-500 bg-red-50'
-                      case 'high':
-                        return 'border-l-4 border-orange-400 bg-orange-50'
-                      case 'medium':
-                        return 'border-l-4 border-yellow-400 bg-yellow-50'
-                      default:
-                        return 'border-l-4 border-blue-400 bg-blue-50'
-                    }
-                  }
-
-                  return (
-                    <div
-                      key={label}
-                      className={`bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-200 ${getSeverityClasses()}`}
-                    >
-                      {/* ✅ NOVO: Mostrar aviso de validação */}
-                      {validationWarning && (
-                        <div
-                          className={`mb-2 text-xs rounded p-2 ${
-                            validationSeverity === 'critical'
-                              ? 'text-red-700 bg-red-100'
-                              : validationSeverity === 'high'
-                                ? 'text-orange-700 bg-orange-100'
-                                : validationSeverity === 'medium'
-                                  ? 'text-yellow-700 bg-yellow-100'
-                                  : 'text-blue-700 bg-blue-100'
-                          }`}
-                        >
-                          {validationSeverity === 'critical'
-                            ? '🚨'
-                            : validationSeverity === 'high'
-                              ? '⚠️'
-                              : validationSeverity === 'medium'
-                                ? '⚠️'
-                                : 'ℹ️'}{' '}
-                          {validationWarning}
-                        </div>
-                      )}
-
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          {icon && <span className="text-lg">{icon}</span>}
-                          <div>
-                            <h4 className="font-medium text-gray-800 text-sm">{label}</h4>
-                            {description && (
-                              <p className="text-xs text-gray-500 mt-1">{description}</p>
-                            )}
-                          </div>
-                        </div>
-                        {valorFormatado !== 'N/A' && (
-                          <IndicatorValuePro
-                            score={score}
-                            tooltip={
-                              explicacaoCustom && explicacaoCustom.trim() !== ''
-                                ? explicacaoCustom
-                                : `Benchmark específico para ${label} no setor Utilities.`
-                            }
-                          />
-                        )}
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <span
-                          className={`text-lg font-bold ${valorFormatado === 'N/A' ? 'text-gray-400' : 'text-gray-900'}`}
-                        >
-                          {valorFormatado}
-                        </span>
-
-                        {anteriorFormatado && anteriorFormatado !== 'N/A' && (
-                          <div className="flex items-center gap-1 text-xs">
-                            <span className="text-gray-500">vs.</span>
-                            <span className="text-gray-600">{anteriorFormatado}</span>
-                            {hasImprovement && <span className="text-green-500">↗</span>}
-                            {hasDeterioration && <span className="text-red-500">↘</span>}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        )
-      })}
-    </div>
+    <CategoriasLayout
+      categorias={categorias}
+      setor="utilities"
+      formatValue={formatValue}
+      complementares={complementares}
+    />
   )
-}
-
-// ✅ HELPER: Cálculo DCF vs Preço
-function calculateDCFUpside(leveredDcf: string, precoAtual: string): string {
-  const dcf = parseFloat(leveredDcf)
-  const preco = parseFloat(precoAtual)
-
-  if (isNaN(dcf) || isNaN(preco) || preco === 0) return 'N/A'
-
-  const upside = ((dcf - preco) / preco) * 100
-  return upside.toFixed(1)
 }

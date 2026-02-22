@@ -779,3 +779,15 @@ Data de referencia: 2026-02-21 (atualizado apos fecho oficial de P2 e replaneame
 - Validacao tecnica deste ciclo:
   - backend: `npm run typecheck` -> PASS.
   - frontend: `npm run typecheck:p1` -> PASS.
+
+## 39) Planeamento formal do P4 Admin CMS (2026-02-22)
+- Escopo editorial admin formalizado para o ciclo pos-P3:
+  - seed de conteudo por admin (multi-tipo)
+  - curadoria de homepage por secoes
+  - diretorios verticais (corretoras/exchanges/apps/sites)
+  - workflow de claim e migracao de ownership para creators
+- Documento tecnico dedicado criado:
+  - `dcos/P4_ADMIN_EDITORIAL_CMS.md`
+- Alinhamento de roadmap/documentacao efetuado:
+  - `dcos/PENDENCIAS_PRIORIZADAS.md` atualizado com o bloco "Admin Editorial CMS" em Prioridade 4.
+  - `dcos/RESUMO_EXECUTIVO.md` atualizado com referencia explicita ao novo plano.

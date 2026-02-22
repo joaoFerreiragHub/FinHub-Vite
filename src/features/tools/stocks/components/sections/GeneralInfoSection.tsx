@@ -1,61 +1,56 @@
 import { StockData } from '@/features/tools/stocks/types/stocks'
 import { CardBlock } from '../StockCard'
 
-// Função helper para formatar valores monetários
-// function formatCurrency(value: string | number | undefined): string {
-//   if (!value) return 'N/A'
+const DASH = '\u2014'
 
-//   // Se for string, tenta converter para número
-//   if (typeof value === 'string') {
-//     // Remove caracteres não numéricos exceto pontos e vírgulas
-//     const cleanValue = value.replace(/[^0-9.-]/g, '')
-//     const numValue = parseFloat(cleanValue)
+function fmtMktCap(val: string | number | undefined): string {
+  if (val == null || val === '') return DASH
+  const n = typeof val === 'string' ? parseFloat(val.replace(/[^0-9.-]/g, '')) : val
+  if (isNaN(n) || n === 0) return DASH
+  if (n >= 1e12) return `$${(n / 1e12).toFixed(2)}T`
+  if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`
+  if (n >= 1e6) return `$${(n / 1e6).toFixed(2)}M`
+  return `$${n.toLocaleString('en-US')}`
+}
 
-//     if (isNaN(numValue)) return value // Retorna a string original se não conseguir converter
-
-//     return numValue.toLocaleString('pt-PT', {
-//       style: 'currency',
-//       currency: 'USD',
-//       minimumFractionDigits: 0,
-//       maximumFractionDigits: 0
-//     })
-//   }
-
-//   // Se for número
-//   return value.toLocaleString('pt-PT', {
-//     style: 'currency',
-//     currency: 'USD',
-//     minimumFractionDigits: 0,
-//     maximumFractionDigits: 0
-//   })
-// }
+function fmtEmployees(val: string | number | undefined): string {
+  if (val == null || val === '' || val === 0) return DASH
+  const n = typeof val === 'string' ? parseInt(val.replace(/\D/g, ''), 10) : val
+  if (isNaN(n) || n === 0) return DASH
+  return n.toLocaleString('pt-PT')
+}
 
 export function GeneralInfoSection({ data }: { data: StockData }) {
+  const dataLegacy = data as StockData & {
+    mktCap?: string | number
+    fullTimeEmployees?: string | number
+  }
+
   return (
     <CardBlock title="Informação Geral">
       <div className="grid grid-cols-[200px_1fr_auto] gap-y-2 items-center text-sm">
         <div className="font-semibold">Capitalização:</div>
-        <div>{data.marketCap}</div>
+        <div>{fmtMktCap(dataLegacy.mktCap ?? data.marketCap)}</div>
         <div />
 
         <div className="font-semibold">Sector:</div>
-        <div>{data.sector || 'N/A'}</div>
+        <div>{data.sector || DASH}</div>
         <div />
 
         <div className="font-semibold">Funcionários:</div>
-        <div>{data.employees || 'N/A'}</div>
+        <div>{fmtEmployees(dataLegacy.fullTimeEmployees ?? data.employees)}</div>
         <div />
 
         <div className="font-semibold">Fundada em:</div>
-        <div>{data.ipoDate || data.fundacao || 'N/A'}</div>
+        <div>{data.ipoDate || data.fundacao || DASH}</div>
         <div />
 
         <div className="font-semibold">Beta:</div>
-        <div>{data.beta || 'N/A'}</div>
+        <div>{data.beta || DASH}</div>
         <div />
 
         <div className="font-semibold">CEO:</div>
-        <div>{data.ceo || 'N/A'}</div>
+        <div>{data.ceo || DASH}</div>
         <div />
       </div>
     </CardBlock>

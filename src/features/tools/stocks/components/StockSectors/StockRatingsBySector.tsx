@@ -15,127 +15,148 @@ interface StockRatingsBySectorProps {
   indicadores: Record<string, string>
 }
 
+function resolveSetorAlias(setor: string): string {
+  const normalized = String(setor || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+
+  if (!normalized) return setor
+
+  if (normalized.includes('health care')) return 'Healthcare'
+  if (normalized.includes('consumer staples')) return 'Consumer Defensive'
+  if (normalized.includes('consumer discretionary')) return 'Consumer Cyclical'
+  if (normalized.includes('materials') && !normalized.includes('basic')) return 'Basic Materials'
+  if (normalized.includes('telecom') || normalized.includes('communication services')) {
+    return 'Communication Services'
+  }
+
+  return setor
+}
+
 export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySectorProps) {
+  const setorResolvido = resolveSetorAlias(setor)
   console.log('StockRatingsBySector', { setor, indicadores })
   return (
     <>
-      {setor === 'Healthcare' && (
+      {setorResolvido === 'Healthcare' && (
         <RatingsHealthcare
           // Crescimento e Performance
-          crescimentoReceita={indicadores['Crescimento Receita'] ?? '0'}
+          crescimentoReceita={indicadores['Crescimento Receita'] ?? '—'}
           crescimentoReceitaAnoAnterior={indicadores['Crescimento Receita (Y-1)'] ?? undefined}
-          cagrEps={indicadores['CAGR EPS'] ?? '0'}
+          cagrEps={indicadores['CAGR EPS'] ?? '—'}
           cagrEpsAnoAnterior={indicadores['CAGR EPS (Y-1)'] ?? undefined}
-          eps={indicadores['EPS'] ?? '0'}
+          eps={indicadores['EPS'] ?? '—'}
           epsAnoAnterior={indicadores['EPS (Y-1)'] ?? undefined}
           // Margens e Rentabilidade
-          margemBruta={indicadores['Margem Bruta'] ?? '0'}
+          margemBruta={indicadores['Margem Bruta'] ?? '—'}
           margemBrutaAnoAnterior={indicadores['Margem Bruta (Y-1)'] ?? undefined}
-          margemEbitda={indicadores['Margem EBITDA'] ?? '0'}
+          margemEbitda={indicadores['Margem EBITDA'] ?? '—'}
           margemEbitdaAnoAnterior={indicadores['Margem EBITDA (Y-1)'] ?? undefined}
-          margemLiquida={indicadores['Margem Líquida'] ?? '0'}
+          margemLiquida={indicadores['Margem Líquida'] ?? '—'}
           margemLiquidaAnoAnterior={indicadores['Margem Líquida (Y-1)'] ?? undefined}
-          margemOperacional={indicadores['Margem Operacional'] ?? '0'}
+          margemOperacional={indicadores['Margem Operacional'] ?? '—'}
           margemOperacionalAnoAnterior={indicadores['Margem Operacional (Y-1)'] ?? undefined}
           // Retorno sobre Capital
-          roic={indicadores['ROIC'] ?? '0'}
+          roic={indicadores['ROIC'] ?? '—'}
           roicAnoAnterior={indicadores['ROIC (Y-1)'] ?? undefined}
-          roe={indicadores['ROE'] ?? '0'}
+          roe={indicadores['ROE'] ?? '—'}
           roeAnoAnterior={indicadores['ROE (Y-1)'] ?? undefined}
           // Múltiplos de Avaliação
-          pl={indicadores['P/L'] ?? '0'}
+          pl={indicadores['P/L'] ?? '—'}
           plAnoAnterior={indicadores['P/L (Y-1)'] ?? undefined}
-          ps={indicadores['P/S'] ?? '0'}
+          ps={indicadores['P/S'] ?? '—'}
           psAnoAnterior={indicadores['P/S (Y-1)'] ?? undefined}
-          peg={indicadores['PEG'] ?? '0'}
+          peg={indicadores['PEG'] ?? '—'}
           pegAnoAnterior={indicadores['PEG (Y-1)'] ?? undefined}
           // Estrutura de Capital e Liquidez
-          debtToEbitda={indicadores['Dívida/EBITDA'] ?? '0'}
+          debtToEbitda={indicadores['Dívida/EBITDA'] ?? '—'}
           debtToEbitdaAnoAnterior={indicadores['Dívida/EBITDA (Y-1)'] ?? undefined}
-          liquidezCorrente={indicadores['Liquidez Corrente'] ?? '0'}
+          liquidezCorrente={indicadores['Liquidez Corrente'] ?? '—'}
           liquidezCorrenteAnoAnterior={indicadores['Liquidez Corrente (Y-1)'] ?? undefined}
-          debtEquity={indicadores['Dívida / Capitais Próprios'] ?? '0'}
+          debtEquity={indicadores['Dívida / Capitais Próprios'] ?? '—'}
           debtEquityAnoAnterior={indicadores['Dívida / Capitais Próprios (Y-1)'] ?? undefined}
           // Risco e Volatilidade
-          beta={indicadores['Beta'] ?? '0'}
+          beta={indicadores['Beta'] ?? '—'}
           betaAnoAnterior={indicadores['Beta (Y-1)'] ?? undefined}
           // Métricas Específicas de Healthcare
-          investimentoPD={indicadores['Investimento em P&D'] ?? '0'}
+          investimentoPD={indicadores['Investimento em P&D'] ?? '—'}
           investimentoPDAnoAnterior={indicadores['Investimento em P&D (Y-1)'] ?? undefined}
-          rAnddEfficiency={indicadores['Eficiência de P&D'] ?? '0'}
+          rAnddEfficiency={indicadores['Eficiência de P&D'] ?? '—'}
           rAnddEfficiencyAnoAnterior={indicadores['Eficiência de P&D (Y-1)'] ?? undefined}
-          cashFlowOverCapex={indicadores['Cash Flow / CapEx'] ?? '0'}
+          cashFlowOverCapex={indicadores['Cash Flow / CapEx'] ?? '—'}
           cashFlowOverCapexAnoAnterior={indicadores['Cash Flow / CapEx (Y-1)'] ?? undefined}
-          fcf={indicadores['Free Cash Flow'] ?? '0'}
+          fcf={indicadores['Free Cash Flow'] ?? '—'}
           fcfAnoAnterior={indicadores['Free Cash Flow (Y-1)'] ?? undefined}
-          sgaOverRevenue={indicadores['SG&A / Receita'] ?? '0'}
+          sgaOverRevenue={indicadores['SG&A / Receita'] ?? '—'}
           sgaOverRevenueAnoAnterior={indicadores['SG&A / Receita (Y-1)'] ?? undefined}
-          payoutRatio={indicadores['Payout Ratio'] ?? '0'}
+          payoutRatio={indicadores['Payout Ratio'] ?? '—'}
           payoutRatioAnoAnterior={indicadores['Payout Ratio (Y-1)'] ?? undefined}
         />
       )}
-      {setor === 'Technology' && (
+      {setorResolvido === 'Technology' && (
         <RatingsTech
           // Crescimento e Performance
-          crescimentoReceita={indicadores['Crescimento Receita'] ?? '0'} // ✅ "15.67%"
+          crescimentoReceita={indicadores['Crescimento Receita'] ?? '—'} // ✅ "15.67%"
           crescimentoReceitaAnoAnterior={indicadores['Crescimento Receita (Y-1)'] ?? undefined} // ✅ "15.67%" - DISPONÍVEL!
-          cagrEps={indicadores['CAGR EPS'] ?? '0'} // ✅ "17.29%"
+          cagrEps={indicadores['CAGR EPS'] ?? '—'} // ✅ "17.29%"
           cagrEpsAnoAnterior={indicadores['CAGR EPS (Y-1)'] ?? undefined} // ✅ "9.67%"
-          eps={indicadores['EPS'] ?? '0'} // ✅ "3.46"
+          eps={indicadores['EPS'] ?? '—'} // ✅ "3.46"
           epsAnoAnterior={indicadores['EPS (Y-1)'] ?? undefined} // ✅ "9.72" - DISPONÍVEL!
           // Margens e Rentabilidade
-          margemBruta={indicadores['Margem Bruta'] ?? '0'} // ✅ "69.07%"
+          margemBruta={indicadores['Margem Bruta'] ?? '—'} // ✅ "69.07%"
           margemBrutaAnoAnterior={indicadores['Margem Bruta (Y-1)'] ?? undefined} // ✅ "68.92%" - DISPONÍVEL!
-          margemEbitda={indicadores['Margem EBITDA'] ?? '0'} // ✅ "54.26%"
+          margemEbitda={indicadores['Margem EBITDA'] ?? '—'} // ✅ "54.26%"
           margemEbitdaAnoAnterior={indicadores['Margem EBITDA (Y-1)'] ?? undefined} // ✅ "49.61%" - DISPONÍVEL!
-          margemLiquida={indicadores['Margem Líquida'] ?? '0'} // ✅ "35.79%"
+          margemLiquida={indicadores['Margem Líquida'] ?? '—'} // ✅ "35.79%"
           margemLiquidaAnoAnterior={indicadores['Margem Líquida (Y-1)'] ?? undefined} // ✅ "34.15%"
-          margemOperacional={indicadores['Margem Operacional'] ?? '0'} // ✅ "45.23%"
+          margemOperacional={indicadores['Margem Operacional'] ?? '—'} // ✅ "45.23%"
           margemOperacionalAnoAnterior={indicadores['Margem Operacional (Y-1)'] ?? undefined} // ✅ "41.77%" - DISPONÍVEL!
           // Retorno sobre Capital
-          roic={indicadores['ROIC'] ?? '0'} // ✅ "22.11%"
+          roic={indicadores['ROIC'] ?? '—'} // ✅ "22.11%"
           roicAnoAnterior={indicadores['ROIC (Y-1)'] ?? undefined} // ✅ "28.76%"
-          roe={indicadores['ROE'] ?? '0'} // ✅ "32.74%"
+          roe={indicadores['ROE'] ?? '—'} // ✅ "32.74%"
           roeAnoAnterior={indicadores['ROE (Y-1)'] ?? undefined} // ✅ "35.09%" - DISPONÍVEL!
           // Múltiplos de Avaliação
-          pl={indicadores['P/L'] ?? '0'} // ✅ "36.23"
+          pl={indicadores['P/L'] ?? '—'} // ✅ "36.23"
           plAnoAnterior={indicadores['P/L (Y-1)'] ?? undefined} // ✅ "35.04" - CORRIGIDO!
-          ps={indicadores['P/S'] ?? '0'} // ✅ "12.96"
+          ps={indicadores['P/S'] ?? '—'} // ✅ "12.96"
           psAnoAnterior={indicadores['P/S (Y-1)'] ?? undefined} // ✅ "11.97" - DISPONÍVEL!
-          peg={indicadores['PEG'] ?? '0'} // ✅ "2.10"
+          peg={indicadores['PEG'] ?? '—'} // ✅ "2.10"
           pegAnoAnterior={indicadores['PEG (Y-1)'] ?? undefined} // ✅ "3.63" - DISPONÍVEL!
           // Estrutura de Capital e Liquidez
-          debtToEbitda={indicadores['Dívida/EBITDA'] ?? '0'} // ✅ "0.21"
+          debtToEbitda={indicadores['Dívida/EBITDA'] ?? '—'} // ✅ "0.21"
           debtToEbitdaAnoAnterior={indicadores['Dívida/EBITDA (Y-1)'] ?? undefined} // ✅ "0.21"
-          liquidezCorrente={indicadores['Liquidez Corrente'] ?? '0'} // ✅ "1.37"
+          liquidezCorrente={indicadores['Liquidez Corrente'] ?? '—'} // ✅ "1.37"
           liquidezCorrenteAnoAnterior={indicadores['Liquidez Corrente (Y-1)'] ?? undefined} // ✅ "1.77" - DISPONÍVEL!
-          cashRatio={indicadores['Cash Ratio'] ?? 'N/A'} // ✅ "N/A" - DISPONÍVEL!
+          cashRatio={indicadores['Cash Ratio'] ?? '—'} // ✅ "N/A" - DISPONÍVEL!
           cashRatioAnoAnterior={indicadores['Cash Ratio (Y-1)'] ?? undefined} // ✅ "N/A" - DISPONÍVEL!
-          debtEquity={indicadores['Dívida / Capitais Próprios'] ?? '0'} // ✅ "0.19"
+          debtEquity={indicadores['Dívida / Capitais Próprios'] ?? '—'} // ✅ "0.19"
           debtEquityAnoAnterior={indicadores['Dívida / Capitais Próprios (Y-1)'] ?? undefined} // ✅ "0.29" - DISPONÍVEL!
           // Risco e Volatilidade
-          beta={indicadores['Beta'] ?? '0'} // ✅ "1.03"
+          beta={indicadores['Beta'] ?? '—'} // ✅ "1.03"
           betaAnoAnterior={indicadores['Beta (Y-1)'] ?? undefined} // ✅ "1.03" - DISPONÍVEL!
           // Métricas Específicas de Tech
-          investimentoPD={indicadores['Investimento em P&D'] ?? '0'} // ✅ "29.5B"
+          investimentoPD={indicadores['Investimento em P&D'] ?? '—'} // ✅ "29.5B"
           investimentoPDAnoAnterior={indicadores['Investimento em P&D (Y-1)'] ?? undefined} // ✅ "27.2B" - DISPONÍVEL!
-          rAnddEfficiency={indicadores['Eficiência de P&D'] ?? '0'} // ✅ "0.12" - CORRIGIDO!
+          rAnddEfficiency={indicadores['Eficiência de P&D'] ?? '—'} // ✅ "0.12" - CORRIGIDO!
           rAnddEfficiencyAnoAnterior={indicadores['Eficiência de P&D (Y-1)'] ?? undefined} // ✅ "0.36" - DISPONÍVEL!
-          cashFlowOverCapex={indicadores['Cash Flow / CapEx'] ?? '0'} // ✅ "2.67"
+          cashFlowOverCapex={indicadores['Cash Flow / CapEx'] ?? '—'} // ✅ "2.67"
           cashFlowOverCapexAnoAnterior={indicadores['Cash Flow / CapEx (Y-1)'] ?? undefined} // ✅ "3.12" - DISPONÍVEL!
-          fcf={indicadores['Free Cash Flow'] ?? '0'} // ✅ "74.1B"
+          fcf={indicadores['Free Cash Flow'] ?? '—'} // ✅ "74.1B"
           fcfAnoAnterior={indicadores['Free Cash Flow (Y-1)'] ?? undefined} // ✅ "59.5B" - DISPONÍVEL!
-          sgaOverRevenue={indicadores['SG&A / Receita'] ?? '0'} // ✅ "13.08%"
+          sgaOverRevenue={indicadores['SG&A / Receita'] ?? '—'} // ✅ "13.08%"
           sgaOverRevenueAnoAnterior={indicadores['SG&A / Receita (Y-1)'] ?? undefined} // ✅ "14.31%" - DISPONÍVEL!
-          payoutRatio={indicadores['Payout Ratio'] ?? '0'} // ✅ "24.30%"
+          payoutRatio={indicadores['Payout Ratio'] ?? '—'} // ✅ "24.30%"
           payoutRatioAnoAnterior={indicadores['Payout Ratio (Y-1)'] ?? undefined} // ✅ "N/A" - DISPONÍVEL!
         />
       )}
-      {setor === 'Financial Services' && (
+      {setorResolvido === 'Financial Services' && (
         <RatingsFinancials
           // ✅ RENTABILIDADE - Dados diretos da FMP
-          roe={indicadores['ROE'] ?? '0'} // "51.26%" - Excelente
-          roeAnoAnterior={indicadores['ROE (Y-1)'] ?? '0'} // "44.60%" - Crescimento sólido
+          roe={indicadores['ROE'] ?? '—'} // "51.26%" - Excelente
+          roeAnoAnterior={indicadores['ROE (Y-1)'] ?? '—'} // "44.60%" - Crescimento sólido
           // 🔧 EFICIÊNCIA - Calculada usando dados FMP
           eficiencia={
             indicadores['Eficiência'] ??
@@ -197,27 +218,27 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
             'N/A'
           }
           // ✅ LIQUIDEZ - Dados diretos da FMP
-          liquidez={indicadores['Liquidez Corrente'] ?? '0'} // "1.08"
-          liquidezAnoAnterior={indicadores['Liquidez Corrente (Y-1)'] ?? '0'} // "1.45"
+          liquidez={indicadores['Liquidez Corrente'] ?? '—'} // "1.08"
+          liquidezAnoAnterior={indicadores['Liquidez Corrente (Y-1)'] ?? '—'} // "1.45"
           // ❌ RISCO DE CRÉDITO - N/A para payment processors
           inadimplencia={'N/A'} // Visa não tem carteira própria
           inadimplenciaAnoAnterior={'N/A'}
           cobertura={'N/A'} // Não aplicável
           coberturaAnoAnterior={'N/A'}
           // ✅ MÚLTIPLOS - Dados diretos da FMP
-          pl={indicadores['P/L'] ?? '0'} // "33.38" - Múltiplo de crescimento
-          plAnoAnterior={indicadores['P/L (Y-1)'] ?? '0'} // "21.55"
+          pl={indicadores['P/L'] ?? '—'} // "33.38" - Múltiplo de crescimento
+          plAnoAnterior={indicadores['P/L (Y-1)'] ?? '—'} // "21.55"
           // 🔧 P/VPA - Usar P/S como melhor proxy para payment processors
           pvpa={
             indicadores['P/VPA'] ??
             // 🚀 MELHOR PROXY: Para payment processors, P/S é mais relevante
             indicadores['P/S'] ?? // "17.54" - Alto mas justificado pelas margens
-            '0'
+            '—'
           }
           pvpaAnoAnterior={
             indicadores['P/VPA (Y-1)'] ??
             indicadores['P/S (Y-1)'] ?? // "11.40"
-            '0'
+            '—'
           }
           // 🔧 DIVIDEND YIELD - Calcular usando dados FMP
           dividendYield={
@@ -240,19 +261,19 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
               : 'N/A')
           }
           // ✅ PAYOUT RATIO - Dados diretos da FMP (agora calculados!)
-          payoutRatio={indicadores['Payout Ratio'] ?? '0'} // "22.28%" - Conservador
-          payoutRatioAnoAnterior={indicadores['Payout Ratio (Y-1)'] ?? '0'} // "21.72%"
+          payoutRatio={indicadores['Payout Ratio'] ?? '—'} // "22.28%" - Conservador
+          payoutRatioAnoAnterior={indicadores['Payout Ratio (Y-1)'] ?? '—'} // "21.72%"
           // ❌ LDR - N/A para payment processors
           ldr={'N/A'} // Loan-to-deposit não aplicável
           ldrAnoAnterior={'N/A'}
           // ✅ BETA - Dados diretos da FMP
-          beta={indicadores['Beta'] ?? '0'} // "0.94" - Volatilidade similar ao mercado
-          betaAnoAnterior={indicadores['Beta (Y-1)'] ?? '0'} // "0.94"
+          beta={indicadores['Beta'] ?? '—'} // "0.94" - Volatilidade similar ao mercado
+          betaAnoAnterior={indicadores['Beta (Y-1)'] ?? '—'} // "0.94"
           // ❌ DCF - Não disponível na FMP para esta empresa
           leveredDcf={'N/A'} // Não calculado pela FMP para V
           leveredDcfAnoAnterior={'N/A'}
           // ✅ PREÇO - Dados diretos da FMP
-          precoAtual={indicadores['Preço Atual'] ?? '0'} // "340.38"
+          precoAtual={indicadores['Preço Atual'] ?? '—'} // "340.38"
           precoAtualAnoAnterior={'N/A'} // Histórico de preço não disponível
           // 🔧 ROA - Calcular usando fórmula financeira
           roa={
@@ -302,38 +323,38 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
           }
         />
       )}
-      {setor === 'Real Estate' && (
+      {setorResolvido === 'Real Estate' && (
         <RatingsREITs
           // === 🔥 RENTABILIDADE E DIVIDENDOS (CRÍTICOS) ===
 
           // ✅ CORRIGIDO: Dividend Yield agora tem dados reais
-          dividendYield={indicadores['Dividend Yield'] ?? '0'}
+          dividendYield={indicadores['Dividend Yield'] ?? '—'}
           dividendYieldAnoAnterior={indicadores['Dividend Yield (Y-1)'] ?? undefined}
           // ✅ ATUALIZADO: Usando Dividend CAGR específico para REITs
-          dividendCagr5y={indicadores['Dividend CAGR'] ?? indicadores['CAGR EPS'] ?? '0'}
+          dividendCagr5y={indicadores['Dividend CAGR'] ?? indicadores['CAGR EPS'] ?? '—'}
           dividendCagr5yAnoAnterior={
             indicadores['Dividend CAGR (Y-1)'] ?? indicadores['CAGR EPS (Y-1)'] ?? undefined
           }
           // ✅ REAL: FFO Payout Ratio específico de REITs - INDICADOR CRÍTICO
-          ffoPayoutRatio={indicadores['FFO Payout Ratio'] ?? indicadores['Payout Ratio'] ?? '0'}
+          ffoPayoutRatio={indicadores['FFO Payout Ratio'] ?? indicadores['Payout Ratio'] ?? '—'}
           ffoPayoutRatioAnoAnterior={
             indicadores['FFO Payout Ratio (Y-1)'] ?? indicadores['Payout Ratio (Y-1)'] ?? undefined
           }
           // === 🔥 MÚLTIPLOS ESPECÍFICOS REITs ===
 
           // ✅ MELHORADO: P/VPA agora com dados reais Y-1
-          pVpa={indicadores['P/VPA'] ?? '0'}
+          pVpa={indicadores['P/VPA'] ?? '—'}
           pVpaAnoAnterior={indicadores['P/VPA (Y-1)'] ?? undefined}
           // ✅ REAL: P/FFO - MÚLTIPLO PRINCIPAL REITs (dados reais da API!)
-          pFfo={indicadores['P/FFO'] ?? '0'}
+          pFfo={indicadores['P/FFO'] ?? '—'}
           pFfoAnoAnterior={indicadores['P/FFO (Y-1)'] ?? undefined}
           // === 🔥 ESTRUTURA FINANCEIRA (DADOS REAIS) ===
 
           // ✅ REAL: Dívida/EBITDA com dados Y-1
-          dividaEbitda={indicadores['Dívida/EBITDA'] ?? '0'}
+          dividaEbitda={indicadores['Dívida/EBITDA'] ?? '—'}
           dividaEbitdaAnoAnterior={indicadores['Dívida/EBITDA (Y-1)'] ?? undefined}
           // ✅ REAL: Liquidez Corrente com dados Y-1
-          liquidezCorrente={indicadores['Liquidez Corrente'] ?? '0'}
+          liquidezCorrente={indicadores['Liquidez Corrente'] ?? '—'}
           liquidezCorrenteAnoAnterior={indicadores['Liquidez Corrente (Y-1)'] ?? undefined}
           // ✅ MELHORADO: Cobertura de juros usando ROIC + FFO como base
           coberturaJuros={(() => {
@@ -388,18 +409,18 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
           // === 🔥 MÉTRICAS FFO/AFFO REAIS (DADOS DA API!) ===
 
           // ✅ REAL: FFO da API - MÉTRICA PRINCIPAL REITs
-          ffo={indicadores['FFO'] ?? '0'}
+          ffo={indicadores['FFO'] ?? '—'}
           ffoAnoAnterior={indicadores['FFO (Y-1)'] ?? undefined}
           // ✅ REAL: AFFO da API - CASH FLOW DISPONÍVEL
-          affo={indicadores['AFFO'] ?? '0'}
+          affo={indicadores['AFFO'] ?? '—'}
           affoAnoAnterior={indicadores['AFFO (Y-1)'] ?? undefined}
           // === 🔥 MÉTRICAS OPERACIONAIS (PROXIES INTELIGENTES) ===
 
           // ✅ PROXY: Margem EBITDA como ocupação (dados reais: 82.10% vs 88.33% Y-1)
-          ocupacao={indicadores['Margem EBITDA'] ?? '0'}
+          ocupacao={indicadores['Margem EBITDA'] ?? '—'}
           ocupacaoAnoAnterior={indicadores['Margem EBITDA (Y-1)'] ?? undefined}
           // ✅ PROXY: ROA como Cap Rate (dados reais: 1.40% vs 1.51% Y-1)
-          capRate={indicadores['ROA'] ?? '0'}
+          capRate={indicadores['ROA'] ?? '—'}
           capRateAnoAnterior={indicadores['ROA (Y-1)'] ?? undefined}
           // ✅ REAL: Crescimento de receita como proxy NOI growth (29.23%)
           noi={indicadores['Crescimento Receita'] ?? undefined}
@@ -426,130 +447,130 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
         />
       )}
 
-      {setor === 'Consumer Defensive' && (
+      {setorResolvido === 'Consumer Defensive' && (
         <RatingsConsumerDefensive
           // Campos que já existem (compatibilidade)
-          pe={indicadores['P/L'] ?? '0'}
+          pe={indicadores['P/L'] ?? '—'}
           peAnoAnterior={
             indicadores['P/L (Y-1)'] ??
             indicadores['P/L_anterior'] ??
             indicadores['P/L (Ano Anterior)']
           }
-          pb={indicadores['P/VPA'] ?? '0'}
+          pb={indicadores['P/VPA'] ?? '—'}
           pbAnoAnterior={
             indicadores['P/VPA (Y-1)'] ??
             indicadores['P/VPA_anterior'] ??
             indicadores['P/VPA (Ano Anterior)']
           }
-          ps={indicadores['P/S'] ?? '0'}
+          ps={indicadores['P/S'] ?? '—'}
           psAnoAnterior={
             indicadores['P/S (Y-1)'] ??
             indicadores['P/S_anterior'] ??
             indicadores['P/S (Ano Anterior)']
           }
-          roe={indicadores['ROE'] ?? '0'}
+          roe={indicadores['ROE'] ?? '—'}
           roeAnoAnterior={
             indicadores['ROE (Y-1)'] ??
             indicadores['ROE_anterior'] ??
             indicadores['ROE (Ano Anterior)']
           }
-          grossMargin={indicadores['Margem Bruta'] ?? '0'}
+          grossMargin={indicadores['Margem Bruta'] ?? '—'}
           grossMarginAnoAnterior={
             indicadores['Margem Bruta (Y-1)'] ?? indicadores['Margem Bruta_anterior']
           }
-          ebitdaMargin={indicadores['Margem EBITDA'] ?? '0'}
+          ebitdaMargin={indicadores['Margem EBITDA'] ?? '—'}
           ebitdaMarginAnoAnterior={
             indicadores['Margem EBITDA (Y-1)'] ?? indicadores['Margem EBITDA_anterior']
           }
           receitaCagr3y={
-            indicadores['Crescimento da Receita'] ?? indicadores['CAGR Receita 3Y'] ?? '0'
+            indicadores['Crescimento da Receita'] ?? indicadores['CAGR Receita 3Y'] ?? '—'
           }
           receitaCagr3yAnoAnterior={
             indicadores['Crescimento da Receita (Y-1)'] ??
             indicadores['CAGR Receita 3Y (Y-1)'] ??
             indicadores['Crescimento da Receita_anterior']
           }
-          payoutRatio={indicadores['Payout Ratio'] ?? '0'}
+          payoutRatio={indicadores['Payout Ratio'] ?? '—'}
           payoutRatioAnoAnterior={
             indicadores['Payout Ratio (Y-1)'] ??
             indicadores['Payout Ratio_anterior'] ??
             indicadores['Payout Ratio (Ano Anterior)']
           }
-          dividendYield={indicadores['Dividend Yield'] ?? '0'}
+          dividendYield={indicadores['Dividend Yield'] ?? '—'}
           dividendYieldAnoAnterior={
             indicadores['Dividend Yield (Y-1)'] ??
             indicadores['Dividend Yield_anterior'] ??
             indicadores['Dividend Yield (Ano Anterior)']
           }
-          beta={indicadores['Beta'] ?? '0'}
+          beta={indicadores['Beta'] ?? '—'}
           betaAnoAnterior={
             indicadores['Beta (Y-1)'] ??
             indicadores['Beta_anterior'] ??
             indicadores['Beta (Ano Anterior)']
           }
           // Campos expandidos (usando valores padrão se não existirem)
-          roic={indicadores['ROIC'] ?? '0'}
+          roic={indicadores['ROIC'] ?? '—'}
           roicAnoAnterior={indicadores['ROIC (Y-1)'] ?? indicadores['ROIC_anterior']}
-          margemLiquida={indicadores['Margem Líquida'] ?? '0'}
+          margemLiquida={indicadores['Margem Líquida'] ?? '—'}
           margemLiquidaAnoAnterior={
             indicadores['Margem Líquida (Y-1)'] ?? indicadores['Margem Líquida_anterior']
           }
-          margemOperacional={indicadores['Margem Operacional'] ?? '0'}
+          margemOperacional={indicadores['Margem Operacional'] ?? '—'}
           margemOperacionalAnoAnterior={
             indicadores['Margem Operacional (Y-1)'] ?? indicadores['Margem Operacional_anterior']
           }
-          crescimentoReceita={indicadores['Crescimento Receita'] ?? '0'}
+          crescimentoReceita={indicadores['Crescimento Receita'] ?? '—'}
           crescimentoReceitaAnoAnterior={
             indicadores['Crescimento Receita (Y-1)'] ?? indicadores['Crescimento Receita_anterior']
           }
-          consistenciaReceita={indicadores['Consistência Receita'] ?? '0'}
+          consistenciaReceita={indicadores['Consistência Receita'] ?? '—'}
           consistenciaReceitaAnoAnterior={
             indicadores['Consistência Receita (Y-1)'] ??
             indicadores['Consistência Receita_anterior']
           }
-          dividaEbitda={indicadores['Dívida/EBITDA'] ?? '0'}
+          dividaEbitda={indicadores['Dívida/EBITDA'] ?? '—'}
           dividaEbitdaAnoAnterior={
             indicadores['Dívida/EBITDA (Y-1)'] ?? indicadores['Dívida/EBITDA_anterior']
           }
-          coberturaJuros={indicadores['Cobertura de Juros'] ?? '0'}
+          coberturaJuros={indicadores['Cobertura de Juros'] ?? '—'}
           coberturaJurosAnoAnterior={
             indicadores['Cobertura de Juros (Y-1)'] ?? indicadores['Cobertura de Juros_anterior']
           }
-          liquidezCorrente={indicadores['Liquidez Corrente'] ?? '0'}
+          liquidezCorrente={indicadores['Liquidez Corrente'] ?? '—'}
           liquidezCorrenteAnoAnterior={
             indicadores['Liquidez Corrente (Y-1)'] ?? indicadores['Liquidez Corrente_anterior']
           }
-          debtEquity={indicadores['Dívida/Patrimônio'] ?? '0'}
+          debtEquity={indicadores['Dívida/Patrimônio'] ?? '—'}
           debtEquityAnoAnterior={
             indicadores['Dívida/Patrimônio (Y-1)'] ?? indicadores['Dívida/Patrimônio_anterior']
           }
-          freeCashFlow={indicadores['Free Cash Flow'] ?? '0'}
+          freeCashFlow={indicadores['Free Cash Flow'] ?? '—'}
           freeCashFlowAnoAnterior={
             indicadores['Free Cash Flow (Y-1)'] ?? indicadores['Free Cash Flow_anterior']
           }
-          fcfYield={indicadores['FCF Yield'] ?? '0'}
+          fcfYield={indicadores['FCF Yield'] ?? '—'}
           fcfYieldAnoAnterior={indicadores['FCF Yield (Y-1)'] ?? indicadores['FCF Yield_anterior']}
-          workingCapitalTurnover={indicadores['Working Capital Turnover'] ?? '0'}
+          workingCapitalTurnover={indicadores['Working Capital Turnover'] ?? '—'}
           workingCapitalTurnoverAnoAnterior={
             indicadores['Working Capital Turnover (Y-1)'] ??
             indicadores['Working Capital Turnover_anterior']
           }
-          inventoryTurnover={indicadores['Inventory Turnover'] ?? '0'}
+          inventoryTurnover={indicadores['Inventory Turnover'] ?? '—'}
           inventoryTurnoverAnoAnterior={
             indicadores['Inventory Turnover (Y-1)'] ?? indicadores['Inventory Turnover_anterior']
           }
-          dividendGrowth={indicadores['Crescimento Dividendos'] ?? '0'}
+          dividendGrowth={indicadores['Crescimento Dividendos'] ?? '—'}
           dividendGrowthAnoAnterior={
             indicadores['Crescimento Dividendos (Y-1)'] ??
             indicadores['Crescimento Dividendos_anterior']
           }
-          yearsOfDividends={indicadores['Anos de Dividendos'] ?? '0'}
+          yearsOfDividends={indicadores['Anos de Dividendos'] ?? '—'}
           yearsOfDividendsAnoAnterior={indicadores['Anos de Dividendos_anterior']}
-          leveredDcf={indicadores['Levered DCF'] ?? '0'}
+          leveredDcf={indicadores['Levered DCF'] ?? '—'}
           leveredDcfAnoAnterior={
             indicadores['Levered DCF (Y-1)'] ?? indicadores['Levered DCF_anterior']
           }
-          precoAtual={indicadores['Preço Atual'] ?? '0'}
+          precoAtual={indicadores['Preço Atual'] ?? '—'}
           precoAtualAnoAnterior={
             indicadores['Preço Atual (Y-1)'] ?? indicadores['Preço Atual_anterior']
           }
@@ -563,22 +584,22 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
         />
       )}
 
-      {setor === 'Industrials' && (
+      {setorResolvido === 'Industrials' && (
         <RatingsIndustrials
           // Valores atuais
-          margemEbitda={indicadores['Margem EBITDA'] ?? '0'}
-          roic={indicadores['ROIC'] ?? '0'}
-          alavancagem={indicadores['Alavancagem Financeira'] ?? '0'}
-          coberturaJuros={indicadores['Cobertura de Juros'] ?? '0'}
-          liquidezCorrente={indicadores['Liquidez Corrente'] ?? '0'}
-          rotatividadeEstoques={indicadores['Rotatividade de Estoques'] ?? '0'}
-          pe={indicadores['P/L'] ?? '0'}
-          pb={indicadores['P/VPA'] ?? '0'}
-          ps={indicadores['P/S'] ?? '0'}
-          peg={indicadores['PEG'] ?? '0'}
-          dividendYield={indicadores['Dividend Yield'] ?? '0'}
-          beta={indicadores['Beta'] ?? '0'}
-          giroAtivo={indicadores['Giro do Ativo'] ?? '0'}
+          margemEbitda={indicadores['Margem EBITDA'] ?? '—'}
+          roic={indicadores['ROIC'] ?? '—'}
+          alavancagem={indicadores['Alavancagem Financeira'] ?? '—'}
+          coberturaJuros={indicadores['Cobertura de Juros'] ?? '—'}
+          liquidezCorrente={indicadores['Liquidez Corrente'] ?? '—'}
+          rotatividadeEstoques={indicadores['Rotatividade de Estoques'] ?? '—'}
+          pe={indicadores['P/L'] ?? '—'}
+          pb={indicadores['P/VPA'] ?? '—'}
+          ps={indicadores['P/S'] ?? '—'}
+          peg={indicadores['PEG'] ?? '—'}
+          dividendYield={indicadores['Dividend Yield'] ?? '—'}
+          beta={indicadores['Beta'] ?? '—'}
+          giroAtivo={indicadores['Giro do Ativo'] ?? '—'}
           // Valores do ano anterior (ajustar chaves conforme teus dados)
           margemEbitdaAnoAnterior={
             indicadores['Margem EBITDA_anterior'] ?? indicadores['Margem EBITDA (Ano Anterior)']
@@ -622,62 +643,62 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
           fcfAnoAnterior={indicadores['FCF_anterior'] ?? indicadores['Free Cash Flow_anterior']}
         />
       )}
-      {setor === 'Energy' && (
+      {setorResolvido === 'Energy' && (
         <RatingsEnergy
           // Rentabilidade e Retorno
-          pe={indicadores['P/L'] ?? '0'}
+          pe={indicadores['P/L'] ?? '—'}
           peAnoAnterior={
             indicadores['P/L (Y-1)'] ??
             indicadores['P/L_anterior'] ??
             indicadores['P/L (Ano Anterior)']
           }
-          pb={indicadores['P/VPA'] ?? '0'}
+          pb={indicadores['P/VPA'] ?? '—'}
           pbAnoAnterior={
             indicadores['P/VPA (Y-1)'] ??
             indicadores['P/VPA_anterior'] ??
             indicadores['P/VPA (Ano Anterior)']
           }
-          roe={indicadores['ROE'] ?? '0'}
+          roe={indicadores['ROE'] ?? '—'}
           roeAnoAnterior={
             indicadores['ROE (Y-1)'] ??
             indicadores['ROE_anterior'] ??
             indicadores['ROE (Ano Anterior)']
           }
-          roic={indicadores['ROIC'] ?? '0'}
+          roic={indicadores['ROIC'] ?? '—'}
           roicAnoAnterior={
             indicadores['ROIC (Y-1)'] ??
             indicadores['ROIC_anterior'] ??
             indicadores['ROIC (Ano Anterior)']
           }
           // Margens e Eficiência
-          margemEbitda={indicadores['Margem EBITDA'] ?? '0'}
+          margemEbitda={indicadores['Margem EBITDA'] ?? '—'}
           margemEbitdaAnoAnterior={
             indicadores['Margem EBITDA (Y-1)'] ?? indicadores['Margem EBITDA_anterior']
           }
-          margemBruta={indicadores['Margem Bruta'] ?? '0'}
+          margemBruta={indicadores['Margem Bruta'] ?? '—'}
           margemBrutaAnoAnterior={
             indicadores['Margem Bruta (Y-1)'] ?? indicadores['Margem Bruta_anterior']
           }
-          margemLiquida={indicadores['Margem Líquida'] ?? '0'}
+          margemLiquida={indicadores['Margem Líquida'] ?? '—'}
           margemLiquidaAnoAnterior={
             indicadores['Margem Líquida (Y-1)'] ?? indicadores['Margem Líquida_anterior']
           }
           // Estrutura de Capital e Solvência
-          dividaEbitda={indicadores['Endividamento'] ?? indicadores['Dívida/EBITDA'] ?? '0'}
+          dividaEbitda={indicadores['Endividamento'] ?? indicadores['Dívida/EBITDA'] ?? '—'}
           dividaEbitdaAnoAnterior={
             indicadores['Endividamento (Y-1)'] ??
             indicadores['Dívida/EBITDA (Y-1)'] ??
             indicadores['Endividamento_anterior']
           }
-          coberturaJuros={indicadores['Cobertura de Juros'] ?? '0'}
+          coberturaJuros={indicadores['Cobertura de Juros'] ?? '—'}
           coberturaJurosAnoAnterior={
             indicadores['Cobertura de Juros (Y-1)'] ?? indicadores['Cobertura de Juros_anterior']
           }
-          liquidezCorrente={indicadores['Liquidez Corrente'] ?? '0'}
+          liquidezCorrente={indicadores['Liquidez Corrente'] ?? '—'}
           liquidezCorrenteAnoAnterior={
             indicadores['Liquidez Corrente (Y-1)'] ?? indicadores['Liquidez Corrente_anterior']
           }
-          debtEquity={indicadores['Dívida/Patrimônio'] ?? indicadores['Debt/Equity'] ?? '0'}
+          debtEquity={indicadores['Dívida/Patrimônio'] ?? indicadores['Debt/Equity'] ?? '—'}
           debtEquityAnoAnterior={
             indicadores['Dívida/Patrimônio (Y-1)'] ??
             indicadores['Debt/Equity (Y-1)'] ??
@@ -688,7 +709,7 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
             indicadores['Fluxo de Caixa Livre'] ??
             indicadores['Free Cash Flow'] ??
             indicadores['FCF'] ??
-            '0'
+            '—'
           }
           freeCashFlowAnoAnterior={
             indicadores['Fluxo de Caixa Livre (Y-1)'] ??
@@ -696,29 +717,29 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
             indicadores['FCF (Y-1)'] ??
             indicadores['Fluxo de Caixa Livre_anterior']
           }
-          capexRevenue={indicadores['CapEx/Receita'] ?? indicadores['CapEx/Revenue'] ?? '0'}
+          capexRevenue={indicadores['CapEx/Receita'] ?? indicadores['CapEx/Revenue'] ?? '—'}
           capexRevenueAnoAnterior={
             indicadores['CapEx/Receita (Y-1)'] ??
             indicadores['CapEx/Revenue (Y-1)'] ??
             indicadores['CapEx/Receita_anterior']
           }
-          fcfYield={indicadores['FCF Yield'] ?? '0'}
+          fcfYield={indicadores['FCF Yield'] ?? '—'}
           fcfYieldAnoAnterior={indicadores['FCF Yield (Y-1)'] ?? indicadores['FCF Yield_anterior']}
           // Dividendos e Retorno
-          dividendYield={indicadores['Dividend Yield'] ?? '0'}
+          dividendYield={indicadores['Dividend Yield'] ?? '—'}
           dividendYieldAnoAnterior={
             indicadores['Dividend Yield (Y-1)'] ??
             indicadores['Dividend Yield_anterior'] ??
             indicadores['Dividend Yield (Ano Anterior)']
           }
-          payoutRatio={indicadores['Payout Ratio'] ?? '0'}
+          payoutRatio={indicadores['Payout Ratio'] ?? '—'}
           payoutRatioAnoAnterior={
             indicadores['Payout Ratio (Y-1)'] ??
             indicadores['Payout Ratio_anterior'] ??
             indicadores['Payout Ratio (Ano Anterior)']
           }
           // Volatilidade e Avaliação
-          beta={indicadores['Beta'] ?? '0'}
+          beta={indicadores['Beta'] ?? '—'}
           betaAnoAnterior={
             indicadores['Beta (Y-1)'] ??
             indicadores['Beta_anterior'] ??
@@ -728,14 +749,14 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
             indicadores['Levered DCF'] ??
             indicadores['DCF'] ??
             indicadores['Valuation (DCF)'] ??
-            '0'
+            '—'
           }
           leveredDcfAnoAnterior={
             indicadores['Levered DCF (Y-1)'] ??
             indicadores['DCF (Y-1)'] ??
             indicadores['Levered DCF_anterior']
           }
-          precoAtual={indicadores['Preço Atual'] ?? indicadores['Preço'] ?? '0'}
+          precoAtual={indicadores['Preço Atual'] ?? indicadores['Preço'] ?? '—'}
           precoAtualAnoAnterior={
             indicadores['Preço Atual (Y-1)'] ??
             indicadores['Preço (Y-1)'] ??
@@ -756,59 +777,59 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
           }
         />
       )}
-      {setor === 'Consumer Cyclical' && (
+      {setorResolvido === 'Consumer Cyclical' && (
         <RatingsConsumerCyclical
           // Rentabilidade e Retorno
-          pe={indicadores['P/L'] ?? '0'}
+          pe={indicadores['P/L'] ?? '—'}
           peAnoAnterior={
             indicadores['P/L (Y-1)'] ??
             indicadores['P/L_anterior'] ??
             indicadores['P/L (Ano Anterior)']
           }
-          ps={indicadores['P/S'] ?? '0'}
+          ps={indicadores['P/S'] ?? '—'}
           psAnoAnterior={
             indicadores['P/S (Y-1)'] ??
             indicadores['P/S_anterior'] ??
             indicadores['P/S (Ano Anterior)']
           }
-          pb={indicadores['P/VPA'] ?? '0'}
+          pb={indicadores['P/VPA'] ?? '—'}
           pbAnoAnterior={
             indicadores['P/VPA (Y-1)'] ??
             indicadores['P/VPA_anterior'] ??
             indicadores['P/VPA (Ano Anterior)']
           }
-          roe={indicadores['ROE'] ?? '0'}
+          roe={indicadores['ROE'] ?? '—'}
           roeAnoAnterior={
             indicadores['ROE (Y-1)'] ??
             indicadores['ROE_anterior'] ??
             indicadores['ROE (Ano Anterior)']
           }
-          roic={indicadores['ROIC'] ?? '0'}
+          roic={indicadores['ROIC'] ?? '—'}
           roicAnoAnterior={
             indicadores['ROIC (Y-1)'] ??
             indicadores['ROIC_anterior'] ??
             indicadores['ROIC (Ano Anterior)']
           }
           // Margens e Eficiência
-          grossMargin={indicadores['Margem Bruta'] ?? '0'}
+          grossMargin={indicadores['Margem Bruta'] ?? '—'}
           grossMarginAnoAnterior={
             indicadores['Margem Bruta (Y-1)'] ??
             indicadores['Margem Bruta_anterior'] ??
             indicadores['Margem Bruta (Ano Anterior)']
           }
-          ebitdaMargin={indicadores['Margem EBITDA'] ?? '0'}
+          ebitdaMargin={indicadores['Margem EBITDA'] ?? '—'}
           ebitdaMarginAnoAnterior={
             indicadores['Margem EBITDA (Y-1)'] ??
             indicadores['Margem EBITDA_anterior'] ??
             indicadores['Margem EBITDA (Ano Anterior)']
           }
-          margemLiquida={indicadores['Margem Líquida'] ?? '0'}
+          margemLiquida={indicadores['Margem Líquida'] ?? '—'}
           margemLiquidaAnoAnterior={
             indicadores['Margem Líquida (Y-1)'] ??
             indicadores['Margem Líquida_anterior'] ??
             indicadores['Margem Líquida (Ano Anterior)']
           }
-          margemOperacional={indicadores['Margem Operacional'] ?? '0'}
+          margemOperacional={indicadores['Margem Operacional'] ?? '—'}
           margemOperacionalAnoAnterior={
             indicadores['Margem Operacional (Y-1)'] ??
             indicadores['Margem Operacional_anterior'] ??
@@ -819,7 +840,7 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
             indicadores['Crescimento da Receita (3Y)'] ??
             indicadores['CAGR Receita 3Y'] ??
             indicadores['Crescimento da Receita'] ??
-            '0'
+            '—'
           }
           receitaCagr3yAnoAnterior={
             indicadores['Crescimento da Receita (3Y) (Y-1)'] ??
@@ -827,33 +848,33 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
             indicadores['Crescimento da Receita_anterior']
           }
           crescimentoReceita={
-            indicadores['Crescimento Receita'] ?? indicadores['Crescimento da Receita'] ?? '0'
+            indicadores['Crescimento Receita'] ?? indicadores['Crescimento da Receita'] ?? '—'
           }
           crescimentoReceitaAnoAnterior={
             indicadores['Crescimento Receita (Y-1)'] ??
             indicadores['Crescimento da Receita (Y-1)'] ??
             indicadores['Crescimento Receita_anterior']
           }
-          crescimentoEbitda={indicadores['Crescimento EBITDA'] ?? '0'}
+          crescimentoEbitda={indicadores['Crescimento EBITDA'] ?? '—'}
           crescimentoEbitdaAnoAnterior={
             indicadores['Crescimento EBITDA (Y-1)'] ?? indicadores['Crescimento EBITDA_anterior']
           }
           // Estrutura de Capital e Solvência
-          endividamento={indicadores['Endividamento'] ?? indicadores['Dívida/EBITDA'] ?? '0'}
+          endividamento={indicadores['Endividamento'] ?? indicadores['Dívida/EBITDA'] ?? '—'}
           endividamentoAnoAnterior={
             indicadores['Endividamento (Y-1)'] ??
             indicadores['Dívida/EBITDA (Y-1)'] ??
             indicadores['Endividamento_anterior']
           }
-          coberturaJuros={indicadores['Cobertura de Juros'] ?? '0'}
+          coberturaJuros={indicadores['Cobertura de Juros'] ?? '—'}
           coberturaJurosAnoAnterior={
             indicadores['Cobertura de Juros (Y-1)'] ?? indicadores['Cobertura de Juros_anterior']
           }
-          liquidezCorrente={indicadores['Liquidez Corrente'] ?? '0'}
+          liquidezCorrente={indicadores['Liquidez Corrente'] ?? '—'}
           liquidezCorrenteAnoAnterior={
             indicadores['Liquidez Corrente (Y-1)'] ?? indicadores['Liquidez Corrente_anterior']
           }
-          debtEquity={indicadores['Dívida/Patrimônio'] ?? indicadores['Debt/Equity'] ?? '0'}
+          debtEquity={indicadores['Dívida/Patrimônio'] ?? indicadores['Debt/Equity'] ?? '—'}
           debtEquityAnoAnterior={
             indicadores['Dívida/Patrimônio (Y-1)'] ??
             indicadores['Debt/Equity (Y-1)'] ??
@@ -861,57 +882,57 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
           }
           // Eficiência Operacional
           rotatividadeEstoques={
-            indicadores['Rotatividade de Estoques'] ?? indicadores['Inventory Turnover'] ?? '0'
+            indicadores['Rotatividade de Estoques'] ?? indicadores['Inventory Turnover'] ?? '—'
           }
           rotatividadeEstoquesAnoAnterior={
             indicadores['Rotatividade de Estoques (Y-1)'] ??
             indicadores['Inventory Turnover (Y-1)'] ??
             indicadores['Rotatividade de Estoques_anterior']
           }
-          workingCapitalTurnover={indicadores['Working Capital Turnover'] ?? '0'}
+          workingCapitalTurnover={indicadores['Working Capital Turnover'] ?? '—'}
           workingCapitalTurnoverAnoAnterior={
             indicadores['Working Capital Turnover (Y-1)'] ??
             indicadores['Working Capital Turnover_anterior']
           }
-          assetTurnover={indicadores['Asset Turnover'] ?? '0'}
+          assetTurnover={indicadores['Asset Turnover'] ?? '—'}
           assetTurnoverAnoAnterior={
             indicadores['Asset Turnover (Y-1)'] ?? indicadores['Asset Turnover_anterior']
           }
-          receivablesTurnover={indicadores['Receivables Turnover'] ?? '0'}
+          receivablesTurnover={indicadores['Receivables Turnover'] ?? '—'}
           receivablesTurnoverAnoAnterior={
             indicadores['Receivables Turnover (Y-1)'] ??
             indicadores['Receivables Turnover_anterior']
           }
           // Fluxo de Caixa
-          freeCashFlow={indicadores['Free Cash Flow'] ?? indicadores['FCF'] ?? '0'}
+          freeCashFlow={indicadores['Free Cash Flow'] ?? indicadores['FCF'] ?? '—'}
           freeCashFlowAnoAnterior={
             indicadores['Free Cash Flow (Y-1)'] ??
             indicadores['FCF (Y-1)'] ??
             indicadores['Free Cash Flow_anterior']
           }
-          fcfYield={indicadores['FCF Yield'] ?? '0'}
+          fcfYield={indicadores['FCF Yield'] ?? '—'}
           fcfYieldAnoAnterior={indicadores['FCF Yield (Y-1)'] ?? indicadores['FCF Yield_anterior']}
-          capexRevenue={indicadores['CapEx/Receita'] ?? indicadores['CapEx Ratio'] ?? '0'}
+          capexRevenue={indicadores['CapEx/Receita'] ?? indicadores['CapEx Ratio'] ?? '—'}
           capexRevenueAnoAnterior={
             indicadores['CapEx/Receita (Y-1)'] ??
             indicadores['CapEx Ratio (Y-1)'] ??
             indicadores['CapEx/Receita_anterior']
           }
           // Dividendos e Retorno
-          dividendYield={indicadores['Dividend Yield'] ?? '0'}
+          dividendYield={indicadores['Dividend Yield'] ?? '—'}
           dividendYieldAnoAnterior={
             indicadores['Dividend Yield (Y-1)'] ??
             indicadores['Dividend Yield_anterior'] ??
             indicadores['Dividend Yield (Ano Anterior)']
           }
-          payoutRatio={indicadores['Payout Ratio'] ?? '0'}
+          payoutRatio={indicadores['Payout Ratio'] ?? '—'}
           payoutRatioAnoAnterior={
             indicadores['Payout Ratio (Y-1)'] ??
             indicadores['Payout Ratio_anterior'] ??
             indicadores['Payout Ratio (Ano Anterior)']
           }
           // Volatilidade e Avaliação
-          beta={indicadores['Beta'] ?? '0'}
+          beta={indicadores['Beta'] ?? '—'}
           betaAnoAnterior={
             indicadores['Beta (Y-1)'] ??
             indicadores['Beta_anterior'] ??
@@ -921,7 +942,7 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
             indicadores['Valuation (DCF)'] ??
             indicadores['Levered DCF'] ??
             indicadores['DCF'] ??
-            '0'
+            '—'
           }
           leveredDcfAnoAnterior={
             indicadores['Valuation (DCF) (Y-1)'] ??
@@ -929,7 +950,7 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
             indicadores['DCF (Y-1)'] ??
             indicadores['Levered DCF_anterior']
           }
-          precoAtual={indicadores['Preço Atual'] ?? indicadores['Preço'] ?? '0'}
+          precoAtual={indicadores['Preço Atual'] ?? indicadores['Preço'] ?? '—'}
           precoAtualAnoAnterior={
             indicadores['Preço Atual (Y-1)'] ??
             indicadores['Preço (Y-1)'] ??
@@ -958,66 +979,66 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
           }
         />
       )}
-      {setor === 'Basic Materials' && (
+      {setorResolvido === 'Basic Materials' && (
         <RatingsBasicMaterials
           // Rentabilidade e Retorno
-          pe={indicadores['P/L'] ?? '0'}
+          pe={indicadores['P/L'] ?? '—'}
           peAnoAnterior={
             indicadores['P/L (Y-1)'] ??
             indicadores['P/L_anterior'] ??
             indicadores['P/L (Ano Anterior)']
           }
-          pb={indicadores['P/VPA'] ?? '0'}
+          pb={indicadores['P/VPA'] ?? '—'}
           pbAnoAnterior={
             indicadores['P/VPA (Y-1)'] ??
             indicadores['P/VPA_anterior'] ??
             indicadores['P/VPA (Ano Anterior)']
           }
-          roe={indicadores['ROE'] ?? '0'}
+          roe={indicadores['ROE'] ?? '—'}
           roeAnoAnterior={
             indicadores['ROE (Y-1)'] ??
             indicadores['ROE_anterior'] ??
             indicadores['ROE (Ano Anterior)']
           }
-          roic={indicadores['ROIC'] ?? '0'}
+          roic={indicadores['ROIC'] ?? '—'}
           roicAnoAnterior={
             indicadores['ROIC (Y-1)'] ??
             indicadores['ROIC_anterior'] ??
             indicadores['ROIC (Ano Anterior)']
           }
           // Margens e Eficiência
-          margemEbitda={indicadores['Margem EBITDA'] ?? '0'}
+          margemEbitda={indicadores['Margem EBITDA'] ?? '—'}
           margemEbitdaAnoAnterior={
             indicadores['Margem EBITDA (Y-1)'] ?? indicadores['Margem EBITDA_anterior']
           }
-          margemBruta={indicadores['Margem Bruta'] ?? '0'}
+          margemBruta={indicadores['Margem Bruta'] ?? '—'}
           margemBrutaAnoAnterior={
             indicadores['Margem Bruta (Y-1)'] ?? indicadores['Margem Bruta_anterior']
           }
-          margemLiquida={indicadores['Margem Líquida'] ?? '0'}
+          margemLiquida={indicadores['Margem Líquida'] ?? '—'}
           margemLiquidaAnoAnterior={
             indicadores['Margem Líquida (Y-1)'] ?? indicadores['Margem Líquida_anterior']
           }
-          margemOperacional={indicadores['Margem Operacional'] ?? '0'}
+          margemOperacional={indicadores['Margem Operacional'] ?? '—'}
           margemOperacionalAnoAnterior={
             indicadores['Margem Operacional (Y-1)'] ?? indicadores['Margem Operacional_anterior']
           }
           // Estrutura de Capital e Solvência
-          dividaEbitda={indicadores['Dívida/EBITDA'] ?? indicadores['Endividamento'] ?? '0'}
+          dividaEbitda={indicadores['Dívida/EBITDA'] ?? indicadores['Endividamento'] ?? '—'}
           dividaEbitdaAnoAnterior={
             indicadores['Dívida/EBITDA (Y-1)'] ??
             indicadores['Endividamento (Y-1)'] ??
             indicadores['Dívida/EBITDA_anterior']
           }
-          coberturaJuros={indicadores['Cobertura de Juros'] ?? '0'}
+          coberturaJuros={indicadores['Cobertura de Juros'] ?? '—'}
           coberturaJurosAnoAnterior={
             indicadores['Cobertura de Juros (Y-1)'] ?? indicadores['Cobertura de Juros_anterior']
           }
-          liquidezCorrente={indicadores['Liquidez Corrente'] ?? '0'}
+          liquidezCorrente={indicadores['Liquidez Corrente'] ?? '—'}
           liquidezCorrenteAnoAnterior={
             indicadores['Liquidez Corrente (Y-1)'] ?? indicadores['Liquidez Corrente_anterior']
           }
-          debtEquity={indicadores['Dívida/Patrimônio'] ?? indicadores['Debt/Equity'] ?? '0'}
+          debtEquity={indicadores['Dívida/Patrimônio'] ?? indicadores['Debt/Equity'] ?? '—'}
           debtEquityAnoAnterior={
             indicadores['Dívida/Patrimônio (Y-1)'] ??
             indicadores['Debt/Equity (Y-1)'] ??
@@ -1028,7 +1049,7 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
             indicadores['Free Cash Flow'] ??
             indicadores['Fluxo de Caixa Livre'] ??
             indicadores['FCF'] ??
-            '0'
+            '—'
           }
           freeCashFlowAnoAnterior={
             indicadores['Free Cash Flow (Y-1)'] ??
@@ -1036,16 +1057,16 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
             indicadores['FCF (Y-1)'] ??
             indicadores['Free Cash Flow_anterior']
           }
-          capexRevenue={indicadores['CapEx/Receita'] ?? indicadores['CapEx/Revenue'] ?? '0'}
+          capexRevenue={indicadores['CapEx/Receita'] ?? indicadores['CapEx/Revenue'] ?? '—'}
           capexRevenueAnoAnterior={
             indicadores['CapEx/Receita (Y-1)'] ??
             indicadores['CapEx/Revenue (Y-1)'] ??
             indicadores['CapEx/Receita_anterior']
           }
-          fcfYield={indicadores['FCF Yield'] ?? '0'}
+          fcfYield={indicadores['FCF Yield'] ?? '—'}
           fcfYieldAnoAnterior={indicadores['FCF Yield (Y-1)'] ?? indicadores['FCF Yield_anterior']}
           workingCapitalTurnover={
-            indicadores['Working Capital Turnover'] ?? indicadores['Giro Capital de Giro'] ?? '0'
+            indicadores['Working Capital Turnover'] ?? indicadores['Giro Capital de Giro'] ?? '—'
           }
           workingCapitalTurnoverAnoAnterior={
             indicadores['Working Capital Turnover (Y-1)'] ??
@@ -1054,32 +1075,32 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
           }
           // Crescimento e Performance
           crescimentoReceita={
-            indicadores['Crescimento Receita'] ?? indicadores['Crescimento da Receita'] ?? '0'
+            indicadores['Crescimento Receita'] ?? indicadores['Crescimento da Receita'] ?? '—'
           }
           crescimentoReceitaAnoAnterior={
             indicadores['Crescimento Receita (Y-1)'] ??
             indicadores['Crescimento da Receita (Y-1)'] ??
             indicadores['Crescimento Receita_anterior']
           }
-          crescimentoEbitda={indicadores['Crescimento EBITDA'] ?? '0'}
+          crescimentoEbitda={indicadores['Crescimento EBITDA'] ?? '—'}
           crescimentoEbitdaAnoAnterior={
             indicadores['Crescimento EBITDA (Y-1)'] ?? indicadores['Crescimento EBITDA_anterior']
           }
           // Dividendos e Retorno
-          dividendYield={indicadores['Dividend Yield'] ?? '0'}
+          dividendYield={indicadores['Dividend Yield'] ?? '—'}
           dividendYieldAnoAnterior={
             indicadores['Dividend Yield (Y-1)'] ??
             indicadores['Dividend Yield_anterior'] ??
             indicadores['Dividend Yield (Ano Anterior)']
           }
-          payoutRatio={indicadores['Payout Ratio'] ?? '0'}
+          payoutRatio={indicadores['Payout Ratio'] ?? '—'}
           payoutRatioAnoAnterior={
             indicadores['Payout Ratio (Y-1)'] ??
             indicadores['Payout Ratio_anterior'] ??
             indicadores['Payout Ratio (Ano Anterior)']
           }
           // Volatilidade e Avaliação
-          beta={indicadores['Beta'] ?? '0'}
+          beta={indicadores['Beta'] ?? '—'}
           betaAnoAnterior={
             indicadores['Beta (Y-1)'] ??
             indicadores['Beta_anterior'] ??
@@ -1089,14 +1110,14 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
             indicadores['Levered DCF'] ??
             indicadores['DCF'] ??
             indicadores['Valuation (DCF)'] ??
-            '0'
+            '—'
           }
           leveredDcfAnoAnterior={
             indicadores['Levered DCF (Y-1)'] ??
             indicadores['DCF (Y-1)'] ??
             indicadores['Levered DCF_anterior']
           }
-          precoAtual={indicadores['Preço Atual'] ?? indicadores['Preço'] ?? '0'}
+          precoAtual={indicadores['Preço Atual'] ?? indicadores['Preço'] ?? '—'}
           precoAtualAnoAnterior={
             indicadores['Preço Atual (Y-1)'] ??
             indicadores['Preço (Y-1)'] ??
@@ -1141,133 +1162,131 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
           }
         />
       )}
-      {setor === 'Utilities' && (
+      {setorResolvido === 'Utilities' && (
         <RatingsUtilities
           // ✅ MÚLTIPLOS DE VALUATION - Corrigidos com defaults seguros
-          pl={indicadores['P/L'] ?? 'N/A'}
+          pl={indicadores['P/L'] ?? '—'}
           plAnoAnterior={indicadores['P/L (Y-1)'] ?? undefined}
-          pb={indicadores['P/VPA'] ?? indicadores['P/B'] ?? 'N/A'}
+          pb={indicadores['P/VPA'] ?? indicadores['P/B'] ?? '—'}
           pbAnoAnterior={indicadores['P/VPA (Y-1)'] ?? indicadores['P/B (Y-1)'] ?? undefined}
-          ps={indicadores['P/S'] ?? 'N/A'}
+          ps={indicadores['P/S'] ?? '—'}
           psAnoAnterior={indicadores['P/S (Y-1)'] ?? undefined}
-          earningsYield={indicadores['Earnings Yield'] ?? 'N/A'} // ✅ Não calcular automaticamente
+          earningsYield={indicadores['Earnings Yield'] ?? '—'} // ✅ Não calcular automaticamente
           earningsYieldAnoAnterior={indicadores['Earnings Yield (Y-1)'] ?? undefined}
           // ✅ RENTABILIDADE - Indicadores core para Utilities
-          roe={indicadores['ROE'] ?? 'N/A'} // ✅ CORRIGIDO: Era '0'
+          roe={indicadores['ROE'] ?? '—'} // ✅ CORRIGIDO: Era '0'
           roeAnoAnterior={indicadores['ROE (Y-1)'] ?? undefined}
-          roic={indicadores['ROIC'] ?? 'N/A'} // ✅ CORRIGIDO: Era '0'
+          roic={indicadores['ROIC'] ?? '—'} // ✅ CORRIGIDO: Era '0'
           roicAnoAnterior={indicadores['ROIC (Y-1)'] ?? undefined}
-          margemEbitda={indicadores['Margem EBITDA'] ?? 'N/A'} // ✅ CORRIGIDO
+          margemEbitda={indicadores['Margem EBITDA'] ?? '—'} // ✅ CORRIGIDO
           margemEbitdaAnoAnterior={indicadores['Margem EBITDA (Y-1)'] ?? undefined}
-          margemOperacional={indicadores['Margem Operacional'] ?? 'N/A'} // ✅ CORRIGIDO
+          margemOperacional={indicadores['Margem Operacional'] ?? '—'} // ✅ CORRIGIDO
           margemOperacionalAnoAnterior={indicadores['Margem Operacional (Y-1)'] ?? undefined}
-          margemLiquida={indicadores['Margem Líquida'] ?? 'N/A'} // ✅ CORRIGIDO
+          margemLiquida={indicadores['Margem Líquida'] ?? '—'} // ✅ CORRIGIDO
           margemLiquidaAnoAnterior={indicadores['Margem Líquida (Y-1)'] ?? undefined}
           // ✅ DIVIDENDOS E DISTRIBUIÇÕES - CRÍTICOS para Utilities
-          dividendYield={indicadores['Dividend Yield'] ?? 'N/A'} // ✅ CORRIGIDO: Era '0'
+          dividendYield={indicadores['Dividend Yield'] ?? '—'} // ✅ CORRIGIDO: Era '0'
           dividendYieldAnoAnterior={indicadores['Dividend Yield (Y-1)'] ?? undefined}
-          payoutRatio={indicadores['Payout Ratio'] ?? 'N/A'} // ✅ CORRIGIDO: Era '0'
+          payoutRatio={indicadores['Payout Ratio'] ?? '—'} // ✅ CORRIGIDO: Era '0'
           payoutRatioAnoAnterior={indicadores['Payout Ratio (Y-1)'] ?? undefined}
           dividendCagr5y={
-            indicadores['Dividend CAGR 5Y'] ?? indicadores['CAGR Dividendos 5A'] ?? 'N/A'
+            indicadores['Dividend CAGR 5Y'] ?? indicadores['CAGR Dividendos 5A'] ?? '—'
           }
           dividendCagr5yAnoAnterior={indicadores['Dividend CAGR 5Y (Y-1)'] ?? undefined}
-          dividendConsistency={indicadores['Consistência Dividendos'] ?? 'N/A'} // ✅ NOVO
+          dividendConsistency={indicadores['Consistência Dividendos'] ?? '—'} // ✅ NOVO
           dividendConsistencyAnoAnterior={indicadores['Consistência Dividendos (Y-1)'] ?? undefined}
           // ✅ ESTRUTURA FINANCEIRA - Fundamental para capital-intensive
           endividamento={
-            indicadores['Endividamento'] ?? indicadores['Dívida Total/Patrimônio'] ?? 'N/A'
+            indicadores['Endividamento'] ?? indicadores['Dívida Total/Patrimônio'] ?? '—'
           }
           endividamentoAnoAnterior={indicadores['Endividamento (Y-1)'] ?? undefined}
-          debtToEbitda={
-            indicadores['Dívida/EBITDA'] ?? indicadores['Dívida Líquida/EBITDA'] ?? 'N/A'
-          }
+          debtToEbitda={indicadores['Dívida/EBITDA'] ?? indicadores['Dívida Líquida/EBITDA'] ?? '—'}
           debtToEbitdaAnoAnterior={indicadores['Dívida/EBITDA (Y-1)'] ?? undefined}
-          coberturaJuros={indicadores['Cobertura de Juros'] ?? 'N/A'} // ✅ CRÍTICO para Utilities
+          coberturaJuros={indicadores['Cobertura de Juros'] ?? '—'} // ✅ CRÍTICO para Utilities
           coberturaJurosAnoAnterior={indicadores['Cobertura de Juros (Y-1)'] ?? undefined}
-          liquidezCorrente={indicadores['Liquidez Corrente'] ?? 'N/A'}
+          liquidezCorrente={indicadores['Liquidez Corrente'] ?? '—'}
           liquidezCorrenteAnoAnterior={indicadores['Liquidez Corrente (Y-1)'] ?? undefined}
           // ✅ EFICIÊNCIA OPERACIONAL - Específico para infraestrutura
-          giroAtivo={indicadores['Giro do Ativo'] ?? indicadores['Asset Turnover'] ?? 'N/A'}
+          giroAtivo={indicadores['Giro do Ativo'] ?? indicadores['Asset Turnover'] ?? '—'}
           giroAtivoAnoAnterior={indicadores['Giro do Ativo (Y-1)'] ?? undefined}
           capexOverRevenue={
-            indicadores['CapEx/Receita'] ?? indicadores['Investimentos/Receita'] ?? 'N/A'
+            indicadores['CapEx/Receita'] ?? indicadores['Investimentos/Receita'] ?? '—'
           }
           capexOverRevenueAnoAnterior={indicadores['CapEx/Receita (Y-1)'] ?? undefined}
-          assetAge={indicadores['Idade Média dos Ativos'] ?? 'N/A'} // ✅ NOVO - Importante para Utilities
+          assetAge={indicadores['Idade Média dos Ativos'] ?? '—'} // ✅ NOVO - Importante para Utilities
           assetAgeAnoAnterior={indicadores['Idade Média dos Ativos (Y-1)'] ?? undefined}
           // ✅ CRESCIMENTO - Moderado mas estável para Utilities
           crescimentoReceita={
-            indicadores['Crescimento Receita'] ?? indicadores['Crescimento da Receita'] ?? 'N/A'
+            indicadores['Crescimento Receita'] ?? indicadores['Crescimento da Receita'] ?? '—'
           }
           crescimentoReceitaAnoAnterior={indicadores['Crescimento Receita (Y-1)'] ?? undefined}
-          crescimentoEps={indicadores['Crescimento EPS'] ?? indicadores['CAGR EPS'] ?? 'N/A'}
+          crescimentoEps={indicadores['Crescimento EPS'] ?? indicadores['CAGR EPS'] ?? '—'}
           crescimentoEpsAnoAnterior={indicadores['Crescimento EPS (Y-1)'] ?? undefined}
           // ✅ VALUATION VS FUNDAMENTALS
-          leveredDcf={indicadores['Levered DCF'] ?? indicadores['DCF'] ?? 'N/A'}
+          leveredDcf={indicadores['Levered DCF'] ?? indicadores['DCF'] ?? '—'}
           leveredDcfAnoAnterior={indicadores['Levered DCF (Y-1)'] ?? undefined}
-          precoAtual={indicadores['Preço Atual'] ?? indicadores['Preço'] ?? 'N/A'}
+          precoAtual={indicadores['Preço Atual'] ?? indicadores['Preço'] ?? '—'}
           precoAtualAnoAnterior={indicadores['Preço Atual (Y-1)'] ?? undefined}
-          fcf={indicadores['Free Cash Flow'] ?? indicadores['FCF'] ?? 'N/A'}
+          fcf={indicadores['Free Cash Flow'] ?? indicadores['FCF'] ?? '—'}
           fcfAnoAnterior={indicadores['Free Cash Flow (Y-1)'] ?? undefined}
           // ✅ MÉTRICAS ESPECÍFICAS DE UTILITIES
-          regulatoryROE={indicadores['ROE Regulatório'] ?? 'N/A'} // ✅ NOVO
+          regulatoryROE={indicadores['ROE Regulatório'] ?? '—'} // ✅ NOVO
           regulatoryROEAnoAnterior={indicadores['ROE Regulatório (Y-1)'] ?? undefined}
-          capacityFactor={indicadores['Fator de Capacidade'] ?? 'N/A'} // ✅ NOVO - Para geração
+          capacityFactor={indicadores['Fator de Capacidade'] ?? '—'} // ✅ NOVO - Para geração
           capacityFactorAnoAnterior={indicadores['Fator de Capacidade (Y-1)'] ?? undefined}
-          renewablePercentage={indicadores['% Energias Renováveis'] ?? 'N/A'} // ✅ NOVO - ESG
+          renewablePercentage={indicadores['% Energias Renováveis'] ?? '—'} // ✅ NOVO - ESG
           renewablePercentageAnoAnterior={indicadores['% Energias Renováveis (Y-1)'] ?? undefined}
-          rateBaseGrowth={indicadores['Crescimento Rate Base'] ?? 'N/A'} // ✅ NOVO
+          rateBaseGrowth={indicadores['Crescimento Rate Base'] ?? '—'} // ✅ NOVO
           rateBaseGrowthAnoAnterior={indicadores['Crescimento Rate Base (Y-1)'] ?? undefined}
         />
       )}
-      {setor === 'Communication Services' && (
+      {setorResolvido === 'Communication Services' && (
         <RatingsCommunication
           // Rentabilidade e Retorno
-          pe={indicadores['P/L'] ?? '0'}
+          pe={indicadores['P/L'] ?? '—'}
           peAnoAnterior={
             indicadores['P/L (Y-1)'] ??
             indicadores['P/L_anterior'] ??
             indicadores['P/L (Ano Anterior)']
           }
-          ps={indicadores['P/S'] ?? '0'}
+          ps={indicadores['P/S'] ?? '—'}
           psAnoAnterior={
             indicadores['P/S (Y-1)'] ??
             indicadores['P/S_anterior'] ??
             indicadores['P/S (Ano Anterior)']
           }
-          pb={indicadores['P/VPA'] ?? '0'}
+          pb={indicadores['P/VPA'] ?? '—'}
           pbAnoAnterior={
             indicadores['P/VPA (Y-1)'] ??
             indicadores['P/VPA_anterior'] ??
             indicadores['P/VPA (Ano Anterior)']
           }
-          roe={indicadores['ROE'] ?? '0'}
+          roe={indicadores['ROE'] ?? '—'}
           roeAnoAnterior={
             indicadores['ROE (Y-1)'] ??
             indicadores['ROE_anterior'] ??
             indicadores['ROE (Ano Anterior)']
           }
-          roic={indicadores['ROIC'] ?? '0'}
+          roic={indicadores['ROIC'] ?? '—'}
           roicAnoAnterior={
             indicadores['ROIC (Y-1)'] ??
             indicadores['ROIC_anterior'] ??
             indicadores['ROIC (Ano Anterior)']
           }
           // Margens e Eficiência
-          grossMargin={indicadores['Margem Bruta'] ?? '0'}
+          grossMargin={indicadores['Margem Bruta'] ?? '—'}
           grossMarginAnoAnterior={
             indicadores['Margem Bruta (Y-1)'] ?? indicadores['Margem Bruta_anterior']
           }
-          ebitdaMargin={indicadores['Margem EBITDA'] ?? '0'}
+          ebitdaMargin={indicadores['Margem EBITDA'] ?? '—'}
           ebitdaMarginAnoAnterior={
             indicadores['Margem EBITDA (Y-1)'] ?? indicadores['Margem EBITDA_anterior']
           }
-          margemLiquida={indicadores['Margem Líquida'] ?? '0'}
+          margemLiquida={indicadores['Margem Líquida'] ?? '—'}
           margemLiquidaAnoAnterior={
             indicadores['Margem Líquida (Y-1)'] ?? indicadores['Margem Líquida_anterior']
           }
-          margemOperacional={indicadores['Margem Operacional'] ?? '0'}
+          margemOperacional={indicadores['Margem Operacional'] ?? '—'}
           margemOperacionalAnoAnterior={
             indicadores['Margem Operacional (Y-1)'] ?? indicadores['Margem Operacional_anterior']
           }
@@ -1276,7 +1295,7 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
             indicadores['Crescimento da Receita (3Y)'] ??
             indicadores['CAGR Receita 3Y'] ??
             indicadores['Crescimento da Receita'] ??
-            '0'
+            '—'
           }
           receitaCagr3yAnoAnterior={
             indicadores['Crescimento da Receita (3Y) (Y-1)'] ??
@@ -1284,33 +1303,33 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
             indicadores['Crescimento da Receita_anterior']
           }
           crescimentoReceita={
-            indicadores['Crescimento Receita'] ?? indicadores['Crescimento da Receita'] ?? '0'
+            indicadores['Crescimento Receita'] ?? indicadores['Crescimento da Receita'] ?? '—'
           }
           crescimentoReceitaAnoAnterior={
             indicadores['Crescimento Receita (Y-1)'] ??
             indicadores['Crescimento da Receita (Y-1)'] ??
             indicadores['Crescimento Receita_anterior']
           }
-          crescimentoEbitda={indicadores['Crescimento EBITDA'] ?? '0'}
+          crescimentoEbitda={indicadores['Crescimento EBITDA'] ?? '—'}
           crescimentoEbitdaAnoAnterior={
             indicadores['Crescimento EBITDA (Y-1)'] ?? indicadores['Crescimento EBITDA_anterior']
           }
           // Estrutura de Capital e Solvência
-          dividaEbitda={indicadores['Dívida/EBITDA'] ?? indicadores['Endividamento'] ?? '0'}
+          dividaEbitda={indicadores['Dívida/EBITDA'] ?? indicadores['Endividamento'] ?? '—'}
           dividaEbitdaAnoAnterior={
             indicadores['Dívida/EBITDA (Y-1)'] ??
             indicadores['Endividamento (Y-1)'] ??
             indicadores['Dívida/EBITDA_anterior']
           }
-          coberturaJuros={indicadores['Cobertura de Juros'] ?? '0'}
+          coberturaJuros={indicadores['Cobertura de Juros'] ?? '—'}
           coberturaJurosAnoAnterior={
             indicadores['Cobertura de Juros (Y-1)'] ?? indicadores['Cobertura de Juros_anterior']
           }
-          liquidezCorrente={indicadores['Liquidez Corrente'] ?? '0'}
+          liquidezCorrente={indicadores['Liquidez Corrente'] ?? '—'}
           liquidezCorrenteAnoAnterior={
             indicadores['Liquidez Corrente (Y-1)'] ?? indicadores['Liquidez Corrente_anterior']
           }
-          debtEquity={indicadores['Dívida/Patrimônio'] ?? indicadores['Debt/Equity'] ?? '0'}
+          debtEquity={indicadores['Dívida/Patrimônio'] ?? indicadores['Debt/Equity'] ?? '—'}
           debtEquityAnoAnterior={
             indicadores['Dívida/Patrimônio (Y-1)'] ??
             indicadores['Debt/Equity (Y-1)'] ??
@@ -1321,7 +1340,7 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
             indicadores['Free Cash Flow'] ??
             indicadores['Fluxo de Caixa Livre'] ??
             indicadores['FCF'] ??
-            '0'
+            '—'
           }
           freeCashFlowAnoAnterior={
             indicadores['Free Cash Flow (Y-1)'] ??
@@ -1329,29 +1348,29 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
             indicadores['FCF (Y-1)'] ??
             indicadores['Free Cash Flow_anterior']
           }
-          fcfYield={indicadores['FCF Yield'] ?? '0'}
+          fcfYield={indicadores['FCF Yield'] ?? '—'}
           fcfYieldAnoAnterior={indicadores['FCF Yield (Y-1)'] ?? indicadores['FCF Yield_anterior']}
-          capexRevenue={indicadores['CapEx/Receita'] ?? indicadores['CapEx/Revenue'] ?? '0'}
+          capexRevenue={indicadores['CapEx/Receita'] ?? indicadores['CapEx/Revenue'] ?? '—'}
           capexRevenueAnoAnterior={
             indicadores['CapEx/Receita (Y-1)'] ??
             indicadores['CapEx/Revenue (Y-1)'] ??
             indicadores['CapEx/Receita_anterior']
           }
           // Dividendos e Retorno
-          dividendYield={indicadores['Dividend Yield'] ?? '0'}
+          dividendYield={indicadores['Dividend Yield'] ?? '—'}
           dividendYieldAnoAnterior={
             indicadores['Dividend Yield (Y-1)'] ??
             indicadores['Dividend Yield_anterior'] ??
             indicadores['Dividend Yield (Ano Anterior)']
           }
-          payoutRatio={indicadores['Payout Ratio'] ?? '0'}
+          payoutRatio={indicadores['Payout Ratio'] ?? '—'}
           payoutRatioAnoAnterior={
             indicadores['Payout Ratio (Y-1)'] ??
             indicadores['Payout Ratio_anterior'] ??
             indicadores['Payout Ratio (Ano Anterior)']
           }
           // Volatilidade e Avaliação
-          beta={indicadores['Beta'] ?? '0'}
+          beta={indicadores['Beta'] ?? '—'}
           betaAnoAnterior={
             indicadores['Beta (Y-1)'] ??
             indicadores['Beta_anterior'] ??
@@ -1361,7 +1380,7 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
             indicadores['Valuation (DCF)'] ??
             indicadores['Levered DCF'] ??
             indicadores['DCF'] ??
-            '0'
+            '—'
           }
           leveredDcfAnoAnterior={
             indicadores['Valuation (DCF) (Y-1)'] ??
@@ -1369,7 +1388,7 @@ export function StockRatingsBySector({ setor, indicadores }: StockRatingsBySecto
             indicadores['DCF (Y-1)'] ??
             indicadores['Levered DCF_anterior']
           }
-          precoAtual={indicadores['Preço Atual'] ?? indicadores['Preço'] ?? '0'}
+          precoAtual={indicadores['Preço Atual'] ?? indicadores['Preço'] ?? '—'}
           precoAtualAnoAnterior={
             indicadores['Preço Atual (Y-1)'] ??
             indicadores['Preço (Y-1)'] ??
