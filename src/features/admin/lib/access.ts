@@ -83,9 +83,9 @@ export const ADMIN_MODULES: AdminModuleConfig[] = [
     key: 'brands',
     label: 'Recursos',
     path: '/admin/recursos',
-    readScopes: ['admin.brands.read'],
-    writeScopes: ['admin.brands.write'],
-    operational: false,
+    readScopes: ['admin.directory.manage', 'admin.brands.read'],
+    writeScopes: ['admin.directory.manage', 'admin.brands.write'],
+    operational: true,
   },
   {
     key: 'stats',

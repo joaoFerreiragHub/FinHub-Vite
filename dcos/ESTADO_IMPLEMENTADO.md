@@ -830,3 +830,30 @@ Data de referencia: 2026-02-21 (atualizado apos fecho oficial de P2 e replaneame
     - `npm run typecheck` -> PASS
     - `npm run build` -> PASS
     - `npm run contract:openapi` -> PASS
+
+## 41) P4 Fase C1 fechada - diretorios admin frontend integrados (2026-02-23)
+- Frontend (`FinHub-Vite`) com modulo de diretorios admin operacional em `/admin/recursos`:
+  - pagina `src/features/admin/pages/BrandsManagementPage.tsx` deixou de placeholder.
+  - listagem por vertical (`broker`, `exchange`, `site`, `app`, `podcast`, `event`, `other`) com filtros e paginacao.
+  - operacoes ligadas aos endpoints reais:
+    - `POST /api/admin/directories/:vertical`
+    - `PATCH /api/admin/directories/:vertical/:entryId`
+    - `POST /api/admin/directories/:vertical/:entryId/publish`
+    - `POST /api/admin/directories/:vertical/:entryId/archive`
+  - guardrails de operacao:
+    - motivo obrigatorio para `archive`;
+    - confirmacao dupla (`CONFIRMAR`) para `archive`.
+- Camada tecnica frontend consolidada:
+  - tipos: `src/features/admin/types/adminDirectories.ts`
+  - service: `src/features/admin/services/adminDirectoriesService.ts`
+  - hooks: `src/features/admin/hooks/useAdminDirectories.ts`
+  - teste unitario novo: `src/__tests__/features/admin/adminDirectoriesService.test.ts`
+- Integracao de acesso no painel admin:
+  - modulo `Recursos` marcado como operacional em `src/features/admin/lib/access.ts`.
+  - escopo principal `admin.directory.manage` com compatibilidade legacy (`admin.brands.read/write`).
+- Validacao tecnica do ciclo (frontend):
+  - `npm run typecheck:p1` -> PASS
+  - `npm run lint` -> PASS (warnings nao bloqueantes existentes)
+  - `npm run test -- --runInBand` -> PASS (17 suites, 127 testes)
+  - `npm run build` -> PASS
+  - `npm run test:e2e` -> PASS (8/8)

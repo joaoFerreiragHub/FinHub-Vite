@@ -1,7 +1,7 @@
 ﻿# P4 - Admin Editorial CMS (Conteudo e Curadoria)
 
 Data: 2026-02-22
-Status: EM CURSO (Fases A e B entregues em 2026-02-22).
+Status: EM CURSO (Fases A, B e C1 entregues em 2026-02-23).
 
 ## 1) Objetivo de negocio
 Permitir que o admin opere como "bootstrap creator/editorial" quando a rede de creators ainda e reduzida, garantindo:
@@ -215,9 +215,24 @@ Perfis sugeridos:
   - `npm run contract:openapi` -> PASS
 
 ### Fase C - Diretorios verticais
-1. UI admin de diretorios por vertical.
-2. visibilidade/destaque/publish/archive.
-3. landing/show-all publico por vertical com filtros.
+1. C1 - Admin UI de diretorios por vertical - ENTREGUE (2026-02-23):
+- modulo operacional em `/admin/recursos` com filtros, paginacao e listagem por vertical (`broker`, `exchange`, `site`, `app`, `podcast`, `event`, `other`).
+- operacoes de escrita integradas aos endpoints reais:
+  - `POST /api/admin/directories/:vertical`
+  - `PATCH /api/admin/directories/:vertical/:entryId`
+  - `POST /api/admin/directories/:vertical/:entryId/publish`
+  - `POST /api/admin/directories/:vertical/:entryId/archive`
+- guardrails aplicados:
+  - motivo obrigatorio para arquivamento;
+  - confirmacao dupla (`CONFIRMAR`) para arquivamento.
+- camada frontend dedicada entregue:
+  - tipos: `src/features/admin/types/adminDirectories.ts`
+  - service: `src/features/admin/services/adminDirectoriesService.ts`
+  - hooks: `src/features/admin/hooks/useAdminDirectories.ts`
+  - pagina: `src/features/admin/pages/BrandsManagementPage.tsx`
+  - teste unitario: `src/__tests__/features/admin/adminDirectoriesService.test.ts`
+2. C2 - Landing/show-all publico por vertical - PENDENTE:
+- consolidar consumo/UX dos endpoints publicos `GET /api/editorial/:vertical` e `GET /api/editorial/:vertical/show-all`.
 
 ### Fase D - Seed content + claim
 1. ownerType/sourceType/claimable na operacao editorial.
@@ -240,6 +255,6 @@ Perfis sugeridos:
 - frontend: `typecheck:p1`, `lint`, `test`, `build`, `test:e2e`
 
 ## 10) Proximo passo recomendado
-1. Fechar Fase B (frontend admin de curadoria home) com consumo real dos endpoints entregues.
-2. Em seguida, avançar para Fase C (diretorios) e D (claims/ownership) no mesmo ciclo de validacao.
-3. Fechar com Fase E e E2E antes de abrir novos blocos de roadmap.
+1. Fechar Fase C2 (landing/show-all publico por vertical) para concluir oficialmente a Fase C.
+2. Avancar para Fase D (claim review + ownership transfer) com frontend fim-a-fim.
+3. Fechar com Fase E (hardening/E2E editorial completo) antes de abrir novo bloco de roadmap.

@@ -338,7 +338,7 @@ Estado atual do P3: EM CURSO (arranque tecnico ja iniciado; falta fechar cobertu
   - diretorios verticais (corretoras, exchanges, apps, sites) com landing/show-all.
   - workflow de claim e transferencia de ownership `admin_seeded -> creator_owned`.
   - RBAC dedicado (`admin.home.curate`, `admin.directory.manage`, `admin.claim.review`, etc.) + auditoria.
-- estado atual: EM CURSO (Fases A e B entregues em 2026-02-22).
+- estado atual: EM CURSO (Fases A, B e C1 entregues em 2026-02-23).
   - entregue em backend:
     - novos scopes RBAC editorial/claim/publish/archive.
     - modelos: `EditorialSection`, `EditorialSectionItem`, `DirectoryEntry`, `ClaimRequest`, `OwnershipTransferLog`.
@@ -351,12 +351,17 @@ Estado atual do P3: EM CURSO (arranque tecnico ja iniciado; falta fechar cobertu
     - guardrails operacionais no CMS (read-only por escopo, confirmacao dupla para remocao e controlo de limite por secao).
     - preview da home curada ligado a `GET /api/editorial/home`.
     - modulo integrado ao painel admin unificado (sidebar + rota + tab embebido em `/admin`).
+  - entregue em frontend (Fase C1):
+    - modulo `/admin/recursos` operacional com filtros, paginacao e listagem por vertical.
+    - operacoes create/update/publish/archive ligadas aos endpoints reais de diretorios.
+    - guardrails para arquivamento (motivo obrigatorio + confirmacao dupla `CONFIRMAR`).
+    - modulo `Recursos` marcado como operacional na camada de acesso (`admin.directory.manage` + compatibilidade legacy).
+    - novo teste unitario `src/__tests__/features/admin/adminDirectoriesService.test.ts`.
   - validacao tecnica do ciclo:
     - frontend `typecheck:p1 + lint + test --runInBand + build + test:e2e` -> PASS.
     - backend `typecheck + build + contract:openapi` -> PASS.
-  - proximo foco imediato (Fase C):
-    - UI admin de diretorios por vertical (broker/exchange/site/app/podcast/event/other).
-    - controlo publish/archive e flags de visibilidade por vertical (landing/show-all).
+  - proximo foco imediato (Fase C2):
+    - landing/show-all publico por vertical com filtros (consumo de `/api/editorial/:vertical` e `/api/editorial/:vertical/show-all`).
 
 2. Analise detalhada de stocks (novo escopo adiado do P3).
 3. Livros completos (replies, filtros, destaques, categorias) no frontend ativo.
@@ -391,6 +396,6 @@ Estado atual do P3: EM CURSO (arranque tecnico ja iniciado; falta fechar cobertu
 ## Sequencia pragmatica sugerida
 1. Fechar primeiro o novo P3 (hardening de analise de stocks e cobertura de metricas atuais).
 2. Continuar P4 com Fase B (frontend admin de curadoria home) sobre a Fase A backend ja entregue.
-3. Avancar para Fase C + D (diretorios e claims/ownership) no mesmo ciclo de qualidade.
+3. Avancar para Fase C2 + D (landing/show-all publico + claims/ownership) no mesmo ciclo de qualidade.
 4. Fechar Fase E (E2E/hardening operacional) antes de mover para os restantes itens de P4.
 
