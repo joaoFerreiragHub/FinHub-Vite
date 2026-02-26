@@ -1,8 +1,19 @@
-import { ArrowRight, BookOpen, CalendarClock, Newspaper, Wallet } from 'lucide-react'
+import {
+  ArrowRight,
+  BookOpen,
+  Building2,
+  CalendarClock,
+  Globe,
+  Mic2,
+  Newspaper,
+  Smartphone,
+  Wallet,
+} from 'lucide-react'
 import { HomepageLayout } from '@/components/home/HomepageLayout'
 import { PageHero } from '@/components/public'
 import { Button, Card, CardContent } from '@/components/ui'
 import { MarketSubNav } from '@/pages/mercados/_components/MarketSubNav'
+import { EDITORIAL_VERTICALS } from './_components/editorialVerticals'
 
 type ResourceCard = {
   title: string
@@ -38,6 +49,16 @@ const resourceCards: ResourceCard[] = [
   },
 ]
 
+const verticalIcons = {
+  corretoras: Building2,
+  exchanges: Wallet,
+  sites: Globe,
+  apps: Smartphone,
+  podcasts: Mic2,
+  eventos: CalendarClock,
+  outros: BookOpen,
+} as const
+
 export function Page() {
   return (
     <HomepageLayout>
@@ -52,6 +73,46 @@ export function Page() {
         <section className="px-4 sm:px-6 md:px-10 lg:px-12 py-10">
           <div className="mx-auto max-w-6xl space-y-6">
             <MarketSubNav current="/mercados/recursos" />
+
+            <div className="space-y-3">
+              <h2 className="text-xl font-semibold text-foreground">Diretorios editoriais</h2>
+              <p className="text-sm text-muted-foreground">
+                Landings publicas por vertical, com filtros e paginação ligados ao backend real.
+              </p>
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-2">
+              {EDITORIAL_VERTICALS.map((vertical) => {
+                const Icon = verticalIcons[vertical.slug]
+                return (
+                  <Card
+                    key={vertical.slug}
+                    className="group border border-border/60 bg-card/70 transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg"
+                  >
+                    <CardContent className="space-y-4 p-6">
+                      <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-foreground">{vertical.label}</h3>
+                      <p className="text-sm text-muted-foreground">{vertical.description}</p>
+                      <Button asChild variant="outline" className="w-full justify-between">
+                        <a href={`/mercados/recursos/${vertical.slug}`}>
+                          Abrir landing
+                          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                        </a>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <h2 className="text-xl font-semibold text-foreground">Recursos complementares</h2>
+              <p className="text-sm text-muted-foreground">
+                Contexto, conteudo e ferramentas para complementar a analise.
+              </p>
+            </div>
 
             <div className="grid gap-5 md:grid-cols-2">
               {resourceCards.map((card) => {
