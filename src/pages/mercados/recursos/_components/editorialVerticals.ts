@@ -52,10 +52,7 @@ export const EDITORIAL_VERTICALS: EditorialVerticalRouteConfig[] = [
   },
 ]
 
-export const getEditorialVerticalBySlug = (
-  slug: string,
-): EditorialVerticalRouteConfig | null => {
+export const getEditorialVerticalBySlug = (slug: string): EditorialVerticalRouteConfig | null => {
   const normalized = slug.toLowerCase().trim()
   return EDITORIAL_VERTICALS.find((item) => item.slug === normalized) ?? null
 }
-

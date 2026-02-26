@@ -323,7 +323,11 @@ function DirectoryPageContent({
                           </Badge>
                         ) : null}
                         {item.categories.slice(0, 2).map((category) => (
-                          <Badge key={`${item.id}-${category}`} variant="outline" className="text-xs">
+                          <Badge
+                            key={`${item.id}-${category}`}
+                            variant="outline"
+                            className="text-xs"
+                          >
                             {category}
                           </Badge>
                         ))}
@@ -399,4 +403,3 @@ export function EditorialDirectoryPage({ verticalSlug, mode }: EditorialDirector
 
   return <DirectoryPageContent vertical={vertical} mode={mode} />
 }
-
