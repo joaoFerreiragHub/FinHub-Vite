@@ -857,3 +857,53 @@ Data de referencia: 2026-02-21 (atualizado apos fecho oficial de P2 e replaneame
   - `npm run test -- --runInBand` -> PASS (17 suites, 127 testes)
   - `npm run build` -> PASS
   - `npm run test:e2e` -> PASS (8/8)
+
+## 42) P4 Fase C2 fechada - landing/show-all publico por vertical (2026-02-26)
+- Frontend (`FinHub-Vite`) consolidado para consumo publico dos endpoints editoriais por vertical:
+  - `GET /api/editorial/:vertical`
+  - `GET /api/editorial/:vertical/show-all`
+- Entregue:
+  - service dedicado `src/features/markets/services/editorialPublicApi.ts`
+  - hooks dedicados `src/features/markets/hooks/useEditorialPublic.ts`
+  - paginas:
+    - `src/pages/mercados/recursos/@vertical.page.tsx`
+    - `src/pages/mercados/recursos/@vertical/show-all.page.tsx`
+    - `src/pages/mercados/recursos/_components/EditorialDirectoryPage.tsx`
+  - teste unitario: `src/__tests__/features/markets/editorialPublicApi.test.ts`
+- Validacao tecnica do ciclo:
+  - `npm run typecheck:p1` -> PASS
+  - `npm run lint` -> PASS (warnings nao bloqueantes existentes)
+  - `npm run test -- --runInBand` -> PASS
+  - `npm run build` -> PASS
+  - `npm run test:e2e` -> PASS (8/8)
+
+## 43) P4 Fase D arranque frontend - claims e ownership operacional (2026-02-26)
+- Frontend (`FinHub-Vite`) com fluxo de claim/ownership ligado aos endpoints reais:
+  - creator em `/conta`:
+    - criar claim: `POST /api/editorial/claims`
+    - listar meus claims: `GET /api/editorial/claims/my`
+    - cancelar claim pendente: `POST /api/editorial/claims/:claimId/cancel`
+  - admin em `/admin/editorial`:
+    - listar/rever claims: `GET /api/admin/claims`
+    - aprovar/rejeitar: `POST /api/admin/claims/:claimId/approve|reject`
+    - transfer manual: `POST /api/admin/ownership/transfer`
+- Camada tecnica entregue:
+  - creator:
+    - service: `src/features/user/services/editorialClaimsService.ts`
+    - hooks: `src/features/user/hooks/useEditorialClaims.ts`
+    - pagina: `src/features/user/pages/UserSettingsPage.tsx`
+    - teste unitario: `src/__tests__/features/user/editorialClaimsService.test.ts`
+  - admin:
+    - tipos/service/hooks atualizados:
+      - `src/features/admin/types/adminEditorialCms.ts`
+      - `src/features/admin/services/adminEditorialCmsService.ts`
+      - `src/features/admin/hooks/useAdminEditorialCms.ts`
+    - pagina admin atualizada: `src/features/admin/pages/EditorialCmsPage.tsx`
+    - scopes admin alinhados: `src/features/admin/lib/access.ts`
+    - teste unitario atualizado: `src/__tests__/features/admin/adminEditorialCmsService.test.ts`
+- Validacao tecnica do ciclo:
+  - `npm run typecheck:p1` -> PASS
+  - `npm run lint` -> PASS (warnings nao bloqueantes existentes)
+  - `npm run test -- --runInBand` -> PASS (19 suites, 135 testes)
+  - `npm run build` -> PASS
+  - `npm run test:e2e` -> PASS (8/8)

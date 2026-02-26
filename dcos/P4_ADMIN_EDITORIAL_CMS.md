@@ -1,7 +1,7 @@
 ﻿# P4 - Admin Editorial CMS (Conteudo e Curadoria)
 
 Data: 2026-02-22
-Status: EM CURSO (Fases A, B e C1 entregues em 2026-02-23).
+Status: EM CURSO (Fases A, B e C entregues; Fase D em curso apos entregas de 2026-02-26).
 
 ## 1) Objetivo de negocio
 Permitir que o admin opere como "bootstrap creator/editorial" quando a rede de creators ainda e reduzida, garantindo:
@@ -231,13 +231,25 @@ Perfis sugeridos:
   - hooks: `src/features/admin/hooks/useAdminDirectories.ts`
   - pagina: `src/features/admin/pages/BrandsManagementPage.tsx`
   - teste unitario: `src/__tests__/features/admin/adminDirectoriesService.test.ts`
-2. C2 - Landing/show-all publico por vertical - PENDENTE:
-- consolidar consumo/UX dos endpoints publicos `GET /api/editorial/:vertical` e `GET /api/editorial/:vertical/show-all`.
+2. C2 - Landing/show-all publico por vertical - ENTREGUE (2026-02-26):
+- consumo/UX consolidado em:
+  - `/mercados/recursos/:vertical`
+  - `/mercados/recursos/:vertical/show-all`
+- integracao via service/hooks dedicados:
+  - `src/features/markets/services/editorialPublicApi.ts`
+  - `src/features/markets/hooks/useEditorialPublic.ts`
+- cobertura unitaria em `src/__tests__/features/markets/editorialPublicApi.test.ts`.
 
 ### Fase D - Seed content + claim
-1. ownerType/sourceType/claimable na operacao editorial.
-2. fluxo de claim review fim-a-fim no frontend.
-3. transfer de ownership com log e historico consultavel.
+Status: EM CURSO (D1 e D2 entregues em 2026-02-26).
+1. ownerType/sourceType/claimable na operacao editorial - ENTREGUE.
+2. fluxo de claim review fim-a-fim no frontend - ENTREGUE:
+- creator em `/conta` com criar/listar/cancelar claim (`/api/editorial/claims*`).
+- admin em `/admin/editorial` com listagem/filtros/aprovar/rejeitar (`/api/admin/claims*`).
+3. transfer de ownership com log e historico consultavel - PARCIAL:
+- transferencia manual em `/admin/editorial` integrada a `POST /api/admin/ownership/transfer`.
+- retorno operacional com `transferLogId` apresentado em UI.
+- pendente: consulta dedicada de historico de ownership transfer.
 
 ### Fase E - Hardening
 1. E2E de fluxo editorial completo.
@@ -255,6 +267,6 @@ Perfis sugeridos:
 - frontend: `typecheck:p1`, `lint`, `test`, `build`, `test:e2e`
 
 ## 10) Proximo passo recomendado
-1. Fechar Fase C2 (landing/show-all publico por vertical) para concluir oficialmente a Fase C.
-2. Avancar para Fase D (claim review + ownership transfer) com frontend fim-a-fim.
-3. Fechar com Fase E (hardening/E2E editorial completo) antes de abrir novo bloco de roadmap.
+1. Fechar D3: endpoint + UI dedicada para historico consultavel de ownership transfer.
+2. Fechar Fase E com E2E editorial completo (incluindo fluxo de claim creator -> review admin -> transfer).
+3. Endurecer guardrails/rate limits e consolidar playbook operacional de rollback.

@@ -338,7 +338,7 @@ Estado atual do P3: EM CURSO (arranque tecnico ja iniciado; falta fechar cobertu
   - diretorios verticais (corretoras, exchanges, apps, sites) com landing/show-all.
   - workflow de claim e transferencia de ownership `admin_seeded -> creator_owned`.
   - RBAC dedicado (`admin.home.curate`, `admin.directory.manage`, `admin.claim.review`, etc.) + auditoria.
-- estado atual: EM CURSO (Fases A, B e C1 entregues em 2026-02-23).
+- estado atual: EM CURSO (Fases A, B e C entregues; Fase D em curso com entregas frontend em 2026-02-26).
   - entregue em backend:
     - novos scopes RBAC editorial/claim/publish/archive.
     - modelos: `EditorialSection`, `EditorialSectionItem`, `DirectoryEntry`, `ClaimRequest`, `OwnershipTransferLog`.
@@ -357,11 +357,23 @@ Estado atual do P3: EM CURSO (arranque tecnico ja iniciado; falta fechar cobertu
     - guardrails para arquivamento (motivo obrigatorio + confirmacao dupla `CONFIRMAR`).
     - modulo `Recursos` marcado como operacional na camada de acesso (`admin.directory.manage` + compatibilidade legacy).
     - novo teste unitario `src/__tests__/features/admin/adminDirectoriesService.test.ts`.
+  - entregue em frontend (Fase C2):
+    - landing/show-all publico por vertical consolidado em:
+      - `/mercados/recursos/:vertical`
+      - `/mercados/recursos/:vertical/show-all`
+    - integracao via `editorialPublicApi` + hooks `useEditorialPublic`.
+    - teste unitario dedicado `src/__tests__/features/markets/editorialPublicApi.test.ts`.
+  - entregue em frontend (Fase D1/D2):
+    - creator claims em `/conta` com criar/listar/cancelar (`/api/editorial/claims*`).
+    - admin claims review em `/admin/editorial` com filtros + aprovar/rejeitar (`/api/admin/claims*`).
+    - transfer ownership manual em `/admin/editorial` integrado a `/api/admin/ownership/transfer`.
+    - alinhamento de scopes frontend para `admin.claim.review` e `admin.claim.transfer`.
   - validacao tecnica do ciclo:
     - frontend `typecheck:p1 + lint + test --runInBand + build + test:e2e` -> PASS.
     - backend `typecheck + build + contract:openapi` -> PASS.
-  - proximo foco imediato (Fase C2):
-    - landing/show-all publico por vertical com filtros (consumo de `/api/editorial/:vertical` e `/api/editorial/:vertical/show-all`).
+  - proximo foco imediato (Fase D3/E):
+    - historico consultavel de ownership transfer (endpoint + UI de consulta).
+    - E2E editorial completo (claim creator -> review admin -> transfer).
 
 2. Analise detalhada de stocks (novo escopo adiado do P3).
 3. Livros completos (replies, filtros, destaques, categorias) no frontend ativo.
