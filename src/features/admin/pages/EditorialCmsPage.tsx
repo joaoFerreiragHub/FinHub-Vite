@@ -40,21 +40,28 @@ import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { getErrorMessage } from '@/lib/api/client'
 import {
   useAddAdminEditorialSectionItem,
+  useAdminEditorialClaims,
   useAdminEditorialHomePreview,
   useAdminEditorialSections,
+  useApproveAdminEditorialClaim,
   useCreateAdminEditorialSection,
+  useRejectAdminEditorialClaim,
   useRemoveAdminEditorialSectionItem,
   useReorderAdminEditorialSectionItems,
+  useTransferAdminOwnership,
   useUpdateAdminEditorialSection,
 } from '../hooks/useAdminEditorialCms'
 import type {
   AdminAddEditorialSectionItemInput,
+  AdminEditorialClaimStatus,
+  AdminEditorialClaimTargetType,
   AdminEditorialSection,
   AdminEditorialSectionItem,
   AdminEditorialSectionItemStatus,
   AdminEditorialSectionItemTargetType,
   AdminEditorialSectionStatus,
   AdminEditorialSectionType,
+  AdminOwnershipOwnerType,
 } from '../types/adminEditorialCms'
 
 interface EditorialCmsPageProps {
@@ -102,6 +109,17 @@ interface RemoveDialogState {
 }
 
 type SectionFilterStatus = AdminEditorialSectionStatus | 'all'
+type ClaimFilterStatus = AdminEditorialClaimStatus | 'all'
+type ClaimFilterTargetType = AdminEditorialClaimTargetType | 'all'
+
+interface OwnershipTransferFormState {
+  targetType: AdminEditorialClaimTargetType
+  targetId: string
+  toOwnerType: AdminOwnershipOwnerType
+  toOwnerUserId: string
+  reason: string
+  note: string
+}
 
 const PAGE_SIZE = 25
 const DOUBLE_CONFIRM_TOKEN = 'CONFIRMAR'
@@ -135,6 +153,23 @@ const ITEM_STATUS_LABEL: Record<AdminEditorialSectionItemStatus, string> = {
   inactive: 'Inativo',
 }
 
+const CLAIM_STATUS_LABEL: Record<AdminEditorialClaimStatus, string> = {
+  pending: 'Pendente',
+  approved: 'Aprovado',
+  rejected: 'Rejeitado',
+  cancelled: 'Cancelado',
+}
+
+const CLAIM_TARGET_LABEL: Record<AdminEditorialClaimTargetType, string> = {
+  article: 'Artigo',
+  video: 'Video',
+  course: 'Curso',
+  live: 'Live',
+  podcast: 'Podcast',
+  book: 'Livro',
+  directory_entry: 'Diretorio',
+}
+
 const DEFAULT_SECTION_FORM: SectionFormState = {
   key: '',
   title: '',
@@ -162,6 +197,15 @@ const DEFAULT_ITEM_FORM: ItemFormState = {
   status: 'active',
   startAt: '',
   endAt: '',
+}
+
+const DEFAULT_TRANSFER_FORM: OwnershipTransferFormState = {
+  targetType: 'directory_entry',
+  targetId: '',
+  toOwnerType: 'creator_owned',
+  toOwnerUserId: '',
+  reason: '',
+  note: '',
 }
 
 const formatDateTime = (value: string | null): string => {
@@ -259,18 +303,24 @@ export default function EditorialCmsPage({ embedded = false }: EditorialCmsPageP
   const rawAuthUser = useAuthStore((state) => state.user)
   const authUser = (rawAuthUser as unknown as CurrentAdminMeta | null) ?? null
 
-  const canReadEditorial = useMemo(() => {
-    if (!authUser) return false
-    if (!Array.isArray(authUser.adminScopes) || authUser.adminScopes.length === 0) return true
-    return authUser.adminScopes.includes('admin.home.curate')
-  }, [authUser])
+  const adminScopes = Array.isArray(authUser?.adminScopes) ? authUser.adminScopes : []
+  const hasExplicitScopes = adminScopes.length > 0
+  const hasScope = (scope: string): boolean => !hasExplicitScopes || adminScopes.includes(scope)
 
-  const canWriteEditorial = useMemo(() => {
-    if (!authUser) return false
-    if (authUser.adminReadOnly) return false
-    if (!Array.isArray(authUser.adminScopes) || authUser.adminScopes.length === 0) return true
-    return authUser.adminScopes.includes('admin.home.curate')
-  }, [authUser])
+  const canReadEditorial = Boolean(authUser && hasScope('admin.home.curate'))
+  const canWriteEditorial = Boolean(
+    authUser && !authUser.adminReadOnly && hasScope('admin.home.curate'),
+  )
+  const canReadClaims = Boolean(
+    authUser && (hasScope('admin.claim.review') || hasScope('admin.claim.transfer')),
+  )
+  const canWriteClaimReview = Boolean(
+    authUser && !authUser.adminReadOnly && hasScope('admin.claim.review'),
+  )
+  const canWriteOwnershipTransfer = Boolean(
+    authUser && !authUser.adminReadOnly && hasScope('admin.claim.transfer'),
+  )
+  const canReadAnyEditorial = canReadEditorial || canReadClaims
 
   const [filters, setFilters] = useState<{ status: SectionFilterStatus; search: string }>({
     status: 'all',
@@ -283,6 +333,25 @@ export default function EditorialCmsPage({ embedded = false }: EditorialCmsPageP
     },
   )
   const [page, setPage] = useState(1)
+
+  const [claimFilters, setClaimFilters] = useState<{
+    status: ClaimFilterStatus
+    targetType: ClaimFilterTargetType
+  }>({
+    status: 'all',
+    targetType: 'all',
+  })
+  const [claimQueryFilters, setClaimQueryFilters] = useState<{
+    status: ClaimFilterStatus
+    targetType: ClaimFilterTargetType
+  }>({
+    status: 'all',
+    targetType: 'all',
+  })
+  const [claimPage, setClaimPage] = useState(1)
+  const [claimActionNote, setClaimActionNote] = useState('')
+  const [transferForm, setTransferForm] =
+    useState<OwnershipTransferFormState>(DEFAULT_TRANSFER_FORM)
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [createForm, setCreateForm] = useState<SectionFormState>(DEFAULT_SECTION_FORM)
@@ -317,18 +386,42 @@ export default function EditorialCmsPage({ embedded = false }: EditorialCmsPageP
     return nextQuery
   }, [page, queryFilters])
 
+  const claimQuery = useMemo(() => {
+    const nextQuery: {
+      page: number
+      limit: number
+      status?: AdminEditorialClaimStatus
+      targetType?: AdminEditorialClaimTargetType
+    } = {
+      page: claimPage,
+      limit: PAGE_SIZE,
+    }
+
+    if (claimQueryFilters.status !== 'all') nextQuery.status = claimQueryFilters.status
+    if (claimQueryFilters.targetType !== 'all') nextQuery.targetType = claimQueryFilters.targetType
+
+    return nextQuery
+  }, [claimPage, claimQueryFilters])
+
   const sectionsQuery = useAdminEditorialSections(query, { enabled: canReadEditorial })
   const homePreviewQuery = useAdminEditorialHomePreview({ enabled: canReadEditorial })
+  const claimsQuery = useAdminEditorialClaims(claimQuery, { enabled: canReadClaims })
 
   const createSectionMutation = useCreateAdminEditorialSection()
   const updateSectionMutation = useUpdateAdminEditorialSection()
   const addItemMutation = useAddAdminEditorialSectionItem()
   const reorderMutation = useReorderAdminEditorialSectionItems()
   const removeItemMutation = useRemoveAdminEditorialSectionItem()
+  const approveClaimMutation = useApproveAdminEditorialClaim()
+  const rejectClaimMutation = useRejectAdminEditorialClaim()
+  const transferOwnershipMutation = useTransferAdminOwnership()
 
   const sectionsData = sectionsQuery.data?.items
   const sections = useMemo(() => sectionsData ?? [], [sectionsData])
   const pagination = sectionsQuery.data?.pagination
+  const claimsData = claimsQuery.data?.items
+  const claims = useMemo(() => claimsData ?? [], [claimsData])
+  const claimPagination = claimsQuery.data?.pagination
 
   const totalItems = useMemo(
     () => sections.reduce((acc, section) => acc + section.items.length, 0),
@@ -341,6 +434,10 @@ export default function EditorialCmsPage({ embedded = false }: EditorialCmsPageP
   const homeVisibleSections = useMemo(
     () => sections.filter((section) => section.showOnHome).length,
     [sections],
+  )
+  const pendingClaims = useMemo(
+    () => claims.filter((claim) => claim.status === 'pending').length,
+    [claims],
   )
 
   const setSectionDraft = (
@@ -380,6 +477,17 @@ export default function EditorialCmsPage({ embedded = false }: EditorialCmsPageP
     setFilters({ status: 'all', search: '' })
     setQueryFilters({ status: 'all', search: '' })
     setPage(1)
+  }
+
+  const applyClaimFilters = () => {
+    setClaimQueryFilters(claimFilters)
+    setClaimPage(1)
+  }
+
+  const clearClaimFilters = () => {
+    setClaimFilters({ status: 'all', targetType: 'all' })
+    setClaimQueryFilters({ status: 'all', targetType: 'all' })
+    setClaimPage(1)
   }
 
   const openEditDialog = (section: AdminEditorialSection) => {
@@ -552,10 +660,74 @@ export default function EditorialCmsPage({ embedded = false }: EditorialCmsPageP
     }
   }
 
+  const approveClaim = async (claimId: string) => {
+    try {
+      const result = await approveClaimMutation.mutateAsync({
+        claimId,
+        note: claimActionNote,
+      })
+      toast.success(`Claim aprovado. Transfer log: ${result.transfer.transferLogId}`)
+      setClaimActionNote('')
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
+  }
+
+  const rejectClaim = async (claimId: string) => {
+    try {
+      await rejectClaimMutation.mutateAsync({
+        claimId,
+        note: claimActionNote,
+      })
+      toast.success('Claim rejeitado.')
+      setClaimActionNote('')
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
+  }
+
+  const submitOwnershipTransfer = async () => {
+    if (transferForm.targetId.trim().length === 0) {
+      toast.error('targetId obrigatorio para transferir ownership.')
+      return
+    }
+    if (transferForm.reason.trim().length === 0) {
+      toast.error('Motivo obrigatorio para transferir ownership.')
+      return
+    }
+    if (
+      transferForm.toOwnerType === 'creator_owned' &&
+      transferForm.toOwnerUserId.trim().length === 0
+    ) {
+      toast.error('toOwnerUserId obrigatorio quando destino e creator_owned.')
+      return
+    }
+
+    try {
+      const result = await transferOwnershipMutation.mutateAsync({
+        targetType: transferForm.targetType,
+        targetId: transferForm.targetId,
+        toOwnerType: transferForm.toOwnerType,
+        toOwnerUserId:
+          transferForm.toOwnerType === 'creator_owned' ? transferForm.toOwnerUserId : null,
+        reason: transferForm.reason,
+        note: transferForm.note,
+      })
+      toast.success(`Ownership transferido. Log: ${result.transferLogId}`)
+      setTransferForm((prev) => ({
+        ...DEFAULT_TRANSFER_FORM,
+        targetType: prev.targetType,
+        toOwnerType: prev.toOwnerType,
+      }))
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
+  }
+
   const renderTitle = embedded ? 'Editorial CMS' : 'Editorial CMS - Curadoria da Home'
   const renderDescription = embedded
-    ? 'Gestao de secoes e itens editoriais para a homepage.'
-    : 'Operacao de secoes dinamicas, itens e preview publico da homepage curada.'
+    ? 'Gestao de secoes, claims e ownership editorial.'
+    : 'Operacao de secoes dinamicas, claims e preview publico da homepage curada.'
 
   return (
     <div className="space-y-6">
@@ -572,425 +744,756 @@ export default function EditorialCmsPage({ embedded = false }: EditorialCmsPageP
         <p className="text-sm text-muted-foreground">{renderDescription}</p>
       </div>
 
-      {!canReadEditorial && (
+      {!canReadAnyEditorial && (
         <Card className="border-destructive/40 bg-destructive/5">
           <CardContent className="flex items-start gap-3 pt-6">
             <ShieldAlert className="mt-0.5 h-4 w-4 text-destructive" />
             <p className="text-sm text-destructive">
-              Perfil atual sem escopo `admin.home.curate`. Nao e possivel consultar o modulo
-              editorial.
+              Perfil atual sem escopo para este modulo (`admin.home.curate`, `admin.claim.review` ou
+              `admin.claim.transfer`).
             </p>
           </CardContent>
         </Card>
       )}
 
-      {canReadEditorial && !canWriteEditorial && (
+      {canReadAnyEditorial &&
+      !canWriteEditorial &&
+      !canWriteClaimReview &&
+      !canWriteOwnershipTransfer ? (
         <Card className="border-yellow-500/40 bg-yellow-500/5">
           <CardContent className="flex items-start gap-3 pt-6">
             <ShieldAlert className="mt-0.5 h-4 w-4 text-yellow-600" />
             <p className="text-sm text-muted-foreground">
-              Perfil em modo read-only. Tens acesso a consulta e preview, mas sem criar, editar ou
-              remover.
+              Perfil em modo read-only. Tens acesso a consulta, mas sem executar acoes de escrita.
             </p>
           </CardContent>
         </Card>
-      )}
+      ) : null}
 
-      {canReadEditorial ? (
+      {canReadAnyEditorial ? (
         <>
-          <div className="grid gap-4 md:grid-cols-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardDescription>Secoes (filtro atual)</CardDescription>
-                <CardTitle className="text-2xl">{pagination?.total ?? 0}</CardTitle>
-              </CardHeader>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardDescription>Secoes ativas</CardDescription>
-                <CardTitle className="text-2xl">{activeSections}</CardTitle>
-              </CardHeader>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardDescription>Itens no lote</CardDescription>
-                <CardTitle className="text-2xl">{totalItems}</CardTitle>
-              </CardHeader>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardDescription>Com visibilidade Home</CardDescription>
-                <CardTitle className="text-2xl">{homeVisibleSections}</CardTitle>
-              </CardHeader>
-            </Card>
-          </div>
+          {canReadEditorial ? (
+            <div className="grid gap-4 md:grid-cols-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardDescription>Secoes (filtro atual)</CardDescription>
+                  <CardTitle className="text-2xl">{pagination?.total ?? 0}</CardTitle>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardDescription>Secoes ativas</CardDescription>
+                  <CardTitle className="text-2xl">{activeSections}</CardTitle>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardDescription>Itens no lote</CardDescription>
+                  <CardTitle className="text-2xl">{totalItems}</CardTitle>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardDescription>Com visibilidade Home</CardDescription>
+                  <CardTitle className="text-2xl">{homeVisibleSections}</CardTitle>
+                </CardHeader>
+              </Card>
+            </div>
+          ) : null}
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Filtros de secao</CardTitle>
-              <CardDescription>Pesquisa por key/titulo e estado da secao.</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
-              <div className="xl:col-span-3">
-                <Label htmlFor="editorial-search">Pesquisa</Label>
-                <div className="mt-1 flex items-center gap-2">
-                  <Input
-                    id="editorial-search"
-                    value={filters.search}
-                    onChange={(event) =>
-                      setFilters((prev) => ({ ...prev, search: event.target.value }))
-                    }
-                    placeholder="Titulo, key, subtitulo ou descricao"
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') {
-                        event.preventDefault()
-                        applyFilters()
+          {canReadEditorial ? (
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Filtros de secao</CardTitle>
+                  <CardDescription>Pesquisa por key/titulo e estado da secao.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+                  <div className="xl:col-span-3">
+                    <Label htmlFor="editorial-search">Pesquisa</Label>
+                    <div className="mt-1 flex items-center gap-2">
+                      <Input
+                        id="editorial-search"
+                        value={filters.search}
+                        onChange={(event) =>
+                          setFilters((prev) => ({ ...prev, search: event.target.value }))
+                        }
+                        placeholder="Titulo, key, subtitulo ou descricao"
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') {
+                            event.preventDefault()
+                            applyFilters()
+                          }
+                        }}
+                      />
+                      <Button type="button" variant="outline" onClick={applyFilters}>
+                        <Search className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Estado</Label>
+                    <Select
+                      value={filters.status}
+                      onValueChange={(value) =>
+                        setFilters((prev) => ({ ...prev, status: value as SectionFilterStatus }))
                       }
-                    }}
-                  />
-                  <Button type="button" variant="outline" onClick={applyFilters}>
-                    <Search className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Todos" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="active">Ativa</SelectItem>
+                        <SelectItem value="inactive">Inativa</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              <div>
-                <Label>Estado</Label>
-                <Select
-                  value={filters.status}
-                  onValueChange={(value) =>
-                    setFilters((prev) => ({ ...prev, status: value as SectionFilterStatus }))
-                  }
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Todos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="active">Ativa</SelectItem>
-                    <SelectItem value="inactive">Inativa</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                  <div className="md:col-span-2 xl:col-span-2 flex flex-wrap gap-2 self-end">
+                    <Button type="button" onClick={applyFilters}>
+                      Aplicar filtros
+                    </Button>
+                    <Button type="button" variant="outline" onClick={clearFilters}>
+                      Limpar
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => {
+                        sectionsQuery.refetch()
+                        homePreviewQuery.refetch()
+                      }}
+                      disabled={sectionsQuery.isFetching || homePreviewQuery.isFetching}
+                    >
+                      {sectionsQuery.isFetching || homePreviewQuery.isFetching ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <RefreshCcw className="h-4 w-4" />
+                      )}
+                      Atualizar
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => setCreateDialogOpen(true)}
+                      disabled={!canWriteEditorial}
+                    >
+                      <Plus className="h-4 w-4" />
+                      Nova secao
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
 
-              <div className="md:col-span-2 xl:col-span-2 flex flex-wrap gap-2 self-end">
-                <Button type="button" onClick={applyFilters}>
-                  Aplicar filtros
-                </Button>
-                <Button type="button" variant="outline" onClick={clearFilters}>
-                  Limpar
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => {
-                    sectionsQuery.refetch()
-                    homePreviewQuery.refetch()
-                  }}
-                  disabled={sectionsQuery.isFetching || homePreviewQuery.isFetching}
-                >
-                  {sectionsQuery.isFetching || homePreviewQuery.isFetching ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Secoes editoriais</CardTitle>
+                  <CardDescription>
+                    Opera metadata da secao e a lista de itens com reorder/pin/status.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {sectionsQuery.isLoading ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />A carregar secoes editoriais...
+                    </div>
+                  ) : sectionsQuery.isError ? (
+                    <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+                      {getErrorMessage(sectionsQuery.error)}
+                    </div>
+                  ) : sections.length === 0 ? (
+                    <div className="rounded-md border border-dashed border-border p-8 text-center">
+                      <p className="text-sm text-muted-foreground">
+                        Sem secoes para os filtros atuais.
+                      </p>
+                    </div>
                   ) : (
-                    <RefreshCcw className="h-4 w-4" />
-                  )}
-                  Atualizar
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => setCreateDialogOpen(true)}
-                  disabled={!canWriteEditorial}
-                >
-                  <Plus className="h-4 w-4" />
-                  Nova secao
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                    sections.map((section) => {
+                      const workingItems = getWorkingItems(section)
+                      const dirty = hasDraftChanges(section)
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Secoes editoriais</CardTitle>
-              <CardDescription>
-                Opera metadata da secao e a lista de itens com reorder/pin/status.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {sectionsQuery.isLoading ? (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />A carregar secoes editoriais...
-                </div>
-              ) : sectionsQuery.isError ? (
-                <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
-                  {getErrorMessage(sectionsQuery.error)}
-                </div>
-              ) : sections.length === 0 ? (
-                <div className="rounded-md border border-dashed border-border p-8 text-center">
-                  <p className="text-sm text-muted-foreground">
-                    Sem secoes para os filtros atuais.
-                  </p>
-                </div>
-              ) : (
-                sections.map((section) => {
-                  const workingItems = getWorkingItems(section)
-                  const dirty = hasDraftChanges(section)
+                      return (
+                        <div key={section.id} className="rounded-lg border border-border/70 p-4">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="space-y-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="text-base font-semibold">{section.title}</p>
+                                <Badge variant="outline">{section.key}</Badge>
+                                <Badge variant="outline">
+                                  {SECTION_TYPE_LABEL[section.sectionType]}
+                                </Badge>
+                                <Badge
+                                  variant={section.status === 'active' ? 'secondary' : 'outline'}
+                                >
+                                  {SECTION_STATUS_LABEL[section.status]}
+                                </Badge>
+                                {section.showOnHome ? (
+                                  <Badge className="bg-green-600 text-white hover:bg-green-600">
+                                    Home on
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline">Home off</Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                {section.description || 'Sem descricao adicional.'}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Itens: {workingItems.length}/{section.maxItems} | Ordem secao:{' '}
+                                {section.order} | Atualizada: {formatDateTime(section.updatedAt)}
+                              </p>
+                            </div>
 
-                  return (
-                    <div key={section.id} className="rounded-lg border border-border/70 p-4">
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div className="space-y-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-base font-semibold">{section.title}</p>
-                            <Badge variant="outline">{section.key}</Badge>
-                            <Badge variant="outline">
-                              {SECTION_TYPE_LABEL[section.sectionType]}
-                            </Badge>
-                            <Badge variant={section.status === 'active' ? 'secondary' : 'outline'}>
-                              {SECTION_STATUS_LABEL[section.status]}
-                            </Badge>
-                            {section.showOnHome ? (
-                              <Badge className="bg-green-600 text-white hover:bg-green-600">
-                                Home on
-                              </Badge>
+                            <div className="flex flex-wrap gap-2">
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => openEditDialog(section)}
+                                disabled={!canWriteEditorial}
+                              >
+                                Editar secao
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setAddItemSection(section)}
+                                disabled={
+                                  !canWriteEditorial || workingItems.length >= section.maxItems
+                                }
+                              >
+                                Adicionar item
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={() => saveSectionReorder(section)}
+                                disabled={!canWriteEditorial || !dirty || reorderMutation.isPending}
+                              >
+                                Guardar ordem
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => clearSectionDraft(section.id)}
+                                disabled={!dirty || reorderMutation.isPending}
+                              >
+                                Descartar
+                              </Button>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 space-y-2">
+                            {workingItems.length === 0 ? (
+                              <p className="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
+                                Secao sem itens.
+                              </p>
                             ) : (
-                              <Badge variant="outline">Home off</Badge>
+                              workingItems.map((item, index) => (
+                                <div
+                                  key={item.id}
+                                  className="grid gap-2 rounded-md border border-border/70 bg-muted/10 p-3 md:grid-cols-12"
+                                >
+                                  <div className="md:col-span-7">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <Badge variant="outline">
+                                        {ITEM_TARGET_LABEL[item.targetType]}
+                                      </Badge>
+                                      <Badge
+                                        variant={item.status === 'active' ? 'secondary' : 'outline'}
+                                      >
+                                        {ITEM_STATUS_LABEL[item.status]}
+                                      </Badge>
+                                      {item.isPinned ? (
+                                        <Badge className="bg-blue-600 text-white hover:bg-blue-600">
+                                          Pinned
+                                        </Badge>
+                                      ) : null}
+                                    </div>
+                                    <p className="mt-2 text-sm font-medium">
+                                      {item.titleOverride || item.targetId}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      Target: {item.targetType} / {item.targetId}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      sortOrder: {item.sortOrder} | Janela:{' '}
+                                      {formatDateTime(item.startAt)} - {formatDateTime(item.endAt)}
+                                    </p>
+                                  </div>
+
+                                  <div className="md:col-span-5 flex flex-wrap items-center justify-start gap-2 md:justify-end">
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => moveItem(section, index, 'up')}
+                                      disabled={!canWriteEditorial || index === 0}
+                                    >
+                                      <ArrowUp className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => moveItem(section, index, 'down')}
+                                      disabled={
+                                        !canWriteEditorial || index === workingItems.length - 1
+                                      }
+                                    >
+                                      <ArrowDown className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => togglePinned(section, index)}
+                                      disabled={!canWriteEditorial}
+                                    >
+                                      {item.isPinned ? (
+                                        <>
+                                          <PinOff className="h-4 w-4" />
+                                          Unpin
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Pin className="h-4 w-4" />
+                                          Pin
+                                        </>
+                                      )}
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => toggleStatus(section, index)}
+                                      disabled={!canWriteEditorial}
+                                    >
+                                      {item.status === 'active' ? 'Inativar' : 'Ativar'}
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() =>
+                                        setRemoveDialogState({
+                                          sectionId: section.id,
+                                          itemId: item.id,
+                                          itemLabel: item.titleOverride || item.targetId,
+                                        })
+                                      }
+                                      disabled={!canWriteEditorial}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                      Remover
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground">
-                            {section.description || 'Sem descricao adicional.'}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Itens: {workingItems.length}/{section.maxItems} | Ordem secao:{' '}
-                            {section.order} | Atualizada: {formatDateTime(section.updatedAt)}
-                          </p>
                         </div>
+                      )
+                    })
+                  )}
 
-                        <div className="flex flex-wrap gap-2">
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={() => openEditDialog(section)}
-                            disabled={!canWriteEditorial}
-                          >
-                            Editar secao
-                          </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setAddItemSection(section)}
-                            disabled={!canWriteEditorial || workingItems.length >= section.maxItems}
-                          >
-                            Adicionar item
-                          </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            onClick={() => saveSectionReorder(section)}
-                            disabled={!canWriteEditorial || !dirty || reorderMutation.isPending}
-                          >
-                            Guardar ordem
-                          </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => clearSectionDraft(section.id)}
-                            disabled={!dirty || reorderMutation.isPending}
-                          >
-                            Descartar
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 space-y-2">
-                        {workingItems.length === 0 ? (
-                          <p className="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
-                            Secao sem itens.
-                          </p>
-                        ) : (
-                          workingItems.map((item, index) => (
-                            <div
-                              key={item.id}
-                              className="grid gap-2 rounded-md border border-border/70 bg-muted/10 p-3 md:grid-cols-12"
-                            >
-                              <div className="md:col-span-7">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <Badge variant="outline">
-                                    {ITEM_TARGET_LABEL[item.targetType]}
-                                  </Badge>
-                                  <Badge
-                                    variant={item.status === 'active' ? 'secondary' : 'outline'}
-                                  >
-                                    {ITEM_STATUS_LABEL[item.status]}
-                                  </Badge>
-                                  {item.isPinned ? (
-                                    <Badge className="bg-blue-600 text-white hover:bg-blue-600">
-                                      Pinned
-                                    </Badge>
-                                  ) : null}
-                                </div>
-                                <p className="mt-2 text-sm font-medium">
-                                  {item.titleOverride || item.targetId}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  Target: {item.targetType} / {item.targetId}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  sortOrder: {item.sortOrder} | Janela:{' '}
-                                  {formatDateTime(item.startAt)} - {formatDateTime(item.endAt)}
-                                </p>
-                              </div>
-
-                              <div className="md:col-span-5 flex flex-wrap items-center justify-start gap-2 md:justify-end">
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => moveItem(section, index, 'up')}
-                                  disabled={!canWriteEditorial || index === 0}
-                                >
-                                  <ArrowUp className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => moveItem(section, index, 'down')}
-                                  disabled={!canWriteEditorial || index === workingItems.length - 1}
-                                >
-                                  <ArrowDown className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => togglePinned(section, index)}
-                                  disabled={!canWriteEditorial}
-                                >
-                                  {item.isPinned ? (
-                                    <>
-                                      <PinOff className="h-4 w-4" />
-                                      Unpin
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Pin className="h-4 w-4" />
-                                      Pin
-                                    </>
-                                  )}
-                                </Button>
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => toggleStatus(section, index)}
-                                  disabled={!canWriteEditorial}
-                                >
-                                  {item.status === 'active' ? 'Inativar' : 'Ativar'}
-                                </Button>
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() =>
-                                    setRemoveDialogState({
-                                      sectionId: section.id,
-                                      itemId: item.id,
-                                      itemLabel: item.titleOverride || item.targetId,
-                                    })
-                                  }
-                                  disabled={!canWriteEditorial}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                  Remover
-                                </Button>
-                              </div>
-                            </div>
-                          ))
-                        )}
+                  {pagination && pagination.pages > 1 ? (
+                    <div className="flex items-center justify-between border-t border-border pt-4">
+                      <p className="text-sm text-muted-foreground">
+                        Pagina {pagination.page} de {pagination.pages}
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={pagination.page <= 1}
+                          onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                        >
+                          Anterior
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={pagination.page >= pagination.pages}
+                          onClick={() => setPage((prev) => Math.min(pagination.pages, prev + 1))}
+                        >
+                          Seguinte
+                        </Button>
                       </div>
                     </div>
-                  )
-                })
-              )}
+                  ) : null}
+                </CardContent>
+              </Card>
 
-              {pagination && pagination.pages > 1 ? (
-                <div className="flex items-center justify-between border-t border-border pt-4">
-                  <p className="text-sm text-muted-foreground">
-                    Pagina {pagination.page} de {pagination.pages}
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      disabled={pagination.page <= 1}
-                      onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                    >
-                      Anterior
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      disabled={pagination.page >= pagination.pages}
-                      onClick={() => setPage((prev) => Math.min(pagination.pages, prev + 1))}
-                    >
-                      Seguinte
-                    </Button>
-                  </div>
-                </div>
-              ) : null}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Preview publico da Home</CardTitle>
-              <CardDescription>Snapshot direto de `GET /api/editorial/home`.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {homePreviewQuery.isLoading ? (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />A carregar preview...
-                </div>
-              ) : homePreviewQuery.isError ? (
-                <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
-                  {getErrorMessage(homePreviewQuery.error)}
-                </div>
-              ) : (homePreviewQuery.data?.items.length ?? 0) === 0 ? (
-                <p className="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
-                  Sem secoes visiveis na Home neste momento.
-                </p>
-              ) : (
-                homePreviewQuery.data?.items.map((section) => (
-                  <div key={section.id} className="rounded-md border border-border/70 p-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold">{section.title}</p>
-                      <Badge variant="outline">{section.key}</Badge>
-                      <Badge variant="outline">{SECTION_TYPE_LABEL[section.sectionType]}</Badge>
-                      <Badge variant="secondary">
-                        {section.items.length}/{section.maxItems} itens
-                      </Badge>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Preview publico da Home</CardTitle>
+                  <CardDescription>Snapshot direto de `GET /api/editorial/home`.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {homePreviewQuery.isLoading ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />A carregar preview...
                     </div>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {section.subtitle || section.description || 'Sem resumo adicional.'}
+                  ) : homePreviewQuery.isError ? (
+                    <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+                      {getErrorMessage(homePreviewQuery.error)}
+                    </div>
+                  ) : (homePreviewQuery.data?.items.length ?? 0) === 0 ? (
+                    <p className="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
+                      Sem secoes visiveis na Home neste momento.
                     </p>
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {section.items.slice(0, 6).map((item) => (
-                        <Badge key={item.id} variant="outline" className="text-[10px]">
-                          {ITEM_TARGET_LABEL[item.targetType]}:{' '}
-                          {item.titleOverride || item.targetId.slice(0, 24)}
-                        </Badge>
-                      ))}
+                  ) : (
+                    homePreviewQuery.data?.items.map((section) => (
+                      <div key={section.id} className="rounded-md border border-border/70 p-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-semibold">{section.title}</p>
+                          <Badge variant="outline">{section.key}</Badge>
+                          <Badge variant="outline">{SECTION_TYPE_LABEL[section.sectionType]}</Badge>
+                          <Badge variant="secondary">
+                            {section.items.length}/{section.maxItems} itens
+                          </Badge>
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {section.subtitle || section.description || 'Sem resumo adicional.'}
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {section.items.slice(0, 6).map((item) => (
+                            <Badge key={item.id} variant="outline" className="text-[10px]">
+                              {ITEM_TARGET_LABEL[item.targetType]}:{' '}
+                              {item.titleOverride || item.targetId.slice(0, 24)}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </CardContent>
+              </Card>
+            </>
+          ) : null}
+
+          {canReadClaims ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Claims e ownership</CardTitle>
+                <CardDescription>
+                  Revisao de claims (`/api/admin/claims`) e transfer manual de ownership.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="secondary">Pendentes: {pendingClaims}</Badge>
+                  <Badge variant="outline">Total no filtro: {claimPagination?.total ?? 0}</Badge>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => claimsQuery.refetch()}
+                    disabled={claimsQuery.isFetching}
+                  >
+                    {claimsQuery.isFetching ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCcw className="h-4 w-4" />
+                    )}
+                    Atualizar
+                  </Button>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+                  <div>
+                    <Label>Estado</Label>
+                    <Select
+                      value={claimFilters.status}
+                      onValueChange={(value) =>
+                        setClaimFilters((prev) => ({ ...prev, status: value as ClaimFilterStatus }))
+                      }
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Todos" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="pending">Pendente</SelectItem>
+                        <SelectItem value="approved">Aprovado</SelectItem>
+                        <SelectItem value="rejected">Rejeitado</SelectItem>
+                        <SelectItem value="cancelled">Cancelado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label>Target type</Label>
+                    <Select
+                      value={claimFilters.targetType}
+                      onValueChange={(value) =>
+                        setClaimFilters((prev) => ({
+                          ...prev,
+                          targetType: value as ClaimFilterTargetType,
+                        }))
+                      }
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Todos" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="directory_entry">Diretorio</SelectItem>
+                        <SelectItem value="article">Artigo</SelectItem>
+                        <SelectItem value="video">Video</SelectItem>
+                        <SelectItem value="course">Curso</SelectItem>
+                        <SelectItem value="live">Live</SelectItem>
+                        <SelectItem value="podcast">Podcast</SelectItem>
+                        <SelectItem value="book">Livro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="md:col-span-2 xl:col-span-2 flex flex-wrap gap-2 self-end">
+                    <Button type="button" onClick={applyClaimFilters}>
+                      Aplicar filtros
+                    </Button>
+                    <Button type="button" variant="outline" onClick={clearClaimFilters}>
+                      Limpar
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="claim-action-note">Nota para aprovar/rejeitar (opcional)</Label>
+                  <Textarea
+                    id="claim-action-note"
+                    rows={2}
+                    value={claimActionNote}
+                    onChange={(event) => setClaimActionNote(event.target.value)}
+                    placeholder="Nota operacional para a revisao do claim"
+                  />
+                </div>
+
+                {claimsQuery.isLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />A carregar claims...
+                  </div>
+                ) : claimsQuery.isError ? (
+                  <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+                    {getErrorMessage(claimsQuery.error)}
+                  </div>
+                ) : claims.length === 0 ? (
+                  <div className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                    Sem claims para os filtros atuais.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {claims.map((claim) => (
+                      <div key={claim.id} className="rounded-md border border-border/70 p-3">
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <div className="space-y-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Badge variant="outline">
+                                {CLAIM_TARGET_LABEL[claim.targetType]}
+                              </Badge>
+                              <Badge
+                                variant={
+                                  claim.status === 'approved'
+                                    ? 'secondary'
+                                    : claim.status === 'rejected'
+                                      ? 'destructive'
+                                      : 'outline'
+                                }
+                              >
+                                {CLAIM_STATUS_LABEL[claim.status]}
+                              </Badge>
+                              <Badge variant="outline">ID: {claim.targetId}</Badge>
+                            </div>
+                            <p className="text-sm">{claim.reason}</p>
+                            <p className="text-xs text-muted-foreground">
+                              creator: @{claim.creator?.username ?? claim.creator?.id ?? '-'} |
+                              pedido: {formatDateTime(claim.createdAt)} | revisao:{' '}
+                              {formatDateTime(claim.reviewedAt)}
+                            </p>
+                          </div>
+                          {claim.status === 'pending' ? (
+                            <div className="flex flex-wrap gap-2">
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={() => approveClaim(claim.id)}
+                                disabled={!canWriteClaimReview || approveClaimMutation.isPending}
+                              >
+                                Aprovar
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => rejectClaim(claim.id)}
+                                disabled={!canWriteClaimReview || rejectClaimMutation.isPending}
+                              >
+                                Rejeitar
+                              </Button>
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                    ))}
+
+                    {claimPagination && claimPagination.pages > 1 ? (
+                      <div className="flex items-center justify-between border-t border-border pt-2">
+                        <p className="text-sm text-muted-foreground">
+                          Pagina {claimPagination.page} de {claimPagination.pages}
+                        </p>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={claimPagination.page <= 1}
+                            onClick={() => setClaimPage((prev) => Math.max(1, prev - 1))}
+                          >
+                            Anterior
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={claimPagination.page >= claimPagination.pages}
+                            onClick={() =>
+                              setClaimPage((prev) => Math.min(claimPagination.pages, prev + 1))
+                            }
+                          >
+                            Seguinte
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                )}
+
+                <div className="rounded-md border border-border/70 p-3">
+                  <p className="text-sm font-medium">Transfer ownership manual</p>
+                  <p className="text-xs text-muted-foreground">
+                    Endpoint: `POST /api/admin/ownership/transfer`.
+                  </p>
+
+                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                    <div>
+                      <Label>Target type</Label>
+                      <Select
+                        value={transferForm.targetType}
+                        onValueChange={(value) =>
+                          setTransferForm((prev) => ({
+                            ...prev,
+                            targetType: value as AdminEditorialClaimTargetType,
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="directory_entry">Diretorio</SelectItem>
+                          <SelectItem value="article">Artigo</SelectItem>
+                          <SelectItem value="video">Video</SelectItem>
+                          <SelectItem value="course">Curso</SelectItem>
+                          <SelectItem value="live">Live</SelectItem>
+                          <SelectItem value="podcast">Podcast</SelectItem>
+                          <SelectItem value="book">Livro</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="transfer-target-id">Target ID</Label>
+                      <Input
+                        id="transfer-target-id"
+                        value={transferForm.targetId}
+                        onChange={(event) =>
+                          setTransferForm((prev) => ({ ...prev, targetId: event.target.value }))
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label>Destino</Label>
+                      <Select
+                        value={transferForm.toOwnerType}
+                        onValueChange={(value) =>
+                          setTransferForm((prev) => ({
+                            ...prev,
+                            toOwnerType: value as AdminOwnershipOwnerType,
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="creator_owned">creator_owned</SelectItem>
+                          <SelectItem value="admin_seeded">admin_seeded</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="transfer-owner-user">toOwnerUserId</Label>
+                      <Input
+                        id="transfer-owner-user"
+                        value={transferForm.toOwnerUserId}
+                        onChange={(event) =>
+                          setTransferForm((prev) => ({
+                            ...prev,
+                            toOwnerUserId: event.target.value,
+                          }))
+                        }
+                        placeholder={
+                          transferForm.toOwnerType === 'creator_owned'
+                            ? 'Obrigatorio para creator_owned'
+                            : 'Opcional'
+                        }
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label htmlFor="transfer-reason">Motivo</Label>
+                      <Input
+                        id="transfer-reason"
+                        value={transferForm.reason}
+                        onChange={(event) =>
+                          setTransferForm((prev) => ({ ...prev, reason: event.target.value }))
+                        }
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label htmlFor="transfer-note">Nota (opcional)</Label>
+                      <Textarea
+                        id="transfer-note"
+                        rows={2}
+                        value={transferForm.note}
+                        onChange={(event) =>
+                          setTransferForm((prev) => ({ ...prev, note: event.target.value }))
+                        }
+                      />
                     </div>
                   </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
+
+                  <div className="mt-3">
+                    <Button
+                      type="button"
+                      onClick={submitOwnershipTransfer}
+                      disabled={!canWriteOwnershipTransfer || transferOwnershipMutation.isPending}
+                    >
+                      {transferOwnershipMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : null}
+                      Transferir ownership
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
         </>
       ) : null}
 

@@ -2,6 +2,13 @@ import { apiClient } from '@/lib/api/client'
 import type { AdminPagination } from '../types/adminUsers'
 import type {
   AdminAddEditorialSectionItemInput,
+  AdminApproveEditorialClaimResponse,
+  AdminEditorialClaimActorSummary,
+  AdminEditorialClaimRecord,
+  AdminEditorialClaimStatus,
+  AdminEditorialClaimTargetType,
+  AdminEditorialClaimsListResponse,
+  AdminEditorialClaimsQuery,
   AdminEditorialSection,
   AdminEditorialSectionItem,
   AdminEditorialSectionItemStatus,
@@ -13,6 +20,8 @@ import type {
   AdminReorderEditorialSectionItemsPayload,
   AdminReorderEditorialSectionItemsResponse,
   AdminRemoveEditorialSectionItemResponse,
+  AdminOwnershipTransferInput,
+  AdminOwnershipTransferResult,
   AdminCreateEditorialSectionInput,
   AdminUpdateEditorialSectionInput,
   EditorialHomePreviewResponse,
@@ -97,6 +106,56 @@ interface BackendEditorialHomePreviewResponse {
   >
 }
 
+interface BackendClaimActorSummary {
+  id?: string
+  _id?: string
+  name?: string
+  username?: string
+  email?: string
+  role?: string
+}
+
+interface BackendEditorialClaimRecord {
+  id?: string
+  _id?: string
+  targetType?: string
+  targetId?: string
+  creatorId?: BackendClaimActorSummary | string | null
+  requestedBy?: BackendClaimActorSummary | string | null
+  status?: string
+  reason?: string
+  note?: string | null
+  evidenceLinks?: string[]
+  reviewedBy?: BackendClaimActorSummary | string | null
+  reviewedAt?: string | null
+  reviewNote?: string | null
+  metadata?: Record<string, unknown> | null
+  createdAt?: string | null
+  updatedAt?: string | null
+}
+
+interface BackendEditorialClaimsListResponse {
+  items?: BackendEditorialClaimRecord[]
+  pagination?: Partial<AdminPagination>
+}
+
+interface BackendOwnershipTransferResult {
+  changed?: boolean
+  targetType?: string
+  targetId?: string
+  fromOwnerType?: string
+  fromOwnerUserId?: string | null
+  toOwnerType?: string
+  toOwnerUserId?: string | null
+  transferLogId?: string
+  transferAt?: string | null
+}
+
+interface BackendApproveClaimResponse {
+  claim?: BackendEditorialClaimRecord
+  transfer?: BackendOwnershipTransferResult
+}
+
 const DEFAULT_PAGE = 1
 const DEFAULT_LIMIT = 25
 
@@ -140,6 +199,95 @@ const toSectionItemTargetType = (
   if (value === 'external_link') return 'external_link'
   if (value === 'custom') return 'custom'
   return null
+}
+
+const toClaimStatus = (value: string | undefined): AdminEditorialClaimStatus => {
+  if (value === 'approved') return 'approved'
+  if (value === 'rejected') return 'rejected'
+  if (value === 'cancelled') return 'cancelled'
+  return 'pending'
+}
+
+const toClaimTargetType = (value: string | undefined): AdminEditorialClaimTargetType => {
+  if (value === 'article') return 'article'
+  if (value === 'video') return 'video'
+  if (value === 'course') return 'course'
+  if (value === 'live') return 'live'
+  if (value === 'podcast') return 'podcast'
+  if (value === 'book') return 'book'
+  return 'directory_entry'
+}
+
+const toOwnershipOwnerType = (value: string | undefined): 'admin_seeded' | 'creator_owned' =>
+  value === 'admin_seeded' ? 'admin_seeded' : 'creator_owned'
+
+const mapClaimActor = (
+  actor: BackendClaimActorSummary | string | null | undefined,
+): AdminEditorialClaimActorSummary | null => {
+  if (!actor) return null
+  const id = resolveId(actor)
+  if (!id) return null
+
+  if (typeof actor === 'string') {
+    return { id }
+  }
+
+  return {
+    id,
+    name: actor.name,
+    username: actor.username,
+    email: actor.email,
+    role: actor.role,
+  }
+}
+
+const mapEditorialClaim = (
+  claim: BackendEditorialClaimRecord,
+): AdminEditorialClaimRecord | null => {
+  const id = resolveId(claim)
+  const targetId = resolveId(claim.targetId)
+  if (!id || !targetId) return null
+
+  return {
+    id,
+    targetType: toClaimTargetType(claim.targetType),
+    targetId,
+    creator: mapClaimActor(claim.creatorId),
+    requestedBy: mapClaimActor(claim.requestedBy),
+    status: toClaimStatus(claim.status),
+    reason: typeof claim.reason === 'string' ? claim.reason : '',
+    note: typeof claim.note === 'string' ? claim.note : null,
+    evidenceLinks: Array.isArray(claim.evidenceLinks) ? claim.evidenceLinks : [],
+    reviewedBy: mapClaimActor(claim.reviewedBy),
+    reviewedAt: typeof claim.reviewedAt === 'string' ? claim.reviewedAt : null,
+    reviewNote: typeof claim.reviewNote === 'string' ? claim.reviewNote : null,
+    metadata: claim.metadata ?? null,
+    createdAt: typeof claim.createdAt === 'string' ? claim.createdAt : null,
+    updatedAt: typeof claim.updatedAt === 'string' ? claim.updatedAt : null,
+  }
+}
+
+const mapOwnershipTransferResult = (
+  result: BackendOwnershipTransferResult | undefined,
+): AdminOwnershipTransferResult => {
+  const targetId = resolveId(result?.targetId)
+  const transferLogId = resolveId(result?.transferLogId)
+
+  if (!targetId || !transferLogId) {
+    throw new Error('Resposta admin invalida: transfer em falta.')
+  }
+
+  return {
+    changed: Boolean(result?.changed),
+    targetType: toClaimTargetType(result?.targetType),
+    targetId,
+    fromOwnerType: toOwnershipOwnerType(result?.fromOwnerType),
+    fromOwnerUserId: resolveId(result?.fromOwnerUserId),
+    toOwnerType: toOwnershipOwnerType(result?.toOwnerType),
+    toOwnerUserId: resolveId(result?.toOwnerUserId),
+    transferLogId,
+    transferAt: typeof result?.transferAt === 'string' ? result.transferAt : null,
+  }
 }
 
 const normalizePagination = (pagination?: Partial<AdminPagination>): AdminPagination => ({
@@ -252,6 +400,56 @@ const cleanOptionalText = (value: string | undefined): string | undefined => {
   if (typeof value !== 'string') return undefined
   const trimmed = value.trim()
   return trimmed.length > 0 ? trimmed : undefined
+}
+
+const cleanRequiredText = (value: string, field: string): string => {
+  const trimmed = value.trim()
+  if (trimmed.length === 0) {
+    throw new Error(`${field} obrigatorio.`)
+  }
+  return trimmed
+}
+
+const buildClaimsQueryParams = (
+  query: AdminEditorialClaimsQuery,
+): Record<string, string | number> => {
+  const params: Record<string, string | number> = {}
+  if (query.status) params.status = query.status
+  if (query.targetType) params.targetType = query.targetType
+  if (query.creatorId && query.creatorId.trim().length > 0)
+    params.creatorId = query.creatorId.trim()
+  if (typeof query.page === 'number' && query.page > 0) params.page = query.page
+  if (typeof query.limit === 'number' && query.limit > 0) params.limit = query.limit
+  return params
+}
+
+const buildClaimActionPayload = (note?: string): Record<string, string> => {
+  const payload: Record<string, string> = {}
+  const cleanedNote = cleanOptionalText(note)
+  if (cleanedNote) payload.note = cleanedNote
+  return payload
+}
+
+const buildOwnershipTransferPayload = (
+  input: AdminOwnershipTransferInput,
+): Record<string, unknown> => {
+  const payload: Record<string, unknown> = {
+    targetType: input.targetType,
+    targetId: cleanRequiredText(input.targetId, 'targetId'),
+    toOwnerType: input.toOwnerType,
+    reason: cleanRequiredText(input.reason, 'reason'),
+  }
+
+  if (typeof input.toOwnerUserId === 'string' && input.toOwnerUserId.trim().length > 0) {
+    payload.toOwnerUserId = input.toOwnerUserId.trim()
+  } else if (input.toOwnerUserId === null) {
+    payload.toOwnerUserId = null
+  }
+
+  const note = cleanOptionalText(input.note)
+  if (note) payload.note = note
+
+  return payload
 }
 
 const cleanOptionalNullableText = (value: string | null | undefined): string | null | undefined => {
@@ -450,6 +648,66 @@ export const adminEditorialCmsService = {
       sectionId: resolveId(response.data.sectionId) ?? sectionId,
       itemId: resolveId(response.data.itemId) ?? itemId,
     }
+  },
+
+  listClaims: async (
+    query: AdminEditorialClaimsQuery = {},
+  ): Promise<AdminEditorialClaimsListResponse> => {
+    const response = await apiClient.get<BackendEditorialClaimsListResponse>('/admin/claims', {
+      params: buildClaimsQueryParams(query),
+    })
+
+    return {
+      items: (response.data.items ?? [])
+        .map(mapEditorialClaim)
+        .filter((item): item is AdminEditorialClaimRecord => item !== null),
+      pagination: normalizePagination(response.data.pagination),
+    }
+  },
+
+  approveClaim: async (
+    claimId: string,
+    note?: string,
+  ): Promise<AdminApproveEditorialClaimResponse> => {
+    const response = await apiClient.post<BackendApproveClaimResponse>(
+      `/admin/claims/${claimId}/approve`,
+      buildClaimActionPayload(note),
+    )
+
+    const claim = mapEditorialClaim(response.data.claim ?? {})
+    if (!claim) {
+      throw new Error('Resposta admin invalida: claim em falta.')
+    }
+
+    return {
+      claim,
+      transfer: mapOwnershipTransferResult(response.data.transfer),
+    }
+  },
+
+  rejectClaim: async (claimId: string, note?: string): Promise<AdminEditorialClaimRecord> => {
+    const response = await apiClient.post<BackendEditorialClaimRecord>(
+      `/admin/claims/${claimId}/reject`,
+      buildClaimActionPayload(note),
+    )
+
+    const claim = mapEditorialClaim(response.data)
+    if (!claim) {
+      throw new Error('Resposta admin invalida: claim em falta.')
+    }
+
+    return claim
+  },
+
+  transferOwnership: async (
+    input: AdminOwnershipTransferInput,
+  ): Promise<AdminOwnershipTransferResult> => {
+    const response = await apiClient.post<BackendOwnershipTransferResult>(
+      '/admin/ownership/transfer',
+      buildOwnershipTransferPayload(input),
+    )
+
+    return mapOwnershipTransferResult(response.data)
   },
 
   getHomePreview: async (): Promise<EditorialHomePreviewResponse> => {

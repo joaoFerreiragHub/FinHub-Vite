@@ -209,4 +209,127 @@ describe('adminEditorialCmsService', () => {
       items: [{ id: 'home-item-1', targetType: 'external_link' }],
     })
   })
+
+  it('lists claims with mapped actors and filters', async () => {
+    mockedApiClient.get.mockResolvedValueOnce({
+      data: {
+        items: [
+          {
+            id: 'claim-1',
+            targetType: 'directory_entry',
+            targetId: 'dir-1',
+            status: 'pending',
+            reason: 'Proprietario oficial.',
+            creatorId: {
+              id: 'creator-1',
+              username: 'owner',
+            },
+          },
+        ],
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: 1,
+          pages: 1,
+        },
+      },
+    })
+
+    const result = await adminEditorialCmsService.listClaims({
+      status: 'pending',
+      targetType: 'directory_entry',
+      page: 1,
+      limit: 10,
+    })
+
+    expect(mockedApiClient.get).toHaveBeenCalledWith('/admin/claims', {
+      params: {
+        status: 'pending',
+        targetType: 'directory_entry',
+        page: 1,
+        limit: 10,
+      },
+    })
+    expect(result.items[0]).toMatchObject({
+      id: 'claim-1',
+      status: 'pending',
+      creator: {
+        id: 'creator-1',
+        username: 'owner',
+      },
+    })
+  })
+
+  it('approves claim and maps transfer result', async () => {
+    mockedApiClient.post.mockResolvedValueOnce({
+      data: {
+        claim: {
+          id: 'claim-1',
+          targetType: 'directory_entry',
+          targetId: 'dir-1',
+          status: 'approved',
+          reason: 'OK',
+        },
+        transfer: {
+          changed: true,
+          targetType: 'directory_entry',
+          targetId: 'dir-1',
+          fromOwnerType: 'admin_seeded',
+          toOwnerType: 'creator_owned',
+          toOwnerUserId: 'creator-1',
+          transferLogId: 'log-1',
+          transferAt: '2026-02-26T18:00:00.000Z',
+        },
+      },
+    })
+
+    const result = await adminEditorialCmsService.approveClaim('claim-1', '  aprovado  ')
+
+    expect(mockedApiClient.post).toHaveBeenCalledWith('/admin/claims/claim-1/approve', {
+      note: 'aprovado',
+    })
+    expect(result).toMatchObject({
+      claim: { id: 'claim-1', status: 'approved' },
+      transfer: { transferLogId: 'log-1', toOwnerType: 'creator_owned' },
+    })
+  })
+
+  it('transfers ownership with sanitized payload', async () => {
+    mockedApiClient.post.mockResolvedValueOnce({
+      data: {
+        changed: true,
+        targetType: 'directory_entry',
+        targetId: 'dir-1',
+        fromOwnerType: 'admin_seeded',
+        fromOwnerUserId: null,
+        toOwnerType: 'creator_owned',
+        toOwnerUserId: 'creator-1',
+        transferLogId: 'log-2',
+        transferAt: '2026-02-26T19:00:00.000Z',
+      },
+    })
+
+    const result = await adminEditorialCmsService.transferOwnership({
+      targetType: 'directory_entry',
+      targetId: '  dir-1  ',
+      toOwnerType: 'creator_owned',
+      toOwnerUserId: '  creator-1  ',
+      reason: '  validacao manual  ',
+      note: '  ownership ajustado  ',
+    })
+
+    expect(mockedApiClient.post).toHaveBeenCalledWith('/admin/ownership/transfer', {
+      targetType: 'directory_entry',
+      targetId: 'dir-1',
+      toOwnerType: 'creator_owned',
+      toOwnerUserId: 'creator-1',
+      reason: 'validacao manual',
+      note: 'ownership ajustado',
+    })
+    expect(result).toMatchObject({
+      changed: true,
+      transferLogId: 'log-2',
+      toOwnerUserId: 'creator-1',
+    })
+  })
 })

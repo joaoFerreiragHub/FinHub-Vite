@@ -148,3 +148,81 @@ export interface EditorialHomePreviewSection {
 export interface EditorialHomePreviewResponse {
   items: EditorialHomePreviewSection[]
 }
+
+export type AdminEditorialClaimStatus = 'pending' | 'approved' | 'rejected' | 'cancelled'
+
+export type AdminEditorialClaimTargetType =
+  | 'article'
+  | 'video'
+  | 'course'
+  | 'live'
+  | 'podcast'
+  | 'book'
+  | 'directory_entry'
+
+export type AdminOwnershipOwnerType = 'admin_seeded' | 'creator_owned'
+
+export interface AdminEditorialClaimActorSummary {
+  id: string
+  name?: string
+  username?: string
+  email?: string
+  role?: string
+}
+
+export interface AdminEditorialClaimRecord {
+  id: string
+  targetType: AdminEditorialClaimTargetType
+  targetId: string
+  creator: AdminEditorialClaimActorSummary | null
+  requestedBy: AdminEditorialClaimActorSummary | null
+  status: AdminEditorialClaimStatus
+  reason: string
+  note: string | null
+  evidenceLinks: string[]
+  reviewedBy: AdminEditorialClaimActorSummary | null
+  reviewedAt: string | null
+  reviewNote: string | null
+  metadata: Record<string, unknown> | null
+  createdAt: string | null
+  updatedAt: string | null
+}
+
+export interface AdminEditorialClaimsQuery {
+  status?: AdminEditorialClaimStatus
+  targetType?: AdminEditorialClaimTargetType
+  creatorId?: string
+  page?: number
+  limit?: number
+}
+
+export interface AdminEditorialClaimsListResponse {
+  items: AdminEditorialClaimRecord[]
+  pagination: AdminPagination
+}
+
+export interface AdminOwnershipTransferInput {
+  targetType: AdminEditorialClaimTargetType
+  targetId: string
+  toOwnerType: AdminOwnershipOwnerType
+  toOwnerUserId?: string | null
+  reason: string
+  note?: string
+}
+
+export interface AdminOwnershipTransferResult {
+  changed: boolean
+  targetType: AdminEditorialClaimTargetType
+  targetId: string
+  fromOwnerType: AdminOwnershipOwnerType
+  fromOwnerUserId: string | null
+  toOwnerType: AdminOwnershipOwnerType
+  toOwnerUserId: string | null
+  transferLogId: string
+  transferAt: string | null
+}
+
+export interface AdminApproveEditorialClaimResponse {
+  claim: AdminEditorialClaimRecord
+  transfer: AdminOwnershipTransferResult
+}

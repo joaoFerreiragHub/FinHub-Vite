@@ -2,7 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { adminEditorialCmsService } from '../services/adminEditorialCmsService'
 import type {
   AdminAddEditorialSectionItemInput,
+  AdminEditorialClaimsQuery,
   AdminCreateEditorialSectionInput,
+  AdminOwnershipTransferInput,
   AdminEditorialSectionQuery,
   AdminReorderEditorialSectionItemsPayload,
   AdminUpdateEditorialSectionInput,
@@ -32,6 +34,16 @@ interface RemoveSectionItemMutationInput {
   itemId: string
 }
 
+interface ApproveClaimMutationInput {
+  claimId: string
+  note?: string
+}
+
+interface RejectClaimMutationInput {
+  claimId: string
+  note?: string
+}
+
 export function useAdminEditorialSections(
   query: AdminEditorialSectionQuery,
   options?: AdminEditorialQueryOptions,
@@ -47,6 +59,17 @@ export function useAdminEditorialHomePreview(options?: AdminEditorialQueryOption
   return useQuery({
     queryKey: ['editorial', 'home', 'preview'],
     queryFn: () => adminEditorialCmsService.getHomePreview(),
+    enabled: options?.enabled ?? true,
+  })
+}
+
+export function useAdminEditorialClaims(
+  query: AdminEditorialClaimsQuery,
+  options?: AdminEditorialQueryOptions,
+) {
+  return useQuery({
+    queryKey: ['admin', 'editorial', 'claims', query],
+    queryFn: () => adminEditorialCmsService.listClaims(query),
     enabled: options?.enabled ?? true,
   })
 }
@@ -112,6 +135,44 @@ export function useRemoveAdminEditorialSectionItem() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'editorial', 'sections'] })
       queryClient.invalidateQueries({ queryKey: ['editorial', 'home', 'preview'] })
+    },
+  })
+}
+
+export function useApproveAdminEditorialClaim() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ claimId, note }: ApproveClaimMutationInput) =>
+      adminEditorialCmsService.approveClaim(claimId, note),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'editorial', 'claims'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'directories'] })
+    },
+  })
+}
+
+export function useRejectAdminEditorialClaim() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ claimId, note }: RejectClaimMutationInput) =>
+      adminEditorialCmsService.rejectClaim(claimId, note),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'editorial', 'claims'] })
+    },
+  })
+}
+
+export function useTransferAdminOwnership() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: AdminOwnershipTransferInput) =>
+      adminEditorialCmsService.transferOwnership(input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'editorial', 'claims'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'directories'] })
     },
   })
 }
