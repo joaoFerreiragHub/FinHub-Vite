@@ -907,3 +907,26 @@ Data de referencia: 2026-02-21 (atualizado apos fecho oficial de P2 e replaneame
   - `npm run test -- --runInBand` -> PASS (19 suites, 135 testes)
   - `npm run build` -> PASS
   - `npm run test:e2e` -> PASS (8/8)
+
+## 44) P4 Fase D3 fechada - historico consultavel de ownership transfer (2026-02-27)
+- Backend (`API_finhub`) com endpoint administrativo de historico:
+  - `GET /api/admin/ownership/transfers`
+  - controller/route/service/OpenAPI atualizados para filtros + paginacao.
+- Frontend (`FinHub-Vite`) com consulta dedicada em `/admin/editorial`:
+  - filtros de target/owner origem/owner destino + pesquisa e targetId.
+  - lista paginada, refresh manual e contexto operacional (de/para/por/quando).
+  - invalidacao de cache do historico apos aprovar claim e apos transfer manual.
+- Camada tecnica frontend atualizada:
+  - tipos/service/hooks:
+    - `src/features/admin/types/adminEditorialCms.ts`
+    - `src/features/admin/services/adminEditorialCmsService.ts`
+    - `src/features/admin/hooks/useAdminEditorialCms.ts`
+  - pagina admin:
+    - `src/features/admin/pages/EditorialCmsPage.tsx`
+  - teste unitario atualizado:
+    - `src/__tests__/features/admin/adminEditorialCmsService.test.ts`
+- Validacao tecnica do ciclo:
+  - `npm run lint` -> PASS (warnings nao bloqueantes existentes)
+  - `npm run test -- --runInBand` -> PASS (19 suites, 136 testes)
+  - `npm run typecheck:p1` -> PASS
+  - `npm run build` -> PASS

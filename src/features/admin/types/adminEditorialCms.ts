@@ -222,6 +222,37 @@ export interface AdminOwnershipTransferResult {
   transferAt: string | null
 }
 
+export interface AdminOwnershipTransferRecord {
+  id: string
+  targetType: AdminEditorialClaimTargetType
+  targetId: string
+  fromOwnerType: AdminOwnershipOwnerType
+  toOwnerType: AdminOwnershipOwnerType
+  fromOwnerUser: AdminEditorialClaimActorSummary | null
+  toOwnerUser: AdminEditorialClaimActorSummary | null
+  transferredBy: AdminEditorialClaimActorSummary | null
+  reason: string
+  note: string | null
+  metadata: Record<string, unknown> | null
+  createdAt: string | null
+}
+
+export interface AdminOwnershipTransfersQuery {
+  targetType?: AdminEditorialClaimTargetType
+  targetId?: string
+  fromOwnerType?: AdminOwnershipOwnerType
+  toOwnerType?: AdminOwnershipOwnerType
+  transferredBy?: string
+  search?: string
+  page?: number
+  limit?: number
+}
+
+export interface AdminOwnershipTransfersListResponse {
+  items: AdminOwnershipTransferRecord[]
+  pagination: AdminPagination
+}
+
 export interface AdminApproveEditorialClaimResponse {
   claim: AdminEditorialClaimRecord
   transfer: AdminOwnershipTransferResult

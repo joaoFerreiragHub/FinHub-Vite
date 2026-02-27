@@ -371,8 +371,10 @@ Estado atual do P3: EM CURSO (arranque tecnico ja iniciado; falta fechar cobertu
   - validacao tecnica do ciclo:
     - frontend `typecheck:p1 + lint + test --runInBand + build + test:e2e` -> PASS.
     - backend `typecheck + build + contract:openapi` -> PASS.
-  - proximo foco imediato (Fase D3/E):
-    - historico consultavel de ownership transfer (endpoint + UI de consulta).
+  - D3 entregue (2026-02-27):
+    - historico consultavel de ownership transfer com endpoint `GET /api/admin/ownership/transfers`.
+    - UI dedicada em `/admin/editorial` com filtros, paginação e refresh.
+  - proximo foco imediato (Fase E):
     - E2E editorial completo (claim creator -> review admin -> transfer).
 
 2. Analise detalhada de stocks (novo escopo adiado do P3).

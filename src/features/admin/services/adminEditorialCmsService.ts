@@ -20,6 +20,9 @@ import type {
   AdminReorderEditorialSectionItemsPayload,
   AdminReorderEditorialSectionItemsResponse,
   AdminRemoveEditorialSectionItemResponse,
+  AdminOwnershipTransferRecord,
+  AdminOwnershipTransfersListResponse,
+  AdminOwnershipTransfersQuery,
   AdminOwnershipTransferInput,
   AdminOwnershipTransferResult,
   AdminCreateEditorialSectionInput,
@@ -149,6 +152,27 @@ interface BackendOwnershipTransferResult {
   toOwnerUserId?: string | null
   transferLogId?: string
   transferAt?: string | null
+}
+
+interface BackendOwnershipTransferRecord {
+  id?: string
+  _id?: string
+  targetType?: string
+  targetId?: string
+  fromOwnerType?: string
+  toOwnerType?: string
+  fromOwnerUser?: BackendClaimActorSummary | string | null
+  toOwnerUser?: BackendClaimActorSummary | string | null
+  transferredBy?: BackendClaimActorSummary | string | null
+  reason?: string
+  note?: string | null
+  metadata?: Record<string, unknown> | null
+  createdAt?: string | null
+}
+
+interface BackendOwnershipTransfersListResponse {
+  items?: BackendOwnershipTransferRecord[]
+  pagination?: Partial<AdminPagination>
 }
 
 interface BackendApproveClaimResponse {
@@ -290,6 +314,29 @@ const mapOwnershipTransferResult = (
   }
 }
 
+const mapOwnershipTransferRecord = (
+  transfer: BackendOwnershipTransferRecord,
+): AdminOwnershipTransferRecord | null => {
+  const id = resolveId(transfer)
+  const targetId = resolveId(transfer.targetId)
+  if (!id || !targetId) return null
+
+  return {
+    id,
+    targetType: toClaimTargetType(transfer.targetType),
+    targetId,
+    fromOwnerType: toOwnershipOwnerType(transfer.fromOwnerType),
+    toOwnerType: toOwnershipOwnerType(transfer.toOwnerType),
+    fromOwnerUser: mapClaimActor(transfer.fromOwnerUser),
+    toOwnerUser: mapClaimActor(transfer.toOwnerUser),
+    transferredBy: mapClaimActor(transfer.transferredBy),
+    reason: typeof transfer.reason === 'string' ? transfer.reason : '',
+    note: typeof transfer.note === 'string' ? transfer.note : null,
+    metadata: transfer.metadata ?? null,
+    createdAt: typeof transfer.createdAt === 'string' ? transfer.createdAt : null,
+  }
+}
+
 const normalizePagination = (pagination?: Partial<AdminPagination>): AdminPagination => ({
   page: pagination?.page && pagination.page > 0 ? pagination.page : DEFAULT_PAGE,
   limit: pagination?.limit && pagination.limit > 0 ? pagination.limit : DEFAULT_LIMIT,
@@ -418,6 +465,22 @@ const buildClaimsQueryParams = (
   if (query.targetType) params.targetType = query.targetType
   if (query.creatorId && query.creatorId.trim().length > 0)
     params.creatorId = query.creatorId.trim()
+  if (typeof query.page === 'number' && query.page > 0) params.page = query.page
+  if (typeof query.limit === 'number' && query.limit > 0) params.limit = query.limit
+  return params
+}
+
+const buildOwnershipTransfersQueryParams = (
+  query: AdminOwnershipTransfersQuery,
+): Record<string, string | number> => {
+  const params: Record<string, string | number> = {}
+  if (query.targetType) params.targetType = query.targetType
+  if (query.targetId && query.targetId.trim().length > 0) params.targetId = query.targetId.trim()
+  if (query.fromOwnerType) params.fromOwnerType = query.fromOwnerType
+  if (query.toOwnerType) params.toOwnerType = query.toOwnerType
+  if (query.transferredBy && query.transferredBy.trim().length > 0)
+    params.transferredBy = query.transferredBy.trim()
+  if (query.search && query.search.trim().length > 0) params.search = query.search.trim()
   if (typeof query.page === 'number' && query.page > 0) params.page = query.page
   if (typeof query.limit === 'number' && query.limit > 0) params.limit = query.limit
   return params
@@ -661,6 +724,24 @@ export const adminEditorialCmsService = {
       items: (response.data.items ?? [])
         .map(mapEditorialClaim)
         .filter((item): item is AdminEditorialClaimRecord => item !== null),
+      pagination: normalizePagination(response.data.pagination),
+    }
+  },
+
+  listOwnershipTransfers: async (
+    query: AdminOwnershipTransfersQuery = {},
+  ): Promise<AdminOwnershipTransfersListResponse> => {
+    const response = await apiClient.get<BackendOwnershipTransfersListResponse>(
+      '/admin/ownership/transfers',
+      {
+        params: buildOwnershipTransfersQueryParams(query),
+      },
+    )
+
+    return {
+      items: (response.data.items ?? [])
+        .map(mapOwnershipTransferRecord)
+        .filter((item): item is AdminOwnershipTransferRecord => item !== null),
       pagination: normalizePagination(response.data.pagination),
     }
   },

@@ -5,6 +5,7 @@ import type {
   AdminEditorialClaimsQuery,
   AdminCreateEditorialSectionInput,
   AdminOwnershipTransferInput,
+  AdminOwnershipTransfersQuery,
   AdminEditorialSectionQuery,
   AdminReorderEditorialSectionItemsPayload,
   AdminUpdateEditorialSectionInput,
@@ -70,6 +71,17 @@ export function useAdminEditorialClaims(
   return useQuery({
     queryKey: ['admin', 'editorial', 'claims', query],
     queryFn: () => adminEditorialCmsService.listClaims(query),
+    enabled: options?.enabled ?? true,
+  })
+}
+
+export function useAdminOwnershipTransfers(
+  query: AdminOwnershipTransfersQuery,
+  options?: AdminEditorialQueryOptions,
+) {
+  return useQuery({
+    queryKey: ['admin', 'editorial', 'ownership-transfers', query],
+    queryFn: () => adminEditorialCmsService.listOwnershipTransfers(query),
     enabled: options?.enabled ?? true,
   })
 }
@@ -147,6 +159,7 @@ export function useApproveAdminEditorialClaim() {
       adminEditorialCmsService.approveClaim(claimId, note),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'editorial', 'claims'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'editorial', 'ownership-transfers'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'directories'] })
     },
   })
@@ -172,6 +185,7 @@ export function useTransferAdminOwnership() {
       adminEditorialCmsService.transferOwnership(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'editorial', 'claims'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'editorial', 'ownership-transfers'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'directories'] })
     },
   })

@@ -42,6 +42,7 @@ import {
   useAddAdminEditorialSectionItem,
   useAdminEditorialClaims,
   useAdminEditorialHomePreview,
+  useAdminOwnershipTransfers,
   useAdminEditorialSections,
   useApproveAdminEditorialClaim,
   useCreateAdminEditorialSection,
@@ -55,6 +56,7 @@ import type {
   AdminAddEditorialSectionItemInput,
   AdminEditorialClaimStatus,
   AdminEditorialClaimTargetType,
+  AdminEditorialClaimActorSummary,
   AdminEditorialSection,
   AdminEditorialSectionItem,
   AdminEditorialSectionItemStatus,
@@ -62,6 +64,7 @@ import type {
   AdminEditorialSectionStatus,
   AdminEditorialSectionType,
   AdminOwnershipOwnerType,
+  AdminOwnershipTransfersQuery,
 } from '../types/adminEditorialCms'
 
 interface EditorialCmsPageProps {
@@ -111,6 +114,8 @@ interface RemoveDialogState {
 type SectionFilterStatus = AdminEditorialSectionStatus | 'all'
 type ClaimFilterStatus = AdminEditorialClaimStatus | 'all'
 type ClaimFilterTargetType = AdminEditorialClaimTargetType | 'all'
+type OwnershipTransferFilterTargetType = AdminEditorialClaimTargetType | 'all'
+type OwnershipTransferFilterOwnerType = AdminOwnershipOwnerType | 'all'
 
 interface OwnershipTransferFormState {
   targetType: AdminEditorialClaimTargetType
@@ -119,6 +124,14 @@ interface OwnershipTransferFormState {
   toOwnerUserId: string
   reason: string
   note: string
+}
+
+interface OwnershipTransferFiltersState {
+  targetType: OwnershipTransferFilterTargetType
+  fromOwnerType: OwnershipTransferFilterOwnerType
+  toOwnerType: OwnershipTransferFilterOwnerType
+  targetId: string
+  search: string
 }
 
 const PAGE_SIZE = 25
@@ -170,6 +183,11 @@ const CLAIM_TARGET_LABEL: Record<AdminEditorialClaimTargetType, string> = {
   directory_entry: 'Diretorio',
 }
 
+const OWNERSHIP_OWNER_LABEL: Record<AdminOwnershipOwnerType, string> = {
+  admin_seeded: 'admin_seeded',
+  creator_owned: 'creator_owned',
+}
+
 const DEFAULT_SECTION_FORM: SectionFormState = {
   key: '',
   title: '',
@@ -208,6 +226,14 @@ const DEFAULT_TRANSFER_FORM: OwnershipTransferFormState = {
   note: '',
 }
 
+const DEFAULT_OWNERSHIP_TRANSFER_FILTERS: OwnershipTransferFiltersState = {
+  targetType: 'all',
+  fromOwnerType: 'all',
+  toOwnerType: 'all',
+  targetId: '',
+  search: '',
+}
+
 const formatDateTime = (value: string | null): string => {
   if (!value) return '-'
   const parsed = new Date(value)
@@ -216,6 +242,14 @@ const formatDateTime = (value: string | null): string => {
     dateStyle: 'short',
     timeStyle: 'short',
   }).format(parsed)
+}
+
+const formatActorLabel = (actor: AdminEditorialClaimActorSummary | null): string => {
+  if (!actor) return '-'
+  if (actor.username) return `@${actor.username}`
+  if (actor.name) return actor.name
+  if (actor.email) return actor.email
+  return actor.id
 }
 
 const parseOptionalNumber = (value: string): number | undefined => {
@@ -352,6 +386,11 @@ export default function EditorialCmsPage({ embedded = false }: EditorialCmsPageP
   const [claimActionNote, setClaimActionNote] = useState('')
   const [transferForm, setTransferForm] =
     useState<OwnershipTransferFormState>(DEFAULT_TRANSFER_FORM)
+  const [ownershipTransferFilters, setOwnershipTransferFilters] =
+    useState<OwnershipTransferFiltersState>(DEFAULT_OWNERSHIP_TRANSFER_FILTERS)
+  const [ownershipTransferQueryFilters, setOwnershipTransferQueryFilters] =
+    useState<OwnershipTransferFiltersState>(DEFAULT_OWNERSHIP_TRANSFER_FILTERS)
+  const [ownershipTransferPage, setOwnershipTransferPage] = useState(1)
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [createForm, setCreateForm] = useState<SectionFormState>(DEFAULT_SECTION_FORM)
@@ -403,9 +442,37 @@ export default function EditorialCmsPage({ embedded = false }: EditorialCmsPageP
     return nextQuery
   }, [claimPage, claimQueryFilters])
 
+  const ownershipTransferQuery = useMemo(() => {
+    const nextQuery: AdminOwnershipTransfersQuery = {
+      page: ownershipTransferPage,
+      limit: PAGE_SIZE,
+    }
+
+    if (ownershipTransferQueryFilters.targetType !== 'all') {
+      nextQuery.targetType = ownershipTransferQueryFilters.targetType
+    }
+    if (ownershipTransferQueryFilters.fromOwnerType !== 'all') {
+      nextQuery.fromOwnerType = ownershipTransferQueryFilters.fromOwnerType
+    }
+    if (ownershipTransferQueryFilters.toOwnerType !== 'all') {
+      nextQuery.toOwnerType = ownershipTransferQueryFilters.toOwnerType
+    }
+    if (ownershipTransferQueryFilters.targetId.trim().length > 0) {
+      nextQuery.targetId = ownershipTransferQueryFilters.targetId.trim()
+    }
+    if (ownershipTransferQueryFilters.search.trim().length > 0) {
+      nextQuery.search = ownershipTransferQueryFilters.search.trim()
+    }
+
+    return nextQuery
+  }, [ownershipTransferPage, ownershipTransferQueryFilters])
+
   const sectionsQuery = useAdminEditorialSections(query, { enabled: canReadEditorial })
   const homePreviewQuery = useAdminEditorialHomePreview({ enabled: canReadEditorial })
   const claimsQuery = useAdminEditorialClaims(claimQuery, { enabled: canReadClaims })
+  const ownershipTransfersQuery = useAdminOwnershipTransfers(ownershipTransferQuery, {
+    enabled: canReadClaims,
+  })
 
   const createSectionMutation = useCreateAdminEditorialSection()
   const updateSectionMutation = useUpdateAdminEditorialSection()
@@ -422,6 +489,9 @@ export default function EditorialCmsPage({ embedded = false }: EditorialCmsPageP
   const claimsData = claimsQuery.data?.items
   const claims = useMemo(() => claimsData ?? [], [claimsData])
   const claimPagination = claimsQuery.data?.pagination
+  const ownershipTransfersData = ownershipTransfersQuery.data?.items
+  const ownershipTransfers = useMemo(() => ownershipTransfersData ?? [], [ownershipTransfersData])
+  const ownershipTransfersPagination = ownershipTransfersQuery.data?.pagination
 
   const totalItems = useMemo(
     () => sections.reduce((acc, section) => acc + section.items.length, 0),
@@ -488,6 +558,17 @@ export default function EditorialCmsPage({ embedded = false }: EditorialCmsPageP
     setClaimFilters({ status: 'all', targetType: 'all' })
     setClaimQueryFilters({ status: 'all', targetType: 'all' })
     setClaimPage(1)
+  }
+
+  const applyOwnershipTransferFilters = () => {
+    setOwnershipTransferQueryFilters(ownershipTransferFilters)
+    setOwnershipTransferPage(1)
+  }
+
+  const clearOwnershipTransferFilters = () => {
+    setOwnershipTransferFilters(DEFAULT_OWNERSHIP_TRANSFER_FILTERS)
+    setOwnershipTransferQueryFilters(DEFAULT_OWNERSHIP_TRANSFER_FILTERS)
+    setOwnershipTransferPage(1)
   }
 
   const openEditDialog = (section: AdminEditorialSection) => {
@@ -1489,6 +1570,238 @@ export default function EditorialCmsPage({ embedded = false }: EditorialCmsPageP
                       ) : null}
                       Transferir ownership
                     </Button>
+                  </div>
+                </div>
+
+                <div className="rounded-md border border-border/70 p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="text-sm font-medium">Historico de ownership transfer</p>
+                      <p className="text-xs text-muted-foreground">
+                        Endpoint: `GET /api/admin/ownership/transfers`.
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline">
+                        Total no filtro: {ownershipTransfersPagination?.total ?? 0}
+                      </Badge>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => ownershipTransfersQuery.refetch()}
+                        disabled={ownershipTransfersQuery.isFetching}
+                      >
+                        {ownershipTransfersQuery.isFetching ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <RefreshCcw className="h-4 w-4" />
+                        )}
+                        Atualizar
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+                    <div>
+                      <Label>Target type</Label>
+                      <Select
+                        value={ownershipTransferFilters.targetType}
+                        onValueChange={(value) =>
+                          setOwnershipTransferFilters((prev) => ({
+                            ...prev,
+                            targetType: value as OwnershipTransferFilterTargetType,
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Todos" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos</SelectItem>
+                          <SelectItem value="directory_entry">Diretorio</SelectItem>
+                          <SelectItem value="article">Artigo</SelectItem>
+                          <SelectItem value="video">Video</SelectItem>
+                          <SelectItem value="course">Curso</SelectItem>
+                          <SelectItem value="live">Live</SelectItem>
+                          <SelectItem value="podcast">Podcast</SelectItem>
+                          <SelectItem value="book">Livro</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label>Owner origem</Label>
+                      <Select
+                        value={ownershipTransferFilters.fromOwnerType}
+                        onValueChange={(value) =>
+                          setOwnershipTransferFilters((prev) => ({
+                            ...prev,
+                            fromOwnerType: value as OwnershipTransferFilterOwnerType,
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Todos" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos</SelectItem>
+                          <SelectItem value="admin_seeded">admin_seeded</SelectItem>
+                          <SelectItem value="creator_owned">creator_owned</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label>Owner destino</Label>
+                      <Select
+                        value={ownershipTransferFilters.toOwnerType}
+                        onValueChange={(value) =>
+                          setOwnershipTransferFilters((prev) => ({
+                            ...prev,
+                            toOwnerType: value as OwnershipTransferFilterOwnerType,
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Todos" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos</SelectItem>
+                          <SelectItem value="admin_seeded">admin_seeded</SelectItem>
+                          <SelectItem value="creator_owned">creator_owned</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="ownership-target-id">Target ID</Label>
+                      <Input
+                        id="ownership-target-id"
+                        value={ownershipTransferFilters.targetId}
+                        onChange={(event) =>
+                          setOwnershipTransferFilters((prev) => ({
+                            ...prev,
+                            targetId: event.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="ownership-search">Pesquisa</Label>
+                      <div className="relative mt-1">
+                        <Search className="pointer-events-none absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="ownership-search"
+                          value={ownershipTransferFilters.search}
+                          onChange={(event) =>
+                            setOwnershipTransferFilters((prev) => ({
+                              ...prev,
+                              search: event.target.value,
+                            }))
+                          }
+                          className="pl-8"
+                          placeholder="reason, note ou targetId"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 self-end">
+                      <Button type="button" onClick={applyOwnershipTransferFilters}>
+                        Aplicar filtros
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={clearOwnershipTransferFilters}
+                      >
+                        Limpar
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="mt-3">
+                    {ownershipTransfersQuery.isLoading ? (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />A carregar historico...
+                      </div>
+                    ) : ownershipTransfersQuery.isError ? (
+                      <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+                        {getErrorMessage(ownershipTransfersQuery.error)}
+                      </div>
+                    ) : ownershipTransfers.length === 0 ? (
+                      <div className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                        Sem registos de ownership transfer para os filtros atuais.
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {ownershipTransfers.map((transfer) => (
+                          <div key={transfer.id} className="rounded-md border border-border/70 p-3">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Badge variant="outline">
+                                {CLAIM_TARGET_LABEL[transfer.targetType]}
+                              </Badge>
+                              <Badge variant="outline">ID: {transfer.targetId}</Badge>
+                              <Badge variant="secondary">
+                                {OWNERSHIP_OWNER_LABEL[transfer.fromOwnerType]} -&gt;{' '}
+                                {OWNERSHIP_OWNER_LABEL[transfer.toOwnerType]}
+                              </Badge>
+                            </div>
+                            <p className="mt-2 text-sm">{transfer.reason}</p>
+                            {transfer.note ? (
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                Nota: {transfer.note}
+                              </p>
+                            ) : null}
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              de: {formatActorLabel(transfer.fromOwnerUser)} | para:{' '}
+                              {formatActorLabel(transfer.toOwnerUser)} | por:{' '}
+                              {formatActorLabel(transfer.transferredBy)} | em:{' '}
+                              {formatDateTime(transfer.createdAt)}
+                            </p>
+                          </div>
+                        ))}
+
+                        {ownershipTransfersPagination && ownershipTransfersPagination.pages > 1 ? (
+                          <div className="flex items-center justify-between border-t border-border pt-2">
+                            <p className="text-sm text-muted-foreground">
+                              Pagina {ownershipTransfersPagination.page} de{' '}
+                              {ownershipTransfersPagination.pages}
+                            </p>
+                            <div className="flex gap-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                disabled={ownershipTransfersPagination.page <= 1}
+                                onClick={() =>
+                                  setOwnershipTransferPage((prev) => Math.max(1, prev - 1))
+                                }
+                              >
+                                Anterior
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                disabled={
+                                  ownershipTransfersPagination.page >=
+                                  ownershipTransfersPagination.pages
+                                }
+                                onClick={() =>
+                                  setOwnershipTransferPage((prev) =>
+                                    Math.min(ownershipTransfersPagination.pages, prev + 1),
+                                  )
+                                }
+                              >
+                                Seguinte
+                              </Button>
+                            </div>
+                          </div>
+                        ) : null}
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>

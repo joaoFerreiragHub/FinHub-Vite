@@ -241,15 +241,16 @@ Perfis sugeridos:
 - cobertura unitaria em `src/__tests__/features/markets/editorialPublicApi.test.ts`.
 
 ### Fase D - Seed content + claim
-Status: EM CURSO (D1 e D2 entregues em 2026-02-26).
+Status: EM CURSO (D1/D2 entregues em 2026-02-26, D3 entregue em 2026-02-27).
 1. ownerType/sourceType/claimable na operacao editorial - ENTREGUE.
 2. fluxo de claim review fim-a-fim no frontend - ENTREGUE:
 - creator em `/conta` com criar/listar/cancelar claim (`/api/editorial/claims*`).
 - admin em `/admin/editorial` com listagem/filtros/aprovar/rejeitar (`/api/admin/claims*`).
-3. transfer de ownership com log e historico consultavel - PARCIAL:
+3. transfer de ownership com log e historico consultavel - ENTREGUE (2026-02-27):
 - transferencia manual em `/admin/editorial` integrada a `POST /api/admin/ownership/transfer`.
 - retorno operacional com `transferLogId` apresentado em UI.
-- pendente: consulta dedicada de historico de ownership transfer.
+- endpoint admin de historico: `GET /api/admin/ownership/transfers`.
+- consulta dedicada no admin em `/admin/editorial` (filtros, paginação e refresh).
 
 ### Fase E - Hardening
 1. E2E de fluxo editorial completo.
@@ -267,6 +268,5 @@ Status: EM CURSO (D1 e D2 entregues em 2026-02-26).
 - frontend: `typecheck:p1`, `lint`, `test`, `build`, `test:e2e`
 
 ## 10) Proximo passo recomendado
-1. Fechar D3: endpoint + UI dedicada para historico consultavel de ownership transfer.
-2. Fechar Fase E com E2E editorial completo (incluindo fluxo de claim creator -> review admin -> transfer).
-3. Endurecer guardrails/rate limits e consolidar playbook operacional de rollback.
+1. Fechar Fase E com E2E editorial completo (incluindo fluxo de claim creator -> review admin -> transfer).
+2. Endurecer guardrails/rate limits e consolidar playbook operacional de rollback.

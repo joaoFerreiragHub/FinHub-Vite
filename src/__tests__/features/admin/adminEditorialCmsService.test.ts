@@ -260,6 +260,74 @@ describe('adminEditorialCmsService', () => {
     })
   })
 
+  it('lists ownership transfers with mapped actors and filters', async () => {
+    mockedApiClient.get.mockResolvedValueOnce({
+      data: {
+        items: [
+          {
+            id: 'transfer-1',
+            targetType: 'directory_entry',
+            targetId: 'dir-1',
+            fromOwnerType: 'admin_seeded',
+            toOwnerType: 'creator_owned',
+            fromOwnerUser: {
+              id: 'admin-1',
+              username: 'seed_admin',
+            },
+            toOwnerUser: {
+              id: 'creator-1',
+              username: 'owner',
+            },
+            transferredBy: {
+              id: 'admin-2',
+              username: 'review_admin',
+            },
+            reason: 'Claim aprovado',
+            note: 'Migracao operacional',
+            createdAt: '2026-02-27T12:00:00.000Z',
+          },
+        ],
+        pagination: {
+          page: 2,
+          limit: 5,
+          total: 6,
+          pages: 2,
+        },
+      },
+    })
+
+    const result = await adminEditorialCmsService.listOwnershipTransfers({
+      targetType: 'directory_entry',
+      fromOwnerType: 'admin_seeded',
+      toOwnerType: 'creator_owned',
+      targetId: '  dir-1  ',
+      search: '  claim  ',
+      page: 2,
+      limit: 5,
+    })
+
+    expect(mockedApiClient.get).toHaveBeenCalledWith('/admin/ownership/transfers', {
+      params: {
+        targetType: 'directory_entry',
+        fromOwnerType: 'admin_seeded',
+        toOwnerType: 'creator_owned',
+        targetId: 'dir-1',
+        search: 'claim',
+        page: 2,
+        limit: 5,
+      },
+    })
+    expect(result.items[0]).toMatchObject({
+      id: 'transfer-1',
+      fromOwnerType: 'admin_seeded',
+      toOwnerType: 'creator_owned',
+      transferredBy: {
+        id: 'admin-2',
+        username: 'review_admin',
+      },
+    })
+  })
+
   it('approves claim and maps transfer result', async () => {
     mockedApiClient.post.mockResolvedValueOnce({
       data: {
