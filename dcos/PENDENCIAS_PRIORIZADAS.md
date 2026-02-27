@@ -376,6 +376,10 @@ Estado atual do P3: EM CURSO (arranque tecnico ja iniciado; falta fechar cobertu
     - UI dedicada em `/admin/editorial` com filtros, paginação e refresh.
   - proximo foco imediato (Fase E):
     - E2E editorial completo (claim creator -> review admin -> transfer).
+  - gate pre-release obrigatorio para producao:
+    - manter E2E mockado + E2E integrado em staging (backend/DB reais).
+    - validar fluxo real creator->claim->review admin->transfer->historico.
+    - validar scopes/auditoria, idempotencia/concurrencia e runbook de rollback.
 
 2. Analise detalhada de stocks (novo escopo adiado do P3).
 3. Livros completos (replies, filtros, destaques, categorias) no frontend ativo.

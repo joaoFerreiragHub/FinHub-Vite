@@ -257,6 +257,29 @@ Status: EM CURSO (D1/D2 entregues em 2026-02-26, D3 entregue em 2026-02-27).
 2. guardrails de bulk actions e rate limits dedicados.
 3. playbook operacional de rollback.
 
+### Checklist pre-release (producao)
+Obrigatorio antes de qualquer deploy em producao:
+1. Cobertura de testes em 2 niveis:
+- E2E mockado (rapido/estavel) para regressao funcional.
+- E2E integrado em ambiente staging (backend + DB reais).
+2. Validacao do fluxo real fim-a-fim:
+- creator autenticado cria claim real.
+- admin aprova claim.
+- transfer manual (quando aplicavel).
+- historico em `GET /api/admin/ownership/transfers` contem os eventos esperados.
+3. Integridade de autenticacao/hidratacao:
+- rotas protegidas nao podem depender de race de hidratacao da store.
+- sessao deve ser consistente no primeiro request (cookie/token estavel).
+4. Seguranca e auditoria:
+- scopes obrigatorios (`admin.claim.review`, `admin.claim.transfer`) validados.
+- trilha de auditoria obrigatoria para approve/transfer/list.
+5. Integridade de dados:
+- sem duplicacao de transfer logs.
+- idempotencia e controlo de concorrencia em approve/transfer.
+6. Observabilidade e rollback:
+- logs/metricas para claims aprovados, transfers e erros.
+- runbook de reversao de ownership testado antes de release.
+
 ## 9) Criterios de aceite (definition of done)
 1. Admin consegue criar/publicar conteudo seed de pelo menos 4 tipos (article/video/podcast/evento).
 2. Admin consegue montar homepage com secoes dinamicas sem deploy.
