@@ -333,10 +333,9 @@ test.describe('Admin P2.6 - E2E guardrails e permissao', () => {
     })
     await installAdminUsersApiMocks(page)
 
-    await page.goto('/admin')
+    await page.goto('/admin/users')
 
-    await expect(page.getByText('Painel admin unificado')).toBeVisible()
-    await page.getByRole('tab', { name: 'Utilizadores' }).click()
+    await expect(page.getByText('Gestao de utilizadores')).toBeVisible()
 
     await expect(page.getByText('@investidor_teste')).toBeVisible()
     await page.getByRole('button', { name: 'Suspender' }).first().click()
@@ -353,7 +352,7 @@ test.describe('Admin P2.6 - E2E guardrails e permissao', () => {
     await expect(page.getByText('Conta suspensa com sucesso.')).toBeVisible()
   })
 
-  test('admin read-only nao consegue executar acoes destrutivas e so ve modulos permitidos', async ({
+  test('admin read-only nao consegue executar acoes destrutivas em utilizadores', async ({
     page,
   }) => {
     await installAdminSession(page, {
@@ -362,12 +361,11 @@ test.describe('Admin P2.6 - E2E guardrails e permissao', () => {
     })
     await installAdminUsersApiMocks(page)
 
-    await page.goto('/admin')
+    await page.goto('/admin/users')
 
-    await expect(page.getByText('Perfil em modo read-only')).toBeVisible()
-    await expect(page.getByRole('tab', { name: 'Moderacao' })).toHaveCount(0)
-
-    await page.getByRole('tab', { name: 'Utilizadores' }).click()
+    await expect(
+      page.getByText('Perfil atual sem permissao de escrita em utilizadores.'),
+    ).toBeVisible()
     await expect(page.getByText('@investidor_teste')).toBeVisible()
 
     await expect(page.getByRole('button', { name: 'Suspender' }).first()).toBeDisabled()
@@ -381,8 +379,8 @@ test.describe('Admin P2.6 - E2E guardrails e permissao', () => {
     })
     await installAdminContentApiMocks(page)
 
-    await page.goto('/admin')
-    await page.getByRole('tab', { name: 'Moderacao' }).click()
+    await page.goto('/admin/conteudo')
+    await expect(page.getByText('Moderacao de conteudo')).toBeVisible()
 
     await expect(page.getByText('/artigo-teste')).toBeVisible()
     await page.getByRole('button', { name: 'Ocultar' }).first().click()
@@ -405,8 +403,7 @@ test.describe('Admin P2.6 - E2E guardrails e permissao', () => {
     })
     await installAdminSupportApiMocks(page)
 
-    await page.goto('/admin')
-    await page.getByRole('tab', { name: 'Suporte' }).click()
+    await page.goto('/admin/suporte')
 
     await expect(page.getByRole('heading', { name: 'Acesso assistido' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Iniciar' }).first()).toBeVisible()
@@ -423,8 +420,7 @@ test.describe('Admin P2.6 - E2E guardrails e permissao', () => {
     })
     await installAdminSupportApiMocks(page)
 
-    await page.goto('/admin')
-    await page.getByRole('tab', { name: 'Suporte' }).click()
+    await page.goto('/admin/suporte')
 
     await expect(page.getByRole('heading', { name: 'Acesso assistido' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Revogar' }).first()).toBeVisible()
