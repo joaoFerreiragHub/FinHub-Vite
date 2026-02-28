@@ -31,6 +31,38 @@ describe('adminUsersService', () => {
             statusReason: null,
             statusChangedAt: null,
             statusChangedBy: null,
+            creatorControls: {
+              creationBlocked: false,
+              creationBlockedReason: null,
+              publishingBlocked: true,
+              publishingBlockedReason: 'Risco elevado',
+              cooldownUntil: '2026-02-20T01:00:00.000Z',
+              updatedAt: '2026-02-19T02:00:00.000Z',
+              updatedBy: {
+                id: 'admin-9',
+                name: 'Ops',
+                role: 'admin',
+              },
+            },
+            trustSignals: {
+              trustScore: 42,
+              riskLevel: 'high',
+              recommendedAction: 'block_publishing',
+              generatedAt: '2026-02-20T02:00:00.000Z',
+              summary: {
+                openReports: 5,
+                highPriorityTargets: 2,
+                criticalTargets: 1,
+                hiddenItems: 1,
+                restrictedItems: 0,
+                recentModerationActions30d: 3,
+                repeatModerationTargets30d: 1,
+                recentCreatorControlActions30d: 1,
+                activeControlFlags: ['publishing_blocked'],
+              },
+              flags: ['critical_report_targets'],
+              reasons: ['1 alvo com reports criticos.'],
+            },
             tokenVersion: 2,
             lastForcedLogoutAt: null,
             lastLoginAt: '2026-02-19T00:00:00.000Z',
@@ -79,6 +111,14 @@ describe('adminUsersService', () => {
       role: 'creator',
       accountStatus: 'active',
       tokenVersion: 2,
+      creatorControls: {
+        publishingBlocked: true,
+      },
+      trustSignals: {
+        trustScore: 42,
+        riskLevel: 'high',
+        recommendedAction: 'block_publishing',
+      },
     })
   })
 
@@ -208,6 +248,134 @@ describe('adminUsersService', () => {
       action: 'internal_note',
       reason: 'Contexto',
       note: 'Cliente contactou suporte.',
+    })
+  })
+
+  it('maps trust profile response', async () => {
+    mockedApiClient.get.mockResolvedValueOnce({
+      data: {
+        user: {
+          id: 'creator-1',
+          email: 'creator@example.com',
+          name: 'Creator',
+          username: 'creator',
+          role: 'creator',
+          accountStatus: 'active',
+          adminReadOnly: false,
+          adminScopes: [],
+          creatorControls: {
+            creationBlocked: false,
+            creationBlockedReason: null,
+            publishingBlocked: true,
+            publishingBlockedReason: 'Risco elevado',
+            cooldownUntil: null,
+            updatedAt: '2026-02-20T02:00:00.000Z',
+            updatedBy: { id: 'admin-1', name: 'Admin', role: 'admin' },
+          },
+          tokenVersion: 1,
+          createdAt: '2026-02-18T00:00:00.000Z',
+          updatedAt: '2026-02-20T02:00:00.000Z',
+        },
+        trustSignals: {
+          trustScore: 31,
+          riskLevel: 'critical',
+          recommendedAction: 'suspend_creator_ops',
+          generatedAt: '2026-02-20T03:00:00.000Z',
+          summary: {
+            openReports: 7,
+            highPriorityTargets: 2,
+            criticalTargets: 2,
+            hiddenItems: 1,
+            restrictedItems: 1,
+            recentModerationActions30d: 5,
+            repeatModerationTargets30d: 2,
+            recentCreatorControlActions30d: 2,
+            activeControlFlags: ['publishing_blocked'],
+          },
+          flags: ['critical_report_targets', 'publishing_blocked'],
+          reasons: ['2 alvos criticos.'],
+        },
+      },
+    })
+
+    const result = await adminUsersService.getCreatorTrustProfile('creator-1')
+
+    expect(mockedApiClient.get).toHaveBeenCalledWith('/admin/users/creator-1/trust-profile')
+    expect(result).toMatchObject({
+      user: {
+        id: 'creator-1',
+        creatorControls: {
+          publishingBlocked: true,
+        },
+      },
+      trustSignals: {
+        trustScore: 31,
+        riskLevel: 'critical',
+        recommendedAction: 'suspend_creator_ops',
+      },
+    })
+  })
+
+  it('sends creator control payload and maps response', async () => {
+    mockedApiClient.post.mockResolvedValueOnce({
+      data: {
+        message: 'Controlos operacionais do creator atualizados com sucesso.',
+        action: 'set_cooldown',
+        creatorControls: {
+          creationBlocked: false,
+          creationBlockedReason: null,
+          publishingBlocked: false,
+          publishingBlockedReason: null,
+          cooldownUntil: '2026-02-21T00:00:00.000Z',
+          updatedAt: '2026-02-20T00:00:00.000Z',
+          updatedBy: { id: 'admin-1', name: 'Admin', role: 'admin' },
+        },
+        user: {
+          id: 'creator-1',
+          email: 'creator@example.com',
+          name: 'Creator',
+          username: 'creator',
+          role: 'creator',
+          accountStatus: 'active',
+          adminReadOnly: false,
+          adminScopes: [],
+          creatorControls: {
+            creationBlocked: false,
+            creationBlockedReason: null,
+            publishingBlocked: false,
+            publishingBlockedReason: null,
+            cooldownUntil: '2026-02-21T00:00:00.000Z',
+            updatedAt: '2026-02-20T00:00:00.000Z',
+            updatedBy: { id: 'admin-1', name: 'Admin', role: 'admin' },
+          },
+          tokenVersion: 1,
+          createdAt: '2026-02-18T00:00:00.000Z',
+          updatedAt: '2026-02-20T00:00:00.000Z',
+        },
+      },
+    })
+
+    const result = await adminUsersService.applyCreatorControls('creator-1', {
+      action: 'set_cooldown',
+      reason: 'Spike de reports',
+      note: 'Observar nas proximas 24h',
+      cooldownHours: 24,
+    })
+
+    expect(mockedApiClient.post).toHaveBeenCalledWith('/admin/users/creator-1/creator-controls', {
+      action: 'set_cooldown',
+      reason: 'Spike de reports',
+      note: 'Observar nas proximas 24h',
+      cooldownHours: 24,
+    })
+    expect(result).toMatchObject({
+      action: 'set_cooldown',
+      creatorControls: {
+        cooldownUntil: '2026-02-21T00:00:00.000Z',
+      },
+      user: {
+        id: 'creator-1',
+      },
     })
   })
 })

@@ -1,4 +1,4 @@
-import type { AdminActorSummary, AdminPagination } from './adminUsers'
+import type { AdminActorSummary, AdminCreatorTrustSignals, AdminPagination } from './adminUsers'
 
 export type AdminContentType =
   | 'article'
@@ -12,6 +12,31 @@ export type AdminContentType =
 export type AdminContentModerationStatus = 'visible' | 'hidden' | 'restricted'
 export type AdminContentPublishStatus = 'draft' | 'published' | 'archived'
 export type AdminContentModerationAction = 'hide' | 'unhide' | 'restrict'
+export type AdminContentReportPriority = 'none' | 'low' | 'medium' | 'high' | 'critical'
+export type AdminContentPolicyAction = 'review' | 'restrict' | 'hide' | 'none'
+
+export interface AdminContentReportSignals {
+  openReports: number
+  uniqueReporters: number
+  latestReportAt: string | null
+  topReasons: Array<{ reason: string; count: number }>
+  priorityScore: number
+  priority: AdminContentReportPriority
+}
+
+export interface AdminContentPolicySignals {
+  recommendedAction: AdminContentPolicyAction
+  escalation: 'none' | 'low' | 'medium' | 'high' | 'critical'
+  automationEligible: boolean
+  automationEnabled: boolean
+  automationBlockedReason: string | null
+  matchedReasons: string[]
+  thresholds: {
+    autoHideMinPriority: AdminContentReportPriority
+    autoHideMinUniqueReporters: number
+    autoHideAllowedReasons: string[]
+  }
+}
 
 export interface AdminContentQueueItem {
   id: string
@@ -29,6 +54,9 @@ export interface AdminContentQueueItem {
   creator: AdminActorSummary | null
   createdAt: string | null
   updatedAt: string | null
+  reportSignals: AdminContentReportSignals
+  policySignals: AdminContentPolicySignals
+  creatorTrustSignals: AdminCreatorTrustSignals | null
 }
 
 export interface AdminContentQueueQuery {
@@ -37,6 +65,8 @@ export interface AdminContentQueueQuery {
   publishStatus?: AdminContentPublishStatus
   search?: string
   creatorId?: string
+  flaggedOnly?: boolean
+  minReportPriority?: Exclude<AdminContentReportPriority, 'none'>
   page?: number
   limit?: number
 }

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { adminUsersService } from '../services/adminUsersService'
 import type {
   AdminAddNotePayload,
+  AdminCreatorControlPayload,
   AdminUserActionPayload,
   AdminUserListQuery,
 } from '../types/adminUsers'
@@ -14,6 +15,11 @@ interface AdminUserMutationInput {
 interface AdminAddNoteMutationInput {
   userId: string
   payload: AdminAddNotePayload
+}
+
+interface AdminCreatorControlMutationInput {
+  userId: string
+  payload: AdminCreatorControlPayload
 }
 
 interface AdminUsersQueryOptions {
@@ -32,6 +38,14 @@ export function useAdminUserHistory(userId: string | null, page = 1, limit = 10)
   return useQuery({
     queryKey: ['admin', 'users', 'history', userId, page, limit],
     queryFn: () => adminUsersService.getUserModerationHistory(userId || '', page, limit),
+    enabled: Boolean(userId),
+  })
+}
+
+export function useAdminUserTrustProfile(userId: string | null) {
+  return useQuery({
+    queryKey: ['admin', 'users', 'trust-profile', userId],
+    queryFn: () => adminUsersService.getCreatorTrustProfile(userId || ''),
     enabled: Boolean(userId),
   })
 }
@@ -97,6 +111,25 @@ export function useAddAdminUserNote() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'users', 'history', variables.userId] })
+    },
+  })
+}
+
+export function useApplyAdminCreatorControls() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ userId, payload }: AdminCreatorControlMutationInput) =>
+      adminUsersService.applyCreatorControls(userId, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users', 'history', variables.userId] })
+      queryClient.invalidateQueries({
+        queryKey: ['admin', 'users', 'trust-profile', variables.userId],
+      })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'queue'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'metrics', 'overview'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'alerts', 'internal'] })
     },
   })
 }

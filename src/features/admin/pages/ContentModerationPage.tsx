@@ -33,6 +33,12 @@ import {
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { getErrorMessage } from '@/lib/api/client'
 import {
+  ReportPriorityBadge,
+  RiskLevelBadge,
+  TrustRecommendationBadge,
+  TrustScoreBar,
+} from '../components/RiskSignals'
+import {
   useAdminContentHistory,
   useAdminContentQueue,
   useHideAdminContent,
@@ -41,6 +47,7 @@ import {
 } from '../hooks/useAdminContent'
 import type {
   AdminContentModerationStatus,
+  AdminContentReportPriority,
   AdminContentQueueItem,
   AdminContentQueueQuery,
   AdminContentType,
@@ -49,6 +56,7 @@ import type {
 type ContentTypeFilter = AdminContentType | 'all'
 type ModerationFilter = AdminContentModerationStatus | 'all'
 type PublishStatusFilter = 'draft' | 'published' | 'archived' | 'all'
+type ReportPriorityFilter = Exclude<AdminContentReportPriority, 'none'> | 'all'
 type ContentActionKind = 'hide' | 'unhide' | 'restrict'
 
 interface FilterState {
@@ -56,6 +64,8 @@ interface FilterState {
   contentType: ContentTypeFilter
   moderationStatus: ModerationFilter
   publishStatus: PublishStatusFilter
+  flaggedOnly: 'all' | 'flagged'
+  minReportPriority: ReportPriorityFilter
 }
 
 interface ContentActionDialogState {
@@ -79,6 +89,8 @@ const INITIAL_FILTERS: FilterState = {
   contentType: 'all',
   moderationStatus: 'all',
   publishStatus: 'all',
+  flaggedOnly: 'all',
+  minReportPriority: 'all',
 }
 
 const CONTENT_TYPE_LABEL: Record<AdminContentType, string> = {
@@ -160,6 +172,8 @@ const toQueueQuery = (filters: FilterState, page: number): AdminContentQueueQuer
   if (filters.contentType !== 'all') query.contentType = filters.contentType
   if (filters.moderationStatus !== 'all') query.moderationStatus = filters.moderationStatus
   if (filters.publishStatus !== 'all') query.publishStatus = filters.publishStatus
+  if (filters.flaggedOnly === 'flagged') query.flaggedOnly = true
+  if (filters.minReportPriority !== 'all') query.minReportPriority = filters.minReportPriority
 
   return query
 }
@@ -262,6 +276,13 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
   const hiddenCountInPage = items.filter((item) => item.moderationStatus === 'hidden').length
   const restrictedCountInPage = items.filter(
     (item) => item.moderationStatus === 'restricted',
+  ).length
+  const flaggedCountInPage = items.filter((item) => item.reportSignals.openReports > 0).length
+  const highPriorityFlagsInPage = items.filter(
+    (item) => item.reportSignals.priority === 'high' || item.reportSignals.priority === 'critical',
+  ).length
+  const criticalCreatorRiskInPage = items.filter(
+    (item) => item.creatorTrustSignals?.riskLevel === 'critical',
   ).length
 
   const applyFilters = () => {
@@ -385,7 +406,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
         </Card>
       )}
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Total da fila</CardDescription>
@@ -417,16 +438,47 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
             </p>
           </CardContent>
         </Card>
+        <Card className="border-sky-500/20 bg-sky-500/5">
+          <CardHeader className="pb-2">
+            <CardDescription>Itens com reports</CardDescription>
+            <CardTitle className="text-2xl">{flaggedCountInPage}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">
+              Targets nesta pagina com pressao de reports ativa.
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="border-amber-500/20 bg-amber-500/5">
+          <CardHeader className="pb-2">
+            <CardDescription>Flags high/critical</CardDescription>
+            <CardTitle className="text-2xl">{highPriorityFlagsInPage}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">Targets que exigem triagem mais rapida.</p>
+          </CardContent>
+        </Card>
+        <Card className="border-red-500/20 bg-red-500/5">
+          <CardHeader className="pb-2">
+            <CardDescription>Creators criticos</CardDescription>
+            <CardTitle className="text-2xl">{criticalCreatorRiskInPage}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">
+              Conteudos cujo autor ja esta em risco critico.
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Pesquisa e filtros</CardTitle>
           <CardDescription>
-            Refina por tipo de conteudo, estado de moderacao, publicacao e pesquisa textual.
+            Refina por tipo, estado, pressao de reports e prioridade para uma triagem mais rapida.
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+        <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-7">
           <div className="xl:col-span-2">
             <Label htmlFor="admin-content-search">Pesquisa</Label>
             <div className="mt-1 flex items-center gap-2">
@@ -521,7 +573,52 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
             </Select>
           </div>
 
-          <div className="md:col-span-2 xl:col-span-6 flex flex-wrap gap-2">
+          <div>
+            <Label>Reports</Label>
+            <Select
+              value={filters.flaggedOnly}
+              onValueChange={(value) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  flaggedOnly: value as FilterState['flaggedOnly'],
+                }))
+              }
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="flagged">Apenas com flags</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label>Prioridade report</Label>
+            <Select
+              value={filters.minReportPriority}
+              onValueChange={(value) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  minReportPriority: value as ReportPriorityFilter,
+                }))
+              }
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Todas" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas</SelectItem>
+                <SelectItem value="low">Low+</SelectItem>
+                <SelectItem value="medium">Medium+</SelectItem>
+                <SelectItem value="high">High+</SelectItem>
+                <SelectItem value="critical">Critical</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="md:col-span-2 xl:col-span-7 flex flex-wrap gap-2">
             <Button type="button" onClick={applyFilters}>
               Aplicar filtros
             </Button>
@@ -575,6 +672,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                   <TableHead>Estado</TableHead>
                   <TableHead>Criador</TableHead>
                   <TableHead>Ultima moderacao</TableHead>
+                  <TableHead>Risco e sinais</TableHead>
                   <TableHead className="w-[360px]">Acoes</TableHead>
                 </TableRow>
               </TableHeader>
@@ -599,6 +697,10 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                           <Badge variant={MODERATION_STATUS_BADGE(item.moderationStatus)}>
                             {MODERATION_STATUS_LABEL[item.moderationStatus]}
                           </Badge>
+                          <ReportPriorityBadge
+                            priority={item.reportSignals.priority}
+                            openReports={item.reportSignals.openReports}
+                          />
                         </div>
                         {item.moderationReason && (
                           <p className="mt-1 text-xs text-muted-foreground">
@@ -607,8 +709,17 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                         )}
                       </TableCell>
                       <TableCell>
-                        <div className="space-y-1 text-xs">
+                        <div className="space-y-2 text-xs">
                           <p>{formatActor(item.creator)}</p>
+                          {item.creatorTrustSignals ? (
+                            <>
+                              <RiskLevelBadge
+                                riskLevel={item.creatorTrustSignals.riskLevel}
+                                score={item.creatorTrustSignals.trustScore}
+                              />
+                              <TrustScoreBar value={item.creatorTrustSignals.trustScore} compact />
+                            </>
+                          ) : null}
                           <p className="text-muted-foreground">
                             Atualizado: {formatDateTime(item.updatedAt)}
                           </p>
@@ -618,6 +729,47 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                         <div className="space-y-1 text-xs text-muted-foreground">
                           <p>Data: {formatDateTime(item.moderatedAt)}</p>
                           <p>Autor: {formatActor(item.moderatedBy)}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-2">
+                          <div className="flex flex-wrap gap-1.5">
+                            <TrustRecommendationBadge
+                              action={
+                                item.creatorTrustSignals?.recommendedAction ??
+                                (item.policySignals.recommendedAction === 'review'
+                                  ? 'review'
+                                  : item.policySignals.recommendedAction === 'hide'
+                                    ? 'block_publishing'
+                                    : item.policySignals.recommendedAction === 'restrict'
+                                      ? 'set_cooldown'
+                                      : 'none')
+                              }
+                            />
+                            {item.policySignals.recommendedAction !== 'none' ? (
+                              <Badge variant="outline" className="border-sky-500/40 text-sky-700">
+                                Policy: {item.policySignals.recommendedAction}
+                              </Badge>
+                            ) : null}
+                          </div>
+                          {item.creatorTrustSignals?.summary.activeControlFlags.length ? (
+                            <div className="flex flex-wrap gap-1.5">
+                              {item.creatorTrustSignals.summary.activeControlFlags.map((flag) => (
+                                <Badge key={flag} variant="outline">
+                                  {flag}
+                                </Badge>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">
+                              Sem barreiras ativas.
+                            </span>
+                          )}
+                          <p className="text-xs text-muted-foreground">
+                            {item.reportSignals.topReasons[0]
+                              ? `Top reason: ${item.reportSignals.topReasons[0].reason}`
+                              : 'Sem motivo dominante.'}
+                          </p>
                         </div>
                       </TableCell>
                       <TableCell>

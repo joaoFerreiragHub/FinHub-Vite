@@ -36,6 +36,9 @@ interface BackendOperationalAlertsResponse {
   thresholds?: {
     hideSpikeCount?: number
     hideSpikeWindowMinutes?: number
+    reportPriorityMin?: 'high'
+    reportMinOpenReports?: number
+    creatorControlRestrictiveActions?: string[]
   }
   summary?: {
     critical?: number
@@ -90,6 +93,10 @@ const toAlertType = (value: unknown): AdminOperationalAlertType | null => {
   if (value === 'ban_applied') return 'ban_applied'
   if (value === 'content_hide_spike') return 'content_hide_spike'
   if (value === 'delegated_access_started') return 'delegated_access_started'
+  if (value === 'critical_report_target') return 'critical_report_target'
+  if (value === 'policy_auto_hide_triggered') return 'policy_auto_hide_triggered'
+  if (value === 'policy_auto_hide_failed') return 'policy_auto_hide_failed'
+  if (value === 'creator_control_applied') return 'creator_control_applied'
   return null
 }
 
@@ -154,6 +161,15 @@ export const adminOperationalAlertsService = {
       thresholds: {
         hideSpikeCount: toNumber(data.thresholds?.hideSpikeCount, 5),
         hideSpikeWindowMinutes: toNumber(data.thresholds?.hideSpikeWindowMinutes, 30),
+        reportPriorityMin: data.thresholds?.reportPriorityMin === 'high' ? 'high' : 'high',
+        reportMinOpenReports: toNumber(data.thresholds?.reportMinOpenReports, 3),
+        creatorControlRestrictiveActions: Array.isArray(
+          data.thresholds?.creatorControlRestrictiveActions,
+        )
+          ? data.thresholds.creatorControlRestrictiveActions.filter(
+              (item): item is string => typeof item === 'string',
+            )
+          : [],
       },
       summary: {
         critical: toNumber(data.summary?.critical, 0),

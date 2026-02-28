@@ -1,5 +1,15 @@
 import { useMemo, useState } from 'react'
-import { Ban, FileText, Loader2, LogOut, RefreshCcw, Search, ShieldAlert } from 'lucide-react'
+import {
+  Ban,
+  FileText,
+  Loader2,
+  LogOut,
+  RefreshCcw,
+  Search,
+  ShieldAlert,
+  SlidersHorizontal,
+  Sparkles,
+} from 'lucide-react'
 import { toast } from 'react-toastify'
 import {
   Badge,
@@ -34,14 +44,25 @@ import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { getErrorMessage } from '@/lib/api/client'
 import {
   useAddAdminUserNote,
+  useAdminUserTrustProfile,
   useAdminUserHistory,
   useAdminUsers,
+  useApplyAdminCreatorControls,
   useBanAdminUser,
   useForceLogoutAdminUser,
   useSuspendAdminUser,
   useUnbanAdminUser,
 } from '../hooks/useAdminUsers'
+import {
+  CreatorControlsSummary,
+  RiskLevelBadge,
+  TrustRecommendationBadge,
+  TrustReasonList,
+  TrustScoreBar,
+  TRUST_RECOMMENDATION_LABEL,
+} from '../components/RiskSignals'
 import type {
+  AdminCreatorControlAction,
   AdminUserAccountStatus,
   AdminUserListQuery,
   AdminUserRecord,
@@ -52,6 +73,9 @@ type RoleFilter = AdminUserRole | 'all'
 type StatusFilter = AdminUserAccountStatus | 'all'
 type ReadOnlyFilter = 'all' | 'yes' | 'no'
 type UserActionKind = 'suspend' | 'ban' | 'unban' | 'force-logout' | 'note'
+type CreatorControlDialogState = {
+  user: AdminUserRecord
+}
 
 interface FilterState {
   search: string
@@ -151,7 +175,30 @@ const MODERATION_ACTION_LABEL = {
   status_change: 'Mudanca de estado',
   force_logout: 'Force logout',
   internal_note: 'Nota interna',
+  creator_control: 'Controlo creator',
 } as const
+
+const CREATOR_CONTROL_ACTION_LABEL: Record<AdminCreatorControlAction, string> = {
+  set_cooldown: 'Aplicar cooldown',
+  clear_cooldown: 'Limpar cooldown',
+  block_creation: 'Bloquear criacao',
+  unblock_creation: 'Desbloquear criacao',
+  block_publishing: 'Bloquear publicacao',
+  unblock_publishing: 'Desbloquear publicacao',
+  suspend_creator_ops: 'Suspender operacao',
+  restore_creator_ops: 'Restaurar operacao',
+}
+
+const CREATOR_CONTROL_REASON_DEFAULT: Record<AdminCreatorControlAction, string> = {
+  set_cooldown: 'Cooldown operacional preventivo',
+  clear_cooldown: 'Cooldown limpo apos revisao',
+  block_creation: 'Criacao bloqueada por risco operacional',
+  unblock_creation: 'Criacao restaurada apos revisao',
+  block_publishing: 'Publicacao bloqueada por risco de moderacao',
+  unblock_publishing: 'Publicacao restaurada apos revisao',
+  suspend_creator_ops: 'Suspensao operacional do creator por risco elevado',
+  restore_creator_ops: 'Operacao do creator restaurada apos revisao',
+}
 
 const formatDateTime = (value: string | null): string => {
   if (!value) return '-'
@@ -248,6 +295,16 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
 
   const [historyUser, setHistoryUser] = useState<AdminUserRecord | null>(null)
   const [historyPage, setHistoryPage] = useState(1)
+  const [trustProfileUser, setTrustProfileUser] = useState<AdminUserRecord | null>(null)
+  const [creatorControlDialog, setCreatorControlDialog] =
+    useState<CreatorControlDialogState | null>(null)
+  const [creatorControlAction, setCreatorControlAction] =
+    useState<AdminCreatorControlAction>('set_cooldown')
+  const [creatorControlReason, setCreatorControlReason] = useState(
+    CREATOR_CONTROL_REASON_DEFAULT.set_cooldown,
+  )
+  const [creatorControlNote, setCreatorControlNote] = useState('')
+  const [creatorControlCooldownHours, setCreatorControlCooldownHours] = useState('24')
 
   const rawAuthUser = useAuthStore((state) => state.user)
   const authUser = (rawAuthUser as unknown as CurrentAdminMeta | null) ?? null
@@ -262,18 +319,39 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
   const userListQuery = useMemo(() => toQueryFilters(queryFilters, page), [queryFilters, page])
   const usersQuery = useAdminUsers(userListQuery)
   const historyQuery = useAdminUserHistory(historyUser?.id ?? null, historyPage, 10)
+  const trustProfileQuery = useAdminUserTrustProfile(
+    trustProfileUser?.role === 'creator' ? trustProfileUser.id : null,
+  )
 
   const suspendMutation = useSuspendAdminUser()
   const banMutation = useBanAdminUser()
   const unbanMutation = useUnbanAdminUser()
   const forceLogoutMutation = useForceLogoutAdminUser()
   const addNoteMutation = useAddAdminUserNote()
+  const creatorControlsMutation = useApplyAdminCreatorControls()
 
   const pagination = usersQuery.data?.pagination
   const users = usersQuery.data?.items ?? []
+  const creatorUsers = users.filter((item) => item.role === 'creator')
 
   const activeCountInPage = users.filter((item) => item.accountStatus === 'active').length
   const blockedCountInPage = users.filter((item) => item.accountStatus !== 'active').length
+  const highRiskCreatorsInPage = creatorUsers.filter(
+    (item) =>
+      item.trustSignals?.riskLevel === 'high' || item.trustSignals?.riskLevel === 'critical',
+  ).length
+  const creatorsWithActiveControlsInPage = creatorUsers.filter(
+    (item) =>
+      item.creatorControls.creationBlocked ||
+      item.creatorControls.publishingBlocked ||
+      Boolean(item.creatorControls.cooldownUntil),
+  ).length
+  const creatorsNeedingInterventionInPage = creatorUsers.filter(
+    (item) =>
+      item.trustSignals?.recommendedAction === 'set_cooldown' ||
+      item.trustSignals?.recommendedAction === 'block_publishing' ||
+      item.trustSignals?.recommendedAction === 'suspend_creator_ops',
+  ).length
 
   const isActionPending =
     suspendMutation.isPending ||
@@ -281,6 +359,7 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
     unbanMutation.isPending ||
     forceLogoutMutation.isPending ||
     addNoteMutation.isPending
+  const isCreatorControlPending = creatorControlsMutation.isPending
   const requiresDoubleConfirm = actionDialog ? isDestructiveAction(actionDialog.kind) : false
   const isDoubleConfirmValid =
     !requiresDoubleConfirm || actionConfirmText.trim().toUpperCase() === DOUBLE_CONFIRM_TOKEN
@@ -303,6 +382,21 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
     setActionConfirmText('')
   }
 
+  const openCreatorControlDialog = (user: AdminUserRecord) => {
+    const suggestedAction =
+      user.trustSignals?.recommendedAction === 'set_cooldown' ||
+      user.trustSignals?.recommendedAction === 'block_publishing' ||
+      user.trustSignals?.recommendedAction === 'suspend_creator_ops'
+        ? user.trustSignals.recommendedAction
+        : 'set_cooldown'
+
+    setCreatorControlDialog({ user })
+    setCreatorControlAction(suggestedAction)
+    setCreatorControlReason(CREATOR_CONTROL_REASON_DEFAULT[suggestedAction])
+    setCreatorControlNote('')
+    setCreatorControlCooldownHours('24')
+  }
+
   const closeActionDialog = (force = false) => {
     if (!force && isActionPending) return
     setActionDialog(null)
@@ -314,6 +408,19 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
   const closeHistoryDialog = () => {
     setHistoryUser(null)
     setHistoryPage(1)
+  }
+
+  const closeTrustProfileDialog = () => {
+    setTrustProfileUser(null)
+  }
+
+  const closeCreatorControlDialog = (force = false) => {
+    if (!force && isCreatorControlPending) return
+    setCreatorControlDialog(null)
+    setCreatorControlAction('set_cooldown')
+    setCreatorControlReason(CREATOR_CONTROL_REASON_DEFAULT.set_cooldown)
+    setCreatorControlNote('')
+    setCreatorControlCooldownHours('24')
   }
 
   const handleActionSubmit = async () => {
@@ -379,6 +486,47 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
     }
   }
 
+  const handleCreatorControlSubmit = async () => {
+    if (!creatorControlDialog) return
+
+    const reason = creatorControlReason.trim()
+    if (!reason) {
+      toast.error('Motivo obrigatorio para controlos do creator.')
+      return
+    }
+
+    const payload: {
+      action: AdminCreatorControlAction
+      reason: string
+      note?: string
+      cooldownHours?: number
+    } = {
+      action: creatorControlAction,
+      reason,
+      note: creatorControlNote.trim() || undefined,
+    }
+
+    if (creatorControlAction === 'set_cooldown') {
+      const cooldownHours = Number.parseInt(creatorControlCooldownHours, 10)
+      if (!Number.isFinite(cooldownHours) || cooldownHours <= 0) {
+        toast.error('Cooldown hours deve ser maior que zero.')
+        return
+      }
+      payload.cooldownHours = cooldownHours
+    }
+
+    try {
+      const result = await creatorControlsMutation.mutateAsync({
+        userId: creatorControlDialog.user.id,
+        payload,
+      })
+      toast.success(result.message)
+      closeCreatorControlDialog(true)
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
+  }
+
   return (
     <div className="space-y-6">
       {embedded ? (
@@ -410,7 +558,7 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
         </Card>
       )}
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Total de utilizadores</CardDescription>
@@ -436,6 +584,39 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
           </CardHeader>
           <CardContent>
             <p className="text-xs text-muted-foreground">Suspensos + banidos no conjunto atual.</p>
+          </CardContent>
+        </Card>
+        <Card className="border-sky-500/20 bg-sky-500/5">
+          <CardHeader className="pb-2">
+            <CardDescription>Creators high/critical</CardDescription>
+            <CardTitle className="text-2xl">{highRiskCreatorsInPage}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">
+              Creators nesta pagina com score operacional degradado.
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="border-amber-500/20 bg-amber-500/5">
+          <CardHeader className="pb-2">
+            <CardDescription>Com barreiras ativas</CardDescription>
+            <CardTitle className="text-2xl">{creatorsWithActiveControlsInPage}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">
+              Creators com cooldown ou bloqueios operacionais ativos.
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="border-red-500/20 bg-red-500/5">
+          <CardHeader className="pb-2">
+            <CardDescription>Intervencao sugerida</CardDescription>
+            <CardTitle className="text-2xl">{creatorsNeedingInterventionInPage}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">
+              Trust signals a recomendar cooldown, bloqueio ou suspensao.
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -599,9 +780,9 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
                 <TableRow>
                   <TableHead>Utilizador</TableHead>
                   <TableHead>Estado</TableHead>
-                  <TableHead>Perfil admin</TableHead>
+                  <TableHead>Risco creator</TableHead>
                   <TableHead>Atividade</TableHead>
-                  <TableHead className="w-[360px]">Acoes</TableHead>
+                  <TableHead className="w-[420px]">Acoes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -617,6 +798,12 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
                           <p className="text-sm font-medium">{user.name}</p>
                           <p className="text-xs text-muted-foreground">@{user.username}</p>
                           <p className="text-xs text-muted-foreground">{user.email}</p>
+                          {user.role === 'admin' ? (
+                            <p className="text-[11px] text-muted-foreground">
+                              {user.adminReadOnly ? 'Admin read-only' : 'Admin write'} ·{' '}
+                              {user.adminScopes.length} scopes
+                            </p>
+                          ) : null}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -628,15 +815,41 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
                         </div>
                       </TableCell>
                       <TableCell>
-                        {user.role === 'admin' ? (
-                          <div className="space-y-1 text-xs">
-                            <p>{user.adminReadOnly ? 'Read-only' : 'Write'}</p>
-                            <p className="text-muted-foreground">
-                              {user.adminScopes.length} scopes
-                            </p>
+                        {user.role === 'creator' ? (
+                          <div className="space-y-2">
+                            {user.trustSignals ? (
+                              <>
+                                <div className="flex flex-wrap gap-1.5">
+                                  <RiskLevelBadge
+                                    riskLevel={user.trustSignals.riskLevel}
+                                    score={user.trustSignals.trustScore}
+                                  />
+                                  <TrustRecommendationBadge
+                                    action={user.trustSignals.recommendedAction}
+                                  />
+                                </div>
+                                <TrustScoreBar value={user.trustSignals.trustScore} compact />
+                                <CreatorControlsSummary controls={user.creatorControls} dense />
+                                <p className="text-xs text-muted-foreground">
+                                  {user.trustSignals.reasons[0] ??
+                                    'Sem sinais de risco relevantes.'}
+                                </p>
+                              </>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">
+                                Sem trust profile calculado.
+                              </span>
+                            )}
                           </div>
                         ) : (
-                          <span className="text-xs text-muted-foreground">Nao aplicavel</span>
+                          <div className="space-y-1 text-xs text-muted-foreground">
+                            <p>
+                              {user.role === 'admin' ? 'Perfil administrativo' : 'Nao aplicavel'}
+                            </p>
+                            {user.role === 'admin' ? (
+                              <p>{user.adminReadOnly ? 'Read-only' : 'Write'} sem trust score</p>
+                            ) : null}
+                          </div>
                         )}
                       </TableCell>
                       <TableCell>
@@ -647,6 +860,31 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-2">
+                          {user.role === 'creator' ? (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setTrustProfileUser(user)}
+                            >
+                              <Sparkles className="h-4 w-4" />
+                              Risco
+                            </Button>
+                          ) : null}
+
+                          {user.role === 'creator' ? (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              disabled={!canWriteUsers}
+                              onClick={() => openCreatorControlDialog(user)}
+                            >
+                              <SlidersHorizontal className="h-4 w-4" />
+                              Controlo creator
+                            </Button>
+                          ) : null}
+
                           {isBlocked ? (
                             <Button
                               type="button"
@@ -934,6 +1172,276 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(trustProfileUser)}
+        onOpenChange={(open) => (!open ? closeTrustProfileDialog() : null)}
+      >
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>
+              Trust profile
+              {trustProfileUser ? ` - ${trustProfileUser.username}` : ''}
+            </DialogTitle>
+            <DialogDescription>
+              Sintese operacional pronta para UX: score, risco, recomendacao e barreiras ativas.
+            </DialogDescription>
+          </DialogHeader>
+
+          {trustProfileQuery.isLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />A carregar trust profile...
+            </div>
+          ) : trustProfileQuery.isError ? (
+            <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+              {getErrorMessage(trustProfileQuery.error)}
+            </div>
+          ) : trustProfileQuery.data ? (
+            <div className="space-y-4">
+              <div className="rounded-xl border border-border/70 bg-gradient-to-r from-slate-50 via-white to-sky-50 p-4 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold">
+                      {trustProfileQuery.data.user.name} · @{trustProfileQuery.data.user.username}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {trustProfileQuery.data.trustSignals ? (
+                        <>
+                          <RiskLevelBadge
+                            riskLevel={trustProfileQuery.data.trustSignals.riskLevel}
+                            score={trustProfileQuery.data.trustSignals.trustScore}
+                          />
+                          <TrustRecommendationBadge
+                            action={trustProfileQuery.data.trustSignals.recommendedAction}
+                          />
+                        </>
+                      ) : (
+                        <Badge variant="secondary">Sem trust signals</Badge>
+                      )}
+                    </div>
+                  </div>
+                  <div className="w-full max-w-xs">
+                    <TrustScoreBar value={trustProfileQuery.data.trustSignals?.trustScore ?? 100} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardDescription>Reports abertos</CardDescription>
+                    <CardTitle className="text-2xl">
+                      {trustProfileQuery.data.trustSignals?.summary.openReports ?? 0}
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardDescription>Targets criticos</CardDescription>
+                    <CardTitle className="text-2xl">
+                      {trustProfileQuery.data.trustSignals?.summary.criticalTargets ?? 0}
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardDescription>Ocultos/restritos</CardDescription>
+                    <CardTitle className="text-2xl">
+                      {(trustProfileQuery.data.trustSignals?.summary.hiddenItems ?? 0) +
+                        (trustProfileQuery.data.trustSignals?.summary.restrictedItems ?? 0)}
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardDescription>Creator controls 30d</CardDescription>
+                    <CardTitle className="text-2xl">
+                      {trustProfileQuery.data.trustSignals?.summary
+                        .recentCreatorControlActions30d ?? 0}
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-[1.2fr_0.8fr]">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Razoes e sinais</CardTitle>
+                    <CardDescription>
+                      Texto curto para triagem e renderizacao direta no frontend.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <TrustReasonList
+                      trustSignals={trustProfileQuery.data.trustSignals}
+                      maxItems={6}
+                    />
+                    <div className="flex flex-wrap gap-1.5">
+                      {(trustProfileQuery.data.trustSignals?.flags ?? []).map((flag) => (
+                        <Badge key={flag} variant="outline">
+                          {flag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Barreiras ativas</CardTitle>
+                    <CardDescription>Estado operacional atual do creator.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <CreatorControlsSummary
+                      controls={trustProfileQuery.data.user.creatorControls}
+                    />
+                    <div className="space-y-1 text-xs text-muted-foreground">
+                      <p>
+                        Atualizado:{' '}
+                        {formatDateTime(trustProfileQuery.data.user.creatorControls.updatedAt)}
+                      </p>
+                      <p>
+                        Cooldown ate:{' '}
+                        {formatDateTime(trustProfileQuery.data.user.creatorControls.cooldownUntil)}
+                      </p>
+                      <p>
+                        Recomendacao:{' '}
+                        {
+                          TRUST_RECOMMENDATION_LABEL[
+                            trustProfileQuery.data.trustSignals?.recommendedAction ?? 'none'
+                          ]
+                        }
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+              Sem trust profile disponivel.
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(creatorControlDialog)}
+        onOpenChange={(open) => (!open ? closeCreatorControlDialog() : null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Controlos do creator
+              {creatorControlDialog ? ` - ${creatorControlDialog.user.username}` : ''}
+            </DialogTitle>
+            <DialogDescription>
+              Aplica barreiras operacionais sem suspender a conta completa.
+            </DialogDescription>
+          </DialogHeader>
+
+          {creatorControlDialog ? (
+            <div className="space-y-4">
+              <div className="rounded-md border border-border/70 bg-muted/20 p-3">
+                <div className="flex flex-wrap gap-2">
+                  {creatorControlDialog.user.trustSignals ? (
+                    <>
+                      <RiskLevelBadge
+                        riskLevel={creatorControlDialog.user.trustSignals.riskLevel}
+                        score={creatorControlDialog.user.trustSignals.trustScore}
+                      />
+                      <TrustRecommendationBadge
+                        action={creatorControlDialog.user.trustSignals.recommendedAction}
+                      />
+                    </>
+                  ) : (
+                    <Badge variant="secondary">Sem trust signals</Badge>
+                  )}
+                </div>
+                <div className="mt-3">
+                  <CreatorControlsSummary controls={creatorControlDialog.user.creatorControls} />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Acao</Label>
+                <Select
+                  value={creatorControlAction}
+                  onValueChange={(value) => {
+                    const nextAction = value as AdminCreatorControlAction
+                    setCreatorControlAction(nextAction)
+                    setCreatorControlReason(CREATOR_CONTROL_REASON_DEFAULT[nextAction])
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleciona a acao" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(CREATOR_CONTROL_ACTION_LABEL).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {creatorControlAction === 'set_cooldown' ? (
+                <div className="space-y-2">
+                  <Label htmlFor="creator-cooldown-hours">Cooldown (horas)</Label>
+                  <Input
+                    id="creator-cooldown-hours"
+                    type="number"
+                    min={1}
+                    value={creatorControlCooldownHours}
+                    onChange={(event) => setCreatorControlCooldownHours(event.target.value)}
+                  />
+                </div>
+              ) : null}
+
+              <div className="space-y-2">
+                <Label htmlFor="creator-control-reason">Motivo</Label>
+                <Input
+                  id="creator-control-reason"
+                  value={creatorControlReason}
+                  onChange={(event) => setCreatorControlReason(event.target.value)}
+                  placeholder="Motivo operacional"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="creator-control-note">Nota operacional (opcional)</Label>
+                <Textarea
+                  id="creator-control-note"
+                  rows={4}
+                  value={creatorControlNote}
+                  onChange={(event) => setCreatorControlNote(event.target.value)}
+                  placeholder="Contexto adicional para historico e auditoria."
+                />
+              </div>
+            </div>
+          ) : null}
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => closeCreatorControlDialog()}
+              disabled={isCreatorControlPending}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              onClick={handleCreatorControlSubmit}
+              disabled={isCreatorControlPending || !creatorControlDialog}
+            >
+              {isCreatorControlPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              Aplicar controlo
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

@@ -8,8 +8,10 @@ import {
   Gauge,
   Loader2,
   Lock,
+  Radar,
   RefreshCcw,
   ShieldCheck,
+  ShieldAlert,
   Users,
 } from 'lucide-react'
 import {
@@ -120,6 +122,12 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
     return Object.entries(metrics.usage.roleDistribution).sort((a, b) => b[1] - a[1]) as Array<
       [string, number]
     >
+  }, [metrics])
+
+  const reportReasonRows = useMemo(() => metrics?.moderation.reports.topReasons ?? [], [metrics])
+  const creatorRiskRows = useMemo(() => {
+    if (!metrics) return []
+    return Object.entries(metrics.moderation.creatorTrust.byRiskLevel) as Array<[string, number]>
   }, [metrics])
 
   return (
@@ -275,7 +283,7 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
               <ShieldCheck className="h-4 w-4 text-muted-foreground" />
               <h2 className="text-sm font-semibold">Moderacao</h2>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
               <KpiCard
                 title="Fila total"
                 value={formatNumber(metrics.moderation.queue.total)}
@@ -308,6 +316,40 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
                 description="Tempo medio entre criacao e 1a acao (7d)."
                 icon={Clock3}
               />
+              <KpiCard
+                title="Reports abertos"
+                value={formatNumber(metrics.moderation.reports.openTotal)}
+                description="Backlog atual de reports pendentes."
+                icon={Radar}
+                tone={metrics.moderation.reports.criticalTargets > 0 ? 'warn' : 'default'}
+              />
+            </div>
+            <div className="grid gap-4 xl:grid-cols-3">
+              <KpiCard
+                title="Targets high+"
+                value={formatNumber(metrics.moderation.reports.highPriorityTargets)}
+                description="Conteudos com pressao relevante de reports."
+                icon={AlertTriangle}
+                tone={metrics.moderation.reports.highPriorityTargets > 0 ? 'warn' : 'default'}
+              />
+              <KpiCard
+                title="Targets criticos"
+                value={formatNumber(metrics.moderation.reports.criticalTargets)}
+                description="Targets no topo da triagem de risco."
+                icon={ShieldAlert}
+                tone={metrics.moderation.reports.criticalTargets > 0 ? 'danger' : 'default'}
+              />
+              <KpiCard
+                title="Auto-hide erros 24h"
+                value={formatNumber(metrics.moderation.automation.policyAutoHide.errorLast24h)}
+                description="Falhas da automacao preventiva."
+                icon={ShieldAlert}
+                tone={
+                  metrics.moderation.automation.policyAutoHide.errorLast24h > 0
+                    ? 'danger'
+                    : 'success'
+                }
+              />
             </div>
             <Card>
               <CardHeader>
@@ -337,6 +379,85 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
                 </Table>
               </CardContent>
             </Card>
+            <div className="grid gap-4 xl:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Reports e intake</CardTitle>
+                  <CardDescription>Entrada e resolucao operacional de reports.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline">
+                      Intake 24h: {formatNumber(metrics.moderation.reports.intake.last24h)}
+                    </Badge>
+                    <Badge variant="outline">
+                      Intake 7d: {formatNumber(metrics.moderation.reports.intake.last7d)}
+                    </Badge>
+                    <Badge variant="outline">
+                      Resolvidos 24h: {formatNumber(metrics.moderation.reports.resolved.last24h)}
+                    </Badge>
+                    <Badge variant="outline">
+                      Resolvidos 7d: {formatNumber(metrics.moderation.reports.resolved.last7d)}
+                    </Badge>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {reportReasonRows.length === 0 ? (
+                      <span className="text-xs text-muted-foreground">Sem top reasons.</span>
+                    ) : (
+                      reportReasonRows.map((item) => (
+                        <Badge key={item.reason} variant="outline">
+                          {item.reason}: {formatNumber(item.count)}
+                        </Badge>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Creator controls e trust</CardTitle>
+                  <CardDescription>Pressao operacional ao nivel do creator.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-lg border border-border/70 p-3">
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                        Barreiras ativas
+                      </p>
+                      <p className="mt-2 text-2xl font-semibold">
+                        {formatNumber(metrics.moderation.creatorControls.active.affectedCreators)}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        creationBlocked{' '}
+                        {formatNumber(metrics.moderation.creatorControls.active.creationBlocked)}
+                        {' · '}publishingBlocked{' '}
+                        {formatNumber(metrics.moderation.creatorControls.active.publishingBlocked)}
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-border/70 p-3">
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                        Intervencao sugerida
+                      </p>
+                      <p className="mt-2 text-2xl font-semibold">
+                        {formatNumber(metrics.moderation.creatorTrust.needingIntervention)}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        creators avaliados:{' '}
+                        {formatNumber(metrics.moderation.creatorTrust.creatorsEvaluated)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {creatorRiskRows.map(([level, count]) => (
+                      <Badge key={level} variant="outline">
+                        {level}: {formatNumber(count)}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </section>
 
           <section className="space-y-3">

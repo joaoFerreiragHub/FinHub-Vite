@@ -8,6 +8,7 @@ import type {
   AdminMetricStatusClass,
   AdminMetricsOverview,
 } from '../types/adminMetrics'
+import type { CreatorRiskLevel } from '../types/adminUsers'
 
 type BackendMetricsOverview = Partial<AdminMetricsOverview>
 
@@ -33,6 +34,7 @@ const BASE_CONTENT_TYPES: AdminMetricBaseContentType[] = [
 
 const STATUS_CLASSES: AdminMetricStatusClass[] = ['2xx', '3xx', '4xx', '5xx']
 const ROLES: UserRole[] = ['visitor', 'free', 'premium', 'creator', 'admin']
+const CREATOR_RISK_LEVELS: CreatorRiskLevel[] = ['low', 'medium', 'high', 'critical']
 
 const toNumber = (value: unknown, fallback = 0): number =>
   typeof value === 'number' && Number.isFinite(value) ? value : fallback
@@ -128,6 +130,25 @@ const normalizeStatusClassCounts = (raw: unknown): Record<AdminMetricStatusClass
   return output
 }
 
+const normalizeCreatorRiskLevels = (raw: unknown): Record<CreatorRiskLevel, number> => {
+  const input =
+    raw && typeof raw === 'object'
+      ? (raw as Record<string, unknown>)
+      : ({} as Record<string, unknown>)
+  const output: Record<CreatorRiskLevel, number> = {
+    low: 0,
+    medium: 0,
+    high: 0,
+    critical: 0,
+  }
+
+  for (const level of CREATOR_RISK_LEVELS) {
+    output[level] = toNumber(input[level], 0)
+  }
+
+  return output
+}
+
 const normalizeRouteLatency = (raw: unknown): AdminMetricRouteLatency[] => {
   if (!Array.isArray(raw)) return []
   return raw
@@ -177,6 +198,13 @@ const mapOverview = (raw: BackendMetricsOverview): AdminMetricsOverview => {
   const moderationActions = moderation.actions ?? {}
   const moderationResolution = moderation.resolution ?? {}
   const moderationRecidivism = moderation.recidivismLast30d ?? {}
+  const moderationReports = moderation.reports ?? {}
+  const moderationAutomation = moderation.automation ?? {}
+  const moderationPolicyAutoHide = moderationAutomation.policyAutoHide ?? {}
+  const moderationCreatorControls = moderation.creatorControls ?? {}
+  const moderationCreatorControlsActive = moderationCreatorControls.active ?? {}
+  const moderationCreatorControlsActions = moderationCreatorControls.actions ?? {}
+  const moderationCreatorTrust = moderation.creatorTrust ?? {}
   const audit24h = operations.adminAuditLast24h ?? {}
 
   const breakdownLast24h = engagementBreakdown.last24h ?? {}
@@ -293,6 +321,65 @@ const mapOverview = (raw: BackendMetricsOverview): AdminMetricsOverview => {
       recidivismLast30d: {
         repeatedTargets: toNumber(moderationRecidivism.repeatedTargets, 0),
         repeatedActors: toNumber(moderationRecidivism.repeatedActors, 0),
+      },
+      reports: {
+        openTotal: toNumber(moderationReports.openTotal, 0),
+        highPriorityTargets: toNumber(moderationReports.highPriorityTargets, 0),
+        criticalTargets: toNumber(moderationReports.criticalTargets, 0),
+        topReasons: Array.isArray(moderationReports.topReasons)
+          ? moderationReports.topReasons
+              .map((item) => {
+                if (!item || typeof item !== 'object') return null
+                const record = item as Record<string, unknown>
+                return typeof record.reason === 'string' && typeof record.count === 'number'
+                  ? { reason: record.reason, count: record.count }
+                  : null
+              })
+              .filter((item): item is { reason: string; count: number } => item !== null)
+          : [],
+        intake: {
+          last24h: toNumber((moderationReports.intake ?? {}).last24h, 0),
+          last7d: toNumber((moderationReports.intake ?? {}).last7d, 0),
+        },
+        resolved: {
+          last24h: toNumber((moderationReports.resolved ?? {}).last24h, 0),
+          last7d: toNumber((moderationReports.resolved ?? {}).last7d, 0),
+        },
+      },
+      automation: {
+        policyAutoHide: {
+          successLast24h: toNumber(moderationPolicyAutoHide.successLast24h, 0),
+          successLast7d: toNumber(moderationPolicyAutoHide.successLast7d, 0),
+          errorLast24h: toNumber(moderationPolicyAutoHide.errorLast24h, 0),
+          errorLast7d: toNumber(moderationPolicyAutoHide.errorLast7d, 0),
+        },
+      },
+      creatorControls: {
+        active: {
+          affectedCreators: toNumber(moderationCreatorControlsActive.affectedCreators, 0),
+          creationBlocked: toNumber(moderationCreatorControlsActive.creationBlocked, 0),
+          publishingBlocked: toNumber(moderationCreatorControlsActive.publishingBlocked, 0),
+          cooldownActive: toNumber(moderationCreatorControlsActive.cooldownActive, 0),
+          fullyRestricted: toNumber(moderationCreatorControlsActive.fullyRestricted, 0),
+        },
+        actions: {
+          last24h: toNumber(moderationCreatorControlsActions.last24h, 0),
+          last7d: toNumber(moderationCreatorControlsActions.last7d, 0),
+          byActionLast7d:
+            moderationCreatorControlsActions.byActionLast7d &&
+            typeof moderationCreatorControlsActions.byActionLast7d === 'object'
+              ? Object.fromEntries(
+                  Object.entries(
+                    moderationCreatorControlsActions.byActionLast7d as Record<string, unknown>,
+                  ).map(([key, value]) => [key, toNumber(value, 0)]),
+                )
+              : {},
+        },
+      },
+      creatorTrust: {
+        creatorsEvaluated: toNumber(moderationCreatorTrust.creatorsEvaluated, 0),
+        needingIntervention: toNumber(moderationCreatorTrust.needingIntervention, 0),
+        byRiskLevel: normalizeCreatorRiskLevels(moderationCreatorTrust.byRiskLevel),
       },
     },
     operations: {

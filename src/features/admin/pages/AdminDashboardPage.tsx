@@ -15,6 +15,7 @@ import {
   UserCheck,
   Users,
   UserX,
+  WandSparkles,
 } from 'lucide-react'
 import {
   Badge,
@@ -119,6 +120,10 @@ const ALERT_TYPE_LABEL: Record<AdminOperationalAlertType, string> = {
   ban_applied: 'Banimento',
   content_hide_spike: 'Spike hide',
   delegated_access_started: 'Acesso delegado',
+  critical_report_target: 'Target critico',
+  policy_auto_hide_triggered: 'Auto-hide',
+  policy_auto_hide_failed: 'Falha auto-hide',
+  creator_control_applied: 'Controlo creator',
 }
 
 const ALERT_SEVERITY_LABEL: Record<AdminOperationalAlertSeverity, string> = {
@@ -273,6 +278,12 @@ export default function AdminDashboardPage() {
   const activeSupportCount = activeSupport?.pagination.total ?? 0
   const criticalOperationalAlerts = operationalAlerts?.summary.critical ?? 0
   const highOperationalAlerts = operationalAlerts?.summary.high ?? 0
+  const creatorsNeedingIntervention =
+    metricsOverview?.moderation.creatorTrust.needingIntervention ?? 0
+  const creatorControlsActive =
+    metricsOverview?.moderation.creatorControls.active.affectedCreators ?? 0
+  const criticalReportTargets = metricsOverview?.moderation.reports.criticalTargets ?? 0
+  const autoHideErrors24h = metricsOverview?.moderation.automation.policyAutoHide.errorLast24h ?? 0
 
   const moduleCards = useMemo(
     () =>
@@ -428,7 +439,7 @@ export default function AdminDashboardPage() {
                 Sinais rapidos
               </h2>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
               <StatCard
                 label="Suporte pendente"
                 value={pendingSupportCount}
@@ -469,6 +480,34 @@ export default function AdminDashboardPage() {
                 icon={BellRing}
                 loading={canReadAudit && loadingOperationalAlerts}
                 highlight="warn"
+              />
+              <StatCard
+                label="Creators em interv."
+                value={creatorsNeedingIntervention}
+                icon={Users}
+                loading={canReadStats && loadingMetricsOverview}
+                highlight="warn"
+              />
+              <StatCard
+                label="Controls ativos"
+                value={creatorControlsActive}
+                icon={Shield}
+                loading={canReadStats && loadingMetricsOverview}
+                highlight="warn"
+              />
+              <StatCard
+                label="Reports criticos"
+                value={criticalReportTargets}
+                icon={ShieldAlert}
+                loading={canReadStats && loadingMetricsOverview}
+                highlight="danger"
+              />
+              <StatCard
+                label="Auto-hide erros"
+                value={autoHideErrors24h}
+                icon={WandSparkles}
+                loading={canReadStats && loadingMetricsOverview}
+                highlight="danger"
               />
             </div>
           </section>
@@ -588,6 +627,21 @@ export default function AdminDashboardPage() {
                     : (metricsOverview?.operations.adminAuditLast24h.success ?? 0).toLocaleString(
                         'pt-PT',
                       )}
+                </Badge>
+                <Badge variant="outline">
+                  Creators high+:{' '}
+                  {loadingMetricsOverview
+                    ? '...'
+                    : (
+                        (metricsOverview?.moderation.creatorTrust.byRiskLevel.high ?? 0) +
+                        (metricsOverview?.moderation.creatorTrust.byRiskLevel.critical ?? 0)
+                      ).toLocaleString('pt-PT')}
+                </Badge>
+                <Badge variant="outline">
+                  Reports abertos:{' '}
+                  {loadingMetricsOverview
+                    ? '...'
+                    : (metricsOverview?.moderation.reports.openTotal ?? 0).toLocaleString('pt-PT')}
                 </Badge>
               </CardContent>
             </Card>

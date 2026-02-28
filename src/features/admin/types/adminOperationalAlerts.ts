@@ -4,6 +4,10 @@ export type AdminOperationalAlertType =
   | 'ban_applied'
   | 'content_hide_spike'
   | 'delegated_access_started'
+  | 'critical_report_target'
+  | 'policy_auto_hide_triggered'
+  | 'policy_auto_hide_failed'
+  | 'creator_control_applied'
 
 export type AdminOperationalAlertSeverity = 'critical' | 'high' | 'medium'
 
@@ -34,6 +38,9 @@ export interface AdminOperationalAlertsResponse {
   thresholds: {
     hideSpikeCount: number
     hideSpikeWindowMinutes: number
+    reportPriorityMin: 'high'
+    reportMinOpenReports: number
+    creatorControlRestrictiveActions: string[]
   }
   summary: AdminOperationalAlertsSummary
   items: AdminOperationalAlert[]

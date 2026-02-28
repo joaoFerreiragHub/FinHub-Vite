@@ -1,4 +1,5 @@
 import type { UserRole } from '@/features/auth/types'
+import type { CreatorRiskLevel } from './adminUsers'
 
 export type AdminMetricContentType =
   | 'article'
@@ -116,6 +117,47 @@ export interface AdminMetricsOverview {
     recidivismLast30d: {
       repeatedTargets: number
       repeatedActors: number
+    }
+    reports: {
+      openTotal: number
+      highPriorityTargets: number
+      criticalTargets: number
+      topReasons: Array<{ reason: string; count: number }>
+      intake: {
+        last24h: number
+        last7d: number
+      }
+      resolved: {
+        last24h: number
+        last7d: number
+      }
+    }
+    automation: {
+      policyAutoHide: {
+        successLast24h: number
+        successLast7d: number
+        errorLast24h: number
+        errorLast7d: number
+      }
+    }
+    creatorControls: {
+      active: {
+        affectedCreators: number
+        creationBlocked: number
+        publishingBlocked: number
+        cooldownActive: number
+        fullyRestricted: number
+      }
+      actions: {
+        last24h: number
+        last7d: number
+        byActionLast7d: Record<string, number>
+      }
+    }
+    creatorTrust: {
+      creatorsEvaluated: number
+      needingIntervention: number
+      byRiskLevel: Record<CreatorRiskLevel, number>
     }
   }
   operations: {

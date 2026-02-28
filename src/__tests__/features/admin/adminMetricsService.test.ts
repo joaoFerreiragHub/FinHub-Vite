@@ -101,6 +101,53 @@ describe('adminMetricsService', () => {
             repeatedTargets: 4,
             repeatedActors: 2,
           },
+          reports: {
+            openTotal: 14,
+            highPriorityTargets: 5,
+            criticalTargets: 2,
+            topReasons: [
+              { reason: 'scam', count: 6 },
+              { reason: 'spam', count: 3 },
+            ],
+            intake: { last24h: 5, last7d: 21 },
+            resolved: { last24h: 4, last7d: 17 },
+          },
+          automation: {
+            policyAutoHide: {
+              successLast24h: 2,
+              successLast7d: 8,
+              errorLast24h: 1,
+              errorLast7d: 2,
+            },
+          },
+          creatorControls: {
+            active: {
+              affectedCreators: 7,
+              creationBlocked: 2,
+              publishingBlocked: 4,
+              cooldownActive: 3,
+              fullyRestricted: 1,
+            },
+            actions: {
+              last24h: 3,
+              last7d: 9,
+              byActionLast7d: {
+                set_cooldown: 4,
+                block_publishing: 3,
+                suspend_creator_ops: 2,
+              },
+            },
+          },
+          creatorTrust: {
+            creatorsEvaluated: 22,
+            needingIntervention: 6,
+            byRiskLevel: {
+              low: 10,
+              medium: 6,
+              high: 4,
+              critical: 2,
+            },
+          },
         },
         operations: {
           source: 'in_memory_since_process_boot',
@@ -146,6 +193,9 @@ describe('adminMetricsService', () => {
     expect(result.usage.roleDistribution.visitor).toBe(0)
     expect(result.engagement.contentPublishedLast7d.byType.article).toBe(5)
     expect(result.moderation.queue.byType.hidden.comment).toBe(0)
+    expect(result.moderation.reports.criticalTargets).toBe(2)
+    expect(result.moderation.creatorControls.active.affectedCreators).toBe(7)
+    expect(result.moderation.creatorTrust.byRiskLevel.critical).toBe(2)
     expect(result.operations.statusClassCounts['3xx']).toBe(0)
     expect(result.operations.topSlowRoutes[0]).toMatchObject({
       method: 'GET',
