@@ -3,6 +3,7 @@ import {
   BarChart3,
   LayoutDashboard,
   Layers,
+  ShieldAlert,
   ShieldCheck,
   Users,
   LifeBuoy,
@@ -20,6 +21,12 @@ export const adminRoutes = [
     path: '/admin/users',
     label: 'Utilizadores',
     icon: Users,
+    allowedRoles: ['admin'] as UserRole[],
+  },
+  {
+    path: '/admin/creators',
+    label: 'Creators',
+    icon: ShieldAlert,
     allowedRoles: ['admin'] as UserRole[],
   },
   {

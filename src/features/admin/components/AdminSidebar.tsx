@@ -3,6 +3,7 @@ import {
   BarChart3,
   LayoutDashboard,
   Newspaper,
+  ShieldAlert,
   ShieldCheck,
   Users,
   Layers,
@@ -21,6 +22,7 @@ interface AdminSidebarProps {
 const links = [
   { key: 'dashboard' as AdminModuleKey, icon: LayoutDashboard, exact: true },
   { key: 'users' as AdminModuleKey, icon: Users, exact: false },
+  { key: 'creators' as AdminModuleKey, icon: ShieldAlert, exact: false },
   { key: 'content' as AdminModuleKey, icon: ShieldCheck, exact: false },
   { key: 'editorial' as AdminModuleKey, icon: Newspaper, exact: false },
   { key: 'support' as AdminModuleKey, icon: LifeBuoy, exact: false },

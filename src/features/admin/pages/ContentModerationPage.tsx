@@ -1,5 +1,14 @@
 import { useMemo, useState } from 'react'
-import { EyeOff, Loader2, RefreshCcw, Search, ShieldAlert, ShieldCheck, Undo2 } from 'lucide-react'
+import {
+  ArrowUpRight,
+  EyeOff,
+  Loader2,
+  RefreshCcw,
+  Search,
+  ShieldAlert,
+  ShieldCheck,
+  Undo2,
+} from 'lucide-react'
 import { toast } from 'react-toastify'
 import {
   Badge,
@@ -719,6 +728,36 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                               />
                               <TrustScoreBar value={item.creatorTrustSignals.trustScore} compact />
                             </>
+                          ) : null}
+                          {item.creator ? (
+                            <div className="flex flex-wrap gap-2 pt-1">
+                              <Button asChild type="button" size="sm" variant="outline">
+                                <a
+                                  href={`/admin/creators?creatorId=${encodeURIComponent(
+                                    item.creator.id,
+                                  )}&view=trust&source=content&contentType=${encodeURIComponent(
+                                    item.contentType,
+                                  )}&contentId=${encodeURIComponent(item.id)}`}
+                                >
+                                  <ArrowUpRight className="h-4 w-4" />
+                                  Creator
+                                </a>
+                              </Button>
+                              {canAct ? (
+                                <Button asChild type="button" size="sm">
+                                  <a
+                                    href={`/admin/creators?creatorId=${encodeURIComponent(
+                                      item.creator.id,
+                                    )}&view=controls&source=content&contentType=${encodeURIComponent(
+                                      item.contentType,
+                                    )}&contentId=${encodeURIComponent(item.id)}`}
+                                  >
+                                    <ShieldAlert className="h-4 w-4" />
+                                    Controlar
+                                  </a>
+                                </Button>
+                              ) : null}
+                            </div>
                           ) : null}
                           <p className="text-muted-foreground">
                             Atualizado: {formatDateTime(item.updatedAt)}

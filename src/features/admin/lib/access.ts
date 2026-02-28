@@ -27,6 +27,7 @@ export type AdminScope = (typeof ADMIN_SCOPES)[number]
 export type AdminModuleKey =
   | 'dashboard'
   | 'users'
+  | 'creators'
   | 'content'
   | 'editorial'
   | 'support'
@@ -57,6 +58,14 @@ export const ADMIN_MODULES: AdminModuleConfig[] = [
     key: 'users',
     label: 'Utilizadores',
     path: '/admin/users',
+    readScopes: ['admin.users.read'],
+    writeScopes: ['admin.users.write'],
+    operational: true,
+  },
+  {
+    key: 'creators',
+    label: 'Creators',
+    path: '/admin/creators',
     readScopes: ['admin.users.read'],
     writeScopes: ['admin.users.write'],
     operational: true,

@@ -90,6 +90,7 @@ import ProfileEditPage from '@/features/dashboard/pages/ProfileEditPage'
 // Pages - Admin
 import AdminDashboardPage from '@/features/admin/pages/AdminDashboardPage'
 import UsersManagementPage from '@/features/admin/pages/UsersManagementPage'
+import CreatorsRiskBoardPage from '@/features/admin/pages/CreatorsRiskBoardPage'
 import ContentModerationPage from '@/features/admin/pages/ContentModerationPage'
 import EditorialCmsPage from '@/features/admin/pages/EditorialCmsPage'
 import BrandsManagementPage from '@/features/admin/pages/BrandsManagementPage'
@@ -456,6 +457,10 @@ const router = createBrowserRouter([
       {
         path: 'users',
         element: <UsersManagementPage />,
+      },
+      {
+        path: 'creators',
+        element: <CreatorsRiskBoardPage />,
       },
       {
         path: 'conteudo',
