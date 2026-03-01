@@ -1,6 +1,6 @@
 # Estado Implementado
 
-Data de referencia: 2026-02-21 (atualizado apos fecho oficial de P2 e replaneamento de roadmap).
+Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS e Moderation Control Plane).
 
 ## 1) Foundation e arquitetura
 - Estrutura feature-based e separacao por modulos.
@@ -930,3 +930,94 @@ Data de referencia: 2026-02-21 (atualizado apos fecho oficial de P2 e replaneame
   - `npm run test -- --runInBand` -> PASS (19 suites, 136 testes)
   - `npm run typecheck:p1` -> PASS
   - `npm run build` -> PASS
+
+## 45) P4 Moderation Control Plane consolidado no backend (2026-03-01)
+- Backend (`API_finhub`) com segunda camada operacional de P4 ja implementada alem do Editorial CMS.
+- Modelos introduzidos/expandidos:
+  - `ContentReport`
+  - `AutomatedModerationSignal`
+  - `ContentFalsePositiveFeedback`
+  - `PlatformSurfaceControl`
+  - `AdminContentJob`
+  - `User.creatorControls`
+- Services principais introduzidos:
+  - `moderationPolicy.service.ts`
+  - `contentReport.service.ts`
+  - `automatedModeration.service.ts`
+  - `surfaceControl.service.ts`
+  - `creatorTrust.service.ts`
+  - `adminContentJob.service.ts`
+- Entregas funcionais consolidadas:
+  - `fast hide`
+  - bulk moderation com guardrails
+  - reports de users a alimentar a queue admin
+  - policy engine com auto-hide opcional por env
+  - creator controls
+  - trust scoring com compensacao de false positives
+  - deteccao automatica (`spam`, `suspicious_link`, `flood`, `mass_creation`)
+  - rollback assistido
+  - kill switches por superficie
+  - jobs assincronos de moderacao/rollback
+  - drill-down operacional por creator, alvo, superficie e jobs
+- Endpoints principais expostos:
+  - `POST /api/admin/content/:contentType/:contentId/hide-fast`
+  - `POST /api/admin/content/bulk-moderate`
+  - `POST /api/admin/content/bulk-rollback`
+  - `POST /api/admin/content/bulk-moderate/jobs`
+  - `POST /api/admin/content/bulk-rollback/jobs`
+  - `GET /api/admin/content/jobs`
+  - `GET /api/admin/content/jobs/:jobId`
+  - `POST /api/reports/content`
+  - `GET /api/admin/metrics/drilldown`
+  - `POST /api/admin/users/:userId/creator-controls`
+  - `GET /api/admin/users/:userId/trust-profile`
+  - `GET /api/admin/surfaces`
+  - `PATCH /api/admin/surfaces/:key`
+- Configuracao/env relevante:
+  - `MODERATION_POLICY_AUTO_HIDE_*`
+  - `AUTOMATED_MODERATION_*`
+- Validacao tecnica do ciclo:
+  - `npm run typecheck` -> PASS
+  - `npm run build` -> PASS
+  - `npm run contract:openapi` -> PASS
+- Documento tecnico principal:
+  - `API_finhub/dcos/P4_MODERATION_CONTROL_PLANE.md`
+
+## 46) P4 Moderation Control Plane surfacado no frontend admin (2026-03-01)
+- Frontend (`FinHub-Vite`) com UX admin alinhada ao control plane backend.
+- Superficies operacionais consolidadas:
+  - `/admin`
+  - `/admin/conteudo`
+  - `/admin/users`
+  - `/admin/creators`
+  - `/admin/stats`
+- Entregas funcionais na UI:
+  - queue de moderacao com `reportSignals`, `policySignals`, `automatedSignals` e `creatorTrustSignals`;
+  - rollback assistido com `mark false positive`;
+  - jobs recentes e criacao de jobs assincronos em lote;
+  - creator risk board dedicado;
+  - trust profile e creator controls;
+  - dashboard/stats com drill-down, false positives, jobs e surface controls;
+  - kill switches e estados de superficie com motivo e mensagem publica.
+- Camadas frontend principais atualizadas:
+  - `src/features/admin/types/adminContent.ts`
+  - `src/features/admin/types/adminUsers.ts`
+  - `src/features/admin/types/adminMetrics.ts`
+  - `src/features/admin/services/adminContentService.ts`
+  - `src/features/admin/services/adminUsersService.ts`
+  - `src/features/admin/services/adminMetricsService.ts`
+  - `src/features/admin/hooks/useAdminContent.ts`
+  - `src/features/admin/hooks/useAdminMetrics.ts`
+- Guardrails UX ativos:
+  - dialogs de acao destrutiva;
+  - motivo obrigatorio nos kill switches;
+  - confirmacao dupla onde o fluxo e critico;
+  - gating por `adminReadOnly` e escopos nas paginas principais.
+- Validacao tecnica do ciclo:
+  - `yarn lint` -> PASS (warnings nao bloqueantes existentes)
+  - `yarn test --runInBand` -> PASS (21 suites, 143 testes)
+  - `yarn build` -> PASS
+  - `npm run test:e2e -- e2e/admin.p2.6.spec.ts` -> PASS
+  - `npm run test:e2e -- e2e/admin.creator-risk.p4.spec.ts` -> PASS
+- Documento tecnico de entrada no frontend:
+  - `dcos/P4_MODERATION_CONTROL_PLANE.md`

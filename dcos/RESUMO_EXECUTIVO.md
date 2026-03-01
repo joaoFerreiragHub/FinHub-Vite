@@ -1,6 +1,6 @@
 # Resumo Executivo - Documentacao Consolidada
 
-Data da consolidacao: 2026-02-21
+Data da consolidacao: 2026-03-01
 Escopo: pasta `dcos`
 
 ## Estado atual validado
@@ -97,6 +97,27 @@ Escopo: pasta `dcos`
 - Acesso admin estabilizado no frontend:
   - rotas ativas: `/admin`, `/admin/users`, `/admin/conteudo`, `/admin/suporte`, `/admin/recursos`, `/admin/stats`.
   - header ajustado para conta admin abrir `/admin` (evita falso erro em `/perfil`).
+- P4 Admin Editorial CMS em curso com entregas funcionais backend + frontend:
+  - `Editorial CMS` operacional em `/admin/editorial`.
+  - `Recursos` operacional em `/admin/recursos`.
+  - claims, ownership transfer e historico de transfers ja integrados.
+  - referencia tecnica: `dcos/P4_ADMIN_EDITORIAL_CMS.md`.
+- P4 Moderation Control Plane operacional no backend e surfacado no painel admin:
+  - backend com `fast hide`, bulk guardrails, reports, policy engine, auto-hide opcional, creator controls, trust scoring, deteccao automatica, rollback assistido, kill switches, jobs assincronos e drill-down.
+  - frontend com queue enriquecida, creator risk board, trust profile, creator controls, kill switches, jobs recentes, false positive review e drill-down no dashboard/stats.
+  - validacao tecnica mais recente:
+    - backend `npm run typecheck` -> PASS.
+    - backend `npm run build` -> PASS.
+    - backend `npm run contract:openapi` -> PASS.
+    - frontend `yarn lint` -> PASS (warnings nao bloqueantes existentes).
+    - frontend `yarn test --runInBand` -> PASS (21 suites, 143 testes).
+    - frontend `yarn build` -> PASS.
+    - targeted E2E admin:
+      - `npm run test:e2e -- e2e/admin.p2.6.spec.ts` -> PASS.
+      - `npm run test:e2e -- e2e/admin.creator-risk.p4.spec.ts` -> PASS.
+  - referencia tecnica principal:
+    - backend: `API_finhub/dcos/P4_MODERATION_CONTROL_PLANE.md`
+    - frontend: `dcos/P4_MODERATION_CONTROL_PLANE.md`
 
 - P3.2 (Analise Rapida) marcado como FECHADO no escopo atual:
   - motor derivado com fallback multi-fonte + formulas para metricas atuais ausentes.
@@ -121,6 +142,8 @@ Escopo: pasta `dcos`
 - Estado detalhado: `dcos/ESTADO_IMPLEMENTADO.md`
 - Backlog priorizado: `dcos/PENDENCIAS_PRIORIZADAS.md`
 - Plano Admin CMS (P4): `dcos/P4_ADMIN_EDITORIAL_CMS.md`
+- Plano Moderation Control Plane (frontend): `dcos/P4_MODERATION_CONTROL_PLANE.md`
+- Plano Moderation Control Plane (backend): `API_finhub/dcos/P4_MODERATION_CONTROL_PLANE.md`
 
 ## Pontos remanescentes (nao bloqueantes para operacao atual)
 - Warnings de build em mocks legados e avisos de deprecacao de plugin.
@@ -128,5 +151,6 @@ Escopo: pasta `dcos`
 - Expansao de E2E para full business flows continua recomendada como reforco de qualidade (atualmente existe smoke).
 - Proximo bloco sugerido:
   1. fechar P3 (Analise Rapida) com gate tecnico completo.
-  2. iniciar P4 Admin CMS (fundacao + curadoria home) para desbloquear operacao editorial bootstrap.
+  2. fechar o hardening do P4 Moderation Control Plane (docs, runbook, E2E e robustez operacional).
+  3. continuar P4 Admin CMS com a Fase E de E2E/hardening editorial.
 

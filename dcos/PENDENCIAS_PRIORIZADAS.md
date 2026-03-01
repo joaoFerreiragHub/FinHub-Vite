@@ -1,6 +1,6 @@
 # Pendencias Priorizadas
 
-Data da consolidacao: 2026-02-21 (revisto apos fecho oficial de P2 Admin-first e replaneamento de roadmap).
+Data da consolidacao: 2026-03-01 (revisto apos consolidacao do P4 Editorial CMS e Moderation Control Plane).
 
 ## Prioridade 0 - Fechada (2026-02-18)
 1. P0.1 contratos social frontend x backend fechados.
@@ -328,69 +328,75 @@ Escopo oficial do P3: **apenas Analise Rapida**. A Analise Detalhada fica fora d
 Estado atual do P3: EM CURSO (arranque tecnico ja iniciado; falta fechar cobertura e consistencia cross-setor).
 
 ## Prioridade 4 - Medio (P4 em curso)
-1. Admin Editorial CMS (novo bloco formal de produto apos P2).
+
+### 4.1 Admin Editorial CMS
+
 - objetivo: permitir seed/curadoria de conteudo e diretorios pelo admin enquanto a base de creators cresce.
 - documento tecnico de referencia:
   - `dcos/P4_ADMIN_EDITORIAL_CMS.md`
-- escopo resumido:
-  - CRUD editorial admin para conteudos (artigos/cursos/videos/lives/podcasts/books).
-  - curadoria de homepage por secoes (ordem, pin, janela temporal, show/hide).
-  - diretorios verticais (corretoras, exchanges, apps, sites) com landing/show-all.
-  - workflow de claim e transferencia de ownership `admin_seeded -> creator_owned`.
-  - RBAC dedicado (`admin.home.curate`, `admin.directory.manage`, `admin.claim.review`, etc.) + auditoria.
-- estado atual: EM CURSO (Fases A, B e C entregues; Fase D em curso com entregas frontend em 2026-02-26).
-  - entregue em backend:
-    - novos scopes RBAC editorial/claim/publish/archive.
-    - modelos: `EditorialSection`, `EditorialSectionItem`, `DirectoryEntry`, `ClaimRequest`, `OwnershipTransferLog`.
-    - extensao de `BaseContent` com `ownerType`, `sourceType`, `claimable`, `editorialVisibility`.
-    - endpoints admin de secoes, diretorios, claims e ownership transfer.
-    - endpoints publicos `/api/editorial/home`, `/api/editorial/:vertical`, `/api/editorial/:vertical/show-all`.
-    - validacao tecnica verde: `typecheck`, `build`, `contract:openapi`.
-  - entregue em frontend (Fase B):
-    - novo modulo `/admin/editorial` integrado aos endpoints reais de secoes/itens (`admin/editorial/sections*`).
-    - guardrails operacionais no CMS (read-only por escopo, confirmacao dupla para remocao e controlo de limite por secao).
-    - preview da home curada ligado a `GET /api/editorial/home`.
-    - modulo integrado ao painel admin unificado (sidebar + rota + tab embebido em `/admin`).
-  - entregue em frontend (Fase C1):
-    - modulo `/admin/recursos` operacional com filtros, paginacao e listagem por vertical.
-    - operacoes create/update/publish/archive ligadas aos endpoints reais de diretorios.
-    - guardrails para arquivamento (motivo obrigatorio + confirmacao dupla `CONFIRMAR`).
-    - modulo `Recursos` marcado como operacional na camada de acesso (`admin.directory.manage` + compatibilidade legacy).
-    - novo teste unitario `src/__tests__/features/admin/adminDirectoriesService.test.ts`.
-  - entregue em frontend (Fase C2):
-    - landing/show-all publico por vertical consolidado em:
-      - `/mercados/recursos/:vertical`
-      - `/mercados/recursos/:vertical/show-all`
-    - integracao via `editorialPublicApi` + hooks `useEditorialPublic`.
-    - teste unitario dedicado `src/__tests__/features/markets/editorialPublicApi.test.ts`.
-  - entregue em frontend (Fase D1/D2):
-    - creator claims em `/conta` com criar/listar/cancelar (`/api/editorial/claims*`).
-    - admin claims review em `/admin/editorial` com filtros + aprovar/rejeitar (`/api/admin/claims*`).
-    - transfer ownership manual em `/admin/editorial` integrado a `/api/admin/ownership/transfer`.
-    - alinhamento de scopes frontend para `admin.claim.review` e `admin.claim.transfer`.
-  - validacao tecnica do ciclo:
-    - frontend `typecheck:p1 + lint + test --runInBand + build + test:e2e` -> PASS.
-    - backend `typecheck + build + contract:openapi` -> PASS.
-  - D3 entregue (2026-02-27):
-    - historico consultavel de ownership transfer com endpoint `GET /api/admin/ownership/transfers`.
-    - UI dedicada em `/admin/editorial` com filtros, paginação e refresh.
-  - proximo foco imediato (Fase E):
-    - E2E editorial completo (claim creator -> review admin -> transfer).
-  - gate pre-release obrigatorio para producao:
-    - manter E2E mockado + E2E integrado em staging (backend/DB reais).
-    - validar fluxo real creator->claim->review admin->transfer->historico.
-    - validar scopes/auditoria, idempotencia/concurrencia e runbook de rollback.
+- estado atual: EM CURSO.
+- entregue:
+  - backend com scopes editoriais/claim/publish/archive, modelos dedicados e endpoints admin/publicos;
+  - frontend com `Editorial CMS` em `/admin/editorial`, `Recursos` em `/admin/recursos`, landing/show-all publico por vertical, claims creator, review admin e historico de ownership transfer.
+- validacao tecnica:
+  - backend `typecheck + build + contract:openapi` -> PASS.
+  - frontend `typecheck:p1 + lint + test --runInBand + build` -> PASS.
+- foco imediato:
+  - Fase E de hardening e E2E editorial (claim creator -> review admin -> transfer -> historico).
+- gate pre-release obrigatorio:
+  - manter E2E mockado + E2E integrado em staging com backend/DB reais;
+  - validar scopes/auditoria, idempotencia/concurrencia e runbook de rollback.
 
-2. Analise detalhada de stocks (novo escopo adiado do P3).
-3. Livros completos (replies, filtros, destaques, categorias) no frontend ativo.
-4. Ferramentas financeiras legadas expostas no router principal (fundo emergencia, juros compostos, ETF analyzer, REIT valuation, debt snowball).
+### 4.2 Moderation Control Plane
+
+- objetivo: dar ao admin e aos gestores uma camada operacional para conter conteudo indesejado, creators de risco e incidentes de moderacao em escala.
+- documentos tecnicos de referencia:
+  - backend: `API_finhub/dcos/P4_MODERATION_CONTROL_PLANE.md`
+  - frontend: `dcos/P4_MODERATION_CONTROL_PLANE.md`
+- estado atual: BASE FUNCIONAL ENTREGUE E OPERACIONAL.
+- entregue no backend:
+  - `fast hide`;
+  - bulk moderation com guardrails e falhas parciais;
+  - reports de users a alimentar a queue admin;
+  - policy engine com auto-hide opcional;
+  - creator controls;
+  - trust scoring com compensacao de false positives;
+  - deteccao automatica (`spam`, `suspicious_link`, `flood`, `mass_creation`);
+  - rollback assistido;
+  - kill switches por superficie;
+  - jobs assincronos de moderacao/rollback;
+  - drill-down operacional por creator, alvo, superficie e jobs.
+- entregue no frontend:
+  - `/admin/conteudo` com queue enriquecida, rollback review, false positive marking e jobs recentes;
+  - `/admin/users` e `/admin/creators` com trust profile, creator controls e risk board;
+  - `/admin` e `/admin/stats` com KPIs, alertas, drill-down e surface controls.
+- validacao tecnica mais recente:
+  - backend `npm run typecheck` -> PASS.
+  - backend `npm run build` -> PASS.
+  - backend `npm run contract:openapi` -> PASS.
+  - frontend `yarn lint` -> PASS (warnings nao bloqueantes existentes).
+  - frontend `yarn test --runInBand` -> PASS.
+  - frontend `yarn build` -> PASS.
+- pendencias para fechar este bloco do P4:
+  1. consolidacao dos docs frontend e runbook operacional;
+  2. graceful shutdown do worker de jobs;
+  3. invariant de `eventId` em false positives por rollback;
+  4. TTL/index/rate limit/caching minimo nos pontos mais caros;
+  5. E2E dos fluxos novos do Moderation Control Plane;
+  6. clarificar precedencia `moderationStatus > editorialVisibility`.
+
+### 4.3 Outros itens adiados para depois do P4 admin
+
+1. Analise detalhada de stocks (novo escopo adiado do P3).
+2. Livros completos (replies, filtros, destaques, categorias) no frontend ativo.
+3. Ferramentas financeiras legadas expostas no router principal (fundo emergencia, juros compostos, ETF analyzer, REIT valuation, debt snowball).
  - estado parcial (2026-02-20): REIT valuation/toolkit ja recebeu hardening tecnico (DDM com confidence gating, FFO multi-fonte com toggle NAREIT/estimativa/CF Op e score de valorizacao).
  - pendente neste item: consolidar as restantes ferramentas legadas no router principal com o mesmo nivel de rigor operacional.
-5. Blocos e paginas completas de brokers/websites.
-6. Eventos end-to-end (criacao, aprovacao, status e tracking).
-7. Glossario financeiro.
-8. Paginas dinamicas por topico.
-9. Regular user dashboard e about completo.
+4. Blocos e paginas completas de brokers/websites.
+5. Eventos end-to-end (criacao, aprovacao, status e tracking).
+6. Glossario financeiro.
+7. Paginas dinamicas por topico.
+8. Regular user dashboard e about completo.
 
 ## Pendencias tecnicas observadas em checklists
 1. Sem bloqueadores tecnicos pre-P1 ativos neste momento.
@@ -413,7 +419,7 @@ Estado atual do P3: EM CURSO (arranque tecnico ja iniciado; falta fechar cobertu
 
 ## Sequencia pragmatica sugerida
 1. Fechar primeiro o novo P3 (hardening de analise de stocks e cobertura de metricas atuais).
-2. Continuar P4 com Fase B (frontend admin de curadoria home) sobre a Fase A backend ja entregue.
-3. Avancar para Fase C2 + D (landing/show-all publico + claims/ownership) no mesmo ciclo de qualidade.
-4. Fechar Fase E (E2E/hardening operacional) antes de mover para os restantes itens de P4.
+2. Fechar o hardening do P4 Moderation Control Plane (docs, runbook, robustez operacional e E2E).
+3. Fechar a Fase E do P4 Admin Editorial CMS (E2E/hardening editorial).
+4. So depois mover para os restantes itens de P4 e backlog adiado.
 
