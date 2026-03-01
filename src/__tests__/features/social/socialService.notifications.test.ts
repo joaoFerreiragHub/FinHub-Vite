@@ -29,6 +29,7 @@ describe('socialService notifications p1.2', () => {
           like: false,
           mention: true,
           content_published: false,
+          content_moderated: true,
         },
       },
     })
@@ -44,6 +45,7 @@ describe('socialService notifications p1.2', () => {
       like: false,
       mention: true,
       contentPublished: false,
+      contentModerated: true,
     })
   })
 
@@ -58,18 +60,21 @@ describe('socialService notifications p1.2', () => {
           like: true,
           mention: true,
           content_published: true,
+          content_moderated: false,
         },
       },
     })
 
     await socialService.updateNotificationPreferences({
       contentPublished: true,
+      contentModerated: false,
       like: true,
       comment: true,
     })
 
     expect(mockedApiClient.patch).toHaveBeenCalledWith('/notifications/preferences', {
       content_published: true,
+      content_moderated: false,
       like: true,
       comment: true,
     })

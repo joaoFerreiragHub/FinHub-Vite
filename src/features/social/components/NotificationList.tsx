@@ -1,4 +1,4 @@
-import { Bell, Heart, MessageSquare, Star, UserPlus, Info } from 'lucide-react'
+import { Bell, Heart, Info, MessageSquare, ShieldAlert, Star, UserPlus } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { NotificationType, type Notification } from '../types'
 
@@ -14,6 +14,7 @@ const typeIcons: Record<NotificationType, typeof Bell> = {
   [NotificationType.LIKE_RECEIVED]: Heart,
   [NotificationType.FOLLOW_NEW]: UserPlus,
   [NotificationType.RATING_RECEIVED]: Star,
+  [NotificationType.CONTENT_MODERATED]: ShieldAlert,
   [NotificationType.SYSTEM]: Info,
 }
 
@@ -23,6 +24,7 @@ const typeColors: Record<NotificationType, string> = {
   [NotificationType.LIKE_RECEIVED]: 'text-red-500',
   [NotificationType.FOLLOW_NEW]: 'text-purple-500',
   [NotificationType.RATING_RECEIVED]: 'text-yellow-500',
+  [NotificationType.CONTENT_MODERATED]: 'text-orange-500',
   [NotificationType.SYSTEM]: 'text-muted-foreground',
 }
 

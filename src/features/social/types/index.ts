@@ -9,6 +9,7 @@ export enum NotificationType {
   LIKE_RECEIVED = 'like_received',
   FOLLOW_NEW = 'follow_new',
   RATING_RECEIVED = 'rating_received',
+  CONTENT_MODERATED = 'content_moderated',
   SYSTEM = 'system',
 }
 
@@ -42,6 +43,7 @@ export interface NotificationPreferences {
   like: boolean
   mention: boolean
   contentPublished: boolean
+  contentModerated: boolean
 }
 
 export type NotificationPreferencesPatchInput = Partial<NotificationPreferences>

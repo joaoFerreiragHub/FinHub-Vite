@@ -48,6 +48,12 @@ Superficies principais:
 - surface controls / kill switches operacionais;
 - stats page com distribuicao de trust score, false positives e backlog de jobs.
 
+## UX publica ligada ao control plane
+
+- centro de notificacoes passa a suportar `content_moderated`;
+- preferencia publica `contentModerated` alinhada com `notificationPreferences.content_moderated`;
+- a notificacao aparece no separador `Sistema` com copy neutra e sem expor notas internas do admin.
+
 ## Contratos frontend alinhados
 
 Camadas principais atualizadas:

@@ -33,6 +33,7 @@ type BackendNotificationType =
   | 'rating'
   | 'like'
   | 'mention'
+  | 'content_moderated'
   | 'content_published'
 
 interface BackendUser {
@@ -100,6 +101,7 @@ interface BackendNotificationPreferences {
   like?: boolean
   mention?: boolean
   content_published?: boolean
+  content_moderated?: boolean
 }
 
 interface BackendNotificationPreferencesResponse {
@@ -269,6 +271,8 @@ const mapNotificationType = (type: string): NotificationType => {
       return NotificationType.FOLLOW_NEW
     case 'rating':
       return NotificationType.RATING_RECEIVED
+    case 'content_moderated':
+      return NotificationType.CONTENT_MODERATED
     default:
       return NotificationType.SYSTEM
   }
@@ -338,6 +342,13 @@ const buildNotificationText = (
           ? `${actorName} avaliou o teu conteudo.`
           : 'Recebeste uma nova avaliacao.',
       }
+    case NotificationType.CONTENT_MODERATED:
+      return {
+        title: 'Conteudo em revisao',
+        message: actorName
+          ? `${actorName} colocou conteudo teu em revisao de moderacao.`
+          : 'Conteudo teu entrou em revisao de moderacao.',
+      }
     default:
       return {
         title: 'Notificacao',
@@ -396,6 +407,7 @@ const defaultNotificationPreferences: NotificationPreferences = {
   like: true,
   mention: true,
   contentPublished: true,
+  contentModerated: true,
 }
 
 const mapNotificationPreferences = (
@@ -409,6 +421,8 @@ const mapNotificationPreferences = (
   mention: preferences?.mention ?? defaultNotificationPreferences.mention,
   contentPublished:
     preferences?.content_published ?? defaultNotificationPreferences.contentPublished,
+  contentModerated:
+    preferences?.content_moderated ?? defaultNotificationPreferences.contentModerated,
 })
 
 const toBackendNotificationPreferencesPatch = (
@@ -424,6 +438,9 @@ const toBackendNotificationPreferencesPatch = (
   if (typeof input.mention === 'boolean') patch.mention = input.mention
   if (typeof input.contentPublished === 'boolean') {
     patch.content_published = input.contentPublished
+  }
+  if (typeof input.contentModerated === 'boolean') {
+    patch.content_moderated = input.contentModerated
   }
 
   return patch

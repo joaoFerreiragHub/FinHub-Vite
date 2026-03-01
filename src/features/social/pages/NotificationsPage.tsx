@@ -38,7 +38,12 @@ const tabTypeMap: Record<FilterTab, NotificationType[] | null> = {
   unread: null,
   content: [NotificationType.NEW_CONTENT],
   comments: [NotificationType.COMMENT_REPLY, NotificationType.LIKE_RECEIVED],
-  system: [NotificationType.SYSTEM, NotificationType.FOLLOW_NEW, NotificationType.RATING_RECEIVED],
+  system: [
+    NotificationType.SYSTEM,
+    NotificationType.FOLLOW_NEW,
+    NotificationType.RATING_RECEIVED,
+    NotificationType.CONTENT_MODERATED,
+  ],
 }
 
 const preferenceConfig: Array<{
@@ -81,6 +86,11 @@ const preferenceConfig: Array<{
     label: 'Mencoes',
     description: 'Receber quando es mencionado em comentarios.',
   },
+  {
+    key: 'contentModerated',
+    label: 'Moderacao do meu conteudo',
+    description: 'Receber quando a equipa oculta ou restringe conteudo teu para revisao.',
+  },
 ]
 
 const defaultPreferences: NotificationPreferences = {
@@ -91,6 +101,7 @@ const defaultPreferences: NotificationPreferences = {
   like: true,
   mention: true,
   contentPublished: true,
+  contentModerated: true,
 }
 
 export function NotificationsPage() {
