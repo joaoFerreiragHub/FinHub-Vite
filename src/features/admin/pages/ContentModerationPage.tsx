@@ -51,12 +51,15 @@ import {
 } from '../components/RiskSignals'
 import {
   useAdminContentHistory,
+  useAdminContentRollbackReview,
   useAdminContentQueue,
   useHideAdminContent,
+  useRollbackAdminContent,
   useRestrictAdminContent,
   useUnhideAdminContent,
 } from '../hooks/useAdminContent'
 import type {
+  AdminContentModerationEvent,
   AdminContentModerationStatus,
   AdminContentReportPriority,
   AdminContentQueueItem,
@@ -82,6 +85,11 @@ interface FilterState {
 interface ContentActionDialogState {
   kind: ContentActionKind
   content: AdminContentQueueItem
+}
+
+interface ContentRollbackDialogState {
+  content: AdminContentQueueItem
+  eventId: string
 }
 
 interface CurrentAdminMeta {
@@ -170,6 +178,7 @@ const DEFAULT_ACTION_REASON: Record<ContentActionKind, string> = {
   restrict: 'Restricao administrativa',
 }
 
+const DEFAULT_ROLLBACK_REASON = 'Rollback assistido apos revisao administrativa'
 const DOUBLE_CONFIRM_TOKEN = 'CONFIRMAR'
 const DESTRUCTIVE_CONTENT_ACTIONS: ContentActionKind[] = ['hide', 'restrict']
 
@@ -233,6 +242,11 @@ const formatActor = (actor: AdminContentQueueItem['creator']): string => {
   return actor.name || actor.username || actor.email || actor.id
 }
 
+const hasBooleanMetadataFlag = (
+  event: AdminContentModerationEvent,
+  key: 'fastTrack' | 'bulkModeration' | 'rollback' | 'automatedDetection',
+): boolean => event.metadata?.[key] === true
+
 export default function ContentModerationPage({ embedded = false }: ContentModerationPageProps) {
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS)
   const [queryFilters, setQueryFilters] = useState<FilterState>(INITIAL_FILTERS)
@@ -245,6 +259,10 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
 
   const [historyTarget, setHistoryTarget] = useState<AdminContentQueueItem | null>(null)
   const [historyPage, setHistoryPage] = useState(1)
+  const [rollbackDialog, setRollbackDialog] = useState<ContentRollbackDialogState | null>(null)
+  const [rollbackReason, setRollbackReason] = useState(DEFAULT_ROLLBACK_REASON)
+  const [rollbackNote, setRollbackNote] = useState('')
+  const [rollbackConfirmText, setRollbackConfirmText] = useState('')
 
   const rawAuthUser = useAuthStore((state) => state.user)
   const authUser = (rawAuthUser as unknown as CurrentAdminMeta | null) ?? null
@@ -270,16 +288,29 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     historyPage,
     10,
   )
+  const rollbackReviewQuery = useAdminContentRollbackReview(
+    rollbackDialog?.content.contentType ?? null,
+    rollbackDialog?.content.id ?? null,
+    rollbackDialog?.eventId ?? null,
+    Boolean(rollbackDialog),
+  )
 
   const hideMutation = useHideAdminContent()
   const unhideMutation = useUnhideAdminContent()
   const restrictMutation = useRestrictAdminContent()
+  const rollbackMutation = useRollbackAdminContent()
 
   const isActionPending =
     hideMutation.isPending || unhideMutation.isPending || restrictMutation.isPending
   const requiresDoubleConfirm = actionDialog ? isDestructiveAction(actionDialog.kind) : false
   const isDoubleConfirmValid =
     !requiresDoubleConfirm || actionConfirmText.trim().toUpperCase() === DOUBLE_CONFIRM_TOKEN
+  const rollbackReview = rollbackReviewQuery.data?.rollback
+  const isRollbackPending = rollbackMutation.isPending
+  const rollbackRequiresDoubleConfirm = Boolean(rollbackReview?.requiresConfirm)
+  const isRollbackConfirmValid =
+    !rollbackRequiresDoubleConfirm ||
+    rollbackConfirmText.trim().toUpperCase() === DOUBLE_CONFIRM_TOKEN
 
   const pagination = moderationQueue.data?.pagination
   const items = moderationQueue.data?.items ?? []
@@ -333,8 +364,24 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
   }
 
   const closeHistoryDialog = () => {
+    closeRollbackDialog(true)
     setHistoryTarget(null)
     setHistoryPage(1)
+  }
+
+  const openRollbackDialog = (content: AdminContentQueueItem, eventId: string) => {
+    setRollbackDialog({ content, eventId })
+    setRollbackReason(DEFAULT_ROLLBACK_REASON)
+    setRollbackNote('')
+    setRollbackConfirmText('')
+  }
+
+  const closeRollbackDialog = (force = false) => {
+    if (!force && isRollbackPending) return
+    setRollbackDialog(null)
+    setRollbackReason(DEFAULT_ROLLBACK_REASON)
+    setRollbackNote('')
+    setRollbackConfirmText('')
   }
 
   const submitAction = async () => {
@@ -380,6 +427,45 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
       }
 
       closeActionDialog(true)
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
+  }
+
+  const submitRollback = async () => {
+    if (!rollbackDialog || !rollbackReviewQuery.data) return
+
+    if (!rollbackReviewQuery.data.rollback.canRollback) {
+      toast.error('Rollback bloqueado pelos guardrails atuais.')
+      return
+    }
+
+    const reason = rollbackReason.trim()
+    if (!reason) {
+      toast.error('Motivo obrigatorio para executar rollback.')
+      return
+    }
+
+    if (!isRollbackConfirmValid) {
+      toast.error(`Escreve "${DOUBLE_CONFIRM_TOKEN}" para confirmar este rollback.`)
+      return
+    }
+
+    try {
+      const result = await rollbackMutation.mutateAsync({
+        contentType: rollbackDialog.content.contentType,
+        contentId: rollbackDialog.content.id,
+        payload: {
+          eventId: rollbackDialog.eventId,
+          reason,
+          note: rollbackNote.trim() || undefined,
+          confirm: rollbackRequiresDoubleConfirm ? true : undefined,
+        },
+      })
+
+      toast.success(result.message)
+      closeRollbackDialog(true)
+      setHistoryPage(1)
     } catch (error) {
       toast.error(getErrorMessage(error))
     }
@@ -1114,6 +1200,33 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                     Autor:{' '}
                     {event.actor?.name || event.actor?.username || event.actor?.email || 'N/A'}
                   </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {hasBooleanMetadataFlag(event, 'fastTrack') ? (
+                      <Badge variant="outline">Fast hide</Badge>
+                    ) : null}
+                    {hasBooleanMetadataFlag(event, 'bulkModeration') ? (
+                      <Badge variant="outline">Lote</Badge>
+                    ) : null}
+                    {hasBooleanMetadataFlag(event, 'automatedDetection') ? (
+                      <Badge variant="outline">Auto</Badge>
+                    ) : null}
+                    {hasBooleanMetadataFlag(event, 'rollback') ? (
+                      <Badge variant="outline">Rollback</Badge>
+                    ) : null}
+                  </div>
+                  {canModerateContent && historyTarget ? (
+                    <div className="mt-3">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openRollbackDialog(historyTarget, event.id)}
+                      >
+                        <Undo2 className="h-4 w-4" />
+                        Rever rollback
+                      </Button>
+                    </div>
+                  ) : null}
                 </div>
               ))}
             </div>
@@ -1150,6 +1263,212 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(rollbackDialog)}
+        onOpenChange={(open) => (!open ? closeRollbackDialog() : null)}
+      >
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>
+              Rollback assistido
+              {rollbackDialog ? ` - ${rollbackDialog.content.title}` : ''}
+            </DialogTitle>
+            <DialogDescription>
+              Rever impacto, guardrails e sinais ativos antes de restaurar um estado anterior.
+            </DialogDescription>
+          </DialogHeader>
+
+          {rollbackReviewQuery.isLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />A preparar rollback...
+            </div>
+          ) : rollbackReviewQuery.isError ? (
+            <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+              {getErrorMessage(rollbackReviewQuery.error)}
+            </div>
+          ) : !rollbackReviewQuery.data ? (
+            <div className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+              Sem dados para rollback.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid gap-3 md:grid-cols-3">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardDescription>Estado atual</CardDescription>
+                    <CardTitle className="text-lg">
+                      {MODERATION_STATUS_LABEL[rollbackReviewQuery.data.rollback.currentStatus]}
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardDescription>Rollback para</CardDescription>
+                    <CardTitle className="text-lg">
+                      {MODERATION_STATUS_LABEL[rollbackReviewQuery.data.rollback.targetStatus]}
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardDescription>Acao aplicada</CardDescription>
+                    <CardTitle className="text-lg">
+                      {MODERATION_ACTION_LABEL[rollbackReviewQuery.data.rollback.action]}
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+              </div>
+
+              <div className="rounded-md border border-border/70 bg-muted/20 p-3 text-sm">
+                <p className="font-medium">{rollbackReviewQuery.data.event.reason}</p>
+                {rollbackReviewQuery.data.event.note ? (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Nota original: {rollbackReviewQuery.data.event.note}
+                  </p>
+                ) : null}
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Evento {MODERATION_ACTION_LABEL[rollbackReviewQuery.data.event.action]} em{' '}
+                  {formatDateTime(rollbackReviewQuery.data.event.createdAt)}
+                </p>
+              </div>
+
+              {rollbackReviewQuery.data.rollback.blockers.length > 0 ? (
+                <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3">
+                  <p className="text-sm font-medium text-destructive">Rollback bloqueado</p>
+                  <ul className="mt-2 space-y-1 text-xs text-destructive">
+                    {rollbackReviewQuery.data.rollback.blockers.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              {rollbackReviewQuery.data.rollback.warnings.length > 0 ? (
+                <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3">
+                  <p className="text-sm font-medium text-amber-700">Warnings operacionais</p>
+                  <ul className="mt-2 space-y-1 text-xs text-amber-700">
+                    {rollbackReviewQuery.data.rollback.warnings.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              <div className="rounded-md border border-border/70 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Checklist de revisao
+                </p>
+                <div className="mt-2 grid gap-2 text-xs text-muted-foreground md:grid-cols-2">
+                  <p>
+                    Evento mais recente:{' '}
+                    {rollbackReviewQuery.data.rollback.checks.isLatestEvent ? 'Sim' : 'Nao'}
+                  </p>
+                  <p>
+                    Estado alinhado:{' '}
+                    {rollbackReviewQuery.data.rollback.checks.currentMatchesEventToStatus
+                      ? 'Sim'
+                      : 'Nao'}
+                  </p>
+                  <p>Reports abertos: {rollbackReviewQuery.data.rollback.checks.openReports}</p>
+                  <p>
+                    Reporters unicos: {rollbackReviewQuery.data.rollback.checks.uniqueReporters}
+                  </p>
+                  <p>
+                    Sinal auto ativo:{' '}
+                    {rollbackReviewQuery.data.rollback.checks.automatedSignalActive ? 'Sim' : 'Nao'}
+                  </p>
+                  <p>
+                    Severidade auto: {rollbackReviewQuery.data.rollback.checks.automatedSeverity}
+                  </p>
+                  <p>
+                    Creator risk:{' '}
+                    {rollbackReviewQuery.data.rollback.checks.creatorRiskLevel ?? 'n/a'}
+                  </p>
+                  <p>
+                    Eventos mais recentes:{' '}
+                    {rollbackReviewQuery.data.rollback.checks.newerEventsCount}
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-md border border-border/70 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Guia operacional
+                </p>
+                <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+                  {rollbackReviewQuery.data.rollback.guidance.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="admin-content-rollback-reason">Motivo</Label>
+                <Input
+                  id="admin-content-rollback-reason"
+                  value={rollbackReason}
+                  onChange={(event) => setRollbackReason(event.target.value)}
+                  placeholder="Ex: revisao concluida e restauracao segura"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="admin-content-rollback-note">Nota operacional (opcional)</Label>
+                <Textarea
+                  id="admin-content-rollback-note"
+                  value={rollbackNote}
+                  onChange={(event) => setRollbackNote(event.target.value)}
+                  rows={4}
+                  placeholder="Contexto de revisao, evidencias e decisao tomada."
+                />
+              </div>
+
+              {rollbackReviewQuery.data.rollback.requiresConfirm ? (
+                <div className="space-y-2">
+                  <Label htmlFor="admin-content-rollback-confirm">
+                    Confirmacao dupla (escreve {DOUBLE_CONFIRM_TOKEN})
+                  </Label>
+                  <Input
+                    id="admin-content-rollback-confirm"
+                    value={rollbackConfirmText}
+                    onChange={(event) => setRollbackConfirmText(event.target.value)}
+                    placeholder={DOUBLE_CONFIRM_TOKEN}
+                  />
+                  <p className="text-xs text-amber-700">
+                    Este rollback volta a expor um alvo com sinais ativos. Confirmacao forte
+                    obrigatoria.
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={closeRollbackDialog}
+              disabled={isRollbackPending}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              onClick={submitRollback}
+              disabled={
+                isRollbackPending ||
+                !rollbackDialog ||
+                !rollbackReviewQuery.data?.rollback.canRollback ||
+                !isRollbackConfirmValid
+              }
+            >
+              {isRollbackPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              Executar rollback assistido
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

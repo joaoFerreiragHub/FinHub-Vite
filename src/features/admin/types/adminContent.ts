@@ -132,6 +132,11 @@ export interface AdminContentModerationActionPayload {
   note?: string
 }
 
+export interface AdminContentRollbackPayload extends AdminContentModerationActionPayload {
+  eventId: string
+  confirm?: boolean
+}
+
 export interface AdminContentModerationActionResponse {
   message: string
   changed: boolean
@@ -157,4 +162,41 @@ export interface AdminContentModerationEvent {
 export interface AdminContentModerationHistoryResponse {
   items: AdminContentModerationEvent[]
   pagination: AdminPagination
+}
+
+export interface AdminContentRollbackReview {
+  action: AdminContentModerationAction
+  targetStatus: AdminContentModerationStatus
+  currentStatus: AdminContentModerationStatus
+  canRollback: boolean
+  requiresConfirm: boolean
+  warnings: string[]
+  blockers: string[]
+  guidance: string[]
+  checks: {
+    isLatestEvent: boolean
+    newerEventsCount: number
+    currentMatchesEventToStatus: boolean
+    openReports: number
+    uniqueReporters: number
+    automatedSignalActive: boolean
+    automatedSeverity: AdminContentAutomatedSeverity
+    creatorRiskLevel: 'low' | 'medium' | 'high' | 'critical' | null
+  }
+}
+
+export interface AdminContentRollbackReviewResponse {
+  content: AdminContentQueueItem
+  event: AdminContentModerationEvent
+  rollback: AdminContentRollbackReview
+}
+
+export interface AdminContentRollbackResponse extends AdminContentModerationActionResponse {
+  rollback: {
+    eventId: string
+    action: AdminContentModerationAction
+    targetStatus: AdminContentModerationStatus
+    requiresConfirm: boolean
+    warnings: string[]
+  }
 }

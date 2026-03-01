@@ -10,6 +10,9 @@ import type {
   AdminContentModerationActionResponse,
   AdminContentModerationEvent,
   AdminContentModerationHistoryResponse,
+  AdminContentRollbackPayload,
+  AdminContentRollbackResponse,
+  AdminContentRollbackReviewResponse,
   AdminContentPolicySignals,
   AdminContentModerationStatus,
   AdminContentPublishStatus,
@@ -164,6 +167,41 @@ interface BackendModerationActionResponse {
   fromStatus?: string
   toStatus?: string
   content?: BackendContentQueueItem
+}
+
+interface BackendRollbackReviewResponse {
+  content?: BackendContentQueueItem
+  event?: BackendModerationEvent
+  rollback?: {
+    action?: string
+    targetStatus?: string
+    currentStatus?: string
+    canRollback?: boolean
+    requiresConfirm?: boolean
+    warnings?: string[]
+    blockers?: string[]
+    guidance?: string[]
+    checks?: {
+      isLatestEvent?: boolean
+      newerEventsCount?: number
+      currentMatchesEventToStatus?: boolean
+      openReports?: number
+      uniqueReporters?: number
+      automatedSignalActive?: boolean
+      automatedSeverity?: string
+      creatorRiskLevel?: string | null
+    }
+  }
+}
+
+interface BackendRollbackActionResponse extends BackendModerationActionResponse {
+  rollback?: {
+    eventId?: string
+    action?: string
+    targetStatus?: string
+    requiresConfirm?: boolean
+    warnings?: string[]
+  }
 }
 
 const DEFAULT_PAGE = 1
@@ -594,6 +632,81 @@ const mapActionResponse = (
   }
 }
 
+const mapRollbackReviewResponse = (
+  data: BackendRollbackReviewResponse,
+): AdminContentRollbackReviewResponse => {
+  const content = data.content ? mapQueueItem(data.content) : null
+  const event = data.event ? mapEvent(data.event) : null
+
+  if (!content || !event) {
+    throw new Error('Resposta admin invalida: rollback review incompleto.')
+  }
+
+  return {
+    content,
+    event,
+    rollback: {
+      action: toAction(data.rollback?.action) ?? 'unhide',
+      targetStatus: toModerationStatus(data.rollback?.targetStatus),
+      currentStatus: toModerationStatus(data.rollback?.currentStatus),
+      canRollback: Boolean(data.rollback?.canRollback),
+      requiresConfirm: Boolean(data.rollback?.requiresConfirm),
+      warnings: Array.isArray(data.rollback?.warnings)
+        ? data.rollback.warnings.filter((item): item is string => typeof item === 'string')
+        : [],
+      blockers: Array.isArray(data.rollback?.blockers)
+        ? data.rollback.blockers.filter((item): item is string => typeof item === 'string')
+        : [],
+      guidance: Array.isArray(data.rollback?.guidance)
+        ? data.rollback.guidance.filter((item): item is string => typeof item === 'string')
+        : [],
+      checks: {
+        isLatestEvent: Boolean(data.rollback?.checks?.isLatestEvent),
+        newerEventsCount:
+          typeof data.rollback?.checks?.newerEventsCount === 'number'
+            ? data.rollback.checks.newerEventsCount
+            : 0,
+        currentMatchesEventToStatus: Boolean(data.rollback?.checks?.currentMatchesEventToStatus),
+        openReports:
+          typeof data.rollback?.checks?.openReports === 'number'
+            ? data.rollback.checks.openReports
+            : 0,
+        uniqueReporters:
+          typeof data.rollback?.checks?.uniqueReporters === 'number'
+            ? data.rollback.checks.uniqueReporters
+            : 0,
+        automatedSignalActive: Boolean(data.rollback?.checks?.automatedSignalActive),
+        automatedSeverity: toAutomatedSeverity(data.rollback?.checks?.automatedSeverity),
+        creatorRiskLevel:
+          data.rollback?.checks?.creatorRiskLevel === 'critical'
+            ? 'critical'
+            : data.rollback?.checks?.creatorRiskLevel === 'high'
+              ? 'high'
+              : data.rollback?.checks?.creatorRiskLevel === 'medium'
+                ? 'medium'
+                : data.rollback?.checks?.creatorRiskLevel === 'low'
+                  ? 'low'
+                  : null,
+      },
+    },
+  }
+}
+
+const mapRollbackActionResponse = (
+  data: BackendRollbackActionResponse,
+): AdminContentRollbackResponse => ({
+  ...mapActionResponse(data),
+  rollback: {
+    eventId: typeof data.rollback?.eventId === 'string' ? data.rollback.eventId : '',
+    action: toAction(data.rollback?.action) ?? 'unhide',
+    targetStatus: toModerationStatus(data.rollback?.targetStatus),
+    requiresConfirm: Boolean(data.rollback?.requiresConfirm),
+    warnings: Array.isArray(data.rollback?.warnings)
+      ? data.rollback.warnings.filter((item): item is string => typeof item === 'string')
+      : [],
+  },
+})
+
 const postModerationAction = async (
   contentType: AdminContentType,
   contentId: string,
@@ -646,6 +759,21 @@ export const adminContentService = {
     }
   },
 
+  getContentRollbackReview: async (
+    contentType: AdminContentType,
+    contentId: string,
+    eventId: string,
+  ): Promise<AdminContentRollbackReviewResponse> => {
+    const response = await apiClient.get<BackendRollbackReviewResponse>(
+      `/admin/content/${contentType}/${contentId}/rollback-review`,
+      {
+        params: { eventId },
+      },
+    )
+
+    return mapRollbackReviewResponse(response.data)
+  },
+
   hideContent: async (
     contentType: AdminContentType,
     contentId: string,
@@ -666,4 +794,17 @@ export const adminContentService = {
     payload: AdminContentModerationActionPayload,
   ): Promise<AdminContentModerationActionResponse> =>
     postModerationAction(contentType, contentId, 'restrict', payload),
+
+  rollbackContent: async (
+    contentType: AdminContentType,
+    contentId: string,
+    payload: AdminContentRollbackPayload,
+  ): Promise<AdminContentRollbackResponse> => {
+    const response = await apiClient.post<BackendRollbackActionResponse>(
+      `/admin/content/${contentType}/${contentId}/rollback`,
+      payload,
+    )
+
+    return mapRollbackActionResponse(response.data)
+  },
 }

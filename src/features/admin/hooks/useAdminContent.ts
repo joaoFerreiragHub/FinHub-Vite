@@ -3,6 +3,7 @@ import { adminContentService } from '../services/adminContentService'
 import type {
   AdminContentModerationActionPayload,
   AdminContentQueueQuery,
+  AdminContentRollbackPayload,
   AdminContentType,
 } from '../types/adminContent'
 
@@ -10,6 +11,12 @@ interface AdminContentMutationInput {
   contentType: AdminContentType
   contentId: string
   payload: AdminContentModerationActionPayload
+}
+
+interface AdminContentRollbackMutationInput {
+  contentType: AdminContentType
+  contentId: string
+  payload: AdminContentRollbackPayload
 }
 
 interface AdminContentQueueOptions {
@@ -43,6 +50,24 @@ export function useAdminContentHistory(
         limit,
       ),
     enabled: Boolean(contentType && contentId),
+  })
+}
+
+export function useAdminContentRollbackReview(
+  contentType: AdminContentType | null,
+  contentId: string | null,
+  eventId: string | null,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: ['admin', 'content', 'rollback-review', contentType, contentId, eventId],
+    queryFn: () =>
+      adminContentService.getContentRollbackReview(
+        contentType || 'article',
+        contentId || '',
+        eventId || '',
+      ),
+    enabled: enabled && Boolean(contentType && contentId && eventId),
   })
 }
 
@@ -86,6 +111,30 @@ export function useRestrictAdminContent() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'queue'] })
       queryClient.invalidateQueries({
         queryKey: ['admin', 'content', 'history', variables.contentType, variables.contentId],
+      })
+    },
+  })
+}
+
+export function useRollbackAdminContent() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ contentType, contentId, payload }: AdminContentRollbackMutationInput) =>
+      adminContentService.rollbackContent(contentType, contentId, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'queue'] })
+      queryClient.invalidateQueries({
+        queryKey: ['admin', 'content', 'history', variables.contentType, variables.contentId],
+      })
+      queryClient.invalidateQueries({
+        queryKey: [
+          'admin',
+          'content',
+          'rollback-review',
+          variables.contentType,
+          variables.contentId,
+        ],
       })
     },
   })

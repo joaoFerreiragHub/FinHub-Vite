@@ -290,6 +290,135 @@ describe('adminContentService', () => {
     })
   })
 
+  it('maps rollback review response', async () => {
+    mockedApiClient.get.mockResolvedValueOnce({
+      data: {
+        content: {
+          id: 'content-1',
+          contentType: 'article',
+          title: 'Titulo',
+          slug: 'titulo',
+          description: 'Descricao',
+          category: 'finance',
+          status: 'published',
+          moderationStatus: 'hidden',
+          moderationReason: 'Ocultado',
+          moderationNote: null,
+          moderatedAt: '2026-03-01T10:00:00.000Z',
+          creator: null,
+          moderatedBy: null,
+          reportSignals: {
+            openReports: 2,
+            uniqueReporters: 2,
+            latestReportAt: '2026-03-01T09:00:00.000Z',
+            topReasons: [{ reason: 'spam', count: 2 }],
+            priorityScore: 8,
+            priority: 'high',
+          },
+          automatedSignals: {
+            active: true,
+            status: 'active',
+            score: 12,
+            severity: 'high',
+            recommendedAction: 'hide',
+            triggerSource: 'publish',
+            triggeredRules: [],
+            lastDetectedAt: '2026-03-01T09:10:00.000Z',
+            lastEvaluatedAt: '2026-03-01T09:10:00.000Z',
+            textSignals: {},
+            activitySignals: {},
+            automation: {},
+          },
+          policySignals: {
+            recommendedAction: 'hide',
+            escalation: 'high',
+            automationEligible: false,
+            automationEnabled: false,
+            automationBlockedReason: null,
+            matchedReasons: [],
+            thresholds: {},
+          },
+          creatorTrustSignals: {
+            trustScore: 42,
+            riskLevel: 'high',
+            recommendedAction: 'block_publishing',
+            generatedAt: '2026-03-01T10:00:00.000Z',
+            summary: {
+              openReports: 2,
+              highPriorityTargets: 1,
+              criticalTargets: 0,
+              hiddenItems: 1,
+              restrictedItems: 0,
+              recentModerationActions30d: 1,
+              repeatModerationTargets30d: 0,
+              recentCreatorControlActions30d: 0,
+              activeControlFlags: [],
+            },
+            flags: [],
+            reasons: [],
+          },
+          createdAt: '2026-03-01T08:00:00.000Z',
+          updatedAt: '2026-03-01T10:00:00.000Z',
+        },
+        event: {
+          id: 'evt-2',
+          contentType: 'article',
+          contentId: 'content-1',
+          actor: { id: 'admin-1', name: 'Admin', role: 'admin' },
+          action: 'hide',
+          fromStatus: 'visible',
+          toStatus: 'hidden',
+          reason: 'Spam',
+          note: 'Rever depois',
+          metadata: { fastTrack: true },
+          createdAt: '2026-03-01T10:00:00.000Z',
+        },
+        rollback: {
+          action: 'unhide',
+          targetStatus: 'visible',
+          currentStatus: 'hidden',
+          canRollback: true,
+          requiresConfirm: true,
+          warnings: ['Ha risco ativo.'],
+          blockers: [],
+          guidance: ['Volta a expor o alvo.'],
+          checks: {
+            isLatestEvent: true,
+            newerEventsCount: 0,
+            currentMatchesEventToStatus: true,
+            openReports: 2,
+            uniqueReporters: 2,
+            automatedSignalActive: true,
+            automatedSeverity: 'high',
+            creatorRiskLevel: 'high',
+          },
+        },
+      },
+    })
+
+    const result = await adminContentService.getContentRollbackReview(
+      'article',
+      'content-1',
+      'evt-2',
+    )
+
+    expect(mockedApiClient.get).toHaveBeenCalledWith(
+      '/admin/content/article/content-1/rollback-review',
+      {
+        params: { eventId: 'evt-2' },
+      },
+    )
+    expect(result.rollback).toMatchObject({
+      action: 'unhide',
+      targetStatus: 'visible',
+      requiresConfirm: true,
+      checks: {
+        openReports: 2,
+        automatedSeverity: 'high',
+      },
+    })
+  })
+
   it('sends moderation action payload to backend endpoint', async () => {
     mockedApiClient.post.mockResolvedValueOnce({
       data: {
@@ -335,6 +464,61 @@ describe('adminContentService', () => {
         id: 'content-1',
         moderationStatus: 'hidden',
       },
+    })
+  })
+
+  it('sends rollback payload to backend endpoint', async () => {
+    mockedApiClient.post.mockResolvedValueOnce({
+      data: {
+        message: 'Rollback assistido concluido com sucesso.',
+        changed: true,
+        fromStatus: 'hidden',
+        toStatus: 'visible',
+        content: {
+          id: 'content-1',
+          contentType: 'article',
+          title: 'Titulo',
+          slug: 'titulo',
+          description: 'Descricao',
+          category: 'finance',
+          status: 'published',
+          moderationStatus: 'visible',
+          moderationReason: 'Rollback',
+          moderationNote: 'OK',
+          moderatedAt: '2026-03-01T11:00:00.000Z',
+          creator: null,
+          moderatedBy: null,
+          createdAt: '2026-03-01T08:00:00.000Z',
+          updatedAt: '2026-03-01T11:00:00.000Z',
+        },
+        rollback: {
+          eventId: 'evt-2',
+          action: 'unhide',
+          targetStatus: 'visible',
+          requiresConfirm: true,
+          warnings: ['Ha risco ativo.'],
+        },
+      },
+    })
+
+    const result = await adminContentService.rollbackContent('article', 'content-1', {
+      eventId: 'evt-2',
+      reason: 'Revisao concluida',
+      note: 'Liberado',
+      confirm: true,
+    })
+
+    expect(mockedApiClient.post).toHaveBeenCalledWith('/admin/content/article/content-1/rollback', {
+      eventId: 'evt-2',
+      reason: 'Revisao concluida',
+      note: 'Liberado',
+      confirm: true,
+    })
+    expect(result.rollback).toMatchObject({
+      eventId: 'evt-2',
+      action: 'unhide',
+      targetStatus: 'visible',
+      requiresConfirm: true,
     })
   })
 })
