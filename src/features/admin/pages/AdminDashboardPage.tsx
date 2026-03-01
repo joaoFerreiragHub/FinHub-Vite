@@ -123,6 +123,9 @@ const ALERT_TYPE_LABEL: Record<AdminOperationalAlertType, string> = {
   critical_report_target: 'Target critico',
   policy_auto_hide_triggered: 'Auto-hide',
   policy_auto_hide_failed: 'Falha auto-hide',
+  automated_detection_high_risk: 'Detecao auto',
+  automated_detection_auto_hide_triggered: 'Auto-hide detecao',
+  automated_detection_auto_hide_failed: 'Falha hide detecao',
   creator_control_applied: 'Controlo creator',
 }
 
@@ -284,6 +287,14 @@ export default function AdminDashboardPage() {
     metricsOverview?.moderation.creatorControls.active.affectedCreators ?? 0
   const criticalReportTargets = metricsOverview?.moderation.reports.criticalTargets ?? 0
   const autoHideErrors24h = metricsOverview?.moderation.automation.policyAutoHide.errorLast24h ?? 0
+  const automatedSignalsActive =
+    metricsOverview?.moderation.automation.automatedDetection.activeSignals ?? 0
+  const automatedSignalsHighRisk =
+    metricsOverview?.moderation.automation.automatedDetection.highRiskTargets ?? 0
+  const automatedSignalsCritical =
+    metricsOverview?.moderation.automation.automatedDetection.criticalTargets ?? 0
+  const automatedAutoHideErrors24h =
+    metricsOverview?.moderation.automation.automatedDetection.autoHide.errorLast24h ?? 0
 
   const moduleCards = useMemo(
     () =>
@@ -503,11 +514,39 @@ export default function AdminDashboardPage() {
                 highlight="danger"
               />
               <StatCard
-                label="Auto-hide erros"
+                label="Auto sinais ativos"
+                value={automatedSignalsActive}
+                icon={Radar}
+                loading={canReadStats && loadingMetricsOverview}
+                highlight="warn"
+              />
+              <StatCard
+                label="Auto sinais crit."
+                value={automatedSignalsCritical}
+                icon={ShieldAlert}
+                loading={canReadStats && loadingMetricsOverview}
+                highlight="danger"
+              />
+              <StatCard
+                label="Policy hide erros"
                 value={autoHideErrors24h}
                 icon={WandSparkles}
                 loading={canReadStats && loadingMetricsOverview}
                 highlight="danger"
+              />
+              <StatCard
+                label="Detecao hide erros"
+                value={automatedAutoHideErrors24h}
+                icon={WandSparkles}
+                loading={canReadStats && loadingMetricsOverview}
+                highlight="danger"
+              />
+              <StatCard
+                label="Auto high+"
+                value={automatedSignalsHighRisk}
+                icon={AlertTriangle}
+                loading={canReadStats && loadingMetricsOverview}
+                highlight="warn"
               />
             </div>
           </section>

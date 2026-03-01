@@ -38,6 +38,7 @@ interface BackendOperationalAlertsResponse {
     hideSpikeWindowMinutes?: number
     reportPriorityMin?: 'high'
     reportMinOpenReports?: number
+    automatedDetectionSeverityMin?: 'high'
     creatorControlRestrictiveActions?: string[]
   }
   summary?: {
@@ -96,6 +97,11 @@ const toAlertType = (value: unknown): AdminOperationalAlertType | null => {
   if (value === 'critical_report_target') return 'critical_report_target'
   if (value === 'policy_auto_hide_triggered') return 'policy_auto_hide_triggered'
   if (value === 'policy_auto_hide_failed') return 'policy_auto_hide_failed'
+  if (value === 'automated_detection_high_risk') return 'automated_detection_high_risk'
+  if (value === 'automated_detection_auto_hide_triggered')
+    return 'automated_detection_auto_hide_triggered'
+  if (value === 'automated_detection_auto_hide_failed')
+    return 'automated_detection_auto_hide_failed'
   if (value === 'creator_control_applied') return 'creator_control_applied'
   return null
 }
@@ -163,6 +169,8 @@ export const adminOperationalAlertsService = {
         hideSpikeWindowMinutes: toNumber(data.thresholds?.hideSpikeWindowMinutes, 30),
         reportPriorityMin: data.thresholds?.reportPriorityMin === 'high' ? 'high' : 'high',
         reportMinOpenReports: toNumber(data.thresholds?.reportMinOpenReports, 3),
+        automatedDetectionSeverityMin:
+          data.thresholds?.automatedDetectionSeverityMin === 'high' ? 'high' : 'high',
         creatorControlRestrictiveActions: Array.isArray(
           data.thresholds?.creatorControlRestrictiveActions,
         )

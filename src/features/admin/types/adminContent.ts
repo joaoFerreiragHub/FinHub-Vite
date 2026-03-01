@@ -14,6 +14,9 @@ export type AdminContentPublishStatus = 'draft' | 'published' | 'archived'
 export type AdminContentModerationAction = 'hide' | 'unhide' | 'restrict'
 export type AdminContentReportPriority = 'none' | 'low' | 'medium' | 'high' | 'critical'
 export type AdminContentPolicyAction = 'review' | 'restrict' | 'hide' | 'none'
+export type AdminContentAutomatedSeverity = 'none' | 'low' | 'medium' | 'high' | 'critical'
+export type AdminContentAutomatedAction = 'review' | 'restrict' | 'hide' | 'none'
+export type AdminContentAutomatedRule = 'spam' | 'suspicious_link' | 'flood' | 'mass_creation'
 
 export interface AdminContentReportSignals {
   openReports: number
@@ -38,6 +41,53 @@ export interface AdminContentPolicySignals {
   }
 }
 
+export interface AdminContentAutomatedRuleSignal {
+  rule: AdminContentAutomatedRule
+  score: number
+  severity: AdminContentAutomatedSeverity
+  description: string
+  metadata?: Record<string, unknown> | null
+}
+
+export interface AdminContentAutomatedSignals {
+  active: boolean
+  status: 'none' | 'active' | 'reviewed' | 'cleared'
+  score: number
+  severity: AdminContentAutomatedSeverity
+  recommendedAction: AdminContentAutomatedAction
+  triggerSource: 'create' | 'update' | 'publish' | null
+  triggeredRules: AdminContentAutomatedRuleSignal[]
+  lastDetectedAt: string | null
+  lastEvaluatedAt: string | null
+  textSignals: {
+    textLength: number
+    tokenCount: number
+    uniqueTokenRatio: number
+    urlCount: number
+    suspiciousUrlCount: number
+    duplicateUrlCount: number
+    repeatedTokenCount: number
+    duplicateLineCount: number
+  }
+  activitySignals: {
+    sameSurfaceLast10m: number
+    sameSurfaceLast60m: number
+    portfolioLast10m: number
+    portfolioLast60m: number
+  }
+  automation: {
+    enabled: boolean
+    eligible: boolean
+    blockedReason: string | null
+    attempted: boolean
+    executed: boolean
+    action: AdminContentModerationAction | null
+    lastOutcome: 'success' | 'error' | null
+    lastError: string | null
+    lastAttemptAt: string | null
+  }
+}
+
 export interface AdminContentQueueItem {
   id: string
   contentType: AdminContentType
@@ -55,6 +105,7 @@ export interface AdminContentQueueItem {
   createdAt: string | null
   updatedAt: string | null
   reportSignals: AdminContentReportSignals
+  automatedSignals: AdminContentAutomatedSignals
   policySignals: AdminContentPolicySignals
   creatorTrustSignals: AdminCreatorTrustSignals | null
 }

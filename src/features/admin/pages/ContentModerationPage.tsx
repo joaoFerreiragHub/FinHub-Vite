@@ -42,6 +42,8 @@ import {
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { getErrorMessage } from '@/lib/api/client'
 import {
+  AutomatedDetectionBadge,
+  AUTOMATED_RULE_LABEL,
   ReportPriorityBadge,
   RiskLevelBadge,
   TrustRecommendationBadge,
@@ -286,9 +288,19 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
   const restrictedCountInPage = items.filter(
     (item) => item.moderationStatus === 'restricted',
   ).length
-  const flaggedCountInPage = items.filter((item) => item.reportSignals.openReports > 0).length
+  const flaggedCountInPage = items.filter(
+    (item) => item.reportSignals.openReports > 0 || item.automatedSignals.active,
+  ).length
   const highPriorityFlagsInPage = items.filter(
     (item) => item.reportSignals.priority === 'high' || item.reportSignals.priority === 'critical',
+  ).length
+  const automatedHighRiskInPage = items.filter(
+    (item) =>
+      item.automatedSignals.active &&
+      (item.automatedSignals.severity === 'high' || item.automatedSignals.severity === 'critical'),
+  ).length
+  const automatedCriticalInPage = items.filter(
+    (item) => item.automatedSignals.active && item.automatedSignals.severity === 'critical',
   ).length
   const criticalCreatorRiskInPage = items.filter(
     (item) => item.creatorTrustSignals?.riskLevel === 'critical',
@@ -454,7 +466,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
           </CardHeader>
           <CardContent>
             <p className="text-xs text-muted-foreground">
-              Targets nesta pagina com pressao de reports ativa.
+              Targets nesta pagina com reports ou detecao automatica ativa.
             </p>
           </CardContent>
         </Card>
@@ -465,6 +477,28 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
           </CardHeader>
           <CardContent>
             <p className="text-xs text-muted-foreground">Targets que exigem triagem mais rapida.</p>
+          </CardContent>
+        </Card>
+        <Card className="border-orange-500/20 bg-orange-500/5">
+          <CardHeader className="pb-2">
+            <CardDescription>Auto sinais high+</CardDescription>
+            <CardTitle className="text-2xl">{automatedHighRiskInPage}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">
+              Itens com deteccao automatica alta ou critica.
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="border-rose-500/20 bg-rose-500/5">
+          <CardHeader className="pb-2">
+            <CardDescription>Auto criticos</CardDescription>
+            <CardTitle className="text-2xl">{automatedCriticalInPage}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">
+              Sinais automaticos com recomendacao de triagem imediata.
+            </p>
           </CardContent>
         </Card>
         <Card className="border-red-500/20 bg-red-500/5">
@@ -484,7 +518,8 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
         <CardHeader>
           <CardTitle>Pesquisa e filtros</CardTitle>
           <CardDescription>
-            Refina por tipo, estado, pressao de reports e prioridade para uma triagem mais rapida.
+            Refina por tipo, estado e pressao de risco. `flags` inclui reports e deteccao
+            automatica.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-7">
@@ -710,6 +745,11 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                             priority={item.reportSignals.priority}
                             openReports={item.reportSignals.openReports}
                           />
+                          <AutomatedDetectionBadge
+                            severity={item.automatedSignals.severity}
+                            score={item.automatedSignals.score}
+                            active={item.automatedSignals.active}
+                          />
                         </div>
                         {item.moderationReason && (
                           <p className="mt-1 text-xs text-muted-foreground">
@@ -776,15 +816,27 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                             <TrustRecommendationBadge
                               action={
                                 item.creatorTrustSignals?.recommendedAction ??
-                                (item.policySignals.recommendedAction === 'review'
-                                  ? 'review'
-                                  : item.policySignals.recommendedAction === 'hide'
-                                    ? 'block_publishing'
-                                    : item.policySignals.recommendedAction === 'restrict'
-                                      ? 'set_cooldown'
-                                      : 'none')
+                                (item.automatedSignals.recommendedAction === 'hide'
+                                  ? 'block_publishing'
+                                  : item.automatedSignals.recommendedAction === 'restrict'
+                                    ? 'set_cooldown'
+                                    : item.policySignals.recommendedAction === 'review'
+                                      ? 'review'
+                                      : item.policySignals.recommendedAction === 'hide'
+                                        ? 'block_publishing'
+                                        : item.policySignals.recommendedAction === 'restrict'
+                                          ? 'set_cooldown'
+                                          : 'none')
                               }
                             />
+                            {item.automatedSignals.active ? (
+                              <Badge
+                                variant="outline"
+                                className="border-orange-500/40 text-orange-700"
+                              >
+                                Auto: {item.automatedSignals.recommendedAction}
+                              </Badge>
+                            ) : null}
                             {item.policySignals.recommendedAction !== 'none' ? (
                               <Badge variant="outline" className="border-sky-500/40 text-sky-700">
                                 Policy: {item.policySignals.recommendedAction}
@@ -804,11 +856,34 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                               Sem barreiras ativas.
                             </span>
                           )}
-                          <p className="text-xs text-muted-foreground">
-                            {item.reportSignals.topReasons[0]
-                              ? `Top reason: ${item.reportSignals.topReasons[0].reason}`
-                              : 'Sem motivo dominante.'}
-                          </p>
+                          <div className="space-y-1 text-xs text-muted-foreground">
+                            <p>
+                              {item.reportSignals.topReasons[0]
+                                ? `Top report: ${item.reportSignals.topReasons[0].reason}`
+                                : 'Sem motivo dominante por report.'}
+                            </p>
+                            <p>
+                              {item.automatedSignals.active &&
+                              item.automatedSignals.triggeredRules[0]
+                                ? `Auto rule: ${AUTOMATED_RULE_LABEL[item.automatedSignals.triggeredRules[0].rule]}`
+                                : 'Sem regra automatica dominante.'}
+                            </p>
+                            {item.automatedSignals.active ? (
+                              <p>
+                                Origem auto: {item.automatedSignals.triggerSource ?? 'n/a'} · ultimo
+                                sinal {formatDateTime(item.automatedSignals.lastDetectedAt)}
+                              </p>
+                            ) : null}
+                            {item.automatedSignals.automation.executed ? (
+                              <p className="text-orange-700">
+                                Auto-hide tecnico executado em{' '}
+                                {formatDateTime(item.automatedSignals.automation.lastAttemptAt)}
+                              </p>
+                            ) : item.automatedSignals.active &&
+                              item.automatedSignals.automation.eligible ? (
+                              <p className="text-orange-700">Elegivel para auto-hide tecnico.</p>
+                            ) : null}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>

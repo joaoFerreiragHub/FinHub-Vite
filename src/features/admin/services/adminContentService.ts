@@ -5,6 +5,7 @@ import type {
   AdminPagination,
 } from '../types/adminUsers'
 import type {
+  AdminContentAutomatedSignals,
   AdminContentModerationActionPayload,
   AdminContentModerationActionResponse,
   AdminContentModerationEvent,
@@ -65,6 +66,50 @@ interface BackendContentQueueItem {
       autoHideMinPriority?: string
       autoHideMinUniqueReporters?: number
       autoHideAllowedReasons?: string[]
+    }
+  }
+  automatedSignals?: {
+    active?: boolean
+    status?: string
+    score?: number
+    severity?: string
+    recommendedAction?: string
+    triggerSource?: string | null
+    triggeredRules?: Array<{
+      rule?: string
+      score?: number
+      severity?: string
+      description?: string
+      metadata?: Record<string, unknown> | null
+    }>
+    lastDetectedAt?: string | null
+    lastEvaluatedAt?: string | null
+    textSignals?: {
+      textLength?: number
+      tokenCount?: number
+      uniqueTokenRatio?: number
+      urlCount?: number
+      suspiciousUrlCount?: number
+      duplicateUrlCount?: number
+      repeatedTokenCount?: number
+      duplicateLineCount?: number
+    }
+    activitySignals?: {
+      sameSurfaceLast10m?: number
+      sameSurfaceLast60m?: number
+      portfolioLast10m?: number
+      portfolioLast60m?: number
+    }
+    automation?: {
+      enabled?: boolean
+      eligible?: boolean
+      blockedReason?: string | null
+      attempted?: boolean
+      executed?: boolean
+      action?: string | null
+      lastOutcome?: 'success' | 'error' | null
+      lastError?: string | null
+      lastAttemptAt?: string | null
     }
   }
   creatorTrustSignals?: {
@@ -174,6 +219,134 @@ const toReportPriority = (value: unknown): AdminContentReportPriority => {
   if (value === 'low') return 'low'
   return 'none'
 }
+
+const toAutomatedSeverity = (value: unknown): AdminContentAutomatedSignals['severity'] => {
+  if (value === 'critical') return 'critical'
+  if (value === 'high') return 'high'
+  if (value === 'medium') return 'medium'
+  if (value === 'low') return 'low'
+  return 'none'
+}
+
+const mapAutomatedSignals = (
+  input?: BackendContentQueueItem['automatedSignals'],
+): AdminContentAutomatedSignals => ({
+  active: Boolean(input?.active),
+  status:
+    input?.status === 'active' || input?.status === 'reviewed' || input?.status === 'cleared'
+      ? input.status
+      : 'none',
+  score: typeof input?.score === 'number' ? input.score : 0,
+  severity: toAutomatedSeverity(input?.severity),
+  recommendedAction:
+    input?.recommendedAction === 'review' ||
+    input?.recommendedAction === 'restrict' ||
+    input?.recommendedAction === 'hide'
+      ? input.recommendedAction
+      : 'none',
+  triggerSource:
+    input?.triggerSource === 'create' ||
+    input?.triggerSource === 'update' ||
+    input?.triggerSource === 'publish'
+      ? input.triggerSource
+      : null,
+  triggeredRules: Array.isArray(input?.triggeredRules)
+    ? input.triggeredRules
+        .map((rule) => {
+          if (
+            !rule ||
+            typeof rule !== 'object' ||
+            (rule.rule !== 'spam' &&
+              rule.rule !== 'suspicious_link' &&
+              rule.rule !== 'flood' &&
+              rule.rule !== 'mass_creation')
+          ) {
+            return null
+          }
+
+          return {
+            rule: rule.rule,
+            score: typeof rule.score === 'number' ? rule.score : 0,
+            severity: toAutomatedSeverity(rule.severity),
+            description: typeof rule.description === 'string' ? rule.description : '',
+            metadata:
+              rule.metadata && typeof rule.metadata === 'object'
+                ? (rule.metadata as Record<string, unknown>)
+                : null,
+          }
+        })
+        .filter(
+          (rule): rule is AdminContentAutomatedSignals['triggeredRules'][number] => rule !== null,
+        )
+    : [],
+  lastDetectedAt: toIsoDate(input?.lastDetectedAt) ?? null,
+  lastEvaluatedAt: toIsoDate(input?.lastEvaluatedAt) ?? null,
+  textSignals: {
+    textLength:
+      typeof input?.textSignals?.textLength === 'number' ? input.textSignals.textLength : 0,
+    tokenCount:
+      typeof input?.textSignals?.tokenCount === 'number' ? input.textSignals.tokenCount : 0,
+    uniqueTokenRatio:
+      typeof input?.textSignals?.uniqueTokenRatio === 'number'
+        ? input.textSignals.uniqueTokenRatio
+        : 0,
+    urlCount: typeof input?.textSignals?.urlCount === 'number' ? input.textSignals.urlCount : 0,
+    suspiciousUrlCount:
+      typeof input?.textSignals?.suspiciousUrlCount === 'number'
+        ? input.textSignals.suspiciousUrlCount
+        : 0,
+    duplicateUrlCount:
+      typeof input?.textSignals?.duplicateUrlCount === 'number'
+        ? input.textSignals.duplicateUrlCount
+        : 0,
+    repeatedTokenCount:
+      typeof input?.textSignals?.repeatedTokenCount === 'number'
+        ? input.textSignals.repeatedTokenCount
+        : 0,
+    duplicateLineCount:
+      typeof input?.textSignals?.duplicateLineCount === 'number'
+        ? input.textSignals.duplicateLineCount
+        : 0,
+  },
+  activitySignals: {
+    sameSurfaceLast10m:
+      typeof input?.activitySignals?.sameSurfaceLast10m === 'number'
+        ? input.activitySignals.sameSurfaceLast10m
+        : 0,
+    sameSurfaceLast60m:
+      typeof input?.activitySignals?.sameSurfaceLast60m === 'number'
+        ? input.activitySignals.sameSurfaceLast60m
+        : 0,
+    portfolioLast10m:
+      typeof input?.activitySignals?.portfolioLast10m === 'number'
+        ? input.activitySignals.portfolioLast10m
+        : 0,
+    portfolioLast60m:
+      typeof input?.activitySignals?.portfolioLast60m === 'number'
+        ? input.activitySignals.portfolioLast60m
+        : 0,
+  },
+  automation: {
+    enabled: Boolean(input?.automation?.enabled),
+    eligible: Boolean(input?.automation?.eligible),
+    blockedReason:
+      typeof input?.automation?.blockedReason === 'string' ? input.automation.blockedReason : null,
+    attempted: Boolean(input?.automation?.attempted),
+    executed: Boolean(input?.automation?.executed),
+    action:
+      input?.automation?.action === 'hide' ||
+      input?.automation?.action === 'unhide' ||
+      input?.automation?.action === 'restrict'
+        ? input.automation.action
+        : null,
+    lastOutcome:
+      input?.automation?.lastOutcome === 'success' || input?.automation?.lastOutcome === 'error'
+        ? input.automation.lastOutcome
+        : null,
+    lastError: typeof input?.automation?.lastError === 'string' ? input.automation.lastError : null,
+    lastAttemptAt: toIsoDate(input?.automation?.lastAttemptAt) ?? null,
+  },
+})
 
 const mapTrustSignals = (
   signals?: BackendContentQueueItem['creatorTrustSignals'],
@@ -358,6 +531,7 @@ const mapQueueItem = (item: BackendContentQueueItem): AdminContentQueueItem | nu
     createdAt: toIsoDate(item.createdAt) ?? null,
     updatedAt: toIsoDate(item.updatedAt) ?? null,
     reportSignals: mapReportSignals(item.reportSignals),
+    automatedSignals: mapAutomatedSignals(item.automatedSignals),
     policySignals: mapPolicySignals(item.policySignals),
     creatorTrustSignals: mapTrustSignals(item.creatorTrustSignals),
   }

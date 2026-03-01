@@ -45,6 +45,51 @@ describe('adminContentService', () => {
               priorityScore: 12,
               priority: 'critical',
             },
+            automatedSignals: {
+              active: true,
+              status: 'active',
+              score: 14,
+              severity: 'critical',
+              recommendedAction: 'hide',
+              triggerSource: 'publish',
+              triggeredRules: [
+                {
+                  rule: 'suspicious_link',
+                  score: 8,
+                  severity: 'high',
+                  description: 'Padrao de links suspeitos detetado.',
+                },
+              ],
+              lastDetectedAt: '2026-02-20T11:40:00.000Z',
+              lastEvaluatedAt: '2026-02-20T11:40:00.000Z',
+              textSignals: {
+                textLength: 240,
+                tokenCount: 38,
+                uniqueTokenRatio: 0.42,
+                urlCount: 4,
+                suspiciousUrlCount: 2,
+                duplicateUrlCount: 1,
+                repeatedTokenCount: 3,
+                duplicateLineCount: 0,
+              },
+              activitySignals: {
+                sameSurfaceLast10m: 4,
+                sameSurfaceLast60m: 7,
+                portfolioLast10m: 4,
+                portfolioLast60m: 8,
+              },
+              automation: {
+                enabled: false,
+                eligible: true,
+                blockedReason: 'auto_hide_disabled',
+                attempted: false,
+                executed: false,
+                action: null,
+                lastOutcome: null,
+                lastError: null,
+                lastAttemptAt: null,
+              },
+            },
             policySignals: {
               recommendedAction: 'hide',
               escalation: 'critical',
@@ -120,6 +165,11 @@ describe('adminContentService', () => {
       moderationStatus: 'visible',
       creator: { id: 'creator-1' },
       reportSignals: { priority: 'critical' },
+      automatedSignals: {
+        active: true,
+        severity: 'critical',
+        triggeredRules: [{ rule: 'suspicious_link' }],
+      },
       creatorTrustSignals: { riskLevel: 'high' },
     })
   })

@@ -119,6 +119,23 @@ describe('adminMetricsService', () => {
               errorLast24h: 1,
               errorLast7d: 2,
             },
+            automatedDetection: {
+              activeSignals: 9,
+              highRiskTargets: 4,
+              criticalTargets: 2,
+              byRule: {
+                spam: 3,
+                suspicious_link: 4,
+                flood: 1,
+                mass_creation: 1,
+              },
+              autoHide: {
+                successLast24h: 1,
+                successLast7d: 5,
+                errorLast24h: 0,
+                errorLast7d: 1,
+              },
+            },
           },
           creatorControls: {
             active: {
@@ -194,6 +211,8 @@ describe('adminMetricsService', () => {
     expect(result.engagement.contentPublishedLast7d.byType.article).toBe(5)
     expect(result.moderation.queue.byType.hidden.comment).toBe(0)
     expect(result.moderation.reports.criticalTargets).toBe(2)
+    expect(result.moderation.automation.automatedDetection.activeSignals).toBe(9)
+    expect(result.moderation.automation.automatedDetection.byRule.suspicious_link).toBe(4)
     expect(result.moderation.creatorControls.active.affectedCreators).toBe(7)
     expect(result.moderation.creatorTrust.byRiskLevel.critical).toBe(2)
     expect(result.operations.statusClassCounts['3xx']).toBe(0)

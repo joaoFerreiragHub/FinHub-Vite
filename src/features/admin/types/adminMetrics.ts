@@ -13,6 +13,7 @@ export type AdminMetricContentType =
 
 export type AdminMetricBaseContentType = Exclude<AdminMetricContentType, 'comment' | 'review'>
 export type AdminMetricStatusClass = '2xx' | '3xx' | '4xx' | '5xx'
+export type AdminAutomatedModerationRule = 'spam' | 'suspicious_link' | 'flood' | 'mass_creation'
 
 export interface AdminMetricRouteLatency {
   method: string
@@ -138,6 +139,18 @@ export interface AdminMetricsOverview {
         successLast7d: number
         errorLast24h: number
         errorLast7d: number
+      }
+      automatedDetection: {
+        activeSignals: number
+        highRiskTargets: number
+        criticalTargets: number
+        byRule: Record<AdminAutomatedModerationRule, number>
+        autoHide: {
+          successLast24h: number
+          successLast7d: number
+          errorLast24h: number
+          errorLast7d: number
+        }
       }
     }
     creatorControls: {

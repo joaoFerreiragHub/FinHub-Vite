@@ -7,7 +7,11 @@ import type {
   CreatorRiskLevel,
   CreatorTrustRecommendedAction,
 } from '../types/adminUsers'
-import type { AdminContentReportPriority } from '../types/adminContent'
+import type {
+  AdminContentAutomatedRule,
+  AdminContentAutomatedSeverity,
+  AdminContentReportPriority,
+} from '../types/adminContent'
 
 export const CREATOR_RISK_LABEL: Record<CreatorRiskLevel, string> = {
   low: 'Baixo risco',
@@ -32,6 +36,21 @@ export const REPORT_PRIORITY_LABEL: Record<AdminContentReportPriority, string> =
   critical: 'Flag critica',
 }
 
+export const AUTOMATED_SEVERITY_LABEL: Record<AdminContentAutomatedSeverity, string> = {
+  none: 'Sem sinal auto',
+  low: 'Sinal auto baixo',
+  medium: 'Sinal auto medio',
+  high: 'Sinal auto alto',
+  critical: 'Sinal auto critico',
+}
+
+export const AUTOMATED_RULE_LABEL: Record<AdminContentAutomatedRule, string> = {
+  spam: 'Spam',
+  suspicious_link: 'Links suspeitos',
+  flood: 'Flood',
+  mass_creation: 'Criacao em massa',
+}
+
 const riskBadgeVariant = (riskLevel: CreatorRiskLevel): 'secondary' | 'outline' | 'destructive' => {
   if (riskLevel === 'critical') return 'destructive'
   if (riskLevel === 'high') return 'outline'
@@ -43,6 +62,14 @@ const reportPriorityVariant = (
 ): 'secondary' | 'outline' | 'destructive' => {
   if (priority === 'critical') return 'destructive'
   if (priority === 'high' || priority === 'medium') return 'outline'
+  return 'secondary'
+}
+
+const automatedSeverityVariant = (
+  severity: AdminContentAutomatedSeverity,
+): 'secondary' | 'outline' | 'destructive' => {
+  if (severity === 'critical') return 'destructive'
+  if (severity === 'high' || severity === 'medium') return 'outline'
   return 'secondary'
 }
 
@@ -166,6 +193,38 @@ export function ReportPriorityBadge({
     >
       {REPORT_PRIORITY_LABEL[priority]}
       {typeof openReports === 'number' && openReports > 0 ? ` · ${openReports}` : ''}
+    </Badge>
+  )
+}
+
+export function AutomatedDetectionBadge({
+  severity,
+  score,
+  active = true,
+}: {
+  severity: AdminContentAutomatedSeverity
+  score?: number
+  active?: boolean
+}) {
+  if (!active || severity === 'none') {
+    return (
+      <Badge variant="secondary" className="gap-1">
+        <ShieldCheck className="h-3 w-3" />
+        Sem sinal auto
+      </Badge>
+    )
+  }
+
+  return (
+    <Badge
+      variant={automatedSeverityVariant(severity)}
+      className={cn(
+        severity === 'high' && 'border-amber-500/40 text-amber-700',
+        severity === 'medium' && 'border-sky-500/40 text-sky-700',
+      )}
+    >
+      {AUTOMATED_SEVERITY_LABEL[severity]}
+      {typeof score === 'number' && score > 0 ? ` · ${score}` : ''}
     </Badge>
   )
 }

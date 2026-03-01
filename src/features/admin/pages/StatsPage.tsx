@@ -31,7 +31,7 @@ import {
 } from '@/components/ui'
 import { getErrorMessage } from '@/lib/api/client'
 import { useAdminMetricsOverview } from '../hooks/useAdminMetrics'
-import type { AdminMetricContentType } from '../types/adminMetrics'
+import type { AdminAutomatedModerationRule, AdminMetricContentType } from '../types/adminMetrics'
 
 const CONTENT_TYPE_LABELS: Record<AdminMetricContentType, string> = {
   article: 'Artigos',
@@ -42,6 +42,13 @@ const CONTENT_TYPE_LABELS: Record<AdminMetricContentType, string> = {
   book: 'Livros',
   comment: 'Comentarios',
   review: 'Reviews',
+}
+
+const AUTOMATED_RULE_LABELS: Record<AdminAutomatedModerationRule, string> = {
+  spam: 'Spam',
+  suspicious_link: 'Links suspeitos',
+  flood: 'Flood',
+  mass_creation: 'Criacao em massa',
 }
 
 const formatNumber = (value: number): string => value.toLocaleString('pt-PT')
@@ -128,6 +135,12 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
   const creatorRiskRows = useMemo(() => {
     if (!metrics) return []
     return Object.entries(metrics.moderation.creatorTrust.byRiskLevel) as Array<[string, number]>
+  }, [metrics])
+  const automatedRuleRows = useMemo(() => {
+    if (!metrics) return []
+    return Object.entries(metrics.moderation.automation.automatedDetection.byRule) as Array<
+      [AdminAutomatedModerationRule, number]
+    >
   }, [metrics])
 
   return (
@@ -350,6 +363,56 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
                     : 'success'
                 }
               />
+              <KpiCard
+                title="Auto sinais ativos"
+                value={formatNumber(metrics.moderation.automation.automatedDetection.activeSignals)}
+                description="Targets com deteccao automatica ainda ativa."
+                icon={Radar}
+                tone={
+                  metrics.moderation.automation.automatedDetection.activeSignals > 0
+                    ? 'warn'
+                    : 'default'
+                }
+              />
+              <KpiCard
+                title="Auto high+"
+                value={formatNumber(
+                  metrics.moderation.automation.automatedDetection.highRiskTargets,
+                )}
+                description="Targets com severidade automatica high ou critical."
+                icon={AlertTriangle}
+                tone={
+                  metrics.moderation.automation.automatedDetection.highRiskTargets > 0
+                    ? 'warn'
+                    : 'default'
+                }
+              />
+              <KpiCard
+                title="Auto criticos"
+                value={formatNumber(
+                  metrics.moderation.automation.automatedDetection.criticalTargets,
+                )}
+                description="Alvos a priorizar por deteccao automatica."
+                icon={ShieldAlert}
+                tone={
+                  metrics.moderation.automation.automatedDetection.criticalTargets > 0
+                    ? 'danger'
+                    : 'default'
+                }
+              />
+              <KpiCard
+                title="Detecao hide erros 24h"
+                value={formatNumber(
+                  metrics.moderation.automation.automatedDetection.autoHide.errorLast24h,
+                )}
+                description="Falhas do auto-hide tecnico por deteccao."
+                icon={ShieldAlert}
+                tone={
+                  metrics.moderation.automation.automatedDetection.autoHide.errorLast24h > 0
+                    ? 'danger'
+                    : 'success'
+                }
+              />
             </div>
             <Card>
               <CardHeader>
@@ -410,6 +473,50 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
                         </Badge>
                       ))
                     )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Detecao automatica</CardTitle>
+                  <CardDescription>
+                    Distribuicao de regras e resultado do auto-hide tecnico.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline">
+                      Hide ok 24h:{' '}
+                      {formatNumber(
+                        metrics.moderation.automation.automatedDetection.autoHide.successLast24h,
+                      )}
+                    </Badge>
+                    <Badge variant="outline">
+                      Hide ok 7d:{' '}
+                      {formatNumber(
+                        metrics.moderation.automation.automatedDetection.autoHide.successLast7d,
+                      )}
+                    </Badge>
+                    <Badge variant="outline">
+                      Hide erro 24h:{' '}
+                      {formatNumber(
+                        metrics.moderation.automation.automatedDetection.autoHide.errorLast24h,
+                      )}
+                    </Badge>
+                    <Badge variant="outline">
+                      Hide erro 7d:{' '}
+                      {formatNumber(
+                        metrics.moderation.automation.automatedDetection.autoHide.errorLast7d,
+                      )}
+                    </Badge>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {automatedRuleRows.map(([rule, count]) => (
+                      <Badge key={rule} variant="outline">
+                        {AUTOMATED_RULE_LABELS[rule]}: {formatNumber(count)}
+                      </Badge>
+                    ))}
                   </div>
                 </CardContent>
               </Card>

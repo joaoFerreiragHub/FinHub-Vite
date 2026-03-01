@@ -7,6 +7,9 @@ export type AdminOperationalAlertType =
   | 'critical_report_target'
   | 'policy_auto_hide_triggered'
   | 'policy_auto_hide_failed'
+  | 'automated_detection_high_risk'
+  | 'automated_detection_auto_hide_triggered'
+  | 'automated_detection_auto_hide_failed'
   | 'creator_control_applied'
 
 export type AdminOperationalAlertSeverity = 'critical' | 'high' | 'medium'
@@ -40,6 +43,7 @@ export interface AdminOperationalAlertsResponse {
     hideSpikeWindowMinutes: number
     reportPriorityMin: 'high'
     reportMinOpenReports: number
+    automatedDetectionSeverityMin: 'high'
     creatorControlRestrictiveActions: string[]
   }
   summary: AdminOperationalAlertsSummary

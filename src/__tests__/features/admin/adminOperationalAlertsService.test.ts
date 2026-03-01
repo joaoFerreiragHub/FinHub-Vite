@@ -24,13 +24,14 @@ describe('adminOperationalAlertsService', () => {
           hideSpikeWindowMinutes: 30,
           reportPriorityMin: 'high',
           reportMinOpenReports: 3,
+          automatedDetectionSeverityMin: 'high',
           creatorControlRestrictiveActions: ['set_cooldown', 'block_publishing'],
         },
         summary: {
           critical: 2,
-          high: 1,
+          high: 2,
           medium: 0,
-          total: 3,
+          total: 4,
         },
         items: [
           {
@@ -62,6 +63,18 @@ describe('adminOperationalAlertsService', () => {
               role: 'admin',
             },
           },
+          {
+            id: 'alert-3',
+            type: 'automated_detection_high_risk',
+            severity: 'high',
+            title: 'Detecao automatica de alto risco',
+            description: 'Sinal high para comment:9 com regras spam.',
+            action: 'admin.content.queue.review',
+            resourceType: 'content',
+            resourceId: 'comment:9',
+            detectedAt: '2026-02-28T09:57:00.000Z',
+            actor: null,
+          },
         ],
       },
     })
@@ -77,6 +90,7 @@ describe('adminOperationalAlertsService', () => {
     expect(result.thresholds).toMatchObject({
       reportPriorityMin: 'high',
       reportMinOpenReports: 3,
+      automatedDetectionSeverityMin: 'high',
       creatorControlRestrictiveActions: ['set_cooldown', 'block_publishing'],
     })
     expect(result.items[0]).toMatchObject({
@@ -87,6 +101,11 @@ describe('adminOperationalAlertsService', () => {
     expect(result.items[1]).toMatchObject({
       type: 'policy_auto_hide_failed',
       actor: { id: 'admin-1' },
+    })
+    expect(result.items[2]).toMatchObject({
+      type: 'automated_detection_high_risk',
+      severity: 'high',
+      resourceId: 'comment:9',
     })
   })
 })

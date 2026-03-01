@@ -1,6 +1,7 @@
 import { apiClient } from '@/lib/api/client'
 import type { UserRole } from '@/features/auth/types'
 import type {
+  AdminAutomatedModerationRule,
   AdminMetricBaseContentType,
   AdminMetricContentType,
   AdminMetricRouteErrors,
@@ -35,6 +36,12 @@ const BASE_CONTENT_TYPES: AdminMetricBaseContentType[] = [
 const STATUS_CLASSES: AdminMetricStatusClass[] = ['2xx', '3xx', '4xx', '5xx']
 const ROLES: UserRole[] = ['visitor', 'free', 'premium', 'creator', 'admin']
 const CREATOR_RISK_LEVELS: CreatorRiskLevel[] = ['low', 'medium', 'high', 'critical']
+const AUTOMATED_MODERATION_RULES: AdminAutomatedModerationRule[] = [
+  'spam',
+  'suspicious_link',
+  'flood',
+  'mass_creation',
+]
 
 const toNumber = (value: unknown, fallback = 0): number =>
   typeof value === 'number' && Number.isFinite(value) ? value : fallback
@@ -149,6 +156,27 @@ const normalizeCreatorRiskLevels = (raw: unknown): Record<CreatorRiskLevel, numb
   return output
 }
 
+const normalizeAutomatedRuleCounts = (
+  raw: unknown,
+): Record<AdminAutomatedModerationRule, number> => {
+  const input =
+    raw && typeof raw === 'object'
+      ? (raw as Record<string, unknown>)
+      : ({} as Record<string, unknown>)
+  const output: Record<AdminAutomatedModerationRule, number> = {
+    spam: 0,
+    suspicious_link: 0,
+    flood: 0,
+    mass_creation: 0,
+  }
+
+  for (const rule of AUTOMATED_MODERATION_RULES) {
+    output[rule] = toNumber(input[rule], 0)
+  }
+
+  return output
+}
+
 const normalizeRouteLatency = (raw: unknown): AdminMetricRouteLatency[] => {
   if (!Array.isArray(raw)) return []
   return raw
@@ -201,6 +229,7 @@ const mapOverview = (raw: BackendMetricsOverview): AdminMetricsOverview => {
   const moderationReports = moderation.reports ?? {}
   const moderationAutomation = moderation.automation ?? {}
   const moderationPolicyAutoHide = moderationAutomation.policyAutoHide ?? {}
+  const moderationAutomatedDetection = moderationAutomation.automatedDetection ?? {}
   const moderationCreatorControls = moderation.creatorControls ?? {}
   const moderationCreatorControlsActive = moderationCreatorControls.active ?? {}
   const moderationCreatorControlsActions = moderationCreatorControls.actions ?? {}
@@ -352,6 +381,21 @@ const mapOverview = (raw: BackendMetricsOverview): AdminMetricsOverview => {
           successLast7d: toNumber(moderationPolicyAutoHide.successLast7d, 0),
           errorLast24h: toNumber(moderationPolicyAutoHide.errorLast24h, 0),
           errorLast7d: toNumber(moderationPolicyAutoHide.errorLast7d, 0),
+        },
+        automatedDetection: {
+          activeSignals: toNumber(moderationAutomatedDetection.activeSignals, 0),
+          highRiskTargets: toNumber(moderationAutomatedDetection.highRiskTargets, 0),
+          criticalTargets: toNumber(moderationAutomatedDetection.criticalTargets, 0),
+          byRule: normalizeAutomatedRuleCounts(moderationAutomatedDetection.byRule),
+          autoHide: {
+            successLast24h: toNumber(
+              (moderationAutomatedDetection.autoHide ?? {}).successLast24h,
+              0,
+            ),
+            successLast7d: toNumber((moderationAutomatedDetection.autoHide ?? {}).successLast7d, 0),
+            errorLast24h: toNumber((moderationAutomatedDetection.autoHide ?? {}).errorLast24h, 0),
+            errorLast7d: toNumber((moderationAutomatedDetection.autoHide ?? {}).errorLast7d, 0),
+          },
         },
       },
       creatorControls: {
