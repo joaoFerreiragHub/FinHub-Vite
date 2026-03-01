@@ -4,11 +4,13 @@ import {
   AlertTriangle,
   BarChart3,
   BellRing,
+  Eye,
   EyeOff,
   Layers,
   LifeBuoy,
   Lock,
   Newspaper,
+  Radar,
   Shield,
   ShieldAlert,
   ShieldCheck,
@@ -17,19 +19,30 @@ import {
   UserX,
   WandSparkles,
 } from 'lucide-react'
+import { toast } from 'react-toastify'
 import {
   Badge,
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
+  Textarea,
 } from '@/components/ui'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import { getErrorMessage } from '@/lib/api/client'
 import { cn } from '@/lib/utils'
 import {
   ADMIN_MODULES,
@@ -43,12 +56,17 @@ import { useAdminContentQueue } from '../hooks/useAdminContent'
 import { useAdminAssistedSessions } from '../hooks/useAdminAssistedSessions'
 import { useAdminMetricsOverview } from '../hooks/useAdminMetrics'
 import { useAdminOperationalAlerts } from '../hooks/useAdminOperationalAlerts'
+import {
+  useAdminSurfaceControls,
+  useUpdateAdminSurfaceControl,
+} from '../hooks/useAdminSurfaceControls'
 import UsersManagementPage from './UsersManagementPage'
 import ContentModerationPage from './ContentModerationPage'
 import AssistedSessionsPage from './AssistedSessionsPage'
 import StatsPage from './StatsPage'
 import BrandsManagementPage from './BrandsManagementPage'
 import EditorialCmsPage from './EditorialCmsPage'
+import type { AdminSurfaceControlItem } from '../types/adminSurfaceControls'
 import type {
   AdminOperationalAlertSeverity,
   AdminOperationalAlertType,
@@ -106,6 +124,11 @@ interface ModuleCardProps {
   alertCount?: number
 }
 
+interface SurfaceControlDialogState {
+  item: AdminSurfaceControlItem
+  nextEnabled: boolean
+}
+
 const MODULE_ICONS: Record<AdminModuleConfig['key'], ElementType> = {
   dashboard: BarChart3,
   users: Users,
@@ -133,6 +156,11 @@ const ALERT_SEVERITY_LABEL: Record<AdminOperationalAlertSeverity, string> = {
   critical: 'Critico',
   high: 'High',
   medium: 'Medio',
+}
+
+const SURFACE_CONTROL_IMPACT_LABEL: Record<AdminSurfaceControlItem['impact'], string> = {
+  read: 'Leitura',
+  write: 'Escrita',
 }
 
 const alertSeverityVariant = (
@@ -225,6 +253,12 @@ export default function AdminDashboardPage() {
   const canReadSupport = Boolean(moduleAccess.support?.canRead)
   const canReadStats = Boolean(moduleAccess.stats?.canRead)
   const canReadAudit = hasAdminScope(user, 'admin.audit.read')
+  const canReadSurfaceControls = canReadContent
+  const canWriteSurfaceControls = Boolean(moduleAccess.content?.canWrite)
+  const [surfaceDialog, setSurfaceDialog] = useState<SurfaceControlDialogState | null>(null)
+  const [surfaceReason, setSurfaceReason] = useState('')
+  const [surfaceNote, setSurfaceNote] = useState('')
+  const [surfacePublicMessage, setSurfacePublicMessage] = useState('')
 
   const { data: allUsers, isLoading: loadingAllUsers } = useAdminUsers(
     { limit: 1 },
@@ -266,6 +300,9 @@ export default function AdminDashboardPage() {
   })
   const { data: operationalAlerts, isLoading: loadingOperationalAlerts } =
     useAdminOperationalAlerts({ windowHours: 24, limit: 6 }, { enabled: canReadAudit })
+  const { data: surfaceControls, isLoading: loadingSurfaceControls } =
+    useAdminSurfaceControls(canReadSurfaceControls)
+  const updateSurfaceControlMutation = useUpdateAdminSurfaceControl()
 
   const totalUsers = allUsers?.pagination.total
   const suspendedCount = suspendedUsers?.pagination.total ?? 0
@@ -295,6 +332,7 @@ export default function AdminDashboardPage() {
     metricsOverview?.moderation.automation.automatedDetection.criticalTargets ?? 0
   const automatedAutoHideErrors24h =
     metricsOverview?.moderation.automation.automatedDetection.autoHide.errorLast24h ?? 0
+  const disabledSurfaceCount = surfaceControls?.items.filter((item) => !item.enabled).length ?? 0
 
   const moduleCards = useMemo(
     () =>
@@ -347,6 +385,55 @@ export default function AdminDashboardPage() {
       setActiveTab(availableTabs[0]?.key ?? 'overview')
     }
   }, [activeTab, availableTabs])
+
+  const openSurfaceDialog = (item: AdminSurfaceControlItem, nextEnabled: boolean) => {
+    setSurfaceDialog({ item, nextEnabled })
+    setSurfaceReason(
+      nextEnabled
+        ? `Reativacao operacional da superficie ${item.label.toLowerCase()}.`
+        : `Kill switch preventivo para ${item.label.toLowerCase()}.`,
+    )
+    setSurfaceNote(item.note ?? '')
+    setSurfacePublicMessage(
+      item.publicMessage ??
+        (nextEnabled ? '' : `${item.label} temporariamente indisponivel para revisao.`),
+    )
+  }
+
+  const closeSurfaceDialog = (force = false) => {
+    if (!force && updateSurfaceControlMutation.isPending) return
+    setSurfaceDialog(null)
+    setSurfaceReason('')
+    setSurfaceNote('')
+    setSurfacePublicMessage('')
+  }
+
+  const submitSurfaceUpdate = async () => {
+    if (!surfaceDialog) return
+
+    const reason = surfaceReason.trim()
+    if (!reason) {
+      toast.error('Motivo obrigatorio para atualizar kill switch.')
+      return
+    }
+
+    try {
+      const result = await updateSurfaceControlMutation.mutateAsync({
+        key: surfaceDialog.item.key,
+        payload: {
+          enabled: surfaceDialog.nextEnabled,
+          reason,
+          note: surfaceNote.trim() || undefined,
+          publicMessage: surfacePublicMessage.trim() || undefined,
+        },
+      })
+
+      toast.success(result.message)
+      closeSurfaceDialog(true)
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
+  }
 
   const today = new Date().toLocaleDateString('pt-PT', {
     weekday: 'long',
@@ -514,6 +601,13 @@ export default function AdminDashboardPage() {
                 highlight="danger"
               />
               <StatCard
+                label="Surfaces off"
+                value={disabledSurfaceCount}
+                icon={EyeOff}
+                loading={canReadSurfaceControls && loadingSurfaceControls}
+                highlight="danger"
+              />
+              <StatCard
                 label="Auto sinais ativos"
                 value={automatedSignalsActive}
                 icon={Radar}
@@ -622,6 +716,110 @@ export default function AdminDashboardPage() {
             </section>
           ) : null}
 
+          {canReadSurfaceControls ? (
+            <section>
+              <div className="mb-3 flex items-center gap-2">
+                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  Kill switches
+                </h2>
+              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Contencao rapida por superficie</CardTitle>
+                  <CardDescription>
+                    Desliga leitura ou escrita publica sem esperar por deploy. Usa motivo e mensagem
+                    publica curta.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {loadingSurfaceControls ? (
+                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                      <div className="h-32 animate-pulse rounded-md bg-muted" />
+                      <div className="h-32 animate-pulse rounded-md bg-muted" />
+                      <div className="h-32 animate-pulse rounded-md bg-muted" />
+                    </div>
+                  ) : (surfaceControls?.items.length ?? 0) === 0 ? (
+                    <div className="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
+                      Sem superficies configuradas.
+                    </div>
+                  ) : (
+                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                      {surfaceControls?.items.map((item) => (
+                        <div key={item.key} className="rounded-xl border border-border/70 p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="font-medium">{item.label}</p>
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                {item.description}
+                              </p>
+                            </div>
+                            <Badge
+                              variant={item.enabled ? 'secondary' : 'destructive'}
+                              className="shrink-0"
+                            >
+                              {item.enabled ? 'On' : 'Off'}
+                            </Badge>
+                          </div>
+
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            <Badge variant="outline">
+                              {SURFACE_CONTROL_IMPACT_LABEL[item.impact]}
+                            </Badge>
+                            {item.publicMessage ? (
+                              <Badge variant="outline" className="max-w-full">
+                                Msg publica
+                              </Badge>
+                            ) : null}
+                          </div>
+
+                          <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+                            <p>Motivo: {item.reason ?? 'n/a'}</p>
+                            <p>
+                              Atualizado:{' '}
+                              {item.updatedAt ? formatDateTime(item.updatedAt) : 'sem historico'}
+                            </p>
+                            <p>
+                              Autor:{' '}
+                              {item.updatedBy?.name ||
+                                item.updatedBy?.username ||
+                                item.updatedBy?.email ||
+                                'n/a'}
+                            </p>
+                            {item.publicMessage ? <p>Publico: {item.publicMessage}</p> : null}
+                          </div>
+
+                          {canWriteSurfaceControls ? (
+                            <div className="mt-4">
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant={item.enabled ? 'destructive' : 'outline'}
+                                onClick={() => openSurfaceDialog(item, !item.enabled)}
+                              >
+                                {item.enabled ? (
+                                  <>
+                                    <EyeOff className="h-4 w-4" />
+                                    Ativar kill switch
+                                  </>
+                                ) : (
+                                  <>
+                                    <Eye className="h-4 w-4" />
+                                    Reativar superficie
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </section>
+          ) : null}
+
           <section>
             <div className="mb-3 flex items-center gap-2">
               <Shield className="h-4 w-4 text-muted-foreground" />
@@ -685,6 +883,99 @@ export default function AdminDashboardPage() {
               </CardContent>
             </Card>
           ) : null}
+
+          <Dialog
+            open={Boolean(surfaceDialog)}
+            onOpenChange={(open) => (!open ? closeSurfaceDialog() : null)}
+          >
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {surfaceDialog?.nextEnabled
+                    ? 'Reativar superficie'
+                    : 'Ativar kill switch de superficie'}
+                </DialogTitle>
+                <DialogDescription>
+                  {surfaceDialog
+                    ? `${surfaceDialog.item.label} - ${surfaceDialog.item.description}`
+                    : ''}
+                </DialogDescription>
+              </DialogHeader>
+
+              {surfaceDialog ? (
+                <div className="space-y-4">
+                  <div className="rounded-md border border-border/70 bg-muted/20 p-3 text-sm">
+                    <p className="font-medium">{surfaceDialog.item.label}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Impacto: {SURFACE_CONTROL_IMPACT_LABEL[surfaceDialog.item.impact]}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Estado atual: {surfaceDialog.item.enabled ? 'Ativo' : 'Desligado'}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium" htmlFor="surface-control-reason">
+                      Motivo
+                    </label>
+                    <Input
+                      id="surface-control-reason"
+                      value={surfaceReason}
+                      onChange={(event) => setSurfaceReason(event.target.value)}
+                      placeholder="Motivo operacional para este toggle"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium" htmlFor="surface-control-note">
+                      Nota interna
+                    </label>
+                    <Textarea
+                      id="surface-control-note"
+                      value={surfaceNote}
+                      onChange={(event) => setSurfaceNote(event.target.value)}
+                      rows={4}
+                      placeholder="Contexto, playbook, referencia de incidente."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium" htmlFor="surface-control-public-message">
+                      Mensagem publica
+                    </label>
+                    <Input
+                      id="surface-control-public-message"
+                      value={surfacePublicMessage}
+                      onChange={(event) => setSurfacePublicMessage(event.target.value)}
+                      placeholder="Mensagem curta devolvida pelos endpoints publicos."
+                    />
+                  </div>
+                </div>
+              ) : null}
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => closeSurfaceDialog()}
+                  disabled={updateSurfaceControlMutation.isPending}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="button"
+                  variant={surfaceDialog?.nextEnabled ? 'outline' : 'destructive'}
+                  onClick={submitSurfaceUpdate}
+                  disabled={updateSurfaceControlMutation.isPending || !surfaceDialog}
+                >
+                  {updateSurfaceControlMutation.isPending ? (
+                    <ShieldAlert className="h-4 w-4 animate-pulse" />
+                  ) : null}
+                  {surfaceDialog?.nextEnabled ? 'Reativar' : 'Desligar'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
 
         {canReadUsers ? (
