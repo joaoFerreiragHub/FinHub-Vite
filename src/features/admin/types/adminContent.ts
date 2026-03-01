@@ -17,6 +17,13 @@ export type AdminContentPolicyAction = 'review' | 'restrict' | 'hide' | 'none'
 export type AdminContentAutomatedSeverity = 'none' | 'low' | 'medium' | 'high' | 'critical'
 export type AdminContentAutomatedAction = 'review' | 'restrict' | 'hide' | 'none'
 export type AdminContentAutomatedRule = 'spam' | 'suspicious_link' | 'flood' | 'mass_creation'
+export type AdminContentJobType = 'bulk_moderate' | 'bulk_rollback'
+export type AdminContentJobStatus =
+  | 'queued'
+  | 'running'
+  | 'completed'
+  | 'completed_with_errors'
+  | 'failed'
 
 export interface AdminContentReportSignals {
   openReports: number
@@ -130,6 +137,7 @@ export interface AdminContentQueueResponse {
 export interface AdminContentModerationActionPayload {
   reason: string
   note?: string
+  markFalsePositive?: boolean
 }
 
 export interface AdminContentRollbackPayload extends AdminContentModerationActionPayload {
@@ -170,6 +178,7 @@ export interface AdminContentRollbackReview {
   currentStatus: AdminContentModerationStatus
   canRollback: boolean
   requiresConfirm: boolean
+  falsePositiveEligible: boolean
   warnings: string[]
   blockers: string[]
   guidance: string[]
@@ -198,5 +207,67 @@ export interface AdminContentRollbackResponse extends AdminContentModerationActi
     targetStatus: AdminContentModerationStatus
     requiresConfirm: boolean
     warnings: string[]
+    falsePositiveRecorded?: boolean
   }
+}
+
+export interface AdminContentJobItem {
+  contentType: AdminContentType
+  contentId: string
+  eventId: string | null
+  status: 'pending' | 'success' | 'failed'
+  changed?: boolean
+  fromStatus?: AdminContentModerationStatus
+  toStatus?: AdminContentModerationStatus
+  error: string | null
+  statusCode: number | null
+}
+
+export interface AdminContentJob {
+  id: string
+  type: AdminContentJobType
+  status: AdminContentJobStatus
+  action: AdminContentModerationAction | null
+  reason: string
+  note: string | null
+  confirm: boolean
+  markFalsePositive: boolean
+  actor: AdminActorSummary | null
+  items: AdminContentJobItem[]
+  progress: {
+    requested: number
+    processed: number
+    succeeded: number
+    failed: number
+    changed: number
+  }
+  guardrails: {
+    maxItems: number
+    confirmThreshold: number
+    duplicatesSkipped: number
+  } | null
+  error: string | null
+  startedAt: string | null
+  finishedAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface AdminContentJobsResponse {
+  items: AdminContentJob[]
+  pagination: AdminPagination
+}
+
+export interface AdminBulkModerationJobPayload extends AdminContentModerationActionPayload {
+  action: AdminContentModerationAction
+  confirm?: boolean
+  items: Array<{
+    contentType: AdminContentType
+    contentId: string
+  }>
+}
+
+export interface AdminBulkModerationJobResponse {
+  message: string
+  job: AdminContentJob
 }

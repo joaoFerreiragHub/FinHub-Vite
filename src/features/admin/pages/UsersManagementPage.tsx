@@ -1228,7 +1228,7 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
                 </div>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-4">
+              <div className="grid gap-3 md:grid-cols-5">
                 <Card>
                   <CardHeader className="pb-2">
                     <CardDescription>Reports abertos</CardDescription>
@@ -1260,6 +1260,14 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
                     <CardTitle className="text-2xl">
                       {trustProfileQuery.data.trustSignals?.summary
                         .recentCreatorControlActions30d ?? 0}
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardDescription>False positives 30d</CardDescription>
+                    <CardTitle className="text-2xl">
+                      {trustProfileQuery.data.trustSignals?.summary.falsePositiveEvents30d ?? 0}
                     </CardTitle>
                   </CardHeader>
                 </Card>

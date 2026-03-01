@@ -66,6 +66,9 @@ export interface AdminCreatorTrustSignals {
     recentModerationActions30d: number
     repeatModerationTargets30d: number
     recentCreatorControlActions30d: number
+    falsePositiveEvents30d: number
+    automatedFalsePositiveEvents30d: number
+    falsePositiveRate30d: number
     activeControlFlags: string[]
   }
   flags: string[]

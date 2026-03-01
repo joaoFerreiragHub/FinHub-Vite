@@ -14,3 +14,13 @@ export function useAdminMetricsOverview(options?: AdminMetricsOverviewOptions) {
     enabled: options?.enabled ?? true,
   })
 }
+
+export function useAdminMetricsDrilldown(limit = 6, options?: AdminMetricsOverviewOptions) {
+  return useQuery({
+    queryKey: ['admin', 'metrics', 'drilldown', limit],
+    queryFn: () => adminMetricsService.getDrilldown(limit),
+    staleTime: 60_000,
+    refetchInterval: 120_000,
+    enabled: options?.enabled ?? true,
+  })
+}

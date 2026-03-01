@@ -18,6 +18,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  Checkbox,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -51,14 +52,17 @@ import {
 } from '../components/RiskSignals'
 import {
   useAdminContentHistory,
+  useAdminContentJobs,
   useAdminContentRollbackReview,
   useAdminContentQueue,
+  useCreateBulkModerationJob,
   useHideAdminContent,
   useRollbackAdminContent,
   useRestrictAdminContent,
   useUnhideAdminContent,
 } from '../hooks/useAdminContent'
 import type {
+  AdminContentJob,
   AdminContentModerationEvent,
   AdminContentModerationStatus,
   AdminContentReportPriority,
@@ -90,6 +94,10 @@ interface ContentActionDialogState {
 interface ContentRollbackDialogState {
   content: AdminContentQueueItem
   eventId: string
+}
+
+interface BulkModerationDialogState {
+  items: AdminContentQueueItem[]
 }
 
 interface CurrentAdminMeta {
@@ -244,8 +252,19 @@ const formatActor = (actor: AdminContentQueueItem['creator']): string => {
 
 const hasBooleanMetadataFlag = (
   event: AdminContentModerationEvent,
-  key: 'fastTrack' | 'bulkModeration' | 'rollback' | 'automatedDetection',
+  key: 'fastTrack' | 'bulkModeration' | 'rollback' | 'automatedDetection' | 'falsePositiveMarked',
 ): boolean => event.metadata?.[key] === true
+
+const contentSelectionKey = (item: AdminContentQueueItem): string =>
+  `${item.contentType}:${item.id}`
+
+const JOB_STATUS_LABEL: Record<AdminContentJob['status'], string> = {
+  queued: 'Na fila',
+  running: 'A correr',
+  completed: 'Concluido',
+  completed_with_errors: 'Concluido com falhas',
+  failed: 'Falhou',
+}
 
 export default function ContentModerationPage({ embedded = false }: ContentModerationPageProps) {
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS)
@@ -256,6 +275,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
   const [actionReason, setActionReason] = useState('')
   const [actionNote, setActionNote] = useState('')
   const [actionConfirmText, setActionConfirmText] = useState('')
+  const [actionMarkFalsePositive, setActionMarkFalsePositive] = useState(false)
 
   const [historyTarget, setHistoryTarget] = useState<AdminContentQueueItem | null>(null)
   const [historyPage, setHistoryPage] = useState(1)
@@ -263,6 +283,13 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
   const [rollbackReason, setRollbackReason] = useState(DEFAULT_ROLLBACK_REASON)
   const [rollbackNote, setRollbackNote] = useState('')
   const [rollbackConfirmText, setRollbackConfirmText] = useState('')
+  const [rollbackMarkFalsePositive, setRollbackMarkFalsePositive] = useState(false)
+  const [selectedContentKeys, setSelectedContentKeys] = useState<string[]>([])
+  const [bulkDialog, setBulkDialog] = useState<BulkModerationDialogState | null>(null)
+  const [bulkAction, setBulkAction] = useState<ContentActionKind>('hide')
+  const [bulkReason, setBulkReason] = useState(DEFAULT_ACTION_REASON.hide)
+  const [bulkNote, setBulkNote] = useState('')
+  const [bulkConfirmText, setBulkConfirmText] = useState('')
 
   const rawAuthUser = useAuthStore((state) => state.user)
   const authUser = (rawAuthUser as unknown as CurrentAdminMeta | null) ?? null
@@ -299,6 +326,8 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
   const unhideMutation = useUnhideAdminContent()
   const restrictMutation = useRestrictAdminContent()
   const rollbackMutation = useRollbackAdminContent()
+  const jobsQuery = useAdminContentJobs({ page: 1, limit: 6 }, { enabled: canReadContent })
+  const bulkJobMutation = useCreateBulkModerationJob()
 
   const isActionPending =
     hideMutation.isPending || unhideMutation.isPending || restrictMutation.isPending
@@ -311,9 +340,19 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
   const isRollbackConfirmValid =
     !rollbackRequiresDoubleConfirm ||
     rollbackConfirmText.trim().toUpperCase() === DOUBLE_CONFIRM_TOKEN
+  const bulkRequiresDoubleConfirm = (bulkDialog?.items.length ?? 0) >= 10
+  const isBulkConfirmValid =
+    !bulkRequiresDoubleConfirm || bulkConfirmText.trim().toUpperCase() === DOUBLE_CONFIRM_TOKEN
 
   const pagination = moderationQueue.data?.pagination
   const items = moderationQueue.data?.items ?? []
+  const selectedItems = items.filter((item) =>
+    selectedContentKeys.includes(contentSelectionKey(item)),
+  )
+  const allVisibleSelected =
+    items.length > 0 &&
+    items.every((item) => selectedContentKeys.includes(contentSelectionKey(item)))
+  const partiallySelected = selectedItems.length > 0 && !allVisibleSelected
 
   const hiddenCountInPage = items.filter((item) => item.moderationStatus === 'hidden').length
   const restrictedCountInPage = items.filter(
@@ -353,6 +392,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     setActionReason(DEFAULT_ACTION_REASON[kind])
     setActionNote('')
     setActionConfirmText('')
+    setActionMarkFalsePositive(false)
   }
 
   const closeActionDialog = (force = false) => {
@@ -361,6 +401,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     setActionReason('')
     setActionNote('')
     setActionConfirmText('')
+    setActionMarkFalsePositive(false)
   }
 
   const closeHistoryDialog = () => {
@@ -374,6 +415,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     setRollbackReason(DEFAULT_ROLLBACK_REASON)
     setRollbackNote('')
     setRollbackConfirmText('')
+    setRollbackMarkFalsePositive(false)
   }
 
   const closeRollbackDialog = (force = false) => {
@@ -382,6 +424,44 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     setRollbackReason(DEFAULT_ROLLBACK_REASON)
     setRollbackNote('')
     setRollbackConfirmText('')
+    setRollbackMarkFalsePositive(false)
+  }
+
+  const toggleSelectItem = (item: AdminContentQueueItem) => {
+    const key = contentSelectionKey(item)
+    setSelectedContentKeys((prev) =>
+      prev.includes(key) ? prev.filter((value) => value !== key) : [...prev, key],
+    )
+  }
+
+  const toggleSelectVisible = () => {
+    if (allVisibleSelected) {
+      const visibleKeys = items.map(contentSelectionKey)
+      setSelectedContentKeys((prev) => prev.filter((key) => !visibleKeys.includes(key)))
+      return
+    }
+
+    setSelectedContentKeys((prev) =>
+      Array.from(new Set([...prev, ...items.map(contentSelectionKey)])),
+    )
+  }
+
+  const openBulkDialog = () => {
+    if (selectedItems.length === 0) return
+    setBulkDialog({ items: selectedItems })
+    setBulkAction('hide')
+    setBulkReason(DEFAULT_ACTION_REASON.hide)
+    setBulkNote('')
+    setBulkConfirmText('')
+  }
+
+  const closeBulkDialog = (force = false) => {
+    if (!force && bulkJobMutation.isPending) return
+    setBulkDialog(null)
+    setBulkAction('hide')
+    setBulkReason(DEFAULT_ACTION_REASON.hide)
+    setBulkNote('')
+    setBulkConfirmText('')
   }
 
   const submitAction = async () => {
@@ -401,6 +481,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
       const payload = {
         reason,
         note: actionNote.trim() || undefined,
+        markFalsePositive: actionDialog.kind === 'unhide' ? actionMarkFalsePositive : undefined,
       }
 
       if (actionDialog.kind === 'hide') {
@@ -460,12 +541,48 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
           reason,
           note: rollbackNote.trim() || undefined,
           confirm: rollbackRequiresDoubleConfirm ? true : undefined,
+          markFalsePositive:
+            rollbackMarkFalsePositive && rollbackReviewQuery.data.rollback.falsePositiveEligible,
         },
       })
 
       toast.success(result.message)
       closeRollbackDialog(true)
       setHistoryPage(1)
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
+  }
+
+  const submitBulkJob = async () => {
+    if (!bulkDialog || bulkDialog.items.length === 0) return
+
+    const reason = bulkReason.trim()
+    if (!reason) {
+      toast.error('Motivo obrigatorio para criar job em lote.')
+      return
+    }
+
+    if (!isBulkConfirmValid) {
+      toast.error(`Escreve "${DOUBLE_CONFIRM_TOKEN}" para confirmar este lote.`)
+      return
+    }
+
+    try {
+      const result = await bulkJobMutation.mutateAsync({
+        action: bulkAction,
+        reason,
+        note: bulkNote.trim() || undefined,
+        confirm: bulkRequiresDoubleConfirm ? true : undefined,
+        items: bulkDialog.items.map((item) => ({
+          contentType: item.contentType,
+          contentId: item.id,
+        })),
+      })
+
+      toast.success(result.message)
+      setSelectedContentKeys([])
+      closeBulkDialog(true)
     } catch (error) {
       toast.error(getErrorMessage(error))
     }
@@ -772,12 +889,122 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
         </CardContent>
       </Card>
 
+      <div className="grid gap-4 xl:grid-cols-[1.3fr_0.9fr]">
+        <Card>
+          <CardHeader>
+            <CardTitle>Lote assíncrono</CardTitle>
+            <CardDescription>
+              Seleciona itens da página atual e cria um job auditável sem bloquear a triagem.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="outline">Selecionados: {selectedItems.length}</Badge>
+              <Badge variant="outline">Página: {items.length}</Badge>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={!canModerateContent || items.length === 0}
+                onClick={toggleSelectVisible}
+              >
+                {allVisibleSelected ? 'Limpar página' : 'Selecionar página'}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                disabled={!canModerateContent || selectedItems.length === 0}
+                onClick={openBulkDialog}
+              >
+                Criar job
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Usa esta via para esconder/restringir/reativar vários targets sem prender a interface
+              do admin. Jobs com 10+ itens exigem confirmação forte.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Jobs recentes</CardTitle>
+            <CardDescription>Últimos jobs de moderacao e rollback em lote.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {jobsQuery.isLoading ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />A carregar jobs...
+              </div>
+            ) : jobsQuery.isError ? (
+              <p className="text-sm text-destructive">{getErrorMessage(jobsQuery.error)}</p>
+            ) : (jobsQuery.data?.items.length ?? 0) === 0 ? (
+              <p className="text-sm text-muted-foreground">Sem jobs recentes.</p>
+            ) : (
+              <div className="space-y-2">
+                {jobsQuery.data?.items.map((job) => (
+                  <div key={job.id} className="rounded-lg border border-border/70 p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="outline">
+                          {job.type === 'bulk_rollback' ? 'Rollback' : 'Moderacao'}
+                        </Badge>
+                        <Badge
+                          variant={
+                            job.status === 'failed'
+                              ? 'destructive'
+                              : job.status === 'completed_with_errors'
+                                ? 'outline'
+                                : 'secondary'
+                          }
+                        >
+                          {JOB_STATUS_LABEL[job.status]}
+                        </Badge>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {formatDateTime(job.createdAt)}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      {job.progress.processed}/{job.progress.requested} processados | ok{' '}
+                      {job.progress.succeeded} | falhas {job.progress.failed}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Actor: {job.actor?.name || job.actor?.username || job.actor?.id || 'n/a'}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
       <Card>
         <CardHeader>
-          <CardTitle>Fila operacional</CardTitle>
-          <CardDescription>
-            Sequencia recomendada: validar contexto, aplicar acao com motivo, verificar historico.
-          </CardDescription>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle>Fila operacional</CardTitle>
+              <CardDescription>
+                Sequencia recomendada: validar contexto, aplicar acao com motivo, verificar
+                historico.
+              </CardDescription>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="outline">Selecionados: {selectedItems.length}</Badge>
+              {canModerateContent ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={selectedItems.length === 0}
+                  onClick={openBulkDialog}
+                >
+                  Criar job em lote
+                </Button>
+              ) : null}
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {moderationQueue.isLoading ? (
@@ -798,6 +1025,15 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
             <Table>
               <TableHeader>
                 <TableRow>
+                  {canModerateContent ? (
+                    <TableHead className="w-[48px]">
+                      <Checkbox
+                        aria-label="Selecionar conteudos da pagina"
+                        checked={partiallySelected ? 'indeterminate' : allVisibleSelected}
+                        onCheckedChange={toggleSelectVisible}
+                      />
+                    </TableHead>
+                  ) : null}
                   <TableHead>Conteudo</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead>Criador</TableHead>
@@ -811,6 +1047,15 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                   const canAct = canModerateContent
                   return (
                     <TableRow key={`${item.contentType}-${item.id}`}>
+                      {canModerateContent ? (
+                        <TableCell>
+                          <Checkbox
+                            aria-label={`Selecionar ${item.title}`}
+                            checked={selectedContentKeys.includes(contentSelectionKey(item))}
+                            onCheckedChange={() => toggleSelectItem(item)}
+                          />
+                        </TableCell>
+                      ) : null}
                       <TableCell>
                         <div className="space-y-1">
                           <p className="text-sm font-medium">{item.title}</p>
@@ -1116,6 +1361,16 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                 />
               </div>
 
+              {actionDialog.kind === 'unhide' ? (
+                <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Checkbox
+                    checked={actionMarkFalsePositive}
+                    onCheckedChange={(checked) => setActionMarkFalsePositive(checked === true)}
+                  />
+                  Marcar esta reativacao como falso positivo corrigido
+                </label>
+              ) : null}
+
               {requiresDoubleConfirm ? (
                 <div className="space-y-2">
                   <Label htmlFor="admin-content-action-confirm">
@@ -1212,6 +1467,9 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                     ) : null}
                     {hasBooleanMetadataFlag(event, 'rollback') ? (
                       <Badge variant="outline">Rollback</Badge>
+                    ) : null}
+                    {hasBooleanMetadataFlag(event, 'falsePositiveMarked') ? (
+                      <Badge variant="outline">False positive</Badge>
                     ) : null}
                   </div>
                   {canModerateContent && historyTarget ? (
@@ -1426,6 +1684,16 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                 />
               </div>
 
+              {rollbackReviewQuery.data.rollback.falsePositiveEligible ? (
+                <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Checkbox
+                    checked={rollbackMarkFalsePositive}
+                    onCheckedChange={(checked) => setRollbackMarkFalsePositive(checked === true)}
+                  />
+                  Marcar o evento original como falso positivo corrigido
+                </label>
+              ) : null}
+
               {rollbackReviewQuery.data.rollback.requiresConfirm ? (
                 <div className="space-y-2">
                   <Label htmlFor="admin-content-rollback-confirm">
@@ -1467,6 +1735,103 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
             >
               {isRollbackPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               Executar rollback assistido
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(bulkDialog)}
+        onOpenChange={(open) => (!open ? closeBulkDialog() : null)}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Criar job assíncrono de moderacao</DialogTitle>
+            <DialogDescription>
+              O lote corre em background e fica visivel na lista de jobs recentes.
+            </DialogDescription>
+          </DialogHeader>
+
+          {bulkDialog ? (
+            <div className="space-y-4">
+              <div className="rounded-md border border-border/70 bg-muted/20 p-3 text-sm">
+                {bulkDialog.items.length} item(ns) selecionado(s) nesta pagina.
+              </div>
+
+              <div className="space-y-2">
+                <Label>Acao</Label>
+                <Select
+                  value={bulkAction}
+                  onValueChange={(value) => {
+                    const nextAction = value as ContentActionKind
+                    setBulkAction(nextAction)
+                    setBulkReason(DEFAULT_ACTION_REASON[nextAction])
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleciona acao" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="hide">Ocultar</SelectItem>
+                    <SelectItem value="restrict">Restringir</SelectItem>
+                    <SelectItem value="unhide">Reativar</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="admin-content-bulk-reason">Motivo</Label>
+                <Input
+                  id="admin-content-bulk-reason"
+                  value={bulkReason}
+                  onChange={(event) => setBulkReason(event.target.value)}
+                  placeholder="Motivo operacional para o job"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="admin-content-bulk-note">Nota operacional</Label>
+                <Textarea
+                  id="admin-content-bulk-note"
+                  rows={4}
+                  value={bulkNote}
+                  onChange={(event) => setBulkNote(event.target.value)}
+                  placeholder="Contexto do lote, referencia de incidente ou janela operacional."
+                />
+              </div>
+
+              {bulkRequiresDoubleConfirm ? (
+                <div className="space-y-2">
+                  <Label htmlFor="admin-content-bulk-confirm">
+                    Confirmacao dupla (escreve {DOUBLE_CONFIRM_TOKEN})
+                  </Label>
+                  <Input
+                    id="admin-content-bulk-confirm"
+                    value={bulkConfirmText}
+                    onChange={(event) => setBulkConfirmText(event.target.value)}
+                    placeholder={DOUBLE_CONFIRM_TOKEN}
+                  />
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => closeBulkDialog()}
+              disabled={bulkJobMutation.isPending}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              onClick={submitBulkJob}
+              disabled={bulkJobMutation.isPending || !bulkDialog || !isBulkConfirmValid}
+            >
+              {bulkJobMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              Criar job
             </Button>
           </DialogFooter>
         </DialogContent>

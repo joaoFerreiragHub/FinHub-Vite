@@ -2,16 +2,20 @@ import { apiClient } from '@/lib/api/client'
 import type { UserRole } from '@/features/auth/types'
 import type {
   AdminAutomatedModerationRule,
+  AdminContentJobStatus,
+  AdminContentJobType,
   AdminMetricBaseContentType,
   AdminMetricContentType,
   AdminMetricRouteErrors,
   AdminMetricRouteLatency,
   AdminMetricStatusClass,
+  AdminMetricsDrilldown,
   AdminMetricsOverview,
 } from '../types/adminMetrics'
 import type { CreatorRiskLevel } from '../types/adminUsers'
 
 type BackendMetricsOverview = Partial<AdminMetricsOverview>
+type BackendMetricsDrilldown = Partial<AdminMetricsDrilldown>
 
 const CONTENT_TYPES: AdminMetricContentType[] = [
   'article',
@@ -42,6 +46,7 @@ const AUTOMATED_MODERATION_RULES: AdminAutomatedModerationRule[] = [
   'flood',
   'mass_creation',
 ]
+const JOB_TYPES: AdminContentJobType[] = ['bulk_moderate', 'bulk_rollback']
 
 const toNumber = (value: unknown, fallback = 0): number =>
   typeof value === 'number' && Number.isFinite(value) ? value : fallback
@@ -176,6 +181,34 @@ const normalizeAutomatedRuleCounts = (
 
   return output
 }
+
+const normalizeJobTypeCounts = (raw: unknown): Record<AdminContentJobType, number> => {
+  const input =
+    raw && typeof raw === 'object'
+      ? (raw as Record<string, unknown>)
+      : ({} as Record<string, unknown>)
+  const output: Record<AdminContentJobType, number> = {
+    bulk_moderate: 0,
+    bulk_rollback: 0,
+  }
+
+  for (const jobType of JOB_TYPES) {
+    output[jobType] = toNumber(input[jobType], 0)
+  }
+
+  return output
+}
+
+const toJobStatus = (value: unknown): AdminContentJobStatus => {
+  if (value === 'running') return 'running'
+  if (value === 'completed') return 'completed'
+  if (value === 'completed_with_errors') return 'completed_with_errors'
+  if (value === 'failed') return 'failed'
+  return 'queued'
+}
+
+const toJobType = (value: unknown): AdminContentJobType =>
+  value === 'bulk_rollback' ? 'bulk_rollback' : 'bulk_moderate'
 
 const normalizeRouteLatency = (raw: unknown): AdminMetricRouteLatency[] => {
   if (!Array.isArray(raw)) return []
@@ -424,6 +457,22 @@ const mapOverview = (raw: BackendMetricsOverview): AdminMetricsOverview => {
         creatorsEvaluated: toNumber(moderationCreatorTrust.creatorsEvaluated, 0),
         needingIntervention: toNumber(moderationCreatorTrust.needingIntervention, 0),
         byRiskLevel: normalizeCreatorRiskLevels(moderationCreatorTrust.byRiskLevel),
+        falsePositiveEventsLast30d: toNumber(moderationCreatorTrust.falsePositiveEventsLast30d, 0),
+        creatorsWithFalsePositiveHistory: toNumber(
+          moderationCreatorTrust.creatorsWithFalsePositiveHistory,
+          0,
+        ),
+      },
+      jobs: {
+        queued: toNumber((moderation.jobs ?? {}).queued, 0),
+        running: toNumber((moderation.jobs ?? {}).running, 0),
+        completedLast24h: toNumber((moderation.jobs ?? {}).completedLast24h, 0),
+        failedLast24h: toNumber((moderation.jobs ?? {}).failedLast24h, 0),
+        byTypeActive: normalizeJobTypeCounts((moderation.jobs ?? {}).byTypeActive),
+        averageDurationMinutesLast7d:
+          typeof (moderation.jobs ?? {}).averageDurationMinutesLast7d === 'number'
+            ? ((moderation.jobs ?? {}).averageDurationMinutesLast7d ?? null)
+            : null,
       },
     },
     operations: {
@@ -451,9 +500,141 @@ const mapOverview = (raw: BackendMetricsOverview): AdminMetricsOverview => {
   }
 }
 
+const mapDrilldown = (raw: BackendMetricsDrilldown): AdminMetricsDrilldown => ({
+  generatedAt: toIsoDate(raw.generatedAt),
+  creators: Array.isArray(raw.creators)
+    ? raw.creators
+        .map((item) => {
+          if (!item || typeof item !== 'object') return null
+          const record = item as Record<string, unknown>
+          return {
+            creatorId: toString(record.creatorId),
+            name: toString(record.name, 'Creator'),
+            username: toString(record.username, ''),
+            riskLevel:
+              record.riskLevel === 'critical'
+                ? 'critical'
+                : record.riskLevel === 'high'
+                  ? 'high'
+                  : record.riskLevel === 'medium'
+                    ? 'medium'
+                    : 'low',
+            trustScore: toNumber(record.trustScore, 100),
+            recommendedAction: toString(record.recommendedAction, 'none'),
+            openReports: toNumber(record.openReports, 0),
+            criticalTargets: toNumber(record.criticalTargets, 0),
+            activeControls: toNumber(record.activeControls, 0),
+            falsePositiveEvents30d: toNumber(record.falsePositiveEvents30d, 0),
+            falsePositiveRate30d: toNumber(record.falsePositiveRate30d, 0),
+          }
+        })
+        .filter((item): item is AdminMetricsDrilldown['creators'][number] => item !== null)
+    : [],
+  targets: Array.isArray(raw.targets)
+    ? raw.targets
+        .map((item) => {
+          if (!item || typeof item !== 'object') return null
+          const record = item as Record<string, unknown>
+          const contentType = record.contentType
+          return contentType === 'article' ||
+            contentType === 'video' ||
+            contentType === 'course' ||
+            contentType === 'live' ||
+            contentType === 'podcast' ||
+            contentType === 'book' ||
+            contentType === 'comment' ||
+            contentType === 'review'
+            ? {
+                contentType,
+                contentId: toString(record.contentId),
+                title: toString(record.title, ''),
+                moderationStatus: toString(record.moderationStatus, 'visible'),
+                reportPriority: toString(record.reportPriority, 'none'),
+                openReports: toNumber(record.openReports, 0),
+                automatedSeverity: toString(record.automatedSeverity, 'none'),
+                creatorRiskLevel:
+                  record.creatorRiskLevel === 'critical' ||
+                  record.creatorRiskLevel === 'high' ||
+                  record.creatorRiskLevel === 'medium' ||
+                  record.creatorRiskLevel === 'low'
+                    ? record.creatorRiskLevel
+                    : null,
+                surfaceKey: toString(record.surfaceKey),
+                creator:
+                  record.creator && typeof record.creator === 'object'
+                    ? {
+                        id: toString((record.creator as Record<string, unknown>).id),
+                        name: toString((record.creator as Record<string, unknown>).name, ''),
+                        username: toString(
+                          (record.creator as Record<string, unknown>).username,
+                          '',
+                        ),
+                      }
+                    : null,
+              }
+            : null
+        })
+        .filter((item): item is AdminMetricsDrilldown['targets'][number] => item !== null)
+    : [],
+  surfaces: Array.isArray(raw.surfaces)
+    ? raw.surfaces
+        .map((item) => {
+          if (!item || typeof item !== 'object') return null
+          const record = item as Record<string, unknown>
+          return {
+            key: toString(record.key),
+            label: toString(record.label, ''),
+            enabled: Boolean(record.enabled),
+            impact: toString(record.impact, 'read'),
+            affectedFlaggedTargets: toNumber(record.affectedFlaggedTargets, 0),
+            affectedCriticalTargets: toNumber(record.affectedCriticalTargets, 0),
+            activeAutomatedSignals: toNumber(record.activeAutomatedSignals, 0),
+            updatedAt: toIsoDate(record.updatedAt) ?? null,
+            publicMessage: typeof record.publicMessage === 'string' ? record.publicMessage : null,
+          }
+        })
+        .filter((item): item is AdminMetricsDrilldown['surfaces'][number] => item !== null)
+    : [],
+  jobs: Array.isArray(raw.jobs)
+    ? raw.jobs
+        .map((item) => {
+          if (!item || typeof item !== 'object') return null
+          const record = item as Record<string, unknown>
+          return {
+            id: toString(record.id),
+            type: toJobType(record.type),
+            status: toJobStatus(record.status),
+            requested: toNumber(record.requested, 0),
+            processed: toNumber(record.processed, 0),
+            succeeded: toNumber(record.succeeded, 0),
+            failed: toNumber(record.failed, 0),
+            createdAt: toIsoDate(record.createdAt),
+            startedAt: toIsoDate(record.startedAt) ?? null,
+            finishedAt: toIsoDate(record.finishedAt) ?? null,
+            actor:
+              record.actor && typeof record.actor === 'object'
+                ? {
+                    id: toString((record.actor as Record<string, unknown>).id),
+                    name: toString((record.actor as Record<string, unknown>).name, ''),
+                    username: toString((record.actor as Record<string, unknown>).username, ''),
+                  }
+                : null,
+          }
+        })
+        .filter((item): item is AdminMetricsDrilldown['jobs'][number] => item !== null)
+    : [],
+})
+
 export const adminMetricsService = {
   getOverview: async (): Promise<AdminMetricsOverview> => {
     const response = await apiClient.get<BackendMetricsOverview>('/admin/metrics/overview')
     return mapOverview(response.data ?? {})
+  },
+
+  getDrilldown: async (limit = 6): Promise<AdminMetricsDrilldown> => {
+    const response = await apiClient.get<BackendMetricsDrilldown>('/admin/metrics/drilldown', {
+      params: { limit },
+    })
+    return mapDrilldown(response.data ?? {})
   },
 }

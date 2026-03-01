@@ -65,6 +65,9 @@ interface BackendAdminUserRecord {
       recentModerationActions30d?: number
       repeatModerationTargets30d?: number
       recentCreatorControlActions30d?: number
+      falsePositiveEvents30d?: number
+      automatedFalsePositiveEvents30d?: number
+      falsePositiveRate30d?: number
       activeControlFlags?: string[]
     }
     flags?: string[]
@@ -257,6 +260,18 @@ const mapTrustSignals = (
       recentCreatorControlActions30d:
         typeof signals.summary?.recentCreatorControlActions30d === 'number'
           ? signals.summary.recentCreatorControlActions30d
+          : 0,
+      falsePositiveEvents30d:
+        typeof signals.summary?.falsePositiveEvents30d === 'number'
+          ? signals.summary.falsePositiveEvents30d
+          : 0,
+      automatedFalsePositiveEvents30d:
+        typeof signals.summary?.automatedFalsePositiveEvents30d === 'number'
+          ? signals.summary.automatedFalsePositiveEvents30d
+          : 0,
+      falsePositiveRate30d:
+        typeof signals.summary?.falsePositiveRate30d === 'number'
+          ? signals.summary.falsePositiveRate30d
           : 0,
       activeControlFlags: Array.isArray(signals.summary?.activeControlFlags)
         ? signals.summary.activeControlFlags.filter(

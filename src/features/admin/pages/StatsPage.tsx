@@ -6,6 +6,7 @@ import {
   Database,
   EyeOff,
   Gauge,
+  Layers,
   Loader2,
   Lock,
   Radar,
@@ -30,7 +31,7 @@ import {
   TableRow,
 } from '@/components/ui'
 import { getErrorMessage } from '@/lib/api/client'
-import { useAdminMetricsOverview } from '../hooks/useAdminMetrics'
+import { useAdminMetricsDrilldown, useAdminMetricsOverview } from '../hooks/useAdminMetrics'
 import type { AdminAutomatedModerationRule, AdminMetricContentType } from '../types/adminMetrics'
 
 const CONTENT_TYPE_LABELS: Record<AdminMetricContentType, string> = {
@@ -106,7 +107,9 @@ interface StatsPageProps {
 
 export default function StatsPage({ embedded = false }: StatsPageProps) {
   const metricsQuery = useAdminMetricsOverview()
+  const drilldownQuery = useAdminMetricsDrilldown(8)
   const metrics = metricsQuery.data
+  const drilldown = drilldownQuery.data
 
   const moderationVolumeRows = useMemo(() => {
     if (!metrics) return []
@@ -142,6 +145,10 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
       [AdminAutomatedModerationRule, number]
     >
   }, [metrics])
+  const drilldownCreatorRows = useMemo(() => drilldown?.creators ?? [], [drilldown])
+  const drilldownTargetRows = useMemo(() => drilldown?.targets ?? [], [drilldown])
+  const drilldownSurfaceRows = useMemo(() => drilldown?.surfaces ?? [], [drilldown])
+  const drilldownJobRows = useMemo(() => drilldown?.jobs ?? [], [drilldown])
 
   return (
     <div className="space-y-6">
@@ -165,10 +172,13 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
           <Button
             type="button"
             variant="outline"
-            onClick={() => metricsQuery.refetch()}
-            disabled={metricsQuery.isFetching}
+            onClick={() => {
+              void metricsQuery.refetch()
+              void drilldownQuery.refetch()
+            }}
+            disabled={metricsQuery.isFetching || drilldownQuery.isFetching}
           >
-            {metricsQuery.isFetching ? (
+            {metricsQuery.isFetching || drilldownQuery.isFetching ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <RefreshCcw className="h-4 w-4" />
@@ -335,6 +345,25 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
                 description="Backlog atual de reports pendentes."
                 icon={Radar}
                 tone={metrics.moderation.reports.criticalTargets > 0 ? 'warn' : 'default'}
+              />
+              <KpiCard
+                title="False positives 30d"
+                value={formatNumber(metrics.moderation.creatorTrust.falsePositiveEventsLast30d)}
+                description="Reversoes marcadas como falso positivo."
+                icon={ShieldCheck}
+              />
+              <KpiCard
+                title="Jobs ativos"
+                value={formatNumber(
+                  metrics.moderation.jobs.queued + metrics.moderation.jobs.running,
+                )}
+                description="Lotes em fila ou a correr."
+                icon={Layers}
+                tone={
+                  metrics.moderation.jobs.queued + metrics.moderation.jobs.running > 0
+                    ? 'warn'
+                    : 'default'
+                }
               />
             </div>
             <div className="grid gap-4 xl:grid-cols-3">
@@ -561,6 +590,16 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
                         {level}: {formatNumber(count)}
                       </Badge>
                     ))}
+                    <Badge variant="outline">
+                      false positives 30d:{' '}
+                      {formatNumber(metrics.moderation.creatorTrust.falsePositiveEventsLast30d)}
+                    </Badge>
+                    <Badge variant="outline">
+                      creators c/ historico:{' '}
+                      {formatNumber(
+                        metrics.moderation.creatorTrust.creatorsWithFalsePositiveHistory,
+                      )}
+                    </Badge>
                   </div>
                 </CardContent>
               </Card>
@@ -694,6 +733,191 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
                             </TableCell>
                             <TableCell className="text-right">
                               {formatPercent(item.errorRatePercent)}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+
+          <section className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Radar className="h-4 w-4 text-muted-foreground" />
+              <h2 className="text-sm font-semibold">Drill-down</h2>
+            </div>
+
+            <div className="grid gap-4 xl:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Creators em foco</CardTitle>
+                  <CardDescription>Risco atual vs historico de falso positivo.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Creator</TableHead>
+                        <TableHead className="text-right">Score</TableHead>
+                        <TableHead className="text-right">Reports</TableHead>
+                        <TableHead className="text-right">FP 30d</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {drilldownCreatorRows.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-muted-foreground">
+                            Sem creators em destaque.
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        drilldownCreatorRows.map((creator) => (
+                          <TableRow key={creator.creatorId}>
+                            <TableCell>
+                              <div className="space-y-1">
+                                <p className="font-medium">{creator.name}</p>
+                                <p className="text-xs text-muted-foreground">{creator.riskLevel}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {formatNumber(creator.trustScore)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {formatNumber(creator.openReports)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {formatNumber(creator.falsePositiveEvents30d)}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Jobs recentes</CardTitle>
+                  <CardDescription>Moderacao e rollback em lote.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Proc.</TableHead>
+                        <TableHead className="text-right">Falhas</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {drilldownJobRows.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-muted-foreground">
+                            Sem jobs recentes.
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        drilldownJobRows.map((job) => (
+                          <TableRow key={job.id}>
+                            <TableCell>
+                              {job.type === 'bulk_rollback' ? 'Rollback' : 'Moderacao'}
+                            </TableCell>
+                            <TableCell>{job.status}</TableCell>
+                            <TableCell className="text-right">
+                              {formatNumber(job.processed)}/{formatNumber(job.requested)}
+                            </TableCell>
+                            <TableCell className="text-right">{formatNumber(job.failed)}</TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Targets quentes</CardTitle>
+                  <CardDescription>Top alvos por pressao combinada.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Target</TableHead>
+                        <TableHead className="text-right">Reports</TableHead>
+                        <TableHead className="text-right">Auto</TableHead>
+                        <TableHead>Surface</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {drilldownTargetRows.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-muted-foreground">
+                            Sem targets em destaque.
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        drilldownTargetRows.map((target) => (
+                          <TableRow key={`${target.contentType}:${target.contentId}`}>
+                            <TableCell>
+                              <div className="space-y-1">
+                                <p className="font-medium">{target.title || target.contentId}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {target.contentType}
+                                </p>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {formatNumber(target.openReports)}
+                            </TableCell>
+                            <TableCell className="text-right">{target.automatedSeverity}</TableCell>
+                            <TableCell>{target.surfaceKey}</TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Superficies</CardTitle>
+                  <CardDescription>Impacto operacional atual por surface.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Surface</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Flagged</TableHead>
+                        <TableHead className="text-right">Criticos</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {drilldownSurfaceRows.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-muted-foreground">
+                            Sem superficies em destaque.
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        drilldownSurfaceRows.map((surface) => (
+                          <TableRow key={surface.key}>
+                            <TableCell>{surface.label}</TableCell>
+                            <TableCell>{surface.enabled ? 'On' : 'Off'}</TableCell>
+                            <TableCell className="text-right">
+                              {formatNumber(surface.affectedFlaggedTargets)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {formatNumber(surface.affectedCriticalTargets)}
                             </TableCell>
                           </TableRow>
                         ))

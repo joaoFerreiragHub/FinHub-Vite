@@ -6,6 +6,10 @@ import type {
 } from '../types/adminUsers'
 import type {
   AdminContentAutomatedSignals,
+  AdminBulkModerationJobPayload,
+  AdminBulkModerationJobResponse,
+  AdminContentJob,
+  AdminContentJobsResponse,
   AdminContentModerationActionPayload,
   AdminContentModerationActionResponse,
   AdminContentModerationEvent,
@@ -129,6 +133,9 @@ interface BackendContentQueueItem {
       recentModerationActions30d?: number
       repeatModerationTargets30d?: number
       recentCreatorControlActions30d?: number
+      falsePositiveEvents30d?: number
+      automatedFalsePositiveEvents30d?: number
+      falsePositiveRate30d?: number
       activeControlFlags?: string[]
     }
     flags?: string[]
@@ -178,6 +185,7 @@ interface BackendRollbackReviewResponse {
     currentStatus?: string
     canRollback?: boolean
     requiresConfirm?: boolean
+    falsePositiveEligible?: boolean
     warnings?: string[]
     blockers?: string[]
     guidance?: string[]
@@ -201,7 +209,61 @@ interface BackendRollbackActionResponse extends BackendModerationActionResponse 
     targetStatus?: string
     requiresConfirm?: boolean
     warnings?: string[]
+    falsePositiveRecorded?: boolean
   }
+}
+
+interface BackendJobItem {
+  contentType?: string
+  contentId?: string
+  eventId?: string | null
+  status?: string
+  changed?: boolean
+  fromStatus?: string
+  toStatus?: string
+  error?: string | null
+  statusCode?: number | null
+}
+
+interface BackendJobRecord {
+  id?: string
+  _id?: string
+  type?: string
+  status?: string
+  action?: string | null
+  reason?: string
+  note?: string | null
+  confirm?: boolean
+  markFalsePositive?: boolean
+  actor?: BackendActorSummary | null
+  items?: BackendJobItem[]
+  progress?: {
+    requested?: number
+    processed?: number
+    succeeded?: number
+    failed?: number
+    changed?: number
+  }
+  guardrails?: {
+    maxItems?: number
+    confirmThreshold?: number
+    duplicatesSkipped?: number
+  } | null
+  error?: string | null
+  startedAt?: string | null
+  finishedAt?: string | null
+  createdAt?: string
+  updatedAt?: string
+}
+
+interface BackendJobsResponse {
+  items?: BackendJobRecord[]
+  pagination?: Partial<AdminPagination>
+}
+
+interface BackendJobMutationResponse {
+  message?: string
+  job?: BackendJobRecord
 }
 
 const DEFAULT_PAGE = 1
@@ -434,6 +496,18 @@ const mapTrustSignals = (
         typeof signals.summary?.recentCreatorControlActions30d === 'number'
           ? signals.summary.recentCreatorControlActions30d
           : 0,
+      falsePositiveEvents30d:
+        typeof signals.summary?.falsePositiveEvents30d === 'number'
+          ? signals.summary.falsePositiveEvents30d
+          : 0,
+      automatedFalsePositiveEvents30d:
+        typeof signals.summary?.automatedFalsePositiveEvents30d === 'number'
+          ? signals.summary.automatedFalsePositiveEvents30d
+          : 0,
+      falsePositiveRate30d:
+        typeof signals.summary?.falsePositiveRate30d === 'number'
+          ? signals.summary.falsePositiveRate30d
+          : 0,
       activeControlFlags: Array.isArray(signals.summary?.activeControlFlags)
         ? signals.summary.activeControlFlags.filter(
             (item): item is string => typeof item === 'string',
@@ -546,6 +620,89 @@ const normalizePagination = (pagination?: Partial<AdminPagination>): AdminPagina
   }
 }
 
+const toJobType = (value: unknown): AdminContentJob['type'] =>
+  value === 'bulk_rollback' ? 'bulk_rollback' : 'bulk_moderate'
+
+const toJobStatus = (value: unknown): AdminContentJob['status'] => {
+  if (value === 'running') return 'running'
+  if (value === 'completed') return 'completed'
+  if (value === 'completed_with_errors') return 'completed_with_errors'
+  if (value === 'failed') return 'failed'
+  return 'queued'
+}
+
+const mapJob = (item: BackendJobRecord): AdminContentJob | null => {
+  const id = resolveId(item)
+  if (!id) return null
+
+  return {
+    id,
+    type: toJobType(item.type),
+    status: toJobStatus(item.status),
+    action: toAction(item.action) ?? null,
+    reason: typeof item.reason === 'string' ? item.reason : '',
+    note: typeof item.note === 'string' ? item.note : null,
+    confirm: Boolean(item.confirm),
+    markFalsePositive: Boolean(item.markFalsePositive),
+    actor: mapActor(item.actor),
+    items: Array.isArray(item.items)
+      ? item.items
+          .map((jobItem) => {
+            const contentType = toContentType(jobItem.contentType)
+            if (!contentType || typeof jobItem.contentId !== 'string') return null
+
+            return {
+              contentType,
+              contentId: jobItem.contentId,
+              eventId: typeof jobItem.eventId === 'string' ? jobItem.eventId : null,
+              status:
+                jobItem.status === 'success' || jobItem.status === 'failed'
+                  ? jobItem.status
+                  : 'pending',
+              changed: typeof jobItem.changed === 'boolean' ? jobItem.changed : undefined,
+              fromStatus:
+                typeof jobItem.fromStatus === 'string'
+                  ? toModerationStatus(jobItem.fromStatus)
+                  : undefined,
+              toStatus:
+                typeof jobItem.toStatus === 'string'
+                  ? toModerationStatus(jobItem.toStatus)
+                  : undefined,
+              error: typeof jobItem.error === 'string' ? jobItem.error : null,
+              statusCode: typeof jobItem.statusCode === 'number' ? jobItem.statusCode : null,
+            }
+          })
+          .filter((jobItem): jobItem is AdminContentJob['items'][number] => jobItem !== null)
+      : [],
+    progress: {
+      requested: typeof item.progress?.requested === 'number' ? item.progress.requested : 0,
+      processed: typeof item.progress?.processed === 'number' ? item.progress.processed : 0,
+      succeeded: typeof item.progress?.succeeded === 'number' ? item.progress.succeeded : 0,
+      failed: typeof item.progress?.failed === 'number' ? item.progress.failed : 0,
+      changed: typeof item.progress?.changed === 'number' ? item.progress.changed : 0,
+    },
+    guardrails: item.guardrails
+      ? {
+          maxItems:
+            typeof item.guardrails.maxItems === 'number' ? item.guardrails.maxItems : DEFAULT_LIMIT,
+          confirmThreshold:
+            typeof item.guardrails.confirmThreshold === 'number'
+              ? item.guardrails.confirmThreshold
+              : 10,
+          duplicatesSkipped:
+            typeof item.guardrails.duplicatesSkipped === 'number'
+              ? item.guardrails.duplicatesSkipped
+              : 0,
+        }
+      : null,
+    error: typeof item.error === 'string' ? item.error : null,
+    startedAt: toIsoDate(item.startedAt) ?? null,
+    finishedAt: toIsoDate(item.finishedAt) ?? null,
+    createdAt: toIsoDate(item.createdAt) ?? new Date(0).toISOString(),
+    updatedAt: toIsoDate(item.updatedAt) ?? new Date(0).toISOString(),
+  }
+}
+
 const mapQueueItem = (item: BackendContentQueueItem): AdminContentQueueItem | null => {
   const id = resolveId(item)
   const contentType = toContentType(item.contentType)
@@ -651,6 +808,7 @@ const mapRollbackReviewResponse = (
       currentStatus: toModerationStatus(data.rollback?.currentStatus),
       canRollback: Boolean(data.rollback?.canRollback),
       requiresConfirm: Boolean(data.rollback?.requiresConfirm),
+      falsePositiveEligible: Boolean(data.rollback?.falsePositiveEligible),
       warnings: Array.isArray(data.rollback?.warnings)
         ? data.rollback.warnings.filter((item): item is string => typeof item === 'string')
         : [],
@@ -704,6 +862,7 @@ const mapRollbackActionResponse = (
     warnings: Array.isArray(data.rollback?.warnings)
       ? data.rollback.warnings.filter((item): item is string => typeof item === 'string')
       : [],
+    falsePositiveRecorded: Boolean(data.rollback?.falsePositiveRecorded),
   },
 })
 
@@ -806,5 +965,44 @@ export const adminContentService = {
     )
 
     return mapRollbackActionResponse(response.data)
+  },
+
+  listJobs: async (
+    query: {
+      page?: number
+      limit?: number
+      type?: AdminContentJob['type']
+      status?: AdminContentJob['status']
+    } = {},
+  ): Promise<AdminContentJobsResponse> => {
+    const response = await apiClient.get<BackendJobsResponse>('/admin/content/jobs', {
+      params: query,
+    })
+
+    return {
+      items: (response.data.items ?? [])
+        .map(mapJob)
+        .filter((item): item is AdminContentJob => item !== null),
+      pagination: normalizePagination(response.data.pagination),
+    }
+  },
+
+  createBulkModerationJob: async (
+    payload: AdminBulkModerationJobPayload,
+  ): Promise<AdminBulkModerationJobResponse> => {
+    const response = await apiClient.post<BackendJobMutationResponse>(
+      '/admin/content/bulk-moderate/jobs',
+      payload,
+    )
+
+    const job = response.data.job ? mapJob(response.data.job) : null
+    if (!job) {
+      throw new Error('Resposta admin invalida: job em falta.')
+    }
+
+    return {
+      message: response.data.message ?? 'Job criado com sucesso.',
+      job,
+    }
   },
 }

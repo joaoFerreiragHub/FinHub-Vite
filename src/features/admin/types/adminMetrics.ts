@@ -14,6 +14,13 @@ export type AdminMetricContentType =
 export type AdminMetricBaseContentType = Exclude<AdminMetricContentType, 'comment' | 'review'>
 export type AdminMetricStatusClass = '2xx' | '3xx' | '4xx' | '5xx'
 export type AdminAutomatedModerationRule = 'spam' | 'suspicious_link' | 'flood' | 'mass_creation'
+export type AdminContentJobType = 'bulk_moderate' | 'bulk_rollback'
+export type AdminContentJobStatus =
+  | 'queued'
+  | 'running'
+  | 'completed'
+  | 'completed_with_errors'
+  | 'failed'
 
 export interface AdminMetricRouteLatency {
   method: string
@@ -171,6 +178,16 @@ export interface AdminMetricsOverview {
       creatorsEvaluated: number
       needingIntervention: number
       byRiskLevel: Record<CreatorRiskLevel, number>
+      falsePositiveEventsLast30d: number
+      creatorsWithFalsePositiveHistory: number
+    }
+    jobs: {
+      queued: number
+      running: number
+      completedLast24h: number
+      failedLast24h: number
+      byTypeActive: Record<AdminContentJobType, number>
+      averageDurationMinutesLast7d: number | null
     }
   }
   operations: {
@@ -192,4 +209,65 @@ export interface AdminMetricsOverview {
       total: number
     }
   }
+}
+
+export interface AdminMetricsDrilldown {
+  generatedAt: string
+  creators: Array<{
+    creatorId: string
+    name: string
+    username: string
+    riskLevel: CreatorRiskLevel
+    trustScore: number
+    recommendedAction: string
+    openReports: number
+    criticalTargets: number
+    activeControls: number
+    falsePositiveEvents30d: number
+    falsePositiveRate30d: number
+  }>
+  targets: Array<{
+    contentType: AdminMetricContentType
+    contentId: string
+    title: string
+    moderationStatus: string
+    reportPriority: string
+    openReports: number
+    automatedSeverity: string
+    creatorRiskLevel: CreatorRiskLevel | null
+    surfaceKey: string
+    creator: {
+      id: string
+      name?: string
+      username?: string
+    } | null
+  }>
+  surfaces: Array<{
+    key: string
+    label: string
+    enabled: boolean
+    impact: string
+    affectedFlaggedTargets: number
+    affectedCriticalTargets: number
+    activeAutomatedSignals: number
+    updatedAt: string | null
+    publicMessage: string | null
+  }>
+  jobs: Array<{
+    id: string
+    type: AdminContentJobType
+    status: AdminContentJobStatus
+    requested: number
+    processed: number
+    succeeded: number
+    failed: number
+    createdAt: string
+    startedAt: string | null
+    finishedAt: string | null
+    actor: {
+      id: string
+      name?: string
+      username?: string
+    } | null
+  }>
 }

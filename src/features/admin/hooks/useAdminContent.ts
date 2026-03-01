@@ -1,9 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { adminContentService } from '../services/adminContentService'
 import type {
+  AdminBulkModerationJobPayload,
   AdminContentModerationActionPayload,
   AdminContentQueueQuery,
   AdminContentRollbackPayload,
+  AdminContentJob,
   AdminContentType,
 } from '../types/adminContent'
 
@@ -23,6 +25,13 @@ interface AdminContentQueueOptions {
   enabled?: boolean
 }
 
+interface AdminContentJobsQuery {
+  page?: number
+  limit?: number
+  type?: AdminContentJob['type']
+  status?: AdminContentJob['status']
+}
+
 export function useAdminContentQueue(
   query: AdminContentQueueQuery,
   options?: AdminContentQueueOptions,
@@ -31,6 +40,18 @@ export function useAdminContentQueue(
     queryKey: ['admin', 'content', 'queue', query],
     queryFn: () => adminContentService.listQueue(query),
     enabled: options?.enabled ?? true,
+  })
+}
+
+export function useAdminContentJobs(
+  query: AdminContentJobsQuery,
+  options?: AdminContentQueueOptions,
+) {
+  return useQuery({
+    queryKey: ['admin', 'content', 'jobs', query],
+    queryFn: () => adminContentService.listJobs(query),
+    enabled: options?.enabled ?? true,
+    refetchInterval: 10_000,
   })
 }
 
@@ -136,6 +157,20 @@ export function useRollbackAdminContent() {
           variables.contentId,
         ],
       })
+    },
+  })
+}
+
+export function useCreateBulkModerationJob() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (payload: AdminBulkModerationJobPayload) =>
+      adminContentService.createBulkModerationJob(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'jobs'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'metrics', 'overview'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'metrics', 'drilldown'] })
     },
   })
 }

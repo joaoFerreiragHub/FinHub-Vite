@@ -1060,7 +1060,7 @@ export default function CreatorsRiskBoardPage() {
             </div>
           ) : trustDialogQuery.data ? (
             <div className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-4">
+              <div className="grid gap-4 md:grid-cols-5">
                 <div className="rounded-xl border border-border/70 p-4">
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">Risco</p>
                   <div className="mt-3 space-y-2">
@@ -1087,6 +1087,14 @@ export default function CreatorsRiskBoardPage() {
                   </p>
                   <p className="mt-3 text-2xl font-semibold">
                     {trustDialogQuery.data.trustSignals?.summary.criticalTargets ?? 0}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-border/70 p-4">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    False positives 30d
+                  </p>
+                  <p className="mt-3 text-2xl font-semibold">
+                    {trustDialogQuery.data.trustSignals?.summary.falsePositiveEvents30d ?? 0}
                   </p>
                 </div>
                 <div className="rounded-xl border border-border/70 p-4">

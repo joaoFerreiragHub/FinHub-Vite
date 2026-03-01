@@ -54,7 +54,7 @@ import {
 import { useAdminUsers } from '../hooks/useAdminUsers'
 import { useAdminContentQueue } from '../hooks/useAdminContent'
 import { useAdminAssistedSessions } from '../hooks/useAdminAssistedSessions'
-import { useAdminMetricsOverview } from '../hooks/useAdminMetrics'
+import { useAdminMetricsDrilldown, useAdminMetricsOverview } from '../hooks/useAdminMetrics'
 import { useAdminOperationalAlerts } from '../hooks/useAdminOperationalAlerts'
 import {
   useAdminSurfaceControls,
@@ -298,6 +298,12 @@ export default function AdminDashboardPage() {
   const { data: metricsOverview, isLoading: loadingMetricsOverview } = useAdminMetricsOverview({
     enabled: canReadStats,
   })
+  const { data: metricsDrilldown, isLoading: loadingMetricsDrilldown } = useAdminMetricsDrilldown(
+    5,
+    {
+      enabled: canReadStats,
+    },
+  )
   const { data: operationalAlerts, isLoading: loadingOperationalAlerts } =
     useAdminOperationalAlerts({ windowHours: 24, limit: 6 }, { enabled: canReadAudit })
   const { data: surfaceControls, isLoading: loadingSurfaceControls } =
@@ -333,6 +339,8 @@ export default function AdminDashboardPage() {
   const automatedAutoHideErrors24h =
     metricsOverview?.moderation.automation.automatedDetection.autoHide.errorLast24h ?? 0
   const disabledSurfaceCount = surfaceControls?.items.filter((item) => !item.enabled).length ?? 0
+  const queuedJobs = metricsOverview?.moderation.jobs.queued ?? 0
+  const runningJobs = metricsOverview?.moderation.jobs.running ?? 0
 
   const moduleCards = useMemo(
     () =>
@@ -636,6 +644,20 @@ export default function AdminDashboardPage() {
                 highlight="danger"
               />
               <StatCard
+                label="Jobs na fila"
+                value={queuedJobs}
+                icon={Layers}
+                loading={canReadStats && loadingMetricsOverview}
+                highlight="warn"
+              />
+              <StatCard
+                label="Jobs a correr"
+                value={runningJobs}
+                icon={Activity}
+                loading={canReadStats && loadingMetricsOverview}
+                highlight="warn"
+              />
+              <StatCard
                 label="Auto high+"
                 value={automatedSignalsHighRisk}
                 icon={AlertTriangle}
@@ -817,6 +839,128 @@ export default function AdminDashboardPage() {
                   )}
                 </CardContent>
               </Card>
+            </section>
+          ) : null}
+
+          {canReadStats ? (
+            <section>
+              <div className="mb-3 flex items-center gap-2">
+                <Radar className="h-4 w-4 text-muted-foreground" />
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  Drill-down operacional
+                </h2>
+              </div>
+              <div className="grid gap-4 xl:grid-cols-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Creators em foco</CardTitle>
+                    <CardDescription>Top risco com contexto de falso positivo.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {loadingMetricsDrilldown ? (
+                      <div className="h-24 animate-pulse rounded-md bg-muted" />
+                    ) : (
+                      metricsDrilldown?.creators.slice(0, 4).map((creator) => (
+                        <div
+                          key={creator.creatorId}
+                          className="rounded-md border border-border/70 p-3"
+                        >
+                          <p className="text-sm font-medium">{creator.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {creator.riskLevel} | score {creator.trustScore} | reports{' '}
+                            {creator.openReports}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            false positives 30d: {creator.falsePositiveEvents30d}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Targets quentes</CardTitle>
+                    <CardDescription>Alvos com maior pressao combinada.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {loadingMetricsDrilldown ? (
+                      <div className="h-24 animate-pulse rounded-md bg-muted" />
+                    ) : (
+                      metricsDrilldown?.targets.slice(0, 4).map((target) => (
+                        <div
+                          key={`${target.contentType}:${target.contentId}`}
+                          className="rounded-md border border-border/70 p-3"
+                        >
+                          <p className="text-sm font-medium">
+                            {target.title || `${target.contentType}:${target.contentId}`}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {target.contentType} | reports {target.openReports} |{' '}
+                            {target.reportPriority}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            superficie: {target.surfaceKey}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Superficies</CardTitle>
+                    <CardDescription>Impacto operacional por superficie.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {loadingMetricsDrilldown ? (
+                      <div className="h-24 animate-pulse rounded-md bg-muted" />
+                    ) : (
+                      metricsDrilldown?.surfaces.slice(0, 4).map((surface) => (
+                        <div key={surface.key} className="rounded-md border border-border/70 p-3">
+                          <p className="text-sm font-medium">{surface.label}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {surface.enabled ? 'On' : 'Off'} | flagged{' '}
+                            {surface.affectedFlaggedTargets}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            criticos {surface.affectedCriticalTargets} | auto{' '}
+                            {surface.activeAutomatedSignals}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Jobs em lote</CardTitle>
+                    <CardDescription>Estado recente da automacao operacional.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {loadingMetricsDrilldown ? (
+                      <div className="h-24 animate-pulse rounded-md bg-muted" />
+                    ) : (
+                      metricsDrilldown?.jobs.slice(0, 4).map((job) => (
+                        <div key={job.id} className="rounded-md border border-border/70 p-3">
+                          <p className="text-sm font-medium">
+                            {job.type === 'bulk_rollback' ? 'Rollback' : 'Moderacao'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {job.status} | {job.processed}/{job.requested}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            ok {job.succeeded} | falhas {job.failed}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
             </section>
           ) : null}
 
