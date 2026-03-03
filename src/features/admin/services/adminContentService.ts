@@ -9,6 +9,9 @@ import type {
   AdminBulkModerationJobPayload,
   AdminBulkModerationJobResponse,
   AdminContentJob,
+  AdminContentJobApprovalPayload,
+  AdminContentJobMutationResponse,
+  AdminContentJobReviewPayload,
   AdminContentJobWorkerStatus,
   AdminContentJobsResponse,
   AdminContentModerationActionPayload,
@@ -280,6 +283,41 @@ interface BackendJobRecord {
     confirmThreshold?: number
     duplicatesSkipped?: number
   } | null
+  approval?: {
+    required?: boolean
+    reviewStatus?: string
+    reviewNote?: string | null
+    reviewRequestedAt?: string | null
+    reviewRequestedBy?: BackendActorSummary | null
+    approvalNote?: string | null
+    approvedAt?: string | null
+    approvedBy?: BackendActorSummary | null
+    sampleRequired?: boolean
+    recommendedSampleSize?: number
+    reviewedSampleKeys?: string[]
+    sampleItems?: Array<{
+      contentType?: string
+      contentId?: string
+      eventId?: string
+      title?: string
+      targetStatus?: string
+      openReports?: number
+      uniqueReporters?: number
+      automatedSeverity?: string
+      creatorRiskLevel?: string | null
+      requiresConfirm?: boolean
+      warnings?: string[]
+    }>
+    riskSummary?: {
+      restoreVisibleCount?: number
+      activeRiskCount?: number
+      highRiskCount?: number
+      criticalRiskCount?: number
+      falsePositiveEligibleCount?: number
+    }
+    falsePositiveValidationRequired?: boolean
+    falsePositiveValidated?: boolean
+  } | null
   error?: string | null
   startedAt?: string | null
   finishedAt?: string | null
@@ -323,6 +361,7 @@ interface BackendJobWorkerStatusResponse {
   }
   queue?: {
     queued?: number
+    awaitingApproval?: number
     running?: number
     staleRunning?: number
     retrying?: number
@@ -783,6 +822,12 @@ const toJobStatus = (value: unknown): AdminContentJob['status'] => {
   return 'queued'
 }
 
+const toJobApprovalStatus = (value: unknown): 'draft' | 'review' | 'approved' => {
+  if (value === 'review') return 'review'
+  if (value === 'approved') return 'approved'
+  return 'draft'
+}
+
 const mapJob = (item: BackendJobRecord): AdminContentJob | null => {
   const id = resolveId(item)
   if (!id) return null
@@ -852,6 +897,109 @@ const mapJob = (item: BackendJobRecord): AdminContentJob | null => {
               : 0,
         }
       : null,
+    approval:
+      item.approval && toJobType(item.type) === 'bulk_rollback'
+        ? {
+            required: Boolean(item.approval.required),
+            reviewStatus: toJobApprovalStatus(item.approval.reviewStatus),
+            reviewNote:
+              typeof item.approval.reviewNote === 'string' ? item.approval.reviewNote : null,
+            reviewRequestedAt: toIsoDate(item.approval.reviewRequestedAt) ?? null,
+            reviewRequestedBy: mapActor(item.approval.reviewRequestedBy),
+            approvalNote:
+              typeof item.approval.approvalNote === 'string' ? item.approval.approvalNote : null,
+            approvedAt: toIsoDate(item.approval.approvedAt) ?? null,
+            approvedBy: mapActor(item.approval.approvedBy),
+            sampleRequired: Boolean(item.approval.sampleRequired),
+            recommendedSampleSize:
+              typeof item.approval.recommendedSampleSize === 'number'
+                ? item.approval.recommendedSampleSize
+                : 0,
+            reviewedSampleKeys: Array.isArray(item.approval.reviewedSampleKeys)
+              ? item.approval.reviewedSampleKeys.filter(
+                  (sampleKey): sampleKey is string => typeof sampleKey === 'string',
+                )
+              : [],
+            sampleItems: Array.isArray(item.approval.sampleItems)
+              ? item.approval.sampleItems
+                  .map((sampleItem) => {
+                    const contentType = toContentType(sampleItem.contentType)
+                    if (
+                      !contentType ||
+                      typeof sampleItem.contentId !== 'string' ||
+                      typeof sampleItem.eventId !== 'string'
+                    ) {
+                      return null
+                    }
+
+                    return {
+                      contentType,
+                      contentId: sampleItem.contentId,
+                      eventId: sampleItem.eventId,
+                      title:
+                        typeof sampleItem.title === 'string'
+                          ? sampleItem.title
+                          : `${contentType}:${sampleItem.contentId}`,
+                      targetStatus: toModerationStatus(sampleItem.targetStatus),
+                      openReports:
+                        typeof sampleItem.openReports === 'number' ? sampleItem.openReports : 0,
+                      uniqueReporters:
+                        typeof sampleItem.uniqueReporters === 'number'
+                          ? sampleItem.uniqueReporters
+                          : 0,
+                      automatedSeverity: toAutomatedSeverity(sampleItem.automatedSeverity),
+                      creatorRiskLevel:
+                        sampleItem.creatorRiskLevel === 'critical'
+                          ? 'critical'
+                          : sampleItem.creatorRiskLevel === 'high'
+                            ? 'high'
+                            : sampleItem.creatorRiskLevel === 'medium'
+                              ? 'medium'
+                              : sampleItem.creatorRiskLevel === 'low'
+                                ? 'low'
+                                : null,
+                      requiresConfirm: Boolean(sampleItem.requiresConfirm),
+                      warnings: Array.isArray(sampleItem.warnings)
+                        ? sampleItem.warnings.filter(
+                            (warning): warning is string => typeof warning === 'string',
+                          )
+                        : [],
+                    }
+                  })
+                  .filter(
+                    (
+                      sampleItem,
+                    ): sampleItem is NonNullable<
+                      AdminContentJob['approval']
+                    >['sampleItems'][number] => sampleItem !== null,
+                  )
+              : [],
+            riskSummary: {
+              restoreVisibleCount:
+                typeof item.approval.riskSummary?.restoreVisibleCount === 'number'
+                  ? item.approval.riskSummary.restoreVisibleCount
+                  : 0,
+              activeRiskCount:
+                typeof item.approval.riskSummary?.activeRiskCount === 'number'
+                  ? item.approval.riskSummary.activeRiskCount
+                  : 0,
+              highRiskCount:
+                typeof item.approval.riskSummary?.highRiskCount === 'number'
+                  ? item.approval.riskSummary.highRiskCount
+                  : 0,
+              criticalRiskCount:
+                typeof item.approval.riskSummary?.criticalRiskCount === 'number'
+                  ? item.approval.riskSummary.criticalRiskCount
+                  : 0,
+              falsePositiveEligibleCount:
+                typeof item.approval.riskSummary?.falsePositiveEligibleCount === 'number'
+                  ? item.approval.riskSummary.falsePositiveEligibleCount
+                  : 0,
+            },
+            falsePositiveValidationRequired: Boolean(item.approval.falsePositiveValidationRequired),
+            falsePositiveValidated: Boolean(item.approval.falsePositiveValidated),
+          }
+        : null,
     error: typeof item.error === 'string' ? item.error : null,
     startedAt: toIsoDate(item.startedAt) ?? null,
     finishedAt: toIsoDate(item.finishedAt) ?? null,
@@ -903,6 +1051,8 @@ const mapJobWorkerStatus = (data: BackendJobWorkerStatusResponse): AdminContentJ
   },
   queue: {
     queued: typeof data.queue?.queued === 'number' ? data.queue.queued : 0,
+    awaitingApproval:
+      typeof data.queue?.awaitingApproval === 'number' ? data.queue.awaitingApproval : 0,
     running: typeof data.queue?.running === 'number' ? data.queue.running : 0,
     staleRunning: typeof data.queue?.staleRunning === 'number' ? data.queue.staleRunning : 0,
     retrying: typeof data.queue?.retrying === 'number' ? data.queue.retrying : 0,
@@ -1226,6 +1376,46 @@ export const adminContentService = {
 
     return {
       message: response.data.message ?? 'Job criado com sucesso.',
+      job,
+    }
+  },
+
+  requestBulkRollbackJobReview: async (
+    jobId: string,
+    payload: AdminContentJobReviewPayload,
+  ): Promise<AdminContentJobMutationResponse> => {
+    const response = await apiClient.post<BackendJobMutationResponse>(
+      `/admin/content/jobs/${jobId}/request-review`,
+      payload,
+    )
+
+    const job = response.data.job ? mapJob(response.data.job) : null
+    if (!job) {
+      throw new Error('Resposta admin invalida: job em falta.')
+    }
+
+    return {
+      message: response.data.message ?? 'Job submetido para revisao.',
+      job,
+    }
+  },
+
+  approveBulkRollbackJob: async (
+    jobId: string,
+    payload: AdminContentJobApprovalPayload,
+  ): Promise<AdminContentJobMutationResponse> => {
+    const response = await apiClient.post<BackendJobMutationResponse>(
+      `/admin/content/jobs/${jobId}/approve`,
+      payload,
+    )
+
+    const job = response.data.job ? mapJob(response.data.job) : null
+    if (!job) {
+      throw new Error('Resposta admin invalida: job em falta.')
+    }
+
+    return {
+      message: response.data.message ?? 'Job aprovado com sucesso.',
       job,
     }
   },

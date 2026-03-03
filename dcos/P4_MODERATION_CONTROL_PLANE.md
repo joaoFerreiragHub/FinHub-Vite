@@ -114,6 +114,27 @@ Validacao desta iteracao:
 - `npx jest --no-cache src/__tests__/features/admin/adminUsersService.test.ts`
 - `npx jest --no-cache src/__tests__/features/admin/adminContentService.test.ts`
 
+## Bloco D fechado
+
+O Bloco D ficou fechado nesta iteracao.
+
+Entregue no frontend:
+
+- `adminContentService`, `types/adminContent` e `useAdminContent` passam a suportar `approval` em jobs `bulk_rollback`, `awaitingApproval` em `worker-status` e mutacoes de `request-review`/`approve`;
+- `ContentModerationPage` passa a mostrar badges `draft/review/approved`, risco agregado, estado de amostra revista e validacao de false positive nos jobs de rollback;
+- dialogs novos permitem submeter o lote para revisao e aprovar com checklist de amostra, confirmacao forte e validacao manual de false positive.
+
+Notas operacionais:
+
+- a criacao do job de rollback continua API-first, porque cada item precisa de `eventId`; esta iteracao fecha a fase de revisao/aprovacao e observabilidade do backlog;
+- a UI so mostra acoes de revisao/aprovacao para jobs `bulk_rollback` em `queued` com `approval.required=true`;
+- a leitura continua backward-compatible com jobs antigos que nao tragam envelope `approval`.
+
+Validacao desta iteracao:
+
+- `npm run typecheck:p1`
+- `npx jest --no-cache src/__tests__/features/admin/adminContentService.test.ts`
+
 ## UX publica ligada ao control plane
 
 - centro de notificacoes passa a suportar `content_moderated`;
@@ -149,6 +170,7 @@ Camadas principais atualizadas:
    - dialogs de confirmacao.
 3. Deep-links adicionais entre dashboard, queue, trust profile e jobs.
 4. E2E dedicado para worker status, retries e estados stale no admin.
+5. E2E dedicado para `bulk rollback` com `request-review` e `approve`.
 
 ## Pre-release obrigatorio
 

@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { adminContentService } from '../services/adminContentService'
 import type {
   AdminBulkModerationJobPayload,
+  AdminContentJobApprovalPayload,
+  AdminContentJobReviewPayload,
   AdminContentModerationActionPayload,
   AdminContentQueueQuery,
   AdminContentRollbackPayload,
@@ -19,6 +21,16 @@ interface AdminContentRollbackMutationInput {
   contentType: AdminContentType
   contentId: string
   payload: AdminContentRollbackPayload
+}
+
+interface AdminContentJobReviewMutationInput {
+  jobId: string
+  payload: AdminContentJobReviewPayload
+}
+
+interface AdminContentJobApprovalMutationInput {
+  jobId: string
+  payload: AdminContentJobApprovalPayload
 }
 
 interface AdminContentQueueOptions {
@@ -181,6 +193,34 @@ export function useCreateBulkModerationJob() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'jobs', 'worker-status'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'metrics', 'overview'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'metrics', 'drilldown'] })
+    },
+  })
+}
+
+export function useRequestBulkRollbackJobReview() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ jobId, payload }: AdminContentJobReviewMutationInput) =>
+      adminContentService.requestBulkRollbackJobReview(jobId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'jobs'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'jobs', 'worker-status'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'metrics', 'overview'] })
+    },
+  })
+}
+
+export function useApproveBulkRollbackJob() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ jobId, payload }: AdminContentJobApprovalMutationInput) =>
+      adminContentService.approveBulkRollbackJob(jobId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'jobs'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'jobs', 'worker-status'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'metrics', 'overview'] })
     },
   })
 }

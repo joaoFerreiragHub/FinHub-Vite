@@ -28,6 +28,7 @@ export type AdminContentJobStatus =
   | 'completed'
   | 'completed_with_errors'
   | 'failed'
+export type AdminContentJobApprovalStatus = 'draft' | 'review' | 'approved'
 
 export interface AdminContentReportSignals {
   openReports: number
@@ -237,6 +238,44 @@ export interface AdminContentJobItem {
   statusCode: number | null
 }
 
+export interface AdminContentJobApprovalSampleItem {
+  contentType: AdminContentType
+  contentId: string
+  eventId: string
+  title: string
+  targetStatus: AdminContentModerationStatus
+  openReports: number
+  uniqueReporters: number
+  automatedSeverity: AdminContentAutomatedSeverity
+  creatorRiskLevel: 'low' | 'medium' | 'high' | 'critical' | null
+  requiresConfirm: boolean
+  warnings: string[]
+}
+
+export interface AdminContentJobApproval {
+  required: boolean
+  reviewStatus: AdminContentJobApprovalStatus
+  reviewNote: string | null
+  reviewRequestedAt: string | null
+  reviewRequestedBy: AdminActorSummary | null
+  approvalNote: string | null
+  approvedAt: string | null
+  approvedBy: AdminActorSummary | null
+  sampleRequired: boolean
+  recommendedSampleSize: number
+  reviewedSampleKeys: string[]
+  sampleItems: AdminContentJobApprovalSampleItem[]
+  riskSummary: {
+    restoreVisibleCount: number
+    activeRiskCount: number
+    highRiskCount: number
+    criticalRiskCount: number
+    falsePositiveEligibleCount: number
+  }
+  falsePositiveValidationRequired: boolean
+  falsePositiveValidated: boolean
+}
+
 export interface AdminContentJob {
   id: string
   type: AdminContentJobType
@@ -265,6 +304,7 @@ export interface AdminContentJob {
     confirmThreshold: number
     duplicatesSkipped: number
   } | null
+  approval: AdminContentJobApproval | null
   error: string | null
   startedAt: string | null
   finishedAt: string | null
@@ -303,6 +343,7 @@ export interface AdminContentJobWorkerStatus {
   }
   queue: {
     queued: number
+    awaitingApproval: number
     running: number
     staleRunning: number
     retrying: number
@@ -327,7 +368,24 @@ export interface AdminBulkModerationJobPayload extends AdminContentModerationAct
   }>
 }
 
-export interface AdminBulkModerationJobResponse {
+export interface AdminContentJobReviewPayload {
+  note?: string
+}
+
+export interface AdminContentJobApprovalPayload {
+  note?: string
+  confirm?: boolean
+  falsePositiveValidated?: boolean
+  reviewedSampleItems?: Array<{
+    contentType: AdminContentType
+    contentId: string
+    eventId: string
+  }>
+}
+
+export interface AdminContentJobMutationResponse {
   message: string
   job: AdminContentJob
 }
+
+export type AdminBulkModerationJobResponse = AdminContentJobMutationResponse

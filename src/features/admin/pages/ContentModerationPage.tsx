@@ -52,6 +52,7 @@ import {
   TrustScoreBar,
 } from '../components/RiskSignals'
 import {
+  useApproveBulkRollbackJob,
   useAdminContentHistory,
   useAdminContentJobs,
   useAdminContentRollbackReview,
@@ -59,6 +60,7 @@ import {
   useAdminContentQueue,
   useCreateBulkModerationJob,
   useHideAdminContent,
+  useRequestBulkRollbackJobReview,
   useRollbackAdminContent,
   useRestrictAdminContent,
   useUnhideAdminContent,
@@ -100,6 +102,14 @@ interface ContentRollbackDialogState {
 
 interface BulkModerationDialogState {
   items: AdminContentQueueItem[]
+}
+
+interface RollbackJobReviewDialogState {
+  job: AdminContentJob
+}
+
+interface RollbackJobApprovalDialogState {
+  job: AdminContentJob
 }
 
 interface CurrentAdminMeta {
@@ -260,12 +270,31 @@ const hasBooleanMetadataFlag = (
 const contentSelectionKey = (item: AdminContentQueueItem): string =>
   `${item.contentType}:${item.id}`
 
+const jobApprovalSampleKey = (
+  item: NonNullable<AdminContentJob['approval']>['sampleItems'][number],
+): string => `${item.contentType}:${item.contentId}:${item.eventId}`
+
 const JOB_STATUS_LABEL: Record<AdminContentJob['status'], string> = {
   queued: 'Na fila',
   running: 'A correr',
   completed: 'Concluido',
   completed_with_errors: 'Concluido com falhas',
   failed: 'Falhou',
+}
+
+const JOB_APPROVAL_LABEL: Record<NonNullable<AdminContentJob['approval']>['reviewStatus'], string> =
+  {
+    draft: 'Draft',
+    review: 'Em revisao',
+    approved: 'Aprovado',
+  }
+
+const JOB_APPROVAL_BADGE = (
+  status: NonNullable<AdminContentJob['approval']>['reviewStatus'],
+): 'secondary' | 'outline' | 'destructive' => {
+  if (status === 'approved') return 'secondary'
+  if (status === 'review') return 'outline'
+  return 'destructive'
 }
 
 const WORKER_STATUS_LABEL: Record<
@@ -312,6 +341,15 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
   const [bulkReason, setBulkReason] = useState(DEFAULT_ACTION_REASON.hide)
   const [bulkNote, setBulkNote] = useState('')
   const [bulkConfirmText, setBulkConfirmText] = useState('')
+  const [rollbackJobReviewDialog, setRollbackJobReviewDialog] =
+    useState<RollbackJobReviewDialogState | null>(null)
+  const [rollbackJobReviewNote, setRollbackJobReviewNote] = useState('')
+  const [rollbackJobApprovalDialog, setRollbackJobApprovalDialog] =
+    useState<RollbackJobApprovalDialogState | null>(null)
+  const [rollbackJobApprovalNote, setRollbackJobApprovalNote] = useState('')
+  const [rollbackJobApprovalConfirmText, setRollbackJobApprovalConfirmText] = useState('')
+  const [rollbackJobReviewedSampleKeys, setRollbackJobReviewedSampleKeys] = useState<string[]>([])
+  const [rollbackJobFalsePositiveValidated, setRollbackJobFalsePositiveValidated] = useState(false)
 
   const rawAuthUser = useAuthStore((state) => state.user)
   const authUser = (rawAuthUser as unknown as CurrentAdminMeta | null) ?? null
@@ -351,6 +389,8 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
   const jobsQuery = useAdminContentJobs({ page: 1, limit: 6 }, { enabled: canReadContent })
   const workerStatusQuery = useAdminContentWorkerStatus({ enabled: canReadContent })
   const bulkJobMutation = useCreateBulkModerationJob()
+  const requestRollbackJobReviewMutation = useRequestBulkRollbackJobReview()
+  const approveRollbackJobMutation = useApproveBulkRollbackJob()
 
   const isActionPending =
     hideMutation.isPending || unhideMutation.isPending || restrictMutation.isPending
@@ -366,6 +406,17 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
   const bulkRequiresDoubleConfirm = (bulkDialog?.items.length ?? 0) >= 10
   const isBulkConfirmValid =
     !bulkRequiresDoubleConfirm || bulkConfirmText.trim().toUpperCase() === DOUBLE_CONFIRM_TOKEN
+  const rollbackJobApproval = rollbackJobApprovalDialog?.job.approval ?? null
+  const rollbackJobApprovalRequiresConfirm =
+    Number(rollbackJobApproval?.riskSummary.criticalRiskCount ?? 0) > 0
+  const isRollbackJobApprovalConfirmValid =
+    !rollbackJobApprovalRequiresConfirm ||
+    rollbackJobApprovalConfirmText.trim().toUpperCase() === DOUBLE_CONFIRM_TOKEN
+  const areRollbackJobSamplesComplete =
+    !rollbackJobApproval?.sampleRequired ||
+    rollbackJobApproval.sampleItems.every((item) =>
+      rollbackJobReviewedSampleKeys.includes(jobApprovalSampleKey(item)),
+    )
 
   const pagination = moderationQueue.data?.pagination
   const items = moderationQueue.data?.items ?? []
@@ -487,6 +538,44 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     setBulkConfirmText('')
   }
 
+  const openRollbackJobReviewDialog = (job: AdminContentJob) => {
+    setRollbackJobReviewDialog({ job })
+    setRollbackJobReviewNote(job.approval?.reviewNote ?? '')
+  }
+
+  const closeRollbackJobReviewDialog = (force = false) => {
+    if (!force && requestRollbackJobReviewMutation.isPending) return
+    setRollbackJobReviewDialog(null)
+    setRollbackJobReviewNote('')
+  }
+
+  const openRollbackJobApprovalDialog = (job: AdminContentJob) => {
+    const approval = job.approval
+    setRollbackJobApprovalDialog({ job })
+    setRollbackJobApprovalNote(approval?.approvalNote ?? '')
+    setRollbackJobApprovalConfirmText('')
+    setRollbackJobReviewedSampleKeys(approval?.reviewedSampleKeys ?? [])
+    setRollbackJobFalsePositiveValidated(approval?.falsePositiveValidated === true)
+  }
+
+  const closeRollbackJobApprovalDialog = (force = false) => {
+    if (!force && approveRollbackJobMutation.isPending) return
+    setRollbackJobApprovalDialog(null)
+    setRollbackJobApprovalNote('')
+    setRollbackJobApprovalConfirmText('')
+    setRollbackJobReviewedSampleKeys([])
+    setRollbackJobFalsePositiveValidated(false)
+  }
+
+  const toggleRollbackJobSample = (
+    item: NonNullable<AdminContentJob['approval']>['sampleItems'][number],
+  ) => {
+    const sampleKey = jobApprovalSampleKey(item)
+    setRollbackJobReviewedSampleKeys((prev) =>
+      prev.includes(sampleKey) ? prev.filter((value) => value !== sampleKey) : [...prev, sampleKey],
+    )
+  }
+
   const submitAction = async () => {
     if (!actionDialog) return
 
@@ -606,6 +695,70 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
       toast.success(result.message)
       setSelectedContentKeys([])
       closeBulkDialog(true)
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
+  }
+
+  const submitRollbackJobReview = async () => {
+    if (!rollbackJobReviewDialog) return
+
+    try {
+      const result = await requestRollbackJobReviewMutation.mutateAsync({
+        jobId: rollbackJobReviewDialog.job.id,
+        payload: {
+          note: rollbackJobReviewNote.trim() || undefined,
+        },
+      })
+
+      toast.success(result.message)
+      closeRollbackJobReviewDialog(true)
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
+  }
+
+  const submitRollbackJobApproval = async () => {
+    const job = rollbackJobApprovalDialog?.job
+    const approval = job?.approval
+    if (!job || !approval) return
+
+    if (!areRollbackJobSamplesComplete) {
+      toast.error('Revê todos os itens da amostra antes de aprovar o lote.')
+      return
+    }
+
+    if (!isRollbackJobApprovalConfirmValid) {
+      toast.error(`Escreve "${DOUBLE_CONFIRM_TOKEN}" para confirmar este lote critico.`)
+      return
+    }
+
+    if (approval.falsePositiveValidationRequired && !rollbackJobFalsePositiveValidated) {
+      toast.error('Valida os false positives antes de aprovar este rollback em lote.')
+      return
+    }
+
+    try {
+      const result = await approveRollbackJobMutation.mutateAsync({
+        jobId: job.id,
+        payload: {
+          note: rollbackJobApprovalNote.trim() || undefined,
+          confirm: rollbackJobApprovalRequiresConfirm ? true : undefined,
+          falsePositiveValidated: approval.falsePositiveValidationRequired
+            ? rollbackJobFalsePositiveValidated
+            : undefined,
+          reviewedSampleItems: approval.sampleItems
+            .filter((item) => rollbackJobReviewedSampleKeys.includes(jobApprovalSampleKey(item)))
+            .map((item) => ({
+              contentType: item.contentType,
+              contentId: item.contentId,
+              eventId: item.eventId,
+            })),
+        },
+      })
+
+      toast.success(result.message)
+      closeRollbackJobApprovalDialog(true)
     } catch (error) {
       toast.error(getErrorMessage(error))
     }
@@ -977,10 +1130,13 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
 
                 <div className="mt-3 grid gap-2 text-xs text-muted-foreground md:grid-cols-2">
                   <p>
-                    Fila: {workerStatusQuery.data.queue.queued} | running{' '}
-                    {workerStatusQuery.data.queue.running}
+                    Fila executavel: {workerStatusQuery.data.queue.queued} | a aguardar aprovacao{' '}
+                    {workerStatusQuery.data.queue.awaitingApproval}
                   </p>
-                  <p>Retries em curso: {workerStatusQuery.data.queue.retrying}</p>
+                  <p>
+                    Running: {workerStatusQuery.data.queue.running} | retries em curso{' '}
+                    {workerStatusQuery.data.queue.retrying}
+                  </p>
                   <p>Running stale: {workerStatusQuery.data.queue.staleRunning}</p>
                   <p>Falhas 24h: {workerStatusQuery.data.queue.failedLast24h}</p>
                   <p>Max attempts atingido: {workerStatusQuery.data.queue.maxAttemptsReached}</p>
@@ -1039,6 +1195,11 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                         >
                           {JOB_STATUS_LABEL[job.status]}
                         </Badge>
+                        {job.type === 'bulk_rollback' && job.approval?.required ? (
+                          <Badge variant={JOB_APPROVAL_BADGE(job.approval.reviewStatus)}>
+                            {JOB_APPROVAL_LABEL[job.approval.reviewStatus]}
+                          </Badge>
+                        ) : null}
                       </div>
                       <span className="text-xs text-muted-foreground">
                         {formatDateTime(job.createdAt)}
@@ -1055,11 +1216,72 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                     <p className="text-xs text-muted-foreground">
                       Actor: {job.actor?.name || job.actor?.username || job.actor?.id || 'n/a'}
                     </p>
+                    {job.type === 'bulk_rollback' && job.approval ? (
+                      <>
+                        <p className="text-xs text-muted-foreground">
+                          Risco ativo {job.approval.riskSummary.activeRiskCount} | alto{' '}
+                          {job.approval.riskSummary.highRiskCount} | critico{' '}
+                          {job.approval.riskSummary.criticalRiskCount}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Repor visibilidade: {job.approval.riskSummary.restoreVisibleCount}
+                          {job.approval.sampleRequired
+                            ? ` | amostra ${job.approval.reviewedSampleKeys.length}/${job.approval.sampleItems.length}`
+                            : ''}
+                          {job.approval.falsePositiveValidationRequired
+                            ? ` | false positive ${job.approval.falsePositiveValidated ? 'validado' : 'pendente'}`
+                            : ''}
+                        </p>
+                        {job.approval.reviewRequestedAt ? (
+                          <p className="text-xs text-muted-foreground">
+                            Revisao pedida em {formatDateTime(job.approval.reviewRequestedAt)}
+                            {job.approval.reviewRequestedBy
+                              ? ` por ${job.approval.reviewRequestedBy.name || job.approval.reviewRequestedBy.username || job.approval.reviewRequestedBy.id}`
+                              : ''}
+                          </p>
+                        ) : null}
+                        {job.approval.approvedAt ? (
+                          <p className="text-xs text-muted-foreground">
+                            Aprovado em {formatDateTime(job.approval.approvedAt)}
+                            {job.approval.approvedBy
+                              ? ` por ${job.approval.approvedBy.name || job.approval.approvedBy.username || job.approval.approvedBy.id}`
+                              : ''}
+                          </p>
+                        ) : null}
+                      </>
+                    ) : null}
                     {job.status === 'running' ? (
                       <p className="text-xs text-muted-foreground">
                         Heartbeat: {formatDateTime(job.lastHeartbeatAt)} | lease ate{' '}
                         {formatDateTime(job.leaseExpiresAt)}
                       </p>
+                    ) : null}
+                    {canModerateContent &&
+                    job.type === 'bulk_rollback' &&
+                    job.status === 'queued' &&
+                    job.approval?.required ? (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {job.approval.reviewStatus === 'draft' ? (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openRollbackJobReviewDialog(job)}
+                          >
+                            Submeter revisao
+                          </Button>
+                        ) : null}
+                        {job.approval.reviewStatus === 'review' ? (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openRollbackJobApprovalDialog(job)}
+                          >
+                            Aprovar lote
+                          </Button>
+                        ) : null}
+                      </div>
                     ) : null}
                   </div>
                 ))}
@@ -1839,6 +2061,232 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
             >
               {isRollbackPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               Executar rollback assistido
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(rollbackJobReviewDialog)}
+        onOpenChange={(open) => (!open ? closeRollbackJobReviewDialog() : null)}
+      >
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Submeter rollback em lote para revisao</DialogTitle>
+            <DialogDescription>
+              O lote passa de draft para review e fica pronto para aprovacao operacional.
+            </DialogDescription>
+          </DialogHeader>
+
+          {rollbackJobReviewDialog ? (
+            <div className="space-y-4">
+              <div className="rounded-md border border-border/70 bg-muted/20 p-3 text-sm text-muted-foreground">
+                {rollbackJobReviewDialog.job.progress.requested} item(ns) | risco alto{' '}
+                {rollbackJobReviewDialog.job.approval?.riskSummary.highRiskCount ?? 0} | critico{' '}
+                {rollbackJobReviewDialog.job.approval?.riskSummary.criticalRiskCount ?? 0}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="admin-content-job-review-note">Nota de revisao (opcional)</Label>
+                <Textarea
+                  id="admin-content-job-review-note"
+                  rows={4}
+                  value={rollbackJobReviewNote}
+                  onChange={(event) => setRollbackJobReviewNote(event.target.value)}
+                  placeholder="Contexto do lote, evidencias revistadas e janela operacional."
+                />
+              </div>
+            </div>
+          ) : null}
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => closeRollbackJobReviewDialog()}
+              disabled={requestRollbackJobReviewMutation.isPending}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              onClick={submitRollbackJobReview}
+              disabled={requestRollbackJobReviewMutation.isPending || !rollbackJobReviewDialog}
+            >
+              {requestRollbackJobReviewMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : null}
+              Submeter para revisao
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(rollbackJobApprovalDialog)}
+        onOpenChange={(open) => (!open ? closeRollbackJobApprovalDialog() : null)}
+      >
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Aprovar rollback em lote</DialogTitle>
+            <DialogDescription>
+              Fecha a revisao faseada e liberta o job para o worker dedicado.
+            </DialogDescription>
+          </DialogHeader>
+
+          {rollbackJobApprovalDialog && rollbackJobApproval ? (
+            <div className="space-y-4">
+              <div className="grid gap-3 md:grid-cols-3">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardDescription>Itens</CardDescription>
+                    <CardTitle className="text-lg">
+                      {rollbackJobApprovalDialog.job.progress.requested}
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardDescription>Risco ativo</CardDescription>
+                    <CardTitle className="text-lg">
+                      {rollbackJobApproval.riskSummary.activeRiskCount}
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardDescription>Criticos</CardDescription>
+                    <CardTitle className="text-lg">
+                      {rollbackJobApproval.riskSummary.criticalRiskCount}
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+              </div>
+
+              <div className="rounded-md border border-border/70 bg-muted/20 p-3 text-sm text-muted-foreground">
+                Repor visibilidade: {rollbackJobApproval.riskSummary.restoreVisibleCount} | false
+                positive elegiveis {rollbackJobApproval.riskSummary.falsePositiveEligibleCount}
+                {rollbackJobApproval.reviewNote ? (
+                  <p className="mt-2 text-xs">Nota de revisao: {rollbackJobApproval.reviewNote}</p>
+                ) : null}
+              </div>
+
+              {rollbackJobApproval.sampleRequired ? (
+                <div className="rounded-md border border-border/70 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Amostra obrigatoria
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Revistos {rollbackJobReviewedSampleKeys.length}/
+                    {rollbackJobApproval.sampleItems.length} itens recomendados.
+                  </p>
+
+                  <div className="mt-3 space-y-3">
+                    {rollbackJobApproval.sampleItems.map((item) => {
+                      const sampleKey = jobApprovalSampleKey(item)
+                      const checked = rollbackJobReviewedSampleKeys.includes(sampleKey)
+
+                      return (
+                        <label
+                          key={sampleKey}
+                          className="flex gap-3 rounded-md border border-border/70 p-3 text-sm"
+                        >
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={() => toggleRollbackJobSample(item)}
+                          />
+                          <div className="space-y-1">
+                            <p className="font-medium">
+                              {item.title} <span className="text-xs">({item.contentType})</span>
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Target {MODERATION_STATUS_LABEL[item.targetStatus]} | reports{' '}
+                              {item.openReports} | reporters {item.uniqueReporters} | auto{' '}
+                              {item.automatedSeverity} | creator risk{' '}
+                              {item.creatorRiskLevel ?? 'n/a'}
+                            </p>
+                            {item.warnings.length > 0 ? (
+                              <p className="text-xs text-amber-700">{item.warnings.join(' | ')}</p>
+                            ) : null}
+                          </div>
+                        </label>
+                      )
+                    })}
+                  </div>
+                </div>
+              ) : null}
+
+              {rollbackJobApproval.falsePositiveValidationRequired ? (
+                <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Checkbox
+                    checked={rollbackJobFalsePositiveValidated}
+                    onCheckedChange={(checked) =>
+                      setRollbackJobFalsePositiveValidated(checked === true)
+                    }
+                  />
+                  Confirmo a validacao manual dos false positives deste lote
+                </label>
+              ) : null}
+
+              <div className="space-y-2">
+                <Label htmlFor="admin-content-job-approval-note">
+                  Nota de aprovacao (opcional)
+                </Label>
+                <Textarea
+                  id="admin-content-job-approval-note"
+                  rows={4}
+                  value={rollbackJobApprovalNote}
+                  onChange={(event) => setRollbackJobApprovalNote(event.target.value)}
+                  placeholder="Decisao tomada, amostra revista e guardrails observados."
+                />
+              </div>
+
+              {rollbackJobApprovalRequiresConfirm ? (
+                <div className="space-y-2">
+                  <Label htmlFor="admin-content-job-approval-confirm">
+                    Confirmacao dupla (escreve {DOUBLE_CONFIRM_TOKEN})
+                  </Label>
+                  <Input
+                    id="admin-content-job-approval-confirm"
+                    value={rollbackJobApprovalConfirmText}
+                    onChange={(event) => setRollbackJobApprovalConfirmText(event.target.value)}
+                    placeholder={DOUBLE_CONFIRM_TOKEN}
+                  />
+                  <p className="text-xs text-amber-700">
+                    Este lote tem thresholds criticos e so pode seguir com confirmacao forte.
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => closeRollbackJobApprovalDialog()}
+              disabled={approveRollbackJobMutation.isPending}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              onClick={submitRollbackJobApproval}
+              disabled={
+                approveRollbackJobMutation.isPending ||
+                !rollbackJobApprovalDialog ||
+                !areRollbackJobSamplesComplete ||
+                !isRollbackJobApprovalConfirmValid ||
+                Boolean(
+                  rollbackJobApproval?.falsePositiveValidationRequired &&
+                    !rollbackJobFalsePositiveValidated,
+                )
+              }
+            >
+              {approveRollbackJobMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : null}
+              Aprovar e libertar job
             </Button>
           </DialogFooter>
         </DialogContent>

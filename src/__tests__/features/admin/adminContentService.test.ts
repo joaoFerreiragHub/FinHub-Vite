@@ -616,6 +616,7 @@ describe('adminContentService', () => {
         },
         queue: {
           queued: 4,
+          awaitingApproval: 2,
           running: 1,
           staleRunning: 0,
           retrying: 2,
@@ -682,6 +683,7 @@ describe('adminContentService', () => {
     })
     expect(result.queue).toMatchObject({
       queued: 4,
+      awaitingApproval: 2,
       retrying: 2,
       maxAttemptsReached: 1,
     })
@@ -690,6 +692,333 @@ describe('adminContentService', () => {
       status: 'running',
       attemptCount: 2,
       maxAttempts: 3,
+    })
+  })
+
+  it('maps rollback approval details in admin jobs list', async () => {
+    mockedApiClient.get.mockResolvedValueOnce({
+      data: {
+        items: [
+          {
+            id: 'job-rollback-1',
+            type: 'bulk_rollback',
+            status: 'queued',
+            action: null,
+            reason: 'Rollback validado',
+            note: 'Lote sensivel',
+            confirm: false,
+            markFalsePositive: true,
+            attemptCount: 0,
+            maxAttempts: 3,
+            workerId: null,
+            leaseExpiresAt: null,
+            lastHeartbeatAt: null,
+            actor: {
+              id: 'admin-1',
+              name: 'Admin',
+              role: 'admin',
+            },
+            items: [
+              {
+                contentType: 'article',
+                contentId: 'content-1',
+                eventId: 'evt-1',
+                status: 'pending',
+              },
+            ],
+            progress: {
+              requested: 1,
+              processed: 0,
+              succeeded: 0,
+              failed: 0,
+              changed: 0,
+            },
+            guardrails: {
+              maxItems: 50,
+              confirmThreshold: 10,
+              duplicatesSkipped: 0,
+            },
+            approval: {
+              required: true,
+              reviewStatus: 'review',
+              reviewNote: 'Amostra revista',
+              reviewRequestedAt: '2026-03-03T10:00:00.000Z',
+              reviewRequestedBy: {
+                id: 'admin-2',
+                name: 'Reviewer',
+                role: 'admin',
+              },
+              approvalNote: null,
+              approvedAt: null,
+              approvedBy: null,
+              sampleRequired: true,
+              recommendedSampleSize: 1,
+              reviewedSampleKeys: ['article:content-1:evt-1'],
+              sampleItems: [
+                {
+                  contentType: 'article',
+                  contentId: 'content-1',
+                  eventId: 'evt-1',
+                  title: 'Titulo',
+                  targetStatus: 'visible',
+                  openReports: 4,
+                  uniqueReporters: 3,
+                  automatedSeverity: 'high',
+                  creatorRiskLevel: 'high',
+                  requiresConfirm: true,
+                  warnings: ['Ha reports ativos.'],
+                },
+              ],
+              riskSummary: {
+                restoreVisibleCount: 1,
+                activeRiskCount: 1,
+                highRiskCount: 1,
+                criticalRiskCount: 0,
+                falsePositiveEligibleCount: 1,
+              },
+              falsePositiveValidationRequired: true,
+              falsePositiveValidated: false,
+            },
+            error: null,
+            startedAt: null,
+            finishedAt: null,
+            createdAt: '2026-03-03T09:55:00.000Z',
+            updatedAt: '2026-03-03T10:00:00.000Z',
+          },
+        ],
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: 1,
+          pages: 1,
+        },
+      },
+    })
+
+    const result = await adminContentService.listJobs({
+      page: 1,
+      limit: 10,
+      type: 'bulk_rollback',
+      status: 'queued',
+    })
+
+    expect(mockedApiClient.get).toHaveBeenCalledWith('/admin/content/jobs', {
+      params: {
+        page: 1,
+        limit: 10,
+        type: 'bulk_rollback',
+        status: 'queued',
+      },
+    })
+    expect(result.items[0]).toMatchObject({
+      id: 'job-rollback-1',
+      type: 'bulk_rollback',
+      approval: {
+        reviewStatus: 'review',
+        sampleRequired: true,
+        reviewedSampleKeys: ['article:content-1:evt-1'],
+        reviewRequestedBy: {
+          id: 'admin-2',
+        },
+        sampleItems: [
+          {
+            contentType: 'article',
+            eventId: 'evt-1',
+            automatedSeverity: 'high',
+          },
+        ],
+        riskSummary: {
+          activeRiskCount: 1,
+        },
+      },
+    })
+  })
+
+  it('submits bulk rollback jobs for review', async () => {
+    mockedApiClient.post.mockResolvedValueOnce({
+      data: {
+        message: 'Job de rollback em lote submetido para revisao.',
+        job: {
+          id: 'job-rollback-1',
+          type: 'bulk_rollback',
+          status: 'queued',
+          reason: 'Rollback validado',
+          note: null,
+          confirm: false,
+          markFalsePositive: false,
+          attemptCount: 0,
+          maxAttempts: 3,
+          items: [],
+          progress: {
+            requested: 2,
+            processed: 0,
+            succeeded: 0,
+            failed: 0,
+            changed: 0,
+          },
+          guardrails: {
+            maxItems: 50,
+            confirmThreshold: 10,
+            duplicatesSkipped: 0,
+          },
+          approval: {
+            required: true,
+            reviewStatus: 'review',
+            reviewNote: 'Passa para revisao',
+            reviewRequestedAt: '2026-03-03T10:10:00.000Z',
+            reviewRequestedBy: {
+              id: 'admin-2',
+              name: 'Reviewer',
+              role: 'admin',
+            },
+            sampleRequired: false,
+            recommendedSampleSize: 0,
+            reviewedSampleKeys: [],
+            sampleItems: [],
+            riskSummary: {
+              restoreVisibleCount: 1,
+              activeRiskCount: 0,
+              highRiskCount: 0,
+              criticalRiskCount: 0,
+              falsePositiveEligibleCount: 0,
+            },
+            falsePositiveValidationRequired: false,
+            falsePositiveValidated: false,
+          },
+          createdAt: '2026-03-03T10:00:00.000Z',
+          updatedAt: '2026-03-03T10:10:00.000Z',
+        },
+      },
+    })
+
+    const result = await adminContentService.requestBulkRollbackJobReview('job-rollback-1', {
+      note: 'Passa para revisao',
+    })
+
+    expect(mockedApiClient.post).toHaveBeenCalledWith(
+      '/admin/content/jobs/job-rollback-1/request-review',
+      {
+        note: 'Passa para revisao',
+      },
+    )
+    expect(result.job.approval).toMatchObject({
+      reviewStatus: 'review',
+      reviewNote: 'Passa para revisao',
+    })
+  })
+
+  it('approves bulk rollback jobs with reviewed sample payload', async () => {
+    mockedApiClient.post.mockResolvedValueOnce({
+      data: {
+        message: 'Job de rollback em lote aprovado.',
+        job: {
+          id: 'job-rollback-1',
+          type: 'bulk_rollback',
+          status: 'queued',
+          reason: 'Rollback validado',
+          note: null,
+          confirm: true,
+          markFalsePositive: true,
+          attemptCount: 0,
+          maxAttempts: 3,
+          items: [],
+          progress: {
+            requested: 2,
+            processed: 0,
+            succeeded: 0,
+            failed: 0,
+            changed: 0,
+          },
+          guardrails: {
+            maxItems: 50,
+            confirmThreshold: 10,
+            duplicatesSkipped: 0,
+          },
+          approval: {
+            required: true,
+            reviewStatus: 'approved',
+            reviewNote: 'Amostra revista',
+            reviewRequestedAt: '2026-03-03T10:10:00.000Z',
+            reviewRequestedBy: {
+              id: 'admin-2',
+              name: 'Reviewer',
+              role: 'admin',
+            },
+            approvalNote: 'Pode seguir',
+            approvedAt: '2026-03-03T10:15:00.000Z',
+            approvedBy: {
+              id: 'admin-3',
+              name: 'Approver',
+              role: 'admin',
+            },
+            sampleRequired: true,
+            recommendedSampleSize: 1,
+            reviewedSampleKeys: ['article:content-1:evt-1'],
+            sampleItems: [
+              {
+                contentType: 'article',
+                contentId: 'content-1',
+                eventId: 'evt-1',
+                title: 'Titulo',
+                targetStatus: 'visible',
+                openReports: 3,
+                uniqueReporters: 2,
+                automatedSeverity: 'critical',
+                creatorRiskLevel: 'high',
+                requiresConfirm: true,
+                warnings: ['Sinal auto ativo.'],
+              },
+            ],
+            riskSummary: {
+              restoreVisibleCount: 1,
+              activeRiskCount: 1,
+              highRiskCount: 1,
+              criticalRiskCount: 1,
+              falsePositiveEligibleCount: 1,
+            },
+            falsePositiveValidationRequired: true,
+            falsePositiveValidated: true,
+          },
+          createdAt: '2026-03-03T10:00:00.000Z',
+          updatedAt: '2026-03-03T10:15:00.000Z',
+        },
+      },
+    })
+
+    const result = await adminContentService.approveBulkRollbackJob('job-rollback-1', {
+      note: 'Pode seguir',
+      confirm: true,
+      falsePositiveValidated: true,
+      reviewedSampleItems: [
+        {
+          contentType: 'article',
+          contentId: 'content-1',
+          eventId: 'evt-1',
+        },
+      ],
+    })
+
+    expect(mockedApiClient.post).toHaveBeenCalledWith(
+      '/admin/content/jobs/job-rollback-1/approve',
+      {
+        note: 'Pode seguir',
+        confirm: true,
+        falsePositiveValidated: true,
+        reviewedSampleItems: [
+          {
+            contentType: 'article',
+            contentId: 'content-1',
+            eventId: 'evt-1',
+          },
+        ],
+      },
+    )
+    expect(result.job.approval).toMatchObject({
+      reviewStatus: 'approved',
+      falsePositiveValidated: true,
+      approvedBy: {
+        id: 'admin-3',
+      },
     })
   })
 })
