@@ -45,6 +45,7 @@ import { getErrorMessage } from '@/lib/api/client'
 import {
   AutomatedDetectionBadge,
   AUTOMATED_RULE_LABEL,
+  FALSE_POSITIVE_CATEGORY_LABEL,
   ReportPriorityBadge,
   RiskLevelBadge,
   TrustRecommendationBadge,
@@ -1282,11 +1283,26 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                                 : 'Sem motivo dominante por report.'}
                             </p>
                             <p>
+                              Perfil policy: {item.policySignals.profile.label} · hide/high com{' '}
+                              {item.policySignals.thresholds.highPriorityHideMinUniqueReporters}+
+                              reporters
+                            </p>
+                            <p>
                               {item.automatedSignals.active &&
                               item.automatedSignals.triggeredRules[0]
                                 ? `Auto rule: ${AUTOMATED_RULE_LABEL[item.automatedSignals.triggeredRules[0].rule]}`
                                 : 'Sem regra automatica dominante.'}
                             </p>
+                            {item.creatorTrustSignals ? (
+                              <p>
+                                FP tuning:{' '}
+                                {item.creatorTrustSignals.summary.falsePositiveCompensationScore30d}{' '}
+                                pts
+                                {item.creatorTrustSignals.summary.dominantFalsePositiveCategory30d
+                                  ? ` · ${FALSE_POSITIVE_CATEGORY_LABEL[item.creatorTrustSignals.summary.dominantFalsePositiveCategory30d]}`
+                                  : ''}
+                              </p>
+                            ) : null}
                             {item.automatedSignals.active ? (
                               <p>
                                 Origem auto: {item.automatedSignals.triggerSource ?? 'n/a'} · ultimo

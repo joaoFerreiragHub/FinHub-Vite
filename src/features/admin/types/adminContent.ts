@@ -17,6 +17,10 @@ export type AdminContentPolicyAction = 'review' | 'restrict' | 'hide' | 'none'
 export type AdminContentAutomatedSeverity = 'none' | 'low' | 'medium' | 'high' | 'critical'
 export type AdminContentAutomatedAction = 'review' | 'restrict' | 'hide' | 'none'
 export type AdminContentAutomatedRule = 'spam' | 'suspicious_link' | 'flood' | 'mass_creation'
+export type AdminContentPolicyProfileKey =
+  | 'multi_surface_discovery'
+  | 'discussion_comments'
+  | 'discussion_reviews'
 export type AdminContentJobType = 'bulk_moderate' | 'bulk_rollback'
 export type AdminContentJobStatus =
   | 'queued'
@@ -41,7 +45,17 @@ export interface AdminContentPolicySignals {
   automationEnabled: boolean
   automationBlockedReason: string | null
   matchedReasons: string[]
+  profile: {
+    key: AdminContentPolicyProfileKey
+    label: string
+    primarySurface: string
+    surfaces: string[]
+  }
   thresholds: {
+    reviewMinPriority: AdminContentReportPriority
+    restrictMinPriority: AdminContentReportPriority
+    highPriorityHideMinUniqueReporters: number
+    highRiskHideMinUniqueReporters: number
     autoHideMinPriority: AdminContentReportPriority
     autoHideMinUniqueReporters: number
     autoHideAllowedReasons: string[]

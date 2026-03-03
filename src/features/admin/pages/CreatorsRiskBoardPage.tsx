@@ -37,6 +37,8 @@ import { getErrorMessage } from '@/lib/api/client'
 import { cn } from '@/lib/utils'
 import {
   CreatorControlsSummary,
+  FALSE_POSITIVE_AUTOMATED_RULE_LABEL,
+  FALSE_POSITIVE_CATEGORY_LABEL,
   RiskLevelBadge,
   TrustRecommendationBadge,
   TrustReasonList,
@@ -1060,7 +1062,7 @@ export default function CreatorsRiskBoardPage() {
             </div>
           ) : trustDialogQuery.data ? (
             <div className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-5">
+              <div className="grid gap-4 md:grid-cols-6">
                 <div className="rounded-xl border border-border/70 p-4">
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">Risco</p>
                   <div className="mt-3 space-y-2">
@@ -1099,6 +1101,15 @@ export default function CreatorsRiskBoardPage() {
                 </div>
                 <div className="rounded-xl border border-border/70 p-4">
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Compensacao FP 30d
+                  </p>
+                  <p className="mt-3 text-2xl font-semibold">
+                    {trustDialogQuery.data.trustSignals?.summary
+                      .falsePositiveCompensationScore30d ?? 0}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-border/70 p-4">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
                     Barreiras ativas
                   </p>
                   <div className="mt-3">
@@ -1111,6 +1122,47 @@ export default function CreatorsRiskBoardPage() {
                 <CardContent className="space-y-4 pt-6">
                   <TrustScoreBar value={trustDialogQuery.data.trustSignals?.trustScore ?? 100} />
                   <TrustReasonList trustSignals={trustDialogQuery.data.trustSignals} maxItems={6} />
+                  {trustDialogQuery.data.trustSignals ? (
+                    <div className="space-y-2 rounded-lg border border-border/60 bg-muted/30 p-3 text-xs text-muted-foreground">
+                      <p className="font-medium text-foreground">Afinacao por falso positivo</p>
+                      <p>
+                        Categoria dominante:{' '}
+                        {trustDialogQuery.data.trustSignals.summary.dominantFalsePositiveCategory30d
+                          ? FALSE_POSITIVE_CATEGORY_LABEL[
+                              trustDialogQuery.data.trustSignals.summary
+                                .dominantFalsePositiveCategory30d
+                            ]
+                          : 'n/a'}
+                      </p>
+                      <p>
+                        Regra auto dominante:{' '}
+                        {trustDialogQuery.data.trustSignals.summary
+                          .dominantAutomatedFalsePositiveRule30d
+                          ? FALSE_POSITIVE_AUTOMATED_RULE_LABEL[
+                              trustDialogQuery.data.trustSignals.summary
+                                .dominantAutomatedFalsePositiveRule30d
+                            ]
+                          : 'n/a'}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {Object.entries(
+                          trustDialogQuery.data.trustSignals.summary
+                            .falsePositiveCategoryBreakdown30d,
+                        )
+                          .filter(([, count]) => count > 0)
+                          .map(([category, count]) => (
+                            <Badge key={category} variant="outline">
+                              {
+                                FALSE_POSITIVE_CATEGORY_LABEL[
+                                  category as keyof typeof FALSE_POSITIVE_CATEGORY_LABEL
+                                ]
+                              }
+                              : {count}
+                            </Badge>
+                          ))}
+                      </div>
+                    </div>
+                  ) : null}
                 </CardContent>
               </Card>
 

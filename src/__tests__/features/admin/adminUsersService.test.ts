@@ -58,6 +58,24 @@ describe('adminUsersService', () => {
                 recentModerationActions30d: 3,
                 repeatModerationTargets30d: 1,
                 recentCreatorControlActions30d: 1,
+                falsePositiveEvents30d: 2,
+                automatedFalsePositiveEvents30d: 1,
+                falsePositiveRate30d: 66.7,
+                falsePositiveCompensationScore30d: 8,
+                dominantFalsePositiveCategory30d: 'automated_detection',
+                dominantAutomatedFalsePositiveRule30d: 'suspicious_link',
+                falsePositiveCategoryBreakdown30d: {
+                  reports: 1,
+                  policy_auto_hide: 0,
+                  automated_detection: 2,
+                  manual_moderation: 0,
+                },
+                automatedFalsePositiveRuleBreakdown30d: {
+                  spam: 0,
+                  suspicious_link: 2,
+                  flood: 0,
+                  mass_creation: 0,
+                },
                 activeControlFlags: ['publishing_blocked'],
               },
               flags: ['critical_report_targets'],
@@ -118,6 +136,10 @@ describe('adminUsersService', () => {
         trustScore: 42,
         riskLevel: 'high',
         recommendedAction: 'block_publishing',
+        summary: {
+          falsePositiveCompensationScore30d: 8,
+          dominantFalsePositiveCategory30d: 'automated_detection',
+        },
       },
     })
   })
@@ -290,6 +312,24 @@ describe('adminUsersService', () => {
             recentModerationActions30d: 5,
             repeatModerationTargets30d: 2,
             recentCreatorControlActions30d: 2,
+            falsePositiveEvents30d: 3,
+            automatedFalsePositiveEvents30d: 2,
+            falsePositiveRate30d: 60,
+            falsePositiveCompensationScore30d: 10.5,
+            dominantFalsePositiveCategory30d: 'policy_auto_hide',
+            dominantAutomatedFalsePositiveRule30d: 'suspicious_link',
+            falsePositiveCategoryBreakdown30d: {
+              reports: 1,
+              policy_auto_hide: 2,
+              automated_detection: 2,
+              manual_moderation: 0,
+            },
+            automatedFalsePositiveRuleBreakdown30d: {
+              spam: 1,
+              suspicious_link: 2,
+              flood: 0,
+              mass_creation: 0,
+            },
             activeControlFlags: ['publishing_blocked'],
           },
           flags: ['critical_report_targets', 'publishing_blocked'],
@@ -312,6 +352,11 @@ describe('adminUsersService', () => {
         trustScore: 31,
         riskLevel: 'critical',
         recommendedAction: 'suspend_creator_ops',
+        summary: {
+          falsePositiveCompensationScore30d: 10.5,
+          dominantFalsePositiveCategory30d: 'policy_auto_hide',
+          dominantAutomatedFalsePositiveRule30d: 'suspicious_link',
+        },
       },
     })
   })

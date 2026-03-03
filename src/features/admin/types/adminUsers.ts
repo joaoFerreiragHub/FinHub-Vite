@@ -33,6 +33,12 @@ export type CreatorTrustRecommendedAction =
   | 'set_cooldown'
   | 'block_publishing'
   | 'suspend_creator_ops'
+export type AdminFalsePositiveCategory =
+  | 'reports'
+  | 'policy_auto_hide'
+  | 'automated_detection'
+  | 'manual_moderation'
+export type AdminCreatorAutomatedRule = 'spam' | 'suspicious_link' | 'flood' | 'mass_creation'
 
 export interface AdminActorSummary {
   id: string
@@ -69,6 +75,21 @@ export interface AdminCreatorTrustSignals {
     falsePositiveEvents30d: number
     automatedFalsePositiveEvents30d: number
     falsePositiveRate30d: number
+    falsePositiveCompensationScore30d: number
+    dominantFalsePositiveCategory30d: AdminFalsePositiveCategory | null
+    dominantAutomatedFalsePositiveRule30d: AdminCreatorAutomatedRule | null
+    falsePositiveCategoryBreakdown30d: {
+      reports: number
+      policy_auto_hide: number
+      automated_detection: number
+      manual_moderation: number
+    }
+    automatedFalsePositiveRuleBreakdown30d: {
+      spam: number
+      suspicious_link: number
+      flood: number
+      mass_creation: number
+    }
     activeControlFlags: string[]
   }
   flags: string[]

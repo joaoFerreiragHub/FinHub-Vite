@@ -92,6 +92,28 @@ Validacao desta iteracao:
 - `npm run typecheck:p1`
 - `npx jest --no-cache src/__tests__/features/admin/adminContentService.test.ts`
 
+## Bloco C fechado
+
+O Bloco C ficou fechado nesta iteracao.
+
+Entregue no frontend:
+
+- `adminUsersService` e `adminContentService` passam a mapear compensacao de falso positivo por categoria/regra;
+- trust dialogs em `/admin/users` e `/admin/creators` passam a mostrar compensacao FP 30d, categoria dominante e regra automatica dominante;
+- `ContentModerationPage` passa a mostrar o profile de policy aplicado e o threshold de hide/high por target;
+- os contratos de `trustSignals` e `policySignals` passam a incluir breakdowns de falso positivo e profile/thresholds da policy.
+
+Notas operacionais:
+
+- o frontend continua backward-compatible: quando o backend nao enviar os campos novos, o mapping faz fallback para `0` ou `null`;
+- a leitura de profile de policy ficou deliberadamente passiva, sem criar novo controlo manual na UI.
+
+Validacao desta iteracao:
+
+- `npm run typecheck:p1`
+- `npx jest --no-cache src/__tests__/features/admin/adminUsersService.test.ts`
+- `npx jest --no-cache src/__tests__/features/admin/adminContentService.test.ts`
+
 ## UX publica ligada ao control plane
 
 - centro de notificacoes passa a suportar `content_moderated`;

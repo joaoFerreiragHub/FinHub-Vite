@@ -55,6 +55,8 @@ import {
 } from '../hooks/useAdminUsers'
 import {
   CreatorControlsSummary,
+  FALSE_POSITIVE_AUTOMATED_RULE_LABEL,
+  FALSE_POSITIVE_CATEGORY_LABEL,
   RiskLevelBadge,
   TrustRecommendationBadge,
   TrustReasonList,
@@ -1228,7 +1230,7 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
                 </div>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-5">
+              <div className="grid gap-3 md:grid-cols-6">
                 <Card>
                   <CardHeader className="pb-2">
                     <CardDescription>Reports abertos</CardDescription>
@@ -1271,6 +1273,15 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
                     </CardTitle>
                   </CardHeader>
                 </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardDescription>Compensacao FP 30d</CardDescription>
+                    <CardTitle className="text-2xl">
+                      {trustProfileQuery.data.trustSignals?.summary
+                        .falsePositiveCompensationScore30d ?? 0}
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
               </div>
 
               <div className="grid gap-4 md:grid-cols-[1.2fr_0.8fr]">
@@ -1293,6 +1304,48 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
                         </Badge>
                       ))}
                     </div>
+                    {trustProfileQuery.data.trustSignals ? (
+                      <div className="space-y-2 rounded-lg border border-border/60 bg-muted/30 p-3 text-xs text-muted-foreground">
+                        <p className="font-medium text-foreground">Afinacao por falso positivo</p>
+                        <p>
+                          Categoria dominante:{' '}
+                          {trustProfileQuery.data.trustSignals.summary
+                            .dominantFalsePositiveCategory30d
+                            ? FALSE_POSITIVE_CATEGORY_LABEL[
+                                trustProfileQuery.data.trustSignals.summary
+                                  .dominantFalsePositiveCategory30d
+                              ]
+                            : 'n/a'}
+                        </p>
+                        <p>
+                          Regra auto dominante:{' '}
+                          {trustProfileQuery.data.trustSignals.summary
+                            .dominantAutomatedFalsePositiveRule30d
+                            ? FALSE_POSITIVE_AUTOMATED_RULE_LABEL[
+                                trustProfileQuery.data.trustSignals.summary
+                                  .dominantAutomatedFalsePositiveRule30d
+                              ]
+                            : 'n/a'}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {Object.entries(
+                            trustProfileQuery.data.trustSignals.summary
+                              .falsePositiveCategoryBreakdown30d,
+                          )
+                            .filter(([, count]) => count > 0)
+                            .map(([category, count]) => (
+                              <Badge key={category} variant="outline">
+                                {
+                                  FALSE_POSITIVE_CATEGORY_LABEL[
+                                    category as keyof typeof FALSE_POSITIVE_CATEGORY_LABEL
+                                  ]
+                                }
+                                : {count}
+                              </Badge>
+                            ))}
+                        </div>
+                      </div>
+                    ) : null}
                   </CardContent>
                 </Card>
 

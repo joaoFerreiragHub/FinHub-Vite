@@ -68,6 +68,21 @@ interface BackendAdminUserRecord {
       falsePositiveEvents30d?: number
       automatedFalsePositiveEvents30d?: number
       falsePositiveRate30d?: number
+      falsePositiveCompensationScore30d?: number
+      dominantFalsePositiveCategory30d?: string | null
+      dominantAutomatedFalsePositiveRule30d?: string | null
+      falsePositiveCategoryBreakdown30d?: {
+        reports?: number
+        policy_auto_hide?: number
+        automated_detection?: number
+        manual_moderation?: number
+      }
+      automatedFalsePositiveRuleBreakdown30d?: {
+        spam?: number
+        suspicious_link?: number
+        flood?: number
+        mass_creation?: number
+      }
       activeControlFlags?: string[]
     }
     flags?: string[]
@@ -273,6 +288,62 @@ const mapTrustSignals = (
         typeof signals.summary?.falsePositiveRate30d === 'number'
           ? signals.summary.falsePositiveRate30d
           : 0,
+      falsePositiveCompensationScore30d:
+        typeof signals.summary?.falsePositiveCompensationScore30d === 'number'
+          ? signals.summary.falsePositiveCompensationScore30d
+          : 0,
+      dominantFalsePositiveCategory30d:
+        signals.summary?.dominantFalsePositiveCategory30d === 'reports' ||
+        signals.summary?.dominantFalsePositiveCategory30d === 'policy_auto_hide' ||
+        signals.summary?.dominantFalsePositiveCategory30d === 'automated_detection' ||
+        signals.summary?.dominantFalsePositiveCategory30d === 'manual_moderation'
+          ? signals.summary.dominantFalsePositiveCategory30d
+          : null,
+      dominantAutomatedFalsePositiveRule30d:
+        signals.summary?.dominantAutomatedFalsePositiveRule30d === 'spam' ||
+        signals.summary?.dominantAutomatedFalsePositiveRule30d === 'suspicious_link' ||
+        signals.summary?.dominantAutomatedFalsePositiveRule30d === 'flood' ||
+        signals.summary?.dominantAutomatedFalsePositiveRule30d === 'mass_creation'
+          ? signals.summary.dominantAutomatedFalsePositiveRule30d
+          : null,
+      falsePositiveCategoryBreakdown30d: {
+        reports:
+          typeof signals.summary?.falsePositiveCategoryBreakdown30d?.reports === 'number'
+            ? signals.summary.falsePositiveCategoryBreakdown30d.reports
+            : 0,
+        policy_auto_hide:
+          typeof signals.summary?.falsePositiveCategoryBreakdown30d?.policy_auto_hide === 'number'
+            ? signals.summary.falsePositiveCategoryBreakdown30d.policy_auto_hide
+            : 0,
+        automated_detection:
+          typeof signals.summary?.falsePositiveCategoryBreakdown30d?.automated_detection ===
+          'number'
+            ? signals.summary.falsePositiveCategoryBreakdown30d.automated_detection
+            : 0,
+        manual_moderation:
+          typeof signals.summary?.falsePositiveCategoryBreakdown30d?.manual_moderation === 'number'
+            ? signals.summary.falsePositiveCategoryBreakdown30d.manual_moderation
+            : 0,
+      },
+      automatedFalsePositiveRuleBreakdown30d: {
+        spam:
+          typeof signals.summary?.automatedFalsePositiveRuleBreakdown30d?.spam === 'number'
+            ? signals.summary.automatedFalsePositiveRuleBreakdown30d.spam
+            : 0,
+        suspicious_link:
+          typeof signals.summary?.automatedFalsePositiveRuleBreakdown30d?.suspicious_link ===
+          'number'
+            ? signals.summary.automatedFalsePositiveRuleBreakdown30d.suspicious_link
+            : 0,
+        flood:
+          typeof signals.summary?.automatedFalsePositiveRuleBreakdown30d?.flood === 'number'
+            ? signals.summary.automatedFalsePositiveRuleBreakdown30d.flood
+            : 0,
+        mass_creation:
+          typeof signals.summary?.automatedFalsePositiveRuleBreakdown30d?.mass_creation === 'number'
+            ? signals.summary.automatedFalsePositiveRuleBreakdown30d.mass_creation
+            : 0,
+      },
       activeControlFlags: Array.isArray(signals.summary?.activeControlFlags)
         ? signals.summary.activeControlFlags.filter(
             (item): item is string => typeof item === 'string',

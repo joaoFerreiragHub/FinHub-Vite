@@ -97,7 +97,23 @@ describe('adminContentService', () => {
               automationEnabled: false,
               automationBlockedReason: 'auto_hide_disabled',
               matchedReasons: ['scam'],
+              profile: {
+                key: 'multi_surface_discovery',
+                label: 'Discovery multi-superficie',
+                primarySurface: 'editorial_home',
+                surfaces: [
+                  'editorial_home',
+                  'editorial_verticals',
+                  'creator_page',
+                  'search',
+                  'derived_feeds',
+                ],
+              },
               thresholds: {
+                reviewMinPriority: 'low',
+                restrictMinPriority: 'medium',
+                highPriorityHideMinUniqueReporters: 2,
+                highRiskHideMinUniqueReporters: 2,
                 autoHideMinPriority: 'critical',
                 autoHideMinUniqueReporters: 3,
                 autoHideAllowedReasons: ['scam'],
@@ -117,6 +133,24 @@ describe('adminContentService', () => {
                 recentModerationActions30d: 2,
                 repeatModerationTargets30d: 1,
                 recentCreatorControlActions30d: 0,
+                falsePositiveEvents30d: 2,
+                automatedFalsePositiveEvents30d: 1,
+                falsePositiveRate30d: 100,
+                falsePositiveCompensationScore30d: 8,
+                dominantFalsePositiveCategory30d: 'automated_detection',
+                dominantAutomatedFalsePositiveRule30d: 'suspicious_link',
+                falsePositiveCategoryBreakdown30d: {
+                  reports: 1,
+                  policy_auto_hide: 0,
+                  automated_detection: 2,
+                  manual_moderation: 0,
+                },
+                automatedFalsePositiveRuleBreakdown30d: {
+                  spam: 0,
+                  suspicious_link: 2,
+                  flood: 0,
+                  mass_creation: 0,
+                },
                 activeControlFlags: [],
               },
               flags: ['critical_report_targets'],
@@ -171,6 +205,14 @@ describe('adminContentService', () => {
         triggeredRules: [{ rule: 'suspicious_link' }],
       },
       creatorTrustSignals: { riskLevel: 'high' },
+      policySignals: {
+        profile: {
+          key: 'multi_surface_discovery',
+        },
+        thresholds: {
+          highPriorityHideMinUniqueReporters: 2,
+        },
+      },
     })
   })
 
@@ -336,7 +378,18 @@ describe('adminContentService', () => {
             automationEnabled: false,
             automationBlockedReason: null,
             matchedReasons: [],
-            thresholds: {},
+            profile: {
+              key: 'multi_surface_discovery',
+              label: 'Discovery multi-superficie',
+              primarySurface: 'editorial_home',
+              surfaces: ['editorial_home'],
+            },
+            thresholds: {
+              reviewMinPriority: 'low',
+              restrictMinPriority: 'medium',
+              highPriorityHideMinUniqueReporters: 2,
+              highRiskHideMinUniqueReporters: 2,
+            },
           },
           creatorTrustSignals: {
             trustScore: 42,
@@ -352,6 +405,20 @@ describe('adminContentService', () => {
               recentModerationActions30d: 1,
               repeatModerationTargets30d: 0,
               recentCreatorControlActions30d: 0,
+              falsePositiveCompensationScore30d: 4,
+              dominantFalsePositiveCategory30d: 'reports',
+              falsePositiveCategoryBreakdown30d: {
+                reports: 1,
+                policy_auto_hide: 0,
+                automated_detection: 0,
+                manual_moderation: 0,
+              },
+              automatedFalsePositiveRuleBreakdown30d: {
+                spam: 0,
+                suspicious_link: 0,
+                flood: 0,
+                mass_creation: 0,
+              },
               activeControlFlags: [],
             },
             flags: [],

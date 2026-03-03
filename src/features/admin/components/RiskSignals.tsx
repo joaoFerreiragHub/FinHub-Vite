@@ -2,8 +2,10 @@ import { AlertTriangle, ShieldAlert, ShieldCheck } from 'lucide-react'
 import { Badge, Progress } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import type {
+  AdminCreatorAutomatedRule,
   AdminCreatorControls,
   AdminCreatorTrustSignals,
+  AdminFalsePositiveCategory,
   CreatorRiskLevel,
   CreatorTrustRecommendedAction,
 } from '../types/adminUsers'
@@ -45,6 +47,20 @@ export const AUTOMATED_SEVERITY_LABEL: Record<AdminContentAutomatedSeverity, str
 }
 
 export const AUTOMATED_RULE_LABEL: Record<AdminContentAutomatedRule, string> = {
+  spam: 'Spam',
+  suspicious_link: 'Links suspeitos',
+  flood: 'Flood',
+  mass_creation: 'Criacao em massa',
+}
+
+export const FALSE_POSITIVE_CATEGORY_LABEL: Record<AdminFalsePositiveCategory, string> = {
+  reports: 'Reports',
+  policy_auto_hide: 'Policy auto-hide',
+  automated_detection: 'Detecao automatica',
+  manual_moderation: 'Moderacao manual',
+}
+
+export const FALSE_POSITIVE_AUTOMATED_RULE_LABEL: Record<AdminCreatorAutomatedRule, string> = {
   spam: 'Spam',
   suspicious_link: 'Links suspeitos',
   flood: 'Flood',
