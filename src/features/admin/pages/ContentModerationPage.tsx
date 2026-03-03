@@ -54,6 +54,7 @@ import {
   useAdminContentHistory,
   useAdminContentJobs,
   useAdminContentRollbackReview,
+  useAdminContentWorkerStatus,
   useAdminContentQueue,
   useCreateBulkModerationJob,
   useHideAdminContent,
@@ -266,6 +267,26 @@ const JOB_STATUS_LABEL: Record<AdminContentJob['status'], string> = {
   failed: 'Falhou',
 }
 
+const WORKER_STATUS_LABEL: Record<
+  'offline' | 'starting' | 'idle' | 'processing' | 'stopping' | 'stale',
+  string
+> = {
+  offline: 'Offline',
+  starting: 'A iniciar',
+  idle: 'Idle',
+  processing: 'A processar',
+  stopping: 'A parar',
+  stale: 'Stale',
+}
+
+const WORKER_STATUS_BADGE = (
+  status: 'offline' | 'starting' | 'idle' | 'processing' | 'stopping' | 'stale',
+): 'secondary' | 'outline' | 'destructive' => {
+  if (status === 'processing') return 'secondary'
+  if (status === 'idle' || status === 'starting') return 'outline'
+  return 'destructive'
+}
+
 export default function ContentModerationPage({ embedded = false }: ContentModerationPageProps) {
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS)
   const [queryFilters, setQueryFilters] = useState<FilterState>(INITIAL_FILTERS)
@@ -327,6 +348,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
   const restrictMutation = useRestrictAdminContent()
   const rollbackMutation = useRollbackAdminContent()
   const jobsQuery = useAdminContentJobs({ page: 1, limit: 6 }, { enabled: canReadContent })
+  const workerStatusQuery = useAdminContentWorkerStatus({ enabled: canReadContent })
   const bulkJobMutation = useCreateBulkModerationJob()
 
   const isActionPending =
@@ -931,7 +953,63 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
             <CardTitle>Jobs recentes</CardTitle>
             <CardDescription>Últimos jobs de moderacao e rollback em lote.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            {workerStatusQuery.isError ? (
+              <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+                {getErrorMessage(workerStatusQuery.error)}
+              </div>
+            ) : workerStatusQuery.data ? (
+              <div className="rounded-lg border border-border/70 bg-muted/20 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant={WORKER_STATUS_BADGE(workerStatusQuery.data.worker.status)}>
+                      {WORKER_STATUS_LABEL[workerStatusQuery.data.worker.status]}
+                    </Badge>
+                    {workerStatusQuery.data.worker.workerId ? (
+                      <Badge variant="outline">{workerStatusQuery.data.worker.workerId}</Badge>
+                    ) : null}
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    Heartbeat: {formatDateTime(workerStatusQuery.data.worker.lastHeartbeatAt)}
+                  </span>
+                </div>
+
+                <div className="mt-3 grid gap-2 text-xs text-muted-foreground md:grid-cols-2">
+                  <p>
+                    Fila: {workerStatusQuery.data.queue.queued} | running{' '}
+                    {workerStatusQuery.data.queue.running}
+                  </p>
+                  <p>Retries em curso: {workerStatusQuery.data.queue.retrying}</p>
+                  <p>Running stale: {workerStatusQuery.data.queue.staleRunning}</p>
+                  <p>Falhas 24h: {workerStatusQuery.data.queue.failedLast24h}</p>
+                  <p>Max attempts atingido: {workerStatusQuery.data.queue.maxAttemptsReached}</p>
+                  <p>
+                    Lease: {Math.round(workerStatusQuery.data.config.leaseMs / 1000)}s | heartbeat{' '}
+                    {Math.round(workerStatusQuery.data.config.heartbeatMs / 1000)}s
+                  </p>
+                </div>
+
+                {workerStatusQuery.data.currentJob ? (
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    Job atual:{' '}
+                    {workerStatusQuery.data.currentJob.type === 'bulk_rollback'
+                      ? 'Rollback'
+                      : 'Moderacao'}{' '}
+                    | tentativa {workerStatusQuery.data.currentJob.attemptCount}/
+                    {workerStatusQuery.data.currentJob.maxAttempts} |{' '}
+                    {workerStatusQuery.data.currentJob.progress.processed}/
+                    {workerStatusQuery.data.currentJob.progress.requested} processados
+                  </p>
+                ) : null}
+
+                {workerStatusQuery.data.worker.lastError ? (
+                  <p className="mt-2 text-xs text-amber-700">
+                    Ultimo erro: {workerStatusQuery.data.worker.lastError}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+
             {jobsQuery.isLoading ? (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />A carregar jobs...
@@ -970,8 +1048,18 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                       {job.progress.succeeded} | falhas {job.progress.failed}
                     </p>
                     <p className="text-xs text-muted-foreground">
+                      Tentativa: {job.attemptCount}/{job.maxAttempts}
+                      {job.workerId ? ` | worker ${job.workerId}` : ''}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
                       Actor: {job.actor?.name || job.actor?.username || job.actor?.id || 'n/a'}
                     </p>
+                    {job.status === 'running' ? (
+                      <p className="text-xs text-muted-foreground">
+                        Heartbeat: {formatDateTime(job.lastHeartbeatAt)} | lease ate{' '}
+                        {formatDateTime(job.leaseExpiresAt)}
+                      </p>
+                    ) : null}
                   </div>
                 ))}
               </div>

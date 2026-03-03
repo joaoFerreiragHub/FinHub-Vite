@@ -232,6 +232,11 @@ export interface AdminContentJob {
   note: string | null
   confirm: boolean
   markFalsePositive: boolean
+  attemptCount: number
+  maxAttempts: number
+  workerId: string | null
+  leaseExpiresAt: string | null
+  lastHeartbeatAt: string | null
   actor: AdminActorSummary | null
   items: AdminContentJobItem[]
   progress: {
@@ -256,6 +261,47 @@ export interface AdminContentJob {
 export interface AdminContentJobsResponse {
   items: AdminContentJob[]
   pagination: AdminPagination
+}
+
+export interface AdminContentJobWorkerStatus {
+  generatedAt: string
+  worker: {
+    key: 'admin_content_jobs'
+    status: 'offline' | 'starting' | 'idle' | 'processing' | 'stopping' | 'stale'
+    workerId: string | null
+    processId: number | null
+    host: string | null
+    startedAt: string | null
+    stoppedAt: string | null
+    lastHeartbeatAt: string | null
+    currentJobId: string | null
+    currentJobType: AdminContentJobType | null
+    currentJobStartedAt: string | null
+    lastJobFinishedAt: string | null
+    stats: {
+      claimedJobs: number
+      completedJobs: number
+      failedJobs: number
+      requeuedJobs: number
+    }
+    lastError: string | null
+    lastErrorAt: string | null
+  }
+  queue: {
+    queued: number
+    running: number
+    staleRunning: number
+    retrying: number
+    maxAttemptsReached: number
+    failedLast24h: number
+  }
+  currentJob: AdminContentJob | null
+  config: {
+    leaseMs: number
+    heartbeatMs: number
+    staleAfterMs: number
+    maxAttempts: number
+  }
 }
 
 export interface AdminBulkModerationJobPayload extends AdminContentModerationActionPayload {

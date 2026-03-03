@@ -55,6 +55,15 @@ export function useAdminContentJobs(
   })
 }
 
+export function useAdminContentWorkerStatus(options?: AdminContentQueueOptions) {
+  return useQuery({
+    queryKey: ['admin', 'content', 'jobs', 'worker-status'],
+    queryFn: () => adminContentService.getWorkerStatus(),
+    enabled: options?.enabled ?? true,
+    refetchInterval: 10_000,
+  })
+}
+
 export function useAdminContentHistory(
   contentType: AdminContentType | null,
   contentId: string | null,
@@ -169,6 +178,7 @@ export function useCreateBulkModerationJob() {
       adminContentService.createBulkModerationJob(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'jobs'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'jobs', 'worker-status'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'metrics', 'overview'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'metrics', 'drilldown'] })
     },

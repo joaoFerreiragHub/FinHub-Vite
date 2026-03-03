@@ -9,6 +9,7 @@ import type {
   AdminBulkModerationJobPayload,
   AdminBulkModerationJobResponse,
   AdminContentJob,
+  AdminContentJobWorkerStatus,
   AdminContentJobsResponse,
   AdminContentModerationActionPayload,
   AdminContentModerationActionResponse,
@@ -235,6 +236,11 @@ interface BackendJobRecord {
   note?: string | null
   confirm?: boolean
   markFalsePositive?: boolean
+  attemptCount?: number
+  maxAttempts?: number
+  workerId?: string | null
+  leaseExpiresAt?: string | null
+  lastHeartbeatAt?: string | null
   actor?: BackendActorSummary | null
   items?: BackendJobItem[]
   progress?: {
@@ -264,6 +270,47 @@ interface BackendJobsResponse {
 interface BackendJobMutationResponse {
   message?: string
   job?: BackendJobRecord
+}
+
+interface BackendJobWorkerStatusResponse {
+  generatedAt?: string
+  worker?: {
+    key?: string
+    status?: string
+    workerId?: string | null
+    processId?: number | null
+    host?: string | null
+    startedAt?: string | null
+    stoppedAt?: string | null
+    lastHeartbeatAt?: string | null
+    currentJobId?: string | null
+    currentJobType?: string | null
+    currentJobStartedAt?: string | null
+    lastJobFinishedAt?: string | null
+    stats?: {
+      claimedJobs?: number
+      completedJobs?: number
+      failedJobs?: number
+      requeuedJobs?: number
+    }
+    lastError?: string | null
+    lastErrorAt?: string | null
+  }
+  queue?: {
+    queued?: number
+    running?: number
+    staleRunning?: number
+    retrying?: number
+    maxAttemptsReached?: number
+    failedLast24h?: number
+  }
+  currentJob?: BackendJobRecord | null
+  config?: {
+    leaseMs?: number
+    heartbeatMs?: number
+    staleAfterMs?: number
+    maxAttempts?: number
+  }
 }
 
 const DEFAULT_PAGE = 1
@@ -644,6 +691,11 @@ const mapJob = (item: BackendJobRecord): AdminContentJob | null => {
     note: typeof item.note === 'string' ? item.note : null,
     confirm: Boolean(item.confirm),
     markFalsePositive: Boolean(item.markFalsePositive),
+    attemptCount: typeof item.attemptCount === 'number' ? item.attemptCount : 0,
+    maxAttempts: typeof item.maxAttempts === 'number' ? item.maxAttempts : 3,
+    workerId: typeof item.workerId === 'string' ? item.workerId : null,
+    leaseExpiresAt: toIsoDate(item.leaseExpiresAt) ?? null,
+    lastHeartbeatAt: toIsoDate(item.lastHeartbeatAt) ?? null,
     actor: mapActor(item.actor),
     items: Array.isArray(item.items)
       ? item.items
@@ -702,6 +754,65 @@ const mapJob = (item: BackendJobRecord): AdminContentJob | null => {
     updatedAt: toIsoDate(item.updatedAt) ?? new Date(0).toISOString(),
   }
 }
+
+const mapJobWorkerStatus = (data: BackendJobWorkerStatusResponse): AdminContentJobWorkerStatus => ({
+  generatedAt: toIsoDate(data.generatedAt) ?? new Date(0).toISOString(),
+  worker: {
+    key: data.worker?.key === 'admin_content_jobs' ? 'admin_content_jobs' : 'admin_content_jobs',
+    status:
+      data.worker?.status === 'starting' ||
+      data.worker?.status === 'idle' ||
+      data.worker?.status === 'processing' ||
+      data.worker?.status === 'stopping' ||
+      data.worker?.status === 'offline' ||
+      data.worker?.status === 'stale'
+        ? data.worker.status
+        : 'offline',
+    workerId: typeof data.worker?.workerId === 'string' ? data.worker.workerId : null,
+    processId: typeof data.worker?.processId === 'number' ? data.worker.processId : null,
+    host: typeof data.worker?.host === 'string' ? data.worker.host : null,
+    startedAt: toIsoDate(data.worker?.startedAt) ?? null,
+    stoppedAt: toIsoDate(data.worker?.stoppedAt) ?? null,
+    lastHeartbeatAt: toIsoDate(data.worker?.lastHeartbeatAt) ?? null,
+    currentJobId: typeof data.worker?.currentJobId === 'string' ? data.worker.currentJobId : null,
+    currentJobType:
+      data.worker?.currentJobType === 'bulk_rollback'
+        ? 'bulk_rollback'
+        : data.worker?.currentJobType === 'bulk_moderate'
+          ? 'bulk_moderate'
+          : null,
+    currentJobStartedAt: toIsoDate(data.worker?.currentJobStartedAt) ?? null,
+    lastJobFinishedAt: toIsoDate(data.worker?.lastJobFinishedAt) ?? null,
+    stats: {
+      claimedJobs:
+        typeof data.worker?.stats?.claimedJobs === 'number' ? data.worker.stats.claimedJobs : 0,
+      completedJobs:
+        typeof data.worker?.stats?.completedJobs === 'number' ? data.worker.stats.completedJobs : 0,
+      failedJobs:
+        typeof data.worker?.stats?.failedJobs === 'number' ? data.worker.stats.failedJobs : 0,
+      requeuedJobs:
+        typeof data.worker?.stats?.requeuedJobs === 'number' ? data.worker.stats.requeuedJobs : 0,
+    },
+    lastError: typeof data.worker?.lastError === 'string' ? data.worker.lastError : null,
+    lastErrorAt: toIsoDate(data.worker?.lastErrorAt) ?? null,
+  },
+  queue: {
+    queued: typeof data.queue?.queued === 'number' ? data.queue.queued : 0,
+    running: typeof data.queue?.running === 'number' ? data.queue.running : 0,
+    staleRunning: typeof data.queue?.staleRunning === 'number' ? data.queue.staleRunning : 0,
+    retrying: typeof data.queue?.retrying === 'number' ? data.queue.retrying : 0,
+    maxAttemptsReached:
+      typeof data.queue?.maxAttemptsReached === 'number' ? data.queue.maxAttemptsReached : 0,
+    failedLast24h: typeof data.queue?.failedLast24h === 'number' ? data.queue.failedLast24h : 0,
+  },
+  currentJob: data.currentJob ? mapJob(data.currentJob) : null,
+  config: {
+    leaseMs: typeof data.config?.leaseMs === 'number' ? data.config.leaseMs : 0,
+    heartbeatMs: typeof data.config?.heartbeatMs === 'number' ? data.config.heartbeatMs : 0,
+    staleAfterMs: typeof data.config?.staleAfterMs === 'number' ? data.config.staleAfterMs : 0,
+    maxAttempts: typeof data.config?.maxAttempts === 'number' ? data.config.maxAttempts : 0,
+  },
+})
 
 const mapQueueItem = (item: BackendContentQueueItem): AdminContentQueueItem | null => {
   const id = resolveId(item)
@@ -985,6 +1096,14 @@ export const adminContentService = {
         .filter((item): item is AdminContentJob => item !== null),
       pagination: normalizePagination(response.data.pagination),
     }
+  },
+
+  getWorkerStatus: async (): Promise<AdminContentJobWorkerStatus> => {
+    const response = await apiClient.get<BackendJobWorkerStatusResponse>(
+      '/admin/content/jobs/worker-status',
+    )
+
+    return mapJobWorkerStatus(response.data)
   },
 
   createBulkModerationJob: async (

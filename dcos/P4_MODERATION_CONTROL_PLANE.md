@@ -70,6 +70,28 @@ Validacao desta iteracao:
 - `npm run typecheck:p1`
 - `npx jest --no-cache src/__tests__/features/admin/adminOperationalAlertsService.test.ts src/__tests__/features/platform/publicSurfaceControlsService.test.ts`
 
+## Bloco B fechado
+
+O Bloco B tambem ficou fechado nesta iteracao.
+
+Entregue no frontend:
+
+- `ContentModerationPage` passa a ler `/admin/content/jobs/worker-status`;
+- o admin ve estado do worker dedicado, backlog, retries, jobs stale e falhas recentes;
+- jobs recentes mostram tentativa atual, `workerId`, heartbeat e lease quando estao `running`;
+- os tipos/contracts de jobs passaram a incluir `attemptCount`, `maxAttempts`, `workerId`, `leaseExpiresAt` e `lastHeartbeatAt`.
+
+Notas operacionais:
+
+- o frontend ja nao assume que jobs `running` implicam worker saudavel;
+- `stale` passou a ser um estado explicito de leitura, em vez de inferencia manual por timestamps;
+- a criacao de job invalida tambem o query cache de `worker-status`.
+
+Validacao desta iteracao:
+
+- `npm run typecheck:p1`
+- `npx jest --no-cache src/__tests__/features/admin/adminContentService.test.ts`
+
 ## UX publica ligada ao control plane
 
 - centro de notificacoes passa a suportar `content_moderated`;
@@ -104,7 +126,7 @@ Camadas principais atualizadas:
    - hooks criticos;
    - dialogs de confirmacao.
 3. Deep-links adicionais entre dashboard, queue, trust profile e jobs.
-4. E2E dedicado para os novos estados publicos de superficies.
+4. E2E dedicado para worker status, retries e estados stale no admin.
 
 ## Pre-release obrigatorio
 

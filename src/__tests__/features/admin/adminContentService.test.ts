@@ -521,4 +521,108 @@ describe('adminContentService', () => {
       requiresConfirm: true,
     })
   })
+
+  it('maps worker status payload for admin jobs', async () => {
+    mockedApiClient.get.mockResolvedValueOnce({
+      data: {
+        generatedAt: '2026-03-03T10:00:00.000Z',
+        worker: {
+          key: 'admin_content_jobs',
+          status: 'processing',
+          workerId: 'admin-content-jobs:host:1234:abcd1234',
+          processId: 1234,
+          host: 'host',
+          startedAt: '2026-03-03T09:50:00.000Z',
+          lastHeartbeatAt: '2026-03-03T10:00:00.000Z',
+          currentJobId: 'job-1',
+          currentJobType: 'bulk_moderate',
+          currentJobStartedAt: '2026-03-03T09:59:00.000Z',
+          lastJobFinishedAt: '2026-03-03T09:45:00.000Z',
+          stats: {
+            claimedJobs: 8,
+            completedJobs: 6,
+            failedJobs: 1,
+            requeuedJobs: 1,
+          },
+          lastError: null,
+          lastErrorAt: null,
+        },
+        queue: {
+          queued: 4,
+          running: 1,
+          staleRunning: 0,
+          retrying: 2,
+          maxAttemptsReached: 1,
+          failedLast24h: 3,
+        },
+        currentJob: {
+          id: 'job-1',
+          type: 'bulk_moderate',
+          status: 'running',
+          action: 'hide',
+          reason: 'Spam coordenado',
+          note: null,
+          confirm: true,
+          markFalsePositive: false,
+          attemptCount: 2,
+          maxAttempts: 3,
+          workerId: 'admin-content-jobs:host:1234:abcd1234',
+          leaseExpiresAt: '2026-03-03T10:01:00.000Z',
+          lastHeartbeatAt: '2026-03-03T10:00:00.000Z',
+          actor: {
+            id: 'admin-1',
+            name: 'Admin',
+            role: 'admin',
+          },
+          items: [],
+          progress: {
+            requested: 10,
+            processed: 6,
+            succeeded: 5,
+            failed: 1,
+            changed: 5,
+          },
+          guardrails: {
+            maxItems: 50,
+            confirmThreshold: 10,
+            duplicatesSkipped: 0,
+          },
+          error: null,
+          startedAt: '2026-03-03T09:59:00.000Z',
+          finishedAt: null,
+          createdAt: '2026-03-03T09:58:00.000Z',
+          updatedAt: '2026-03-03T10:00:00.000Z',
+        },
+        config: {
+          leaseMs: 60000,
+          heartbeatMs: 5000,
+          staleAfterMs: 60000,
+          maxAttempts: 3,
+        },
+      },
+    })
+
+    const result = await adminContentService.getWorkerStatus()
+
+    expect(mockedApiClient.get).toHaveBeenCalledWith('/admin/content/jobs/worker-status')
+    expect(result.worker).toMatchObject({
+      status: 'processing',
+      processId: 1234,
+      stats: {
+        claimedJobs: 8,
+        requeuedJobs: 1,
+      },
+    })
+    expect(result.queue).toMatchObject({
+      queued: 4,
+      retrying: 2,
+      maxAttemptsReached: 1,
+    })
+    expect(result.currentJob).toMatchObject({
+      id: 'job-1',
+      status: 'running',
+      attemptCount: 2,
+      maxAttempts: 3,
+    })
+  })
 })
