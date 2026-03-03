@@ -135,6 +135,18 @@ Validacao desta iteracao:
 - `npm run typecheck:p1`
 - `npx jest --no-cache src/__tests__/features/admin/adminContentService.test.ts`
 
+## Follow-up operacional fechado
+
+Entregue nesta iteracao:
+
+- E2E dedicado `e2e/admin.rollback-jobs.p4.spec.ts` para o fluxo `draft -> review -> running` nos jobs `bulk_rollback`;
+- cobertura do caminho `request-review -> approve -> worker-status`, incluindo amostra obrigatoria, confirmacao forte e validacao de false positive;
+- runbook admin estendido em `dcos/RUNBOOK_ADMIN_OPERACIONAL.md` com passos de triagem para rollback em lote e leitura do worker.
+
+Validacao desta iteracao:
+
+- `npm run test:e2e -- e2e/admin.rollback-jobs.p4.spec.ts`
+
 ## UX publica ligada ao control plane
 
 - centro de notificacoes passa a suportar `content_moderated`;
@@ -163,19 +175,17 @@ Camadas principais atualizadas:
 
 ## O que ainda falta antes de fechar o P4
 
-1. E2E dedicados aos fluxos novos do Moderation Control Plane.
+1. E2E dedicados adicionais aos fluxos novos do Moderation Control Plane.
 2. Mais testes frontend fora do happy path:
    - services em erro;
    - hooks criticos;
    - dialogs de confirmacao.
 3. Deep-links adicionais entre dashboard, queue, trust profile e jobs.
 4. E2E dedicado para worker status, retries e estados stale no admin.
-5. E2E dedicado para `bulk rollback` com `request-review` e `approve`.
 
 ## Pre-release obrigatorio
 
 Antes de producao, manter alinhado com o backend:
 
 1. limpar bypass TLS de ambiente (`NODE_TLS_REJECT_UNAUTHORIZED=0` ou equivalente);
-2. fechar runbook operacional para alertas novos;
-3. garantir cobertura minima de E2E para os fluxos criticos do control plane.
+2. garantir cobertura minima de E2E para os fluxos criticos restantes do control plane.

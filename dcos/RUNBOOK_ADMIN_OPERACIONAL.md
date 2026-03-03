@@ -19,6 +19,9 @@ Escopo: operacao administrativa critica (users, moderacao de conteudo, control p
   - users: `GET /api/admin/users/:userId/history`
   - conteudo: `GET /api/admin/content/:contentType/:contentId/history`
   - suporte: `GET /api/admin/support/sessions/:sessionId/history`
+- Jobs de moderacao/rollback:
+  - `GET /api/admin/content/jobs`
+  - `GET /api/admin/content/jobs/worker-status`
 
 ## 3) Tipos de alerta e severidade
 - `ban_applied` (critical)
@@ -151,8 +154,8 @@ Escopo: operacao administrativa critica (users, moderacao de conteudo, control p
 
 ### 6.11 Kill switches por superficie
 1. Confirmar que a superficie correta foi desligada:
-   - `editorial_home`
-   - `editorial_verticals`
+  - `editorial_home`
+  - `editorial_verticals`
    - `comments_read`
    - `comments_write`
    - `reviews_read`
@@ -166,6 +169,45 @@ Escopo: operacao administrativa critica (users, moderacao de conteudo, control p
    - incidente contido;
    - backlog triado;
    - owner operacional alinhado.
+
+### 6.12 Rollback em lote com aprovacao faseada
+1. Abrir `/admin/conteudo` e localizar o lote em "Jobs recentes".
+2. Se o job estiver em `draft`:
+   - abrir `Submeter revisao`;
+   - registar nota curta com contexto do lote, janela operacional e evidencias.
+3. Se o job estiver em `review`:
+   - validar `riskSummary`;
+   - rever toda a amostra obrigatoria;
+   - confirmar manualmente `false positive` quando aplicavel;
+   - usar confirmacao forte quando existirem thresholds criticos.
+4. Aprovar apenas quando:
+   - todos os itens da amostra foram revistos;
+   - a reativacao publica faz sentido;
+   - o motivo final fica registado na nota de aprovacao.
+5. Depois da aprovacao:
+   - confirmar que o lote sai de `awaitingApproval`;
+   - seguir o `worker-status` ate aparecer em `running` ou `completed`.
+
+### 6.13 Worker de jobs de moderacao e rollback
+1. Ler `GET /api/admin/content/jobs/worker-status` ou o card homologo em `/admin/conteudo`.
+2. Interpretacao minima:
+   - `queued`: backlog executavel;
+   - `awaitingApproval`: rollbacks em `draft/review`, ainda bloqueados;
+   - `running`: jobs em processamento;
+   - `staleRunning`: jobs com lease/heartbeat suspeitos;
+   - `retrying`: jobs com nova tentativa em curso;
+   - `maxAttemptsReached`: lotes que exigem triagem manual.
+3. Se `worker.status=offline|stale`:
+   - nao aprovar novos lotes criticos sem owner tecnico alinhado;
+   - capturar `workerId`, heartbeat e `lastError`;
+   - confirmar se o processo `admin-content-jobs` arrancou em ambiente.
+4. Se houver `maxAttemptsReached > 0`:
+   - abrir o job;
+   - validar item(s) falhados e causa comum;
+   - decidir novo lote menor, rollback manual ou incidente tecnico.
+5. Se `awaitingApproval` subir mas `queued` ficar a zero:
+   - o bloqueio e humano/processual, nao do worker;
+   - priorizar revisao/aprovacao antes de escalar como incidente tecnico.
 
 ## 7) Escalacao
 - Nivel 1: operador admin em turno.
@@ -189,3 +231,4 @@ Escopo: operacao administrativa critica (users, moderacao de conteudo, control p
   - `yarn test --runInBand`
   - `yarn build`
   - `yarn test:e2e` ou specs admin direcionados quando a suite full nao for necessaria
+  - exemplo direcionado: `npm run test:e2e -- e2e/admin.rollback-jobs.p4.spec.ts`
