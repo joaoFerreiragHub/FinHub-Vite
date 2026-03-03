@@ -11,6 +11,8 @@ import { useVisitedTopics } from '@/features/hub/hooks/useVisitedTopics'
 import { CreatorModal } from '@/features/creators/components/modals/CreatorModal'
 import { mockCreators } from '@/features/creators/components/api/mockCreators'
 import { PageHero, FilterBar } from '@/components/public'
+import { PublicSurfaceDisabledState } from '@/features/platform/components/PublicSurfaceDisabledState'
+import { usePublicSurfaceControl } from '@/features/platform/hooks/usePublicSurfaceControl'
 
 const SORT_OPTIONS = [
   { label: 'Mais populares', value: 'popular' },
@@ -19,6 +21,7 @@ const SORT_OPTIONS = [
 ]
 
 export function Page() {
+  const creatorPageSurface = usePublicSurfaceControl('creator_page')
   const [selectedTopic, setSelectedTopic] = useState('')
   const [sortOption, setSortOption] = useState('popular')
   const [selectedRating, setSelectedRating] = useState<number | null>(null)
@@ -141,6 +144,20 @@ export function Page() {
     .slice(0, 8)
 
   const premiumCreators = creators.filter((creator) => creator.isPremium).length
+
+  if (creatorPageSurface.data && !creatorPageSurface.data.enabled) {
+    return (
+      <HomepageLayout>
+        <PublicSurfaceDisabledState
+          title="Pagina de creators temporariamente indisponivel"
+          message={
+            creatorPageSurface.data.publicMessage ??
+            'A descoberta de creators foi temporariamente desativada enquanto decorre revisao operacional.'
+          }
+        />
+      </HomepageLayout>
+    )
+  }
 
   return (
     <HomepageLayout>

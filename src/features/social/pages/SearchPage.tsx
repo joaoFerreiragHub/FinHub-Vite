@@ -16,6 +16,8 @@ import { Badge } from '@/components/ui'
 import { ContentType } from '@/features/hub/types'
 import { useGlobalSearch } from '../hooks/useSocial'
 import type { SearchResult } from '../types'
+import { PublicSurfaceDisabledState } from '@/features/platform/components/PublicSurfaceDisabledState'
+import { usePublicSurfaceControl } from '@/features/platform/hooks/usePublicSurfaceControl'
 
 const typeIcons: Record<string, typeof FileText> = {
   [ContentType.ARTICLE]: FileText,
@@ -39,6 +41,7 @@ const typeLabels: Record<string, string> = {
 }
 
 export function SearchPage() {
+  const searchSurface = usePublicSurfaceControl('search')
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [selectedType, setSelectedType] = useState('all')
@@ -61,6 +64,18 @@ export function SearchPage() {
     const timer = setTimeout(() => setDebouncedQuery(query), 300)
     return () => clearTimeout(timer)
   }, [query])
+
+  if (searchSurface.data && !searchSurface.data.enabled) {
+    return (
+      <PublicSurfaceDisabledState
+        title="Pesquisa temporariamente indisponivel"
+        message={
+          searchSurface.data.publicMessage ??
+          'A pesquisa global foi temporariamente desligada enquanto decorre revisao operacional.'
+        }
+      />
+    )
+  }
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-6">

@@ -29,9 +29,9 @@ describe('adminOperationalAlertsService', () => {
         },
         summary: {
           critical: 2,
-          high: 2,
+          high: 3,
           medium: 0,
-          total: 4,
+          total: 5,
         },
         items: [
           {
@@ -75,6 +75,26 @@ describe('adminOperationalAlertsService', () => {
             detectedAt: '2026-02-28T09:57:00.000Z',
             actor: null,
           },
+          {
+            id: 'alert-4',
+            type: 'surface_disabled',
+            severity: 'high',
+            title: 'Pesquisa global temporariamente desligada',
+            description: 'A superficie search foi desligada por contingencia operacional.',
+            action: 'admin.platform.surfaces.update',
+            resourceType: 'platform_surface',
+            resourceId: 'search',
+            detectedAt: '2026-02-28T09:56:00.000Z',
+            actor: {
+              id: 'admin-2',
+              username: 'ops',
+              role: 'admin',
+            },
+            metadata: {
+              enabled: false,
+              publicMessage: 'Pesquisa temporariamente indisponivel.',
+            },
+          },
         ],
       },
     })
@@ -106,6 +126,12 @@ describe('adminOperationalAlertsService', () => {
       type: 'automated_detection_high_risk',
       severity: 'high',
       resourceId: 'comment:9',
+    })
+    expect(result.items[3]).toMatchObject({
+      type: 'surface_disabled',
+      severity: 'high',
+      resourceId: 'search',
+      actor: { id: 'admin-2', username: 'ops' },
     })
   })
 })

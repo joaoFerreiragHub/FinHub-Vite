@@ -2,6 +2,7 @@ import type { AdminActorSummary } from './adminUsers'
 
 export type AdminOperationalAlertType =
   | 'ban_applied'
+  | 'surface_disabled'
   | 'content_hide_spike'
   | 'delegated_access_started'
   | 'critical_report_target'

@@ -14,6 +14,7 @@ import { Button } from '@/components/ui'
 import { ContentType } from '@/features/hub/types'
 import { useGlobalSearch } from '../hooks/useSocial'
 import type { SearchResult } from '../types'
+import { usePublicSurfaceControl } from '@/features/platform/hooks/usePublicSurfaceControl'
 
 interface GlobalSearchBarProps {
   onNavigate?: (url: string) => void
@@ -40,6 +41,7 @@ const typeLabels: Record<string, string> = {
 }
 
 export function GlobalSearchBar({ onNavigate }: GlobalSearchBarProps) {
+  const searchSurface = usePublicSurfaceControl('search')
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
@@ -52,9 +54,16 @@ export function GlobalSearchBar({ onNavigate }: GlobalSearchBarProps) {
     return () => clearTimeout(timer)
   }, [query])
 
+  useEffect(() => {
+    if (searchSurface.data?.enabled === false) {
+      setOpen(false)
+    }
+  }, [searchSurface.data?.enabled])
+
   // Keyboard shortcut (Ctrl+K)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (searchSurface.data?.enabled === false) return
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault()
         setOpen(true)
@@ -62,7 +71,7 @@ export function GlobalSearchBar({ onNavigate }: GlobalSearchBarProps) {
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [])
+  }, [searchSurface.data?.enabled])
 
   const handleSelect = (result: SearchResult) => {
     setOpen(false)
@@ -84,10 +93,21 @@ export function GlobalSearchBar({ onNavigate }: GlobalSearchBarProps) {
       <Button
         variant="outline"
         className="relative w-full max-w-sm justify-start text-muted-foreground"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          if (searchSurface.data?.enabled === false) return
+          setOpen(true)
+        }}
+        disabled={searchSurface.data?.enabled === false}
+        title={
+          searchSurface.data?.enabled === false
+            ? (searchSurface.data.publicMessage ?? 'Pesquisa temporariamente indisponivel.')
+            : undefined
+        }
       >
         <Search className="mr-2 h-4 w-4" />
-        <span className="flex-1 text-left">Pesquisar...</span>
+        <span className="flex-1 text-left">
+          {searchSurface.data?.enabled === false ? 'Pesquisa indisponivel' : 'Pesquisar...'}
+        </span>
         <kbd className="ml-auto hidden rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground sm:inline-block">
           Ctrl+K
         </kbd>

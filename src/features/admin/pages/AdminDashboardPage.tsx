@@ -141,6 +141,7 @@ const MODULE_ICONS: Record<AdminModuleConfig['key'], ElementType> = {
 
 const ALERT_TYPE_LABEL: Record<AdminOperationalAlertType, string> = {
   ban_applied: 'Banimento',
+  surface_disabled: 'Surface off',
   content_hide_spike: 'Spike hide',
   delegated_access_started: 'Acesso delegado',
   critical_report_target: 'Target critico',

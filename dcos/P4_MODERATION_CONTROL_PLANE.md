@@ -1,6 +1,6 @@
 # P4 Moderation Control Plane - Frontend
 
-Data de consolidacao: 2026-03-01
+Data de consolidacao: 2026-03-03
 Escopo: superficie admin/frontend que consome o control plane de moderacao do backend
 
 ## Fonte de verdade
@@ -48,6 +48,28 @@ Superficies principais:
 - surface controls / kill switches operacionais;
 - stats page com distribuicao de trust score, false positives e backlog de jobs.
 
+## Bloco A fechado
+
+O Bloco A ficou fechado nesta iteracao.
+
+Entregue no frontend:
+
+- gating publico para `creator_page` em listagens e perfis de creators;
+- gating publico para `search` na pagina de pesquisa e no atalho global `Ctrl+K`;
+- gating publico para `derived_feeds` nos feeds agregados e vistas de atividade dependentes;
+- nova camada comum `features/platform` para consumir `/platform/surfaces`;
+- leitura do novo alerta `surface_disabled` no dashboard admin.
+
+Notas operacionais:
+
+- `search` e `derived_feeds` aparecem desligados por defeito ate o backend publico dessas superficies ficar pronto ponta-a-ponta;
+- o frontend usa `publicMessage` quando existe e faz fallback para copy neutra.
+
+Validacao desta iteracao:
+
+- `npm run typecheck:p1`
+- `npx jest --no-cache src/__tests__/features/admin/adminOperationalAlertsService.test.ts src/__tests__/features/platform/publicSurfaceControlsService.test.ts`
+
 ## UX publica ligada ao control plane
 
 - centro de notificacoes passa a suportar `content_moderated`;
@@ -82,7 +104,7 @@ Camadas principais atualizadas:
    - hooks criticos;
    - dialogs de confirmacao.
 3. Deep-links adicionais entre dashboard, queue, trust profile e jobs.
-4. Expansao dos kill switches para superficies adicionais (`creator page`, `search`, `feeds`).
+4. E2E dedicado para os novos estados publicos de superficies.
 
 ## Pre-release obrigatorio
 

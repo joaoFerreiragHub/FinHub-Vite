@@ -71,6 +71,9 @@ const mapItem = (item: BackendSurfaceControlItem): AdminSurfaceControlItem | nul
   if (
     item.key !== 'editorial_home' &&
     item.key !== 'editorial_verticals' &&
+    item.key !== 'creator_page' &&
+    item.key !== 'search' &&
+    item.key !== 'derived_feeds' &&
     item.key !== 'comments_read' &&
     item.key !== 'comments_write' &&
     item.key !== 'reviews_read' &&

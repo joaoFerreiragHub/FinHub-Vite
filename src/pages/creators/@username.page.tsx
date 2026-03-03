@@ -3,6 +3,8 @@ import SidebarLayout from '@/shared/layouts/SidebarLayout'
 import { mockCreatorsFull } from '@/lib/mock/mockCreatorsFull'
 import ContentSections from '@/features/creators/components/public/ContentSections'
 import CreatorProfile from '@/features/creators/components/public/CreatorProfile'
+import { PublicSurfaceDisabledState } from '@/features/platform/components/PublicSurfaceDisabledState'
+import { usePublicSurfaceControl } from '@/features/platform/hooks/usePublicSurfaceControl'
 
 export const passToClient = ['routeParams', 'pageProps', 'user']
 
@@ -81,11 +83,26 @@ export function Page(props: any) {
 }
 
 function CreatorPage({ username }: { username: string }) {
+  const creatorPageSurface = usePublicSurfaceControl('creator_page')
   const normalizedUsername = username.toLowerCase().trim()
   const found = mockCreatorsFull.find(
     (creator) => creator.username?.toLowerCase().trim() === normalizedUsername,
   )
   const creatorData: CreatorFull = found ?? createFallbackCreator(username)
+
+  if (creatorPageSurface.data && !creatorPageSurface.data.enabled) {
+    return (
+      <SidebarLayout>
+        <PublicSurfaceDisabledState
+          title="Pagina de creator temporariamente indisponivel"
+          message={
+            creatorPageSurface.data.publicMessage ??
+            'Os perfis publicos de creators estao temporariamente indisponiveis durante revisao operacional.'
+          }
+        />
+      </SidebarLayout>
+    )
+  }
 
   return (
     <SidebarLayout>

@@ -12,6 +12,8 @@ import {
   useFollowing,
   useActivityFeed,
 } from '../hooks/useSocial'
+import { PublicSurfaceDisabledState } from '@/features/platform/components/PublicSurfaceDisabledState'
+import { usePublicSurfaceControl } from '@/features/platform/hooks/usePublicSurfaceControl'
 
 interface UserProfilePageProps {
   username?: string // If undefined, show own profile
@@ -78,7 +80,21 @@ export function UserProfilePage({ username }: UserProfilePageProps) {
 }
 
 function ActivityTab() {
+  const feedSurface = usePublicSurfaceControl('derived_feeds')
   const { data, isLoading } = useActivityFeed(false, 10)
+
+  if (feedSurface.data && !feedSurface.data.enabled) {
+    return (
+      <PublicSurfaceDisabledState
+        compact
+        title="Atividade temporariamente indisponivel"
+        message={
+          feedSurface.data.publicMessage ??
+          'O feed de atividade foi temporariamente desligado durante revisao operacional.'
+        }
+      />
+    )
+  }
 
   if (isLoading) {
     return (

@@ -92,6 +92,7 @@ const toRole = (value: unknown): AdminActorSummary['role'] => {
 
 const toAlertType = (value: unknown): AdminOperationalAlertType | null => {
   if (value === 'ban_applied') return 'ban_applied'
+  if (value === 'surface_disabled') return 'surface_disabled'
   if (value === 'content_hide_spike') return 'content_hide_spike'
   if (value === 'delegated_access_started') return 'delegated_access_started'
   if (value === 'critical_report_target') return 'critical_report_target'

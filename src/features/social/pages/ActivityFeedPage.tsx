@@ -4,10 +4,25 @@ import { Button } from '@/components/ui'
 import { Skeleton } from '@/components/ui'
 import { ActivityFeedItem } from '../components/ActivityFeedItem'
 import { useActivityFeed } from '../hooks/useSocial'
+import { PublicSurfaceDisabledState } from '@/features/platform/components/PublicSurfaceDisabledState'
+import { usePublicSurfaceControl } from '@/features/platform/hooks/usePublicSurfaceControl'
 
 export function ActivityFeedPage() {
+  const feedSurface = usePublicSurfaceControl('derived_feeds')
   const [followingOnly, setFollowingOnly] = useState(false)
   const { data, isLoading } = useActivityFeed(followingOnly)
+
+  if (feedSurface.data && !feedSurface.data.enabled) {
+    return (
+      <PublicSurfaceDisabledState
+        title="Feed temporariamente indisponivel"
+        message={
+          feedSurface.data.publicMessage ??
+          'Os feeds derivados foram temporariamente desligados enquanto decorre revisao operacional.'
+        }
+      />
+    )
+  }
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-6">
