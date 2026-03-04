@@ -176,20 +176,34 @@ Camadas principais atualizadas:
 - confirmacao dupla em fluxos criticos como archive e certas acoes admin;
 - gating por `adminReadOnly` e por escopos nas paginas operacionais principais.
 
-## O que ainda falta antes de fechar o P4
+## Fecho operacional do P4
 
-1. E2E dedicados adicionais aos fluxos novos do Moderation Control Plane.
-2. Mais testes frontend fora do happy path:
-   - services em erro;
-   - hooks criticos;
-   - dialogs de confirmacao.
-3. Deep-links adicionais entre dashboard, queue, trust profile e jobs.
-4. Afinar o harness E2E para reduzir warnings legados do stack `vite-plugin-ssr`/Browserslist que nao bloqueiam os testes, mas ainda poluem a execucao.
+Com a iteracao final de fecho admin, o P4 fica operacionalmente fechado no frontend:
+
+1. deep-links adicionais entre dashboard, stats, queue, trust profile e jobs;
+2. cobertura frontend fora do happy path para:
+   - `services` em erro;
+   - `hooks` criticos de invalidacao;
+   - dialogs de confirmacao do rollback em lote;
+3. regressao validada para os E2E criticos do control plane:
+   - `admin.rollback-jobs.p4.spec.ts`;
+   - `admin.worker-status.p4.spec.ts`;
+4. harness E2E afinado para reduzir ruido de `Browserslist` via `BROWSERSLIST_IGNORE_OLD_DATA=1`.
+
+Feito nesta fase:
+
+- `AdminDashboardPage` e `StatsPage` passaram a levar o operador diretamente para trust profile, queue e jobs.
+- `ContentModerationPage` passou a aceitar contexto inicial por query string (`creatorId`, `contentType`, `flaggedOnly`, `minReportPriority`, `panel`, `jobId`) sem quebrar SSR.
+- `CreatorsRiskBoardPage` passou a devolver ao contexto de moderacao quando o foco nasceu da queue.
+- foram adicionados testes dedicados para:
+  - `adminContentService` em erro;
+  - `useAdminContent` nas invalidacoes criticas;
+  - guardrails do dialog de aprovacao em `ContentModerationPage`.
 
 ## Pre-release obrigatorio
 
 Antes de producao, manter alinhado com o backend:
 
 1. limpar bypass TLS de ambiente (`NODE_TLS_REJECT_UNAUTHORIZED=0` ou equivalente);
-2. garantir cobertura minima de E2E para os fluxos criticos restantes do control plane;
-3. rever migracao futura de `vite-plugin-ssr` para stack suportada sem warnings legados.
+2. rever migracao futura de `vite-plugin-ssr` para stack suportada sem warnings legados;
+3. reduzir warnings residuais deprecados de Vite/Vike (`glob as -> query`) e os future flags do React Router nos testes.

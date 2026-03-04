@@ -1,4 +1,5 @@
 import { useMemo, type ElementType } from 'react'
+import { Link } from 'react-router-dom'
 import {
   Activity,
   AlertTriangle,
@@ -32,6 +33,10 @@ import {
 } from '@/components/ui'
 import { getErrorMessage } from '@/lib/api/client'
 import { useAdminMetricsDrilldown, useAdminMetricsOverview } from '../hooks/useAdminMetrics'
+import {
+  buildAdminContentHref,
+  buildAdminCreatorRiskHref,
+} from '../lib/moderationControlPlaneLinks'
 import type { AdminAutomatedModerationRule, AdminMetricContentType } from '../types/adminMetrics'
 
 const CONTENT_TYPE_LABELS: Record<AdminMetricContentType, string> = {
@@ -65,6 +70,13 @@ const formatDateTime = (value: string): string => {
     dateStyle: 'short',
     timeStyle: 'short',
   }).format(date)
+}
+
+const toMinReportPriority = (value: string): 'low' | 'medium' | 'high' | 'critical' | null => {
+  if (value === 'low' || value === 'medium' || value === 'high' || value === 'critical') {
+    return value
+  }
+  return null
 }
 
 interface KpiCardProps {
@@ -780,6 +792,16 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
                               <div className="space-y-1">
                                 <p className="font-medium">{creator.name}</p>
                                 <p className="text-xs text-muted-foreground">{creator.riskLevel}</p>
+                                <Link
+                                  to={buildAdminCreatorRiskHref({
+                                    creatorId: creator.creatorId,
+                                    view: 'trust',
+                                    source: 'stats',
+                                  })}
+                                  className="text-xs text-primary underline-offset-4 hover:underline"
+                                >
+                                  Abrir trust
+                                </Link>
                               </div>
                             </TableCell>
                             <TableCell className="text-right">
@@ -825,7 +847,15 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
                         drilldownJobRows.map((job) => (
                           <TableRow key={job.id}>
                             <TableCell>
-                              {job.type === 'bulk_rollback' ? 'Rollback' : 'Moderacao'}
+                              <div className="space-y-1">
+                                <p>{job.type === 'bulk_rollback' ? 'Rollback' : 'Moderacao'}</p>
+                                <Link
+                                  to={buildAdminContentHref({ panel: 'jobs', jobId: job.id })}
+                                  className="text-xs text-primary underline-offset-4 hover:underline"
+                                >
+                                  Abrir job
+                                </Link>
+                              </div>
                             </TableCell>
                             <TableCell>{job.status}</TableCell>
                             <TableCell className="text-right">
@@ -871,6 +901,18 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
                                 <p className="text-xs text-muted-foreground">
                                   {target.contentType}
                                 </p>
+                                <Link
+                                  to={buildAdminContentHref({
+                                    panel: 'queue',
+                                    contentType: target.contentType,
+                                    creatorId: target.creator?.id ?? null,
+                                    flaggedOnly: true,
+                                    minReportPriority: toMinReportPriority(target.reportPriority),
+                                  })}
+                                  className="text-xs text-primary underline-offset-4 hover:underline"
+                                >
+                                  Abrir na fila
+                                </Link>
                               </div>
                             </TableCell>
                             <TableCell className="text-right">

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   ArrowUpRight,
   EyeOff,
@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   Undo2,
 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import {
   Badge,
@@ -42,6 +43,7 @@ import {
 } from '@/components/ui'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { getErrorMessage } from '@/lib/api/client'
+import { cn } from '@/lib/utils'
 import {
   AutomatedDetectionBadge,
   AUTOMATED_RULE_LABEL,
@@ -65,6 +67,13 @@ import {
   useRestrictAdminContent,
   useUnhideAdminContent,
 } from '../hooks/useAdminContent'
+import {
+  buildAdminCreatorRiskHref,
+  DEFAULT_ADMIN_CONTENT_DEEP_LINK_FILTERS,
+  readAdminContentDeepLinkState,
+  type AdminContentDeepLinkFilters,
+  type AdminContentDeepLinkPanel,
+} from '../lib/moderationControlPlaneLinks'
 import type {
   AdminContentJob,
   AdminContentModerationEvent,
@@ -81,12 +90,10 @@ type PublishStatusFilter = 'draft' | 'published' | 'archived' | 'all'
 type ReportPriorityFilter = Exclude<AdminContentReportPriority, 'none'> | 'all'
 type ContentActionKind = 'hide' | 'unhide' | 'restrict'
 
-interface FilterState {
-  search: string
+type FilterState = AdminContentDeepLinkFilters & {
   contentType: ContentTypeFilter
   moderationStatus: ModerationFilter
   publishStatus: PublishStatusFilter
-  flaggedOnly: 'all' | 'flagged'
   minReportPriority: ReportPriorityFilter
 }
 
@@ -123,13 +130,19 @@ interface ContentModerationPageProps {
 
 const PAGE_SIZE = 20
 
-const INITIAL_FILTERS: FilterState = {
-  search: '',
-  contentType: 'all',
-  moderationStatus: 'all',
-  publishStatus: 'all',
-  flaggedOnly: 'all',
-  minReportPriority: 'all',
+const INITIAL_FILTERS: FilterState = { ...DEFAULT_ADMIN_CONTENT_DEEP_LINK_FILTERS }
+
+const readCurrentDeepLinkState = () => {
+  if (typeof window === 'undefined') {
+    return {
+      filters: INITIAL_FILTERS,
+      page: 1,
+      panel: 'queue' as AdminContentDeepLinkPanel,
+      jobId: null,
+    }
+  }
+
+  return readAdminContentDeepLinkState(window.location.search)
 }
 
 const CONTENT_TYPE_LABEL: Record<AdminContentType, string> = {
@@ -209,6 +222,7 @@ const toQueueQuery = (filters: FilterState, page: number): AdminContentQueueQuer
   }
 
   if (filters.search.trim().length > 0) query.search = filters.search.trim()
+  if (filters.creatorId.trim().length > 0) query.creatorId = filters.creatorId.trim()
   if (filters.contentType !== 'all') query.contentType = filters.contentType
   if (filters.moderationStatus !== 'all') query.moderationStatus = filters.moderationStatus
   if (filters.publishStatus !== 'all') query.publishStatus = filters.publishStatus
@@ -318,9 +332,17 @@ const WORKER_STATUS_BADGE = (
 }
 
 export default function ContentModerationPage({ embedded = false }: ContentModerationPageProps) {
-  const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS)
-  const [queryFilters, setQueryFilters] = useState<FilterState>(INITIAL_FILTERS)
-  const [page, setPage] = useState(1)
+  const initialDeepLinkState = useMemo(() => readCurrentDeepLinkState(), [])
+
+  const [filters, setFilters] = useState<FilterState>(initialDeepLinkState.filters)
+  const [queryFilters, setQueryFilters] = useState<FilterState>(initialDeepLinkState.filters)
+  const [page, setPage] = useState(initialDeepLinkState.page)
+  const [focusedPanel, setFocusedPanel] = useState<AdminContentDeepLinkPanel>(
+    initialDeepLinkState.panel,
+  )
+  const [highlightedJobId, setHighlightedJobId] = useState<string | null>(
+    initialDeepLinkState.jobId,
+  )
 
   const [actionDialog, setActionDialog] = useState<ContentActionDialogState | null>(null)
   const [actionReason, setActionReason] = useState('')
@@ -353,6 +375,40 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
 
   const rawAuthUser = useAuthStore((state) => state.user)
   const authUser = (rawAuthUser as unknown as CurrentAdminMeta | null) ?? null
+
+  const hasDeepLinkContext = useMemo(
+    () =>
+      focusedPanel !== 'queue' ||
+      Boolean(highlightedJobId) ||
+      queryFilters.creatorId.trim().length > 0 ||
+      queryFilters.search.trim().length > 0 ||
+      queryFilters.contentType !== 'all' ||
+      queryFilters.moderationStatus !== 'all' ||
+      queryFilters.publishStatus !== 'all' ||
+      queryFilters.flaggedOnly !== 'all' ||
+      queryFilters.minReportPriority !== 'all' ||
+      page > 1,
+    [focusedPanel, highlightedJobId, queryFilters, page],
+  )
+
+  useEffect(() => {
+    const next = readCurrentDeepLinkState()
+    setFilters(next.filters)
+    setQueryFilters(next.filters)
+    setPage(next.page)
+    setFocusedPanel(next.panel)
+    setHighlightedJobId(next.jobId)
+    setSelectedContentKeys([])
+  }, [])
+
+  useEffect(() => {
+    if (embedded || !hasDeepLinkContext || typeof document === 'undefined') return
+    const targetId =
+      focusedPanel === 'jobs' ? 'admin-content-jobs-panel' : 'admin-content-queue-panel'
+    const target = document.getElementById(targetId)
+    if (!target) return
+    target.scrollIntoView({ block: 'start' })
+  }, [embedded, focusedPanel, hasDeepLinkContext])
 
   const canReadContent = useMemo(() => {
     if (!authUser) return false
@@ -420,6 +476,14 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
 
   const pagination = moderationQueue.data?.pagination
   const items = moderationQueue.data?.items ?? []
+  const activeCreatorContext = queryFilters.creatorId.trim()
+  const creatorContextHref = activeCreatorContext
+    ? buildAdminCreatorRiskHref({
+        creatorId: activeCreatorContext,
+        view: 'trust',
+        source: 'content',
+      })
+    : null
   const selectedItems = items.filter((item) =>
     selectedContentKeys.includes(contentSelectionKey(item)),
   )
@@ -453,12 +517,22 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
   const applyFilters = () => {
     setQueryFilters(filters)
     setPage(1)
+    setFocusedPanel('queue')
   }
 
   const clearFilters = () => {
     setFilters(INITIAL_FILTERS)
     setQueryFilters(INITIAL_FILTERS)
     setPage(1)
+    setFocusedPanel('queue')
+    setHighlightedJobId(null)
+  }
+
+  const clearCreatorContext = () => {
+    setFilters((prev) => ({ ...prev, creatorId: '' }))
+    setQueryFilters((prev) => ({ ...prev, creatorId: '' }))
+    setPage(1)
+    setFocusedPanel('queue')
   }
 
   const openActionDialog = (kind: ContentActionKind, content: AdminContentQueueItem) => {
@@ -1062,6 +1136,26 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
               Atualizar
             </Button>
           </div>
+
+          {activeCreatorContext ? (
+            <div className="md:col-span-2 xl:col-span-7 flex flex-wrap items-center gap-2 rounded-md border border-sky-500/30 bg-sky-500/5 p-3 text-sm">
+              <Badge variant="outline" className="border-sky-500/40 text-sky-700">
+                Contexto creator
+              </Badge>
+              <span className="text-muted-foreground">{activeCreatorContext}</span>
+              {creatorContextHref ? (
+                <Button asChild type="button" size="sm" variant="outline">
+                  <Link to={creatorContextHref}>
+                    <ArrowUpRight className="h-4 w-4" />
+                    Abrir trust profile
+                  </Link>
+                </Button>
+              ) : null}
+              <Button type="button" size="sm" variant="ghost" onClick={clearCreatorContext}>
+                Limpar contexto
+              </Button>
+            </div>
+          ) : null}
         </CardContent>
       </Card>
 
@@ -1102,7 +1196,10 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          id="admin-content-jobs-panel"
+          className={cn(focusedPanel === 'jobs' && 'border-sky-500/40 bg-sky-500/5')}
+        >
           <CardHeader>
             <CardTitle>Jobs recentes</CardTitle>
             <CardDescription>Últimos jobs de moderacao e rollback em lote.</CardDescription>
@@ -1177,121 +1274,141 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
               <p className="text-sm text-muted-foreground">Sem jobs recentes.</p>
             ) : (
               <div className="space-y-2">
-                {jobsQuery.data?.items.map((job) => (
-                  <div key={job.id} className="rounded-lg border border-border/70 p-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant="outline">
-                          {job.type === 'bulk_rollback' ? 'Rollback' : 'Moderacao'}
-                        </Badge>
-                        <Badge
-                          variant={
-                            job.status === 'failed'
-                              ? 'destructive'
-                              : job.status === 'completed_with_errors'
-                                ? 'outline'
-                                : 'secondary'
-                          }
-                        >
-                          {JOB_STATUS_LABEL[job.status]}
-                        </Badge>
-                        {job.type === 'bulk_rollback' && job.approval?.required ? (
-                          <Badge variant={JOB_APPROVAL_BADGE(job.approval.reviewStatus)}>
-                            {JOB_APPROVAL_LABEL[job.approval.reviewStatus]}
+                {jobsQuery.data?.items.map((job) => {
+                  const isHighlightedJob = highlightedJobId === job.id
+
+                  return (
+                    <div
+                      key={job.id}
+                      className={cn(
+                        'rounded-lg border border-border/70 p-3',
+                        isHighlightedJob && 'border-sky-500/40 bg-sky-500/5',
+                      )}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant="outline">
+                            {job.type === 'bulk_rollback' ? 'Rollback' : 'Moderacao'}
                           </Badge>
-                        ) : null}
+                          <Badge
+                            variant={
+                              job.status === 'failed'
+                                ? 'destructive'
+                                : job.status === 'completed_with_errors'
+                                  ? 'outline'
+                                  : 'secondary'
+                            }
+                          >
+                            {JOB_STATUS_LABEL[job.status]}
+                          </Badge>
+                          {job.type === 'bulk_rollback' && job.approval?.required ? (
+                            <Badge variant={JOB_APPROVAL_BADGE(job.approval.reviewStatus)}>
+                              {JOB_APPROVAL_LABEL[job.approval.reviewStatus]}
+                            </Badge>
+                          ) : null}
+                          {isHighlightedJob ? (
+                            <Badge variant="outline" className="border-sky-500/40 text-sky-700">
+                              Deep-link
+                            </Badge>
+                          ) : null}
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {formatDateTime(job.createdAt)}
+                        </span>
                       </div>
-                      <span className="text-xs text-muted-foreground">
-                        {formatDateTime(job.createdAt)}
-                      </span>
-                    </div>
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {job.progress.processed}/{job.progress.requested} processados | ok{' '}
-                      {job.progress.succeeded} | falhas {job.progress.failed}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Tentativa: {job.attemptCount}/{job.maxAttempts}
-                      {job.workerId ? ` | worker ${job.workerId}` : ''}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Actor: {job.actor?.name || job.actor?.username || job.actor?.id || 'n/a'}
-                    </p>
-                    {job.type === 'bulk_rollback' && job.approval ? (
-                      <>
-                        <p className="text-xs text-muted-foreground">
-                          Risco ativo {job.approval.riskSummary.activeRiskCount} | alto{' '}
-                          {job.approval.riskSummary.highRiskCount} | critico{' '}
-                          {job.approval.riskSummary.criticalRiskCount}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Repor visibilidade: {job.approval.riskSummary.restoreVisibleCount}
-                          {job.approval.sampleRequired
-                            ? ` | amostra ${job.approval.reviewedSampleKeys.length}/${job.approval.sampleItems.length}`
-                            : ''}
-                          {job.approval.falsePositiveValidationRequired
-                            ? ` | false positive ${job.approval.falsePositiveValidated ? 'validado' : 'pendente'}`
-                            : ''}
-                        </p>
-                        {job.approval.reviewRequestedAt ? (
-                          <p className="text-xs text-muted-foreground">
-                            Revisao pedida em {formatDateTime(job.approval.reviewRequestedAt)}
-                            {job.approval.reviewRequestedBy
-                              ? ` por ${job.approval.reviewRequestedBy.name || job.approval.reviewRequestedBy.username || job.approval.reviewRequestedBy.id}`
-                              : ''}
-                          </p>
-                        ) : null}
-                        {job.approval.approvedAt ? (
-                          <p className="text-xs text-muted-foreground">
-                            Aprovado em {formatDateTime(job.approval.approvedAt)}
-                            {job.approval.approvedBy
-                              ? ` por ${job.approval.approvedBy.name || job.approval.approvedBy.username || job.approval.approvedBy.id}`
-                              : ''}
-                          </p>
-                        ) : null}
-                      </>
-                    ) : null}
-                    {job.status === 'running' ? (
-                      <p className="text-xs text-muted-foreground">
-                        Heartbeat: {formatDateTime(job.lastHeartbeatAt)} | lease ate{' '}
-                        {formatDateTime(job.leaseExpiresAt)}
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        {job.progress.processed}/{job.progress.requested} processados | ok{' '}
+                        {job.progress.succeeded} | falhas {job.progress.failed}
                       </p>
-                    ) : null}
-                    {canModerateContent &&
-                    job.type === 'bulk_rollback' &&
-                    job.status === 'queued' &&
-                    job.approval?.required ? (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {job.approval.reviewStatus === 'draft' ? (
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={() => openRollbackJobReviewDialog(job)}
-                          >
-                            Submeter revisao
-                          </Button>
-                        ) : null}
-                        {job.approval.reviewStatus === 'review' ? (
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={() => openRollbackJobApprovalDialog(job)}
-                          >
-                            Aprovar lote
-                          </Button>
-                        ) : null}
-                      </div>
-                    ) : null}
-                  </div>
-                ))}
+                      <p className="text-xs text-muted-foreground">
+                        Tentativa: {job.attemptCount}/{job.maxAttempts}
+                        {job.workerId ? ` | worker ${job.workerId}` : ''}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Actor: {job.actor?.name || job.actor?.username || job.actor?.id || 'n/a'}
+                      </p>
+                      {job.type === 'bulk_rollback' && job.approval ? (
+                        <>
+                          <p className="text-xs text-muted-foreground">
+                            Risco ativo {job.approval.riskSummary.activeRiskCount} | alto{' '}
+                            {job.approval.riskSummary.highRiskCount} | critico{' '}
+                            {job.approval.riskSummary.criticalRiskCount}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Repor visibilidade: {job.approval.riskSummary.restoreVisibleCount}
+                            {job.approval.sampleRequired
+                              ? ` | amostra ${job.approval.reviewedSampleKeys.length}/${job.approval.sampleItems.length}`
+                              : ''}
+                            {job.approval.falsePositiveValidationRequired
+                              ? ` | false positive ${job.approval.falsePositiveValidated ? 'validado' : 'pendente'}`
+                              : ''}
+                          </p>
+                          {job.approval.reviewRequestedAt ? (
+                            <p className="text-xs text-muted-foreground">
+                              Revisao pedida em {formatDateTime(job.approval.reviewRequestedAt)}
+                              {job.approval.reviewRequestedBy
+                                ? ` por ${job.approval.reviewRequestedBy.name || job.approval.reviewRequestedBy.username || job.approval.reviewRequestedBy.id}`
+                                : ''}
+                            </p>
+                          ) : null}
+                          {job.approval.approvedAt ? (
+                            <p className="text-xs text-muted-foreground">
+                              Aprovado em {formatDateTime(job.approval.approvedAt)}
+                              {job.approval.approvedBy
+                                ? ` por ${job.approval.approvedBy.name || job.approval.approvedBy.username || job.approval.approvedBy.id}`
+                                : ''}
+                            </p>
+                          ) : null}
+                        </>
+                      ) : null}
+                      {job.status === 'running' ? (
+                        <p className="text-xs text-muted-foreground">
+                          Heartbeat: {formatDateTime(job.lastHeartbeatAt)} | lease ate{' '}
+                          {formatDateTime(job.leaseExpiresAt)}
+                        </p>
+                      ) : null}
+                      {canModerateContent &&
+                      job.type === 'bulk_rollback' &&
+                      job.status === 'queued' &&
+                      job.approval?.required ? (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {job.approval.reviewStatus === 'draft' ? (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openRollbackJobReviewDialog(job)}
+                            >
+                              Submeter revisao
+                            </Button>
+                          ) : null}
+                          {job.approval.reviewStatus === 'review' ? (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openRollbackJobApprovalDialog(job)}
+                            >
+                              Aprovar lote
+                            </Button>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </div>
+                  )
+                })}
               </div>
             )}
           </CardContent>
         </Card>
       </div>
 
-      <Card>
+      <Card
+        id="admin-content-queue-panel"
+        className={cn(
+          focusedPanel === 'queue' && hasDeepLinkContext && 'border-sky-500/40 bg-sky-500/5',
+        )}
+      >
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -1414,29 +1531,33 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                           {item.creator ? (
                             <div className="flex flex-wrap gap-2 pt-1">
                               <Button asChild type="button" size="sm" variant="outline">
-                                <a
-                                  href={`/admin/creators?creatorId=${encodeURIComponent(
-                                    item.creator.id,
-                                  )}&view=trust&source=content&contentType=${encodeURIComponent(
-                                    item.contentType,
-                                  )}&contentId=${encodeURIComponent(item.id)}`}
+                                <Link
+                                  to={buildAdminCreatorRiskHref({
+                                    creatorId: item.creator.id,
+                                    view: 'trust',
+                                    source: 'content',
+                                    contentType: item.contentType,
+                                    contentId: item.id,
+                                  })}
                                 >
                                   <ArrowUpRight className="h-4 w-4" />
                                   Creator
-                                </a>
+                                </Link>
                               </Button>
                               {canAct ? (
                                 <Button asChild type="button" size="sm">
-                                  <a
-                                    href={`/admin/creators?creatorId=${encodeURIComponent(
-                                      item.creator.id,
-                                    )}&view=controls&source=content&contentType=${encodeURIComponent(
-                                      item.contentType,
-                                    )}&contentId=${encodeURIComponent(item.id)}`}
+                                  <Link
+                                    to={buildAdminCreatorRiskHref({
+                                      creatorId: item.creator.id,
+                                      view: 'controls',
+                                      source: 'content',
+                                      contentType: item.contentType,
+                                      contentId: item.id,
+                                    })}
                                   >
                                     <ShieldAlert className="h-4 w-4" />
                                     Controlar
-                                  </a>
+                                  </Link>
                                 </Button>
                               ) : null}
                             </div>

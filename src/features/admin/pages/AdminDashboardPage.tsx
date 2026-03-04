@@ -19,6 +19,7 @@ import {
   UserX,
   WandSparkles,
 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import {
   Badge,
@@ -60,6 +61,10 @@ import {
   useAdminSurfaceControls,
   useUpdateAdminSurfaceControl,
 } from '../hooks/useAdminSurfaceControls'
+import {
+  buildAdminContentHref,
+  buildAdminCreatorRiskHref,
+} from '../lib/moderationControlPlaneLinks'
 import UsersManagementPage from './UsersManagementPage'
 import ContentModerationPage from './ContentModerationPage'
 import AssistedSessionsPage from './AssistedSessionsPage'
@@ -179,6 +184,13 @@ const formatDateTime = (value: string): string => {
     dateStyle: 'short',
     timeStyle: 'short',
   }).format(date)
+}
+
+const toMinReportPriority = (value: string): 'low' | 'medium' | 'high' | 'critical' | null => {
+  if (value === 'low' || value === 'medium' || value === 'high' || value === 'critical') {
+    return value
+  }
+  return null
 }
 
 function ModuleCard({ moduleConfig, canWrite, alertCount }: ModuleCardProps) {
@@ -874,6 +886,21 @@ export default function AdminDashboardPage() {
                           <p className="text-xs text-muted-foreground">
                             false positives 30d: {creator.falsePositiveEvents30d}
                           </p>
+                          {canReadUsers ? (
+                            <div className="mt-2">
+                              <Button asChild type="button" size="sm" variant="outline">
+                                <Link
+                                  to={buildAdminCreatorRiskHref({
+                                    creatorId: creator.creatorId,
+                                    view: 'trust',
+                                    source: 'dashboard',
+                                  })}
+                                >
+                                  Abrir trust
+                                </Link>
+                              </Button>
+                            </div>
+                          ) : null}
                         </div>
                       ))
                     )}
@@ -904,6 +931,23 @@ export default function AdminDashboardPage() {
                           <p className="text-xs text-muted-foreground">
                             superficie: {target.surfaceKey}
                           </p>
+                          {canReadContent ? (
+                            <div className="mt-2">
+                              <Button asChild type="button" size="sm" variant="outline">
+                                <Link
+                                  to={buildAdminContentHref({
+                                    panel: 'queue',
+                                    contentType: target.contentType,
+                                    creatorId: target.creator?.id ?? null,
+                                    flaggedOnly: true,
+                                    minReportPriority: toMinReportPriority(target.reportPriority),
+                                  })}
+                                >
+                                  Abrir queue
+                                </Link>
+                              </Button>
+                            </div>
+                          ) : null}
                         </div>
                       ))
                     )}
@@ -956,6 +1000,15 @@ export default function AdminDashboardPage() {
                           <p className="text-xs text-muted-foreground">
                             ok {job.succeeded} | falhas {job.failed}
                           </p>
+                          {canReadContent ? (
+                            <div className="mt-2">
+                              <Button asChild type="button" size="sm" variant="outline">
+                                <Link to={buildAdminContentHref({ panel: 'jobs', jobId: job.id })}>
+                                  Abrir job
+                                </Link>
+                              </Button>
+                            </div>
+                          ) : null}
                         </div>
                       ))
                     )}

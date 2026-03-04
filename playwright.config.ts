@@ -28,7 +28,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `npm run dev -- --config vite.e2e.config.js --host 127.0.0.1 --port ${port} --strictPort`,
+    command: `cross-env BROWSERSLIST_IGNORE_OLD_DATA=1 npm run dev -- --config vite.e2e.config.js --host 127.0.0.1 --port ${port} --strictPort`,
     url: baseURL,
     timeout: 120_000,
     reuseExistingServer: !process.env.CI,

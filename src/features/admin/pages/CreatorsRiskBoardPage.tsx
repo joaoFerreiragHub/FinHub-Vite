@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Loader2, RefreshCcw, Search, ShieldAlert, Sparkles, Users } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import {
   Badge,
@@ -49,6 +50,7 @@ import {
   useAdminUsers,
   useApplyAdminCreatorControls,
 } from '../hooks/useAdminUsers'
+import { buildAdminContentHref } from '../lib/moderationControlPlaneLinks'
 import { adminUsersService } from '../services/adminUsersService'
 import type {
   AdminCreatorControlAction,
@@ -204,6 +206,29 @@ export default function CreatorsRiskBoardPage() {
   const focusSource = focusContext.source
   const focusContentId = focusContext.contentId
   const focusContentType = focusContext.contentType
+  const moderationContextHref = useMemo(
+    () =>
+      focusedCreatorId
+        ? buildAdminContentHref({
+            panel: 'queue',
+            creatorId: focusedCreatorId,
+            contentType:
+              focusContentType === 'article' ||
+              focusContentType === 'video' ||
+              focusContentType === 'course' ||
+              focusContentType === 'live' ||
+              focusContentType === 'podcast' ||
+              focusContentType === 'book' ||
+              focusContentType === 'comment' ||
+              focusContentType === 'review'
+                ? focusContentType
+                : null,
+            search: focusContentId,
+            flaggedOnly: focusSource === 'content',
+          })
+        : '/admin/conteudo',
+    [focusedCreatorId, focusContentType, focusContentId, focusSource],
+  )
   const [trustDialogUserId, setTrustDialogUserId] = useState<string | null>(null)
   const [creatorControlDialogUser, setCreatorControlDialogUser] = useState<AdminUserRecord | null>(
     null,
@@ -555,10 +580,12 @@ export default function CreatorsRiskBoardPage() {
             Atualizar
           </Button>
           <Button asChild type="button" variant="outline">
-            <a href="/admin/conteudo">
+            <Link to={moderationContextHref}>
               <ShieldAlert className="h-4 w-4" />
-              Ir para moderacao
-            </a>
+              {focusSource === 'content' && focusedCreatorId
+                ? 'Voltar a moderacao'
+                : 'Ir para moderacao'}
+            </Link>
           </Button>
         </div>
       </div>

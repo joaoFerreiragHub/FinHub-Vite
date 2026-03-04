@@ -10,6 +10,10 @@ Escopo: operacao administrativa critica (users, moderacao de conteudo, control p
 
 ## 2) Fontes de verdade operacionais
 - Dashboard admin (`/admin`) -> bloco "Alertas internos".
+- Deep-links operacionais:
+  - dashboard/stats -> trust profile, queue e jobs em lote;
+  - creators risk board -> retorno ao contexto de moderacao;
+  - content moderation -> contexto inicial por query string (`creatorId`, `contentType`, `flaggedOnly`, `minReportPriority`, `panel`, `jobId`).
 - API de alertas internos:
   - `GET /api/admin/alerts/internal`
   - escopo requerido: `admin.audit.read`
@@ -156,10 +160,13 @@ Escopo: operacao administrativa critica (users, moderacao de conteudo, control p
 1. Confirmar que a superficie correta foi desligada:
   - `editorial_home`
   - `editorial_verticals`
-   - `comments_read`
-   - `comments_write`
-   - `reviews_read`
-   - `reviews_write`
+  - `creator_page`
+  - `search`
+  - `derived_feeds`
+  - `comments_read`
+  - `comments_write`
+  - `reviews_read`
+  - `reviews_write`
 2. Validar o impacto esperado no frontend publico.
 3. Preencher sempre:
    - motivo;

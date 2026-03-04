@@ -534,6 +534,24 @@ describe('adminContentService', () => {
     })
   })
 
+  it('throws when moderation action response does not include content', async () => {
+    mockedApiClient.post.mockResolvedValueOnce({
+      data: {
+        message: 'Conteudo ocultado com sucesso.',
+        changed: true,
+        fromStatus: 'visible',
+        toStatus: 'hidden',
+        content: null,
+      },
+    })
+
+    await expect(
+      adminContentService.hideContent('article', 'content-1', {
+        reason: 'Violacao',
+      }),
+    ).rejects.toThrow('Resposta admin invalida: conteudo em falta.')
+  })
+
   it('sends rollback payload to backend endpoint', async () => {
     mockedApiClient.post.mockResolvedValueOnce({
       data: {
