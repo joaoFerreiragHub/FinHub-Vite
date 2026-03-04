@@ -140,12 +140,15 @@ Validacao desta iteracao:
 Entregue nesta iteracao:
 
 - E2E dedicado `e2e/admin.rollback-jobs.p4.spec.ts` para o fluxo `draft -> review -> running` nos jobs `bulk_rollback`;
+- E2E dedicado `e2e/admin.worker-status.p4.spec.ts` para `worker-status`, `retrying`, `staleRunning`, `maxAttemptsReached` e leitura de `lastError`;
 - cobertura do caminho `request-review -> approve -> worker-status`, incluindo amostra obrigatoria, confirmacao forte e validacao de false positive;
+- `playwright.config.ts` passa a arrancar um `vite.e2e.config.js` dedicado, isolando cache de E2E e desacoplando os specs do `vite.config.js` local;
 - runbook admin estendido em `dcos/RUNBOOK_ADMIN_OPERACIONAL.md` com passos de triagem para rollback em lote e leitura do worker.
 
 Validacao desta iteracao:
 
 - `npm run test:e2e -- e2e/admin.rollback-jobs.p4.spec.ts`
+- `npm run test:e2e -- e2e/admin.worker-status.p4.spec.ts`
 
 ## UX publica ligada ao control plane
 
@@ -181,11 +184,12 @@ Camadas principais atualizadas:
    - hooks criticos;
    - dialogs de confirmacao.
 3. Deep-links adicionais entre dashboard, queue, trust profile e jobs.
-4. E2E dedicado para worker status, retries e estados stale no admin.
+4. Afinar o harness E2E para reduzir warnings legados do stack `vite-plugin-ssr`/Browserslist que nao bloqueiam os testes, mas ainda poluem a execucao.
 
 ## Pre-release obrigatorio
 
 Antes de producao, manter alinhado com o backend:
 
 1. limpar bypass TLS de ambiente (`NODE_TLS_REJECT_UNAUTHORIZED=0` ou equivalente);
-2. garantir cobertura minima de E2E para os fluxos criticos restantes do control plane.
+2. garantir cobertura minima de E2E para os fluxos criticos restantes do control plane;
+3. rever migracao futura de `vite-plugin-ssr` para stack suportada sem warnings legados.
