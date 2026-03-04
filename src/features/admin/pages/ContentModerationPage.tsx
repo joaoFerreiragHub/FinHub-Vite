@@ -42,6 +42,7 @@ import {
   Textarea,
 } from '@/components/ui'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import type { User } from '@/features/auth/types'
 import { getErrorMessage } from '@/lib/api/client'
 import { cn } from '@/lib/utils'
 import {
@@ -74,6 +75,7 @@ import {
   type AdminContentDeepLinkFilters,
   type AdminContentDeepLinkPanel,
 } from '../lib/moderationControlPlaneLinks'
+import { hasAdminScope } from '../lib/access'
 import type {
   AdminContentJob,
   AdminContentModerationEvent,
@@ -120,6 +122,7 @@ interface RollbackJobApprovalDialogState {
 }
 
 interface CurrentAdminMeta {
+  role?: string
   adminReadOnly?: boolean
   adminScopes?: string[]
 }
@@ -412,15 +415,13 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
 
   const canReadContent = useMemo(() => {
     if (!authUser) return false
-    if (!Array.isArray(authUser.adminScopes) || authUser.adminScopes.length === 0) return true
-    return authUser.adminScopes.includes('admin.content.read')
+    return hasAdminScope(authUser as User, 'admin.content.read')
   }, [authUser])
 
   const canModerateContent = useMemo(() => {
     if (!authUser) return false
     if (authUser.adminReadOnly) return false
-    if (!Array.isArray(authUser.adminScopes) || authUser.adminScopes.length === 0) return true
-    return authUser.adminScopes.includes('admin.content.moderate')
+    return hasAdminScope(authUser as User, 'admin.content.moderate')
   }, [authUser])
 
   const queueQuery = useMemo(() => toQueueQuery(queryFilters, page), [queryFilters, page])

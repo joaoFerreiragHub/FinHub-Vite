@@ -14,11 +14,13 @@ export type AdminOperationalAlertType =
   | 'creator_control_applied'
 
 export type AdminOperationalAlertSeverity = 'critical' | 'high' | 'medium'
+export type AdminOperationalAlertState = 'open' | 'acknowledged' | 'dismissed'
 
 export interface AdminOperationalAlert {
   id: string
   type: AdminOperationalAlertType
   severity: AdminOperationalAlertSeverity
+  state: AdminOperationalAlertState
   title: string
   description: string
   action: string
@@ -26,6 +28,9 @@ export interface AdminOperationalAlert {
   resourceId?: string
   detectedAt: string
   actor: AdminActorSummary | null
+  stateChangedAt?: string
+  stateReason?: string
+  stateChangedBy?: AdminActorSummary | null
   metadata?: Record<string, unknown>
 }
 
@@ -48,5 +53,11 @@ export interface AdminOperationalAlertsResponse {
     creatorControlRestrictiveActions: string[]
   }
   summary: AdminOperationalAlertsSummary
+  stateSummary: {
+    open: number
+    acknowledged: number
+    dismissed: number
+    total: number
+  }
   items: AdminOperationalAlert[]
 }

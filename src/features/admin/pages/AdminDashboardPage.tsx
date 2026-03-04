@@ -14,6 +14,7 @@ import {
   Shield,
   ShieldAlert,
   ShieldCheck,
+  ClipboardList,
   UserCheck,
   Users,
   UserX,
@@ -56,7 +57,11 @@ import { useAdminUsers } from '../hooks/useAdminUsers'
 import { useAdminContentQueue } from '../hooks/useAdminContent'
 import { useAdminAssistedSessions } from '../hooks/useAdminAssistedSessions'
 import { useAdminMetricsDrilldown, useAdminMetricsOverview } from '../hooks/useAdminMetrics'
-import { useAdminOperationalAlerts } from '../hooks/useAdminOperationalAlerts'
+import {
+  useAcknowledgeAdminOperationalAlert,
+  useAdminOperationalAlerts,
+  useDismissAdminOperationalAlert,
+} from '../hooks/useAdminOperationalAlerts'
 import {
   useAdminSurfaceControls,
   useUpdateAdminSurfaceControl,
@@ -74,6 +79,7 @@ import EditorialCmsPage from './EditorialCmsPage'
 import type { AdminSurfaceControlItem } from '../types/adminSurfaceControls'
 import type {
   AdminOperationalAlertSeverity,
+  AdminOperationalAlertState,
   AdminOperationalAlertType,
 } from '../types/adminOperationalAlerts'
 
@@ -141,6 +147,7 @@ const MODULE_ICONS: Record<AdminModuleConfig['key'], ElementType> = {
   editorial: Newspaper,
   support: LifeBuoy,
   brands: Layers,
+  audit: ClipboardList,
   stats: BarChart3,
 }
 
@@ -162,6 +169,12 @@ const ALERT_SEVERITY_LABEL: Record<AdminOperationalAlertSeverity, string> = {
   critical: 'Critico',
   high: 'High',
   medium: 'Medio',
+}
+
+const ALERT_STATE_LABEL: Record<AdminOperationalAlertState, string> = {
+  open: 'Aberto',
+  acknowledged: 'Acknow.',
+  dismissed: 'Dismissed',
 }
 
 const SURFACE_CONTROL_IMPACT_LABEL: Record<AdminSurfaceControlItem['impact'], string> = {
@@ -266,6 +279,7 @@ export default function AdminDashboardPage() {
   const canReadSupport = Boolean(moduleAccess.support?.canRead)
   const canReadStats = Boolean(moduleAccess.stats?.canRead)
   const canReadAudit = hasAdminScope(user, 'admin.audit.read')
+  const canManageAuditAlerts = canReadAudit && !user?.adminReadOnly
   const canReadSurfaceControls = canReadContent
   const canWriteSurfaceControls = Boolean(moduleAccess.content?.canWrite)
   const [surfaceDialog, setSurfaceDialog] = useState<SurfaceControlDialogState | null>(null)
@@ -319,6 +333,8 @@ export default function AdminDashboardPage() {
   )
   const { data: operationalAlerts, isLoading: loadingOperationalAlerts } =
     useAdminOperationalAlerts({ windowHours: 24, limit: 6 }, { enabled: canReadAudit })
+  const acknowledgeAlertMutation = useAcknowledgeAdminOperationalAlert()
+  const dismissAlertMutation = useDismissAdminOperationalAlert()
   const { data: surfaceControls, isLoading: loadingSurfaceControls } =
     useAdminSurfaceControls(canReadSurfaceControls)
   const updateSurfaceControlMutation = useUpdateAdminSurfaceControl()
@@ -419,6 +435,31 @@ export default function AdminDashboardPage() {
       item.publicMessage ??
         (nextEnabled ? '' : `${item.label} temporariamente indisponivel para revisao.`),
     )
+  }
+
+  const isAlertActionPending = acknowledgeAlertMutation.isPending || dismissAlertMutation.isPending
+
+  const handleAcknowledgeAlert = async (alertId: string) => {
+    try {
+      await acknowledgeAlertMutation.mutateAsync({ alertId })
+      toast.success('Alerta marcado como acknowledged.')
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
+  }
+
+  const handleDismissAlert = async (alertId: string) => {
+    const reason =
+      typeof window !== 'undefined'
+        ? window.prompt('Motivo para dismiss (opcional):', '')?.trim() || undefined
+        : undefined
+
+    try {
+      await dismissAlertMutation.mutateAsync({ alertId, reason })
+      toast.success('Alerta marcado como dismissed.')
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
   }
 
   const closeSurfaceDialog = (force = false) => {
@@ -705,6 +746,12 @@ export default function AdminDashboardPage() {
                     <Badge variant="secondary">
                       Medio: {operationalAlerts?.summary.medium ?? 0}
                     </Badge>
+                    <Badge variant="outline">
+                      Open: {operationalAlerts?.stateSummary.open ?? 0}
+                    </Badge>
+                    <Badge variant="outline">
+                      Ack: {operationalAlerts?.stateSummary.acknowledged ?? 0}
+                    </Badge>
                   </div>
 
                   {loadingOperationalAlerts ? (
@@ -726,6 +773,7 @@ export default function AdminDashboardPage() {
                                 {ALERT_SEVERITY_LABEL[alert.severity]}
                               </Badge>
                               <Badge variant="outline">{ALERT_TYPE_LABEL[alert.type]}</Badge>
+                              <Badge variant="secondary">{ALERT_STATE_LABEL[alert.state]}</Badge>
                             </div>
                             <span className="text-xs text-muted-foreground">
                               {formatDateTime(alert.detectedAt)}
@@ -742,6 +790,39 @@ export default function AdminDashboardPage() {
                               'N/A'}{' '}
                             - Acao: {alert.action}
                           </p>
+                          {alert.stateChangedAt ? (
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              Estado atualizado em {formatDateTime(alert.stateChangedAt)} por{' '}
+                              {alert.stateChangedBy?.name ||
+                                alert.stateChangedBy?.username ||
+                                alert.stateChangedBy?.email ||
+                                alert.stateChangedBy?.id ||
+                                'N/A'}
+                              {alert.stateReason ? ` - ${alert.stateReason}` : ''}
+                            </p>
+                          ) : null}
+                          {canManageAuditAlerts && alert.state !== 'dismissed' ? (
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {alert.state === 'open' ? (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleAcknowledgeAlert(alert.id)}
+                                  disabled={isAlertActionPending}
+                                >
+                                  Acknowledge
+                                </Button>
+                              ) : null}
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleDismissAlert(alert.id)}
+                                disabled={isAlertActionPending}
+                              >
+                                Dismiss
+                              </Button>
+                            </div>
+                          ) : null}
                         </div>
                       ))}
                     </div>

@@ -96,6 +96,7 @@ import EditorialCmsPage from '@/features/admin/pages/EditorialCmsPage'
 import BrandsManagementPage from '@/features/admin/pages/BrandsManagementPage'
 import StatsPage from '@/features/admin/pages/StatsPage'
 import AssistedSessionsPage from '@/features/admin/pages/AssistedSessionsPage'
+import AdminAuditLogsPage from '@/features/admin/pages/AdminAuditLogsPage'
 
 // Static pages
 import AboutPage from '@/pages/AboutPage'
@@ -481,6 +482,10 @@ const router = createBrowserRouter([
       {
         path: 'stats',
         element: <StatsPage />,
+      },
+      {
+        path: 'auditoria',
+        element: <AdminAuditLogsPage />,
       },
     ],
   },

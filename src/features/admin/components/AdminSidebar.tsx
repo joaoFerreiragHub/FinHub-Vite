@@ -9,6 +9,7 @@ import {
   Layers,
   Shield,
   LifeBuoy,
+  ClipboardList,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
@@ -27,6 +28,7 @@ const links = [
   { key: 'editorial' as AdminModuleKey, icon: Newspaper, exact: false },
   { key: 'support' as AdminModuleKey, icon: LifeBuoy, exact: false },
   { key: 'brands' as AdminModuleKey, icon: Layers, exact: false },
+  { key: 'audit' as AdminModuleKey, icon: ClipboardList, exact: false },
   { key: 'stats' as AdminModuleKey, icon: BarChart3, exact: false },
 ]
 

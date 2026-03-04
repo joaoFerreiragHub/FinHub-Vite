@@ -37,6 +37,7 @@ import {
   Textarea,
 } from '@/components/ui'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import type { User } from '@/features/auth/types'
 import { getErrorMessage } from '@/lib/api/client'
 import {
   useAddAdminEditorialSectionItem,
@@ -52,6 +53,7 @@ import {
   useTransferAdminOwnership,
   useUpdateAdminEditorialSection,
 } from '../hooks/useAdminEditorialCms'
+import { hasAdminScope } from '../lib/access'
 import type {
   AdminAddEditorialSectionItemInput,
   AdminEditorialClaimStatus,
@@ -72,6 +74,7 @@ interface EditorialCmsPageProps {
 }
 
 interface CurrentAdminMeta {
+  role?: string
   adminReadOnly?: boolean
   adminScopes?: string[]
 }
@@ -337,22 +340,20 @@ export default function EditorialCmsPage({ embedded = false }: EditorialCmsPageP
   const rawAuthUser = useAuthStore((state) => state.user)
   const authUser = (rawAuthUser as unknown as CurrentAdminMeta | null) ?? null
 
-  const adminScopes = Array.isArray(authUser?.adminScopes) ? authUser.adminScopes : []
-  const hasExplicitScopes = adminScopes.length > 0
-  const hasScope = (scope: string): boolean => !hasExplicitScopes || adminScopes.includes(scope)
-
-  const canReadEditorial = Boolean(authUser && hasScope('admin.home.curate'))
+  const canReadEditorial = Boolean(authUser && hasAdminScope(authUser as User, 'admin.home.curate'))
   const canWriteEditorial = Boolean(
-    authUser && !authUser.adminReadOnly && hasScope('admin.home.curate'),
+    authUser && !authUser.adminReadOnly && hasAdminScope(authUser as User, 'admin.home.curate'),
   )
   const canReadClaims = Boolean(
-    authUser && (hasScope('admin.claim.review') || hasScope('admin.claim.transfer')),
+    authUser &&
+      (hasAdminScope(authUser as User, 'admin.claim.review') ||
+        hasAdminScope(authUser as User, 'admin.claim.transfer')),
   )
   const canWriteClaimReview = Boolean(
-    authUser && !authUser.adminReadOnly && hasScope('admin.claim.review'),
+    authUser && !authUser.adminReadOnly && hasAdminScope(authUser as User, 'admin.claim.review'),
   )
   const canWriteOwnershipTransfer = Boolean(
-    authUser && !authUser.adminReadOnly && hasScope('admin.claim.transfer'),
+    authUser && !authUser.adminReadOnly && hasAdminScope(authUser as User, 'admin.claim.transfer'),
   )
   const canReadAnyEditorial = canReadEditorial || canReadClaims
 

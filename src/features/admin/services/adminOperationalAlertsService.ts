@@ -2,6 +2,7 @@ import { apiClient } from '@/lib/api/client'
 import type {
   AdminOperationalAlert,
   AdminOperationalAlertSeverity,
+  AdminOperationalAlertState,
   AdminOperationalAlertType,
   AdminOperationalAlertsResponse,
 } from '../types/adminOperationalAlerts'
@@ -26,6 +27,10 @@ interface BackendOperationalAlert {
   resourceType?: string
   resourceId?: string
   detectedAt?: string
+  state?: string
+  stateChangedAt?: string
+  stateReason?: string
+  stateChangedBy?: BackendActorSummary | null
   actor?: BackendActorSummary | null
   metadata?: Record<string, unknown>
 }
@@ -47,12 +52,24 @@ interface BackendOperationalAlertsResponse {
     medium?: number
     total?: number
   }
+  stateSummary?: {
+    open?: number
+    acknowledged?: number
+    dismissed?: number
+    total?: number
+  }
   items?: BackendOperationalAlert[]
 }
 
 interface GetOperationalAlertsParams {
   windowHours?: number
   limit?: number
+  includeDismissed?: boolean
+  state?: AdminOperationalAlertState | 'all'
+}
+
+interface UpdateOperationalAlertPayload {
+  reason?: string
 }
 
 const toNumber = (value: unknown, fallback = 0): number =>
@@ -113,6 +130,12 @@ const toSeverity = (value: unknown): AdminOperationalAlertSeverity => {
   return 'medium'
 }
 
+const toState = (value: unknown): AdminOperationalAlertState => {
+  if (value === 'acknowledged') return 'acknowledged'
+  if (value === 'dismissed') return 'dismissed'
+  return 'open'
+}
+
 const mapActor = (actor?: BackendActorSummary | null): AdminActorSummary | null => {
   if (!actor) return null
   const id = resolveId(actor)
@@ -142,6 +165,10 @@ const mapAlert = (item: BackendOperationalAlert): AdminOperationalAlert | null =
     resourceType: toString(item.resourceType),
     resourceId: typeof item.resourceId === 'string' ? item.resourceId : undefined,
     detectedAt: toIsoDate(item.detectedAt),
+    state: toState(item.state),
+    stateChangedAt: item.stateChangedAt ? toIsoDate(item.stateChangedAt) : undefined,
+    stateReason: typeof item.stateReason === 'string' ? item.stateReason : undefined,
+    stateChangedBy: mapActor(item.stateChangedBy),
     actor: mapActor(item.actor),
     metadata:
       item.metadata && typeof item.metadata === 'object'
@@ -186,9 +213,30 @@ export const adminOperationalAlertsService = {
         medium: toNumber(data.summary?.medium, 0),
         total: toNumber(data.summary?.total, 0),
       },
+      stateSummary: {
+        open: toNumber(data.stateSummary?.open, 0),
+        acknowledged: toNumber(data.stateSummary?.acknowledged, 0),
+        dismissed: toNumber(data.stateSummary?.dismissed, 0),
+        total: toNumber(data.stateSummary?.total, 0),
+      },
       items: (data.items ?? [])
         .map(mapAlert)
         .filter((item): item is AdminOperationalAlert => item !== null),
     }
+  },
+  acknowledgeInternalAlert: async (
+    alertId: string,
+    payload: UpdateOperationalAlertPayload = {},
+  ): Promise<void> => {
+    await apiClient.post(
+      `/admin/alerts/internal/${encodeURIComponent(alertId)}/acknowledge`,
+      payload,
+    )
+  },
+  dismissInternalAlert: async (
+    alertId: string,
+    payload: UpdateOperationalAlertPayload = {},
+  ): Promise<void> => {
+    await apiClient.post(`/admin/alerts/internal/${encodeURIComponent(alertId)}/dismiss`, payload)
   },
 }

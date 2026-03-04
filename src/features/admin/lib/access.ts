@@ -32,6 +32,7 @@ export type AdminModuleKey =
   | 'editorial'
   | 'support'
   | 'brands'
+  | 'audit'
   | 'stats'
 
 export interface AdminModuleConfig {
@@ -44,6 +45,23 @@ export interface AdminModuleConfig {
 }
 
 const VALID_SCOPE_SET = new Set<string>(ADMIN_SCOPES)
+
+const parseBooleanEnv = (value: string | undefined, fallback: boolean): boolean => {
+  if (typeof value !== 'string') return fallback
+  const normalized = value.trim().toLowerCase()
+  if (normalized === '1' || normalized === 'true' || normalized === 'yes' || normalized === 'on') {
+    return true
+  }
+  if (normalized === '0' || normalized === 'false' || normalized === 'no' || normalized === 'off') {
+    return false
+  }
+  return fallback
+}
+
+const ADMIN_SCOPES_FAIL_CLOSED = parseBooleanEnv(
+  import.meta.env.VITE_ADMIN_SCOPES_FAIL_CLOSED,
+  false,
+)
 
 export const ADMIN_MODULES: AdminModuleConfig[] = [
   {
@@ -98,8 +116,8 @@ export const ADMIN_MODULES: AdminModuleConfig[] = [
     key: 'brands',
     label: 'Recursos',
     path: '/admin/recursos',
-    readScopes: ['admin.directory.manage', 'admin.brands.read'],
-    writeScopes: ['admin.directory.manage', 'admin.brands.write'],
+    readScopes: ['admin.directory.manage'],
+    writeScopes: ['admin.directory.manage'],
     operational: true,
   },
   {
@@ -107,6 +125,14 @@ export const ADMIN_MODULES: AdminModuleConfig[] = [
     label: 'Estatisticas',
     path: '/admin/stats',
     readScopes: ['admin.metrics.read'],
+    writeScopes: [],
+    operational: true,
+  },
+  {
+    key: 'audit',
+    label: 'Auditoria',
+    path: '/admin/auditoria',
+    readScopes: ['admin.audit.read'],
     writeScopes: [],
     operational: true,
   },
@@ -128,14 +154,17 @@ export const normalizeAdminScopes = (scopes?: string[] | null): AdminScope[] => 
   return valid
 }
 
+const resolveAdminScopes = (user: User): AdminScope[] => {
+  const scopes = normalizeAdminScopes(user.adminScopes)
+  if (scopes.length > 0) return scopes
+  if (ADMIN_SCOPES_FAIL_CLOSED) return []
+  return [...ADMIN_SCOPES]
+}
+
 export const hasAdminScope = (user: User | null | undefined, scope: AdminScope): boolean => {
   if (!isAdminUser(user)) return false
 
-  const scopes = normalizeAdminScopes(user.adminScopes)
-
-  // Compatibilidade retroativa: admin sem lista explicita recebe acesso total.
-  if (scopes.length === 0) return true
-
+  const scopes = resolveAdminScopes(user)
   return scopes.includes(scope)
 }
 

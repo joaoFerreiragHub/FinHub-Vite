@@ -44,6 +44,11 @@ interface AdminContentJobsQuery {
   status?: AdminContentJob['status']
 }
 
+const focusedPollingInterval = (): number | false => {
+  if (typeof document === 'undefined') return 10_000
+  return document.visibilityState === 'visible' ? 10_000 : false
+}
+
 export function useAdminContentQueue(
   query: AdminContentQueueQuery,
   options?: AdminContentQueueOptions,
@@ -52,6 +57,8 @@ export function useAdminContentQueue(
     queryKey: ['admin', 'content', 'queue', query],
     queryFn: () => adminContentService.listQueue(query),
     enabled: options?.enabled ?? true,
+    refetchInterval: focusedPollingInterval,
+    refetchIntervalInBackground: false,
   })
 }
 
@@ -63,7 +70,8 @@ export function useAdminContentJobs(
     queryKey: ['admin', 'content', 'jobs', query],
     queryFn: () => adminContentService.listJobs(query),
     enabled: options?.enabled ?? true,
-    refetchInterval: 10_000,
+    refetchInterval: focusedPollingInterval,
+    refetchIntervalInBackground: false,
   })
 }
 
@@ -72,7 +80,8 @@ export function useAdminContentWorkerStatus(options?: AdminContentQueueOptions) 
     queryKey: ['admin', 'content', 'jobs', 'worker-status'],
     queryFn: () => adminContentService.getWorkerStatus(),
     enabled: options?.enabled ?? true,
-    refetchInterval: 10_000,
+    refetchInterval: focusedPollingInterval,
+    refetchIntervalInBackground: false,
   })
 }
 

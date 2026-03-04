@@ -41,6 +41,7 @@ import {
   Textarea,
 } from '@/components/ui'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import type { User } from '@/features/auth/types'
 import { getErrorMessage } from '@/lib/api/client'
 import {
   useAdminDirectories,
@@ -49,6 +50,7 @@ import {
   usePublishAdminDirectory,
   useUpdateAdminDirectory,
 } from '../hooks/useAdminDirectories'
+import { hasAdminScope } from '../lib/access'
 import type {
   AdminDirectoryCreateInput,
   AdminDirectoryEntry,
@@ -64,6 +66,7 @@ interface BrandsManagementPageProps {
 }
 
 interface CurrentAdminMeta {
+  role?: string
   adminReadOnly?: boolean
   adminScopes?: string[]
 }
@@ -444,21 +447,13 @@ export default function BrandsManagementPage({ embedded = false }: BrandsManagem
 
   const canRead = useMemo(() => {
     if (!user) return false
-    if (!Array.isArray(user.adminScopes) || user.adminScopes.length === 0) return true
-    return (
-      user.adminScopes.includes('admin.directory.manage') ||
-      user.adminScopes.includes('admin.brands.read')
-    )
+    return hasAdminScope(user as User, 'admin.directory.manage')
   }, [user])
 
   const canWrite = useMemo(() => {
     if (!user) return false
     if (user.adminReadOnly) return false
-    if (!Array.isArray(user.adminScopes) || user.adminScopes.length === 0) return true
-    return (
-      user.adminScopes.includes('admin.directory.manage') ||
-      user.adminScopes.includes('admin.brands.write')
-    )
+    return hasAdminScope(user as User, 'admin.directory.manage')
   }, [user])
 
   const [vertical, setVertical] = useState<AdminDirectoryVertical>('broker')

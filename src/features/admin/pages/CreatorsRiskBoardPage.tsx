@@ -34,6 +34,7 @@ import {
   Textarea,
 } from '@/components/ui'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import type { User } from '@/features/auth/types'
 import { getErrorMessage } from '@/lib/api/client'
 import { cn } from '@/lib/utils'
 import {
@@ -50,6 +51,7 @@ import {
   useAdminUsers,
   useApplyAdminCreatorControls,
 } from '../hooks/useAdminUsers'
+import { hasAdminScope } from '../lib/access'
 import { buildAdminContentHref } from '../lib/moderationControlPlaneLinks'
 import { adminUsersService } from '../services/adminUsersService'
 import type {
@@ -75,6 +77,7 @@ interface FilterState {
 }
 
 interface CurrentAdminMeta {
+  role?: string
   adminReadOnly?: boolean
   adminScopes?: string[]
 }
@@ -251,14 +254,12 @@ export default function CreatorsRiskBoardPage() {
   const queryClient = useQueryClient()
   const canReadUsers = useMemo(() => {
     if (!authUser) return false
-    if (!Array.isArray(authUser.adminScopes) || authUser.adminScopes.length === 0) return true
-    return authUser.adminScopes.includes('admin.users.read')
+    return hasAdminScope(authUser as User, 'admin.users.read')
   }, [authUser])
   const canWriteUsers = useMemo(() => {
     if (!authUser) return false
     if (authUser.adminReadOnly) return false
-    if (!Array.isArray(authUser.adminScopes) || authUser.adminScopes.length === 0) return true
-    return authUser.adminScopes.includes('admin.users.write')
+    return hasAdminScope(authUser as User, 'admin.users.write')
   }, [authUser])
   const creatorsQuery = useAdminUsers(
     useMemo(() => toCreatorQuery(queryFilters, page), [queryFilters, page]),

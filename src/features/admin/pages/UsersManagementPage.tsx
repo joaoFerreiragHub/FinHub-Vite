@@ -41,6 +41,7 @@ import {
   Textarea,
 } from '@/components/ui'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import type { User } from '@/features/auth/types'
 import { getErrorMessage } from '@/lib/api/client'
 import {
   useAddAdminUserNote,
@@ -53,6 +54,7 @@ import {
   useSuspendAdminUser,
   useUnbanAdminUser,
 } from '../hooks/useAdminUsers'
+import { hasAdminScope } from '../lib/access'
 import {
   CreatorControlsSummary,
   FALSE_POSITIVE_AUTOMATED_RULE_LABEL,
@@ -94,6 +96,7 @@ interface UserActionDialogState {
 
 interface CurrentAdminMeta {
   id?: string
+  role?: string
   adminReadOnly?: boolean
   adminScopes?: string[]
 }
@@ -314,8 +317,7 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
   const canWriteUsers = useMemo(() => {
     if (!authUser) return false
     if (authUser.adminReadOnly) return false
-    if (!Array.isArray(authUser.adminScopes) || authUser.adminScopes.length === 0) return true
-    return authUser.adminScopes.includes('admin.users.write')
+    return hasAdminScope(authUser as User, 'admin.users.write')
   }, [authUser])
 
   const userListQuery = useMemo(() => toQueryFilters(queryFilters, page), [queryFilters, page])
