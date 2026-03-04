@@ -140,13 +140,22 @@ export interface AdminContentQueueQuery {
   creatorId?: string
   flaggedOnly?: boolean
   minReportPriority?: Exclude<AdminContentReportPriority, 'none'>
+  cursor?: string
   page?: number
   limit?: number
+}
+
+export interface AdminContentQueueCursor {
+  mode: 'offset' | 'cursor'
+  current: string | null
+  next: string | null
+  hasMore: boolean
 }
 
 export interface AdminContentQueueResponse {
   items: AdminContentQueueItem[]
   pagination: AdminPagination
+  cursor: AdminContentQueueCursor
 }
 
 export interface AdminContentModerationActionPayload {

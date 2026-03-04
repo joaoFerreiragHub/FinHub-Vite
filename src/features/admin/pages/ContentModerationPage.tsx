@@ -218,7 +218,11 @@ const DEFAULT_ROLLBACK_REASON = 'Rollback assistido apos revisao administrativa'
 const DOUBLE_CONFIRM_TOKEN = 'CONFIRMAR'
 const DESTRUCTIVE_CONTENT_ACTIONS: ContentActionKind[] = ['hide', 'restrict']
 
-const toQueueQuery = (filters: FilterState, page: number): AdminContentQueueQuery => {
+const toQueueQuery = (
+  filters: FilterState,
+  page: number,
+  cursor?: string,
+): AdminContentQueueQuery => {
   const query: AdminContentQueueQuery = {
     page,
     limit: PAGE_SIZE,
@@ -231,6 +235,7 @@ const toQueueQuery = (filters: FilterState, page: number): AdminContentQueueQuer
   if (filters.publishStatus !== 'all') query.publishStatus = filters.publishStatus
   if (filters.flaggedOnly === 'flagged') query.flaggedOnly = true
   if (filters.minReportPriority !== 'all') query.minReportPriority = filters.minReportPriority
+  if (cursor && cursor.trim().length > 0) query.cursor = cursor
 
   return query
 }
@@ -340,6 +345,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
   const [filters, setFilters] = useState<FilterState>(initialDeepLinkState.filters)
   const [queryFilters, setQueryFilters] = useState<FilterState>(initialDeepLinkState.filters)
   const [page, setPage] = useState(initialDeepLinkState.page)
+  const [queueCursorByPage, setQueueCursorByPage] = useState<Record<number, string>>({})
   const [focusedPanel, setFocusedPanel] = useState<AdminContentDeepLinkPanel>(
     initialDeepLinkState.panel,
   )
@@ -399,6 +405,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     setFilters(next.filters)
     setQueryFilters(next.filters)
     setPage(next.page)
+    setQueueCursorByPage({})
     setFocusedPanel(next.panel)
     setHighlightedJobId(next.jobId)
     setSelectedContentKeys([])
@@ -424,7 +431,11 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     return hasAdminScope(authUser as User, 'admin.content.moderate')
   }, [authUser])
 
-  const queueQuery = useMemo(() => toQueueQuery(queryFilters, page), [queryFilters, page])
+  const currentQueueCursor = queueCursorByPage[page]
+  const queueQuery = useMemo(
+    () => toQueueQuery(queryFilters, page, currentQueueCursor),
+    [queryFilters, page, currentQueueCursor],
+  )
   const moderationQueue = useAdminContentQueue(queueQuery)
   const historyQuery = useAdminContentHistory(
     historyTarget?.contentType ?? null,
@@ -476,6 +487,10 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     )
 
   const pagination = moderationQueue.data?.pagination
+  const queueCursor = moderationQueue.data?.cursor
+  const isCursorPagination = queueCursor?.mode === 'cursor' || page > 1
+  const canGoPrevQueuePage = page > 1
+  const canGoNextQueuePage = queueCursor?.hasMore === true && Boolean(queueCursor.next)
   const items = moderationQueue.data?.items ?? []
   const activeCreatorContext = queryFilters.creatorId.trim()
   const creatorContextHref = activeCreatorContext
@@ -515,9 +530,25 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     (item) => item.creatorTrustSignals?.riskLevel === 'critical',
   ).length
 
+  const goToPreviousQueuePage = () => {
+    if (!canGoPrevQueuePage) return
+    setPage((prev) => Math.max(prev - 1, 1))
+  }
+
+  const goToNextQueuePage = () => {
+    if (!canGoNextQueuePage || !queueCursor?.next) return
+
+    setQueueCursorByPage((prev) => ({
+      ...prev,
+      [page + 1]: queueCursor.next as string,
+    }))
+    setPage((prev) => prev + 1)
+  }
+
   const applyFilters = () => {
     setQueryFilters(filters)
     setPage(1)
+    setQueueCursorByPage({})
     setFocusedPanel('queue')
   }
 
@@ -525,6 +556,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     setFilters(INITIAL_FILTERS)
     setQueryFilters(INITIAL_FILTERS)
     setPage(1)
+    setQueueCursorByPage({})
     setFocusedPanel('queue')
     setHighlightedJobId(null)
   }
@@ -533,6 +565,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     setFilters((prev) => ({ ...prev, creatorId: '' }))
     setQueryFilters((prev) => ({ ...prev, creatorId: '' }))
     setPage(1)
+    setQueueCursorByPage({})
     setFocusedPanel('queue')
   }
 
@@ -1723,18 +1756,20 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
             </Table>
           )}
 
-          {pagination && pagination.pages > 1 && (
+          {pagination && (isCursorPagination || pagination.pages > 1) && (
             <div className="flex items-center justify-between border-t border-border pt-4">
               <p className="text-sm text-muted-foreground">
-                Pagina {pagination.page} de {pagination.pages}
+                {isCursorPagination
+                  ? `Pagina ${page}${pagination.total > 0 ? ` - total ${pagination.total}` : ''}`
+                  : `Pagina ${pagination.page} de ${pagination.pages}`}
               </p>
               <div className="flex gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  disabled={pagination.page <= 1}
-                  onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={!canGoPrevQueuePage}
+                  onClick={goToPreviousQueuePage}
                 >
                   Anterior
                 </Button>
@@ -1742,8 +1777,8 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                   type="button"
                   variant="outline"
                   size="sm"
-                  disabled={pagination.page >= pagination.pages}
-                  onClick={() => setPage((prev) => Math.min(prev + 1, pagination.pages))}
+                  disabled={!canGoNextQueuePage}
+                  onClick={goToNextQueuePage}
                 >
                   Seguinte
                 </Button>

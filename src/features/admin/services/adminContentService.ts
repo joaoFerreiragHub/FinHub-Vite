@@ -25,6 +25,7 @@ import type {
   AdminContentModerationStatus,
   AdminContentPublishStatus,
   AdminContentQueueItem,
+  AdminContentQueueCursor,
   AdminContentQueueQuery,
   AdminContentReportPriority,
   AdminContentReportSignals,
@@ -175,6 +176,12 @@ interface BackendContentQueueItem {
 interface BackendContentQueueResponse {
   items?: BackendContentQueueItem[]
   pagination?: Partial<AdminPagination>
+  cursor?: {
+    mode?: 'offset' | 'cursor'
+    current?: string | null
+    next?: string | null
+    hasMore?: boolean
+  }
 }
 
 interface BackendModerationEvent {
@@ -811,6 +818,15 @@ const normalizePagination = (pagination?: Partial<AdminPagination>): AdminPagina
   }
 }
 
+const normalizeQueueCursor = (
+  cursor?: BackendContentQueueResponse['cursor'],
+): AdminContentQueueCursor => ({
+  mode: cursor?.mode === 'cursor' ? 'cursor' : 'offset',
+  current: typeof cursor?.current === 'string' ? cursor.current : null,
+  next: typeof cursor?.next === 'string' ? cursor.next : null,
+  hasMore: Boolean(cursor?.hasMore),
+})
+
 const toJobType = (value: unknown): AdminContentJob['type'] =>
   value === 'bulk_rollback' ? 'bulk_rollback' : 'bulk_moderate'
 
@@ -1132,6 +1148,7 @@ const buildQueueParams = (query: AdminContentQueueQuery): Record<string, string 
     params.creatorId = query.creatorId.trim()
   if (query.flaggedOnly) params.flaggedOnly = 'true'
   if (query.minReportPriority) params.minReportPriority = query.minReportPriority
+  if (query.cursor && query.cursor.trim().length > 0) params.cursor = query.cursor.trim()
   if (typeof query.page === 'number' && query.page > 0) params.page = query.page
   if (typeof query.limit === 'number' && query.limit > 0) params.limit = query.limit
 
@@ -1258,6 +1275,7 @@ export const adminContentService = {
     return {
       items,
       pagination: normalizePagination(response.data.pagination),
+      cursor: normalizeQueueCursor(response.data.cursor),
     }
   },
 
