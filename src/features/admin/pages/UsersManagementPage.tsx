@@ -59,6 +59,11 @@ import {
 } from '../hooks/useAdminUsers'
 import { ADMIN_SCOPES, hasAdminScope } from '../lib/access'
 import {
+  getPositiveIntegerFieldError,
+  getRequiredFieldError,
+  isDoubleConfirmTokenValid,
+} from '../lib/formValidation'
+import {
   CreatorControlsSummary,
   FALSE_POSITIVE_AUTOMATED_RULE_LABEL,
   FALSE_POSITIVE_CATEGORY_LABEL,
@@ -455,7 +460,7 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
   const isAdminPermissionsPending = updateAdminPermissionsMutation.isPending
   const requiresDoubleConfirm = actionDialog ? isDestructiveAction(actionDialog.kind) : false
   const isDoubleConfirmValid =
-    !requiresDoubleConfirm || actionConfirmText.trim().toUpperCase() === DOUBLE_CONFIRM_TOKEN
+    !requiresDoubleConfirm || isDoubleConfirmTokenValid(actionConfirmText, DOUBLE_CONFIRM_TOKEN)
   const adminPermissionDiff = useMemo(() => {
     if (!adminPermissionsDialog) return null
 
@@ -474,6 +479,54 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
       changed: readOnlyChanged || added.length > 0 || removed.length > 0,
     }
   }, [adminPermissionsDialog, adminPermissionsReadOnly, adminPermissionsScopes])
+  const actionReasonError = actionDialog
+    ? getRequiredFieldError(actionReason, 'Motivo obrigatorio para executar a acao.')
+    : null
+  const actionNoteError =
+    actionDialog?.kind === 'note'
+      ? getRequiredFieldError(actionNote, 'A nota nao pode estar vazia.')
+      : null
+  const actionConfirmError =
+    requiresDoubleConfirm && actionConfirmText.trim().length > 0 && !isDoubleConfirmValid
+      ? `Escreve "${DOUBLE_CONFIRM_TOKEN}" para confirmar esta acao critica.`
+      : null
+  const canSubmitAction =
+    Boolean(actionDialog) &&
+    !isActionPending &&
+    !actionReasonError &&
+    !actionNoteError &&
+    isDoubleConfirmValid
+  const creatorControlReasonError = creatorControlDialog
+    ? getRequiredFieldError(creatorControlReason, 'Motivo obrigatorio para controlos do creator.')
+    : null
+  const creatorControlCooldownError =
+    creatorControlDialog && creatorControlAction === 'set_cooldown'
+      ? getPositiveIntegerFieldError(
+          creatorControlCooldownHours,
+          'Cooldown hours deve ser maior que zero.',
+        )
+      : null
+  const canSubmitCreatorControl =
+    Boolean(creatorControlDialog) &&
+    !isCreatorControlPending &&
+    !creatorControlReasonError &&
+    !creatorControlCooldownError
+  const adminPermissionsReasonError = adminPermissionsDialog
+    ? getRequiredFieldError(
+        adminPermissionsReason,
+        'Motivo obrigatorio para atualizar permissoes admin.',
+      )
+    : null
+  const adminPermissionsScopeError =
+    adminPermissionsDialog && normalizeAdminScopes(adminPermissionsScopes).length === 0
+      ? 'Seleciona pelo menos um scope admin.'
+      : null
+  const canSubmitAdminPermissions =
+    Boolean(adminPermissionsDialog) &&
+    !isAdminPermissionsPending &&
+    Boolean(adminPermissionDiff?.changed) &&
+    !adminPermissionsReasonError &&
+    !adminPermissionsScopeError
 
   const applyFilters = () => {
     setQueryFilters(filters)
@@ -559,11 +612,16 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
   const handleActionSubmit = async () => {
     if (!actionDialog) return
 
-    const reason = actionReason.trim()
-    if (!reason) {
-      toast.error('Motivo obrigatorio para executar a acao.')
+    if (actionReasonError) {
+      toast.error(actionReasonError)
       return
     }
+    if (actionNoteError) {
+      toast.error(actionNoteError)
+      return
+    }
+
+    const reason = actionReason.trim()
     if (!isDoubleConfirmValid) {
       toast.error(`Escreve "${DOUBLE_CONFIRM_TOKEN}" para confirmar esta acao critica.`)
       return
@@ -574,10 +632,6 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
     try {
       if (actionDialog.kind === 'note') {
         const note = actionNote.trim()
-        if (!note) {
-          toast.error('A nota nao pode estar vazia.')
-          return
-        }
 
         const result = await addNoteMutation.mutateAsync({
           userId: targetUserId,
@@ -622,11 +676,12 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
   const handleCreatorControlSubmit = async () => {
     if (!creatorControlDialog) return
 
-    const reason = creatorControlReason.trim()
-    if (!reason) {
-      toast.error('Motivo obrigatorio para controlos do creator.')
+    if (creatorControlReasonError) {
+      toast.error(creatorControlReasonError)
       return
     }
+
+    const reason = creatorControlReason.trim()
 
     const payload: {
       action: AdminCreatorControlAction
@@ -640,11 +695,12 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
     }
 
     if (creatorControlAction === 'set_cooldown') {
-      const cooldownHours = Number.parseInt(creatorControlCooldownHours, 10)
-      if (!Number.isFinite(cooldownHours) || cooldownHours <= 0) {
-        toast.error('Cooldown hours deve ser maior que zero.')
+      if (creatorControlCooldownError) {
+        toast.error(creatorControlCooldownError)
         return
       }
+
+      const cooldownHours = Number.parseInt(creatorControlCooldownHours.trim(), 10)
       payload.cooldownHours = cooldownHours
     }
 
@@ -682,15 +738,14 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
   const handleAdminPermissionsSubmit = async () => {
     if (!adminPermissionsDialog) return
 
-    const reason = adminPermissionsReason.trim()
-    if (!reason) {
-      toast.error('Motivo obrigatorio para atualizar permissoes admin.')
+    if (adminPermissionsReasonError) {
+      toast.error(adminPermissionsReasonError)
       return
     }
 
     const scopes = normalizeAdminScopes(adminPermissionsScopes)
-    if (scopes.length === 0) {
-      toast.error('Seleciona pelo menos um scope admin.')
+    if (adminPermissionsScopeError) {
+      toast.error(adminPermissionsScopeError)
       return
     }
 
@@ -700,6 +755,7 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
     }
 
     try {
+      const reason = adminPermissionsReason.trim()
       const result = await updateAdminPermissionsMutation.mutateAsync({
         userId: adminPermissionsDialog.user.id,
         payload: {
@@ -1239,7 +1295,15 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
                   value={actionReason}
                   onChange={(event) => setActionReason(event.target.value)}
                   placeholder={ACTION_COPY[actionDialog.kind].reasonPlaceholder}
+                  className={
+                    actionReasonError
+                      ? 'border-destructive focus-visible:ring-destructive'
+                      : undefined
+                  }
                 />
+                {actionReasonError ? (
+                  <p className="text-xs text-destructive">{actionReasonError}</p>
+                ) : null}
               </div>
 
               <div className="space-y-2">
@@ -1254,7 +1318,15 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
                   onChange={(event) => setActionNote(event.target.value)}
                   rows={4}
                   placeholder="Detalhes operacionais para auditoria interna."
+                  className={
+                    actionNoteError
+                      ? 'border-destructive focus-visible:ring-destructive'
+                      : undefined
+                  }
                 />
+                {actionNoteError ? (
+                  <p className="text-xs text-destructive">{actionNoteError}</p>
+                ) : null}
               </div>
 
               {requiresDoubleConfirm ? (
@@ -1267,7 +1339,15 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
                     value={actionConfirmText}
                     onChange={(event) => setActionConfirmText(event.target.value)}
                     placeholder={DOUBLE_CONFIRM_TOKEN}
+                    className={
+                      actionConfirmError
+                        ? 'border-destructive focus-visible:ring-destructive'
+                        : undefined
+                    }
                   />
+                  {actionConfirmError ? (
+                    <p className="text-xs text-destructive">{actionConfirmError}</p>
+                  ) : null}
                 </div>
               ) : null}
             </div>
@@ -1282,11 +1362,7 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
             >
               Cancelar
             </Button>
-            <Button
-              type="button"
-              onClick={handleActionSubmit}
-              disabled={isActionPending || !actionDialog || !isDoubleConfirmValid}
-            >
+            <Button type="button" onClick={handleActionSubmit} disabled={!canSubmitAction}>
               {isActionPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               {actionDialog ? ACTION_COPY[actionDialog.kind].confirmLabel : 'Confirmar'}
             </Button>
@@ -1361,7 +1437,11 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
 
               <div className="space-y-2">
                 <Label>Scopes ativos</Label>
-                <div className="grid gap-2 rounded-md border border-border/70 p-3 md:grid-cols-2">
+                <div
+                  className={`grid gap-2 rounded-md border p-3 md:grid-cols-2 ${
+                    adminPermissionsScopeError ? 'border-destructive' : 'border-border/70'
+                  }`}
+                >
                   {ADMIN_SCOPES.map((scope) => (
                     <label key={scope} className="flex items-center gap-2 text-sm">
                       <Checkbox
@@ -1375,6 +1455,9 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
                     </label>
                   ))}
                 </div>
+                {adminPermissionsScopeError ? (
+                  <p className="text-xs text-destructive">{adminPermissionsScopeError}</p>
+                ) : null}
               </div>
 
               {adminPermissionDiff ? (
@@ -1420,7 +1503,15 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
                   value={adminPermissionsReason}
                   onChange={(event) => setAdminPermissionsReason(event.target.value)}
                   placeholder="Motivo operacional para auditoria."
+                  className={
+                    adminPermissionsReasonError
+                      ? 'border-destructive focus-visible:ring-destructive'
+                      : undefined
+                  }
                 />
+                {adminPermissionsReasonError ? (
+                  <p className="text-xs text-destructive">{adminPermissionsReasonError}</p>
+                ) : null}
               </div>
 
               <div className="space-y-2">
@@ -1448,11 +1539,7 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
             <Button
               type="button"
               onClick={handleAdminPermissionsSubmit}
-              disabled={
-                isAdminPermissionsPending ||
-                !adminPermissionsDialog ||
-                !adminPermissionDiff?.changed
-              }
+              disabled={!canSubmitAdminPermissions}
             >
               {isAdminPermissionsPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               Aplicar permissoes
@@ -1829,7 +1916,15 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
                     min={1}
                     value={creatorControlCooldownHours}
                     onChange={(event) => setCreatorControlCooldownHours(event.target.value)}
+                    className={
+                      creatorControlCooldownError
+                        ? 'border-destructive focus-visible:ring-destructive'
+                        : undefined
+                    }
                   />
+                  {creatorControlCooldownError ? (
+                    <p className="text-xs text-destructive">{creatorControlCooldownError}</p>
+                  ) : null}
                 </div>
               ) : null}
 
@@ -1840,7 +1935,15 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
                   value={creatorControlReason}
                   onChange={(event) => setCreatorControlReason(event.target.value)}
                   placeholder="Motivo operacional"
+                  className={
+                    creatorControlReasonError
+                      ? 'border-destructive focus-visible:ring-destructive'
+                      : undefined
+                  }
                 />
+                {creatorControlReasonError ? (
+                  <p className="text-xs text-destructive">{creatorControlReasonError}</p>
+                ) : null}
               </div>
 
               <div className="space-y-2">
@@ -1868,7 +1971,7 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
             <Button
               type="button"
               onClick={handleCreatorControlSubmit}
-              disabled={isCreatorControlPending || !creatorControlDialog}
+              disabled={!canSubmitCreatorControl}
             >
               {isCreatorControlPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               Aplicar controlo

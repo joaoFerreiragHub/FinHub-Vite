@@ -76,6 +76,7 @@ import {
   type AdminContentDeepLinkPanel,
 } from '../lib/moderationControlPlaneLinks'
 import { hasAdminScope } from '../lib/access'
+import { getRequiredFieldError, isDoubleConfirmTokenValid } from '../lib/formValidation'
 import type {
   AdminContentJob,
   AdminContentModerationEvent,
@@ -464,16 +465,49 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     hideMutation.isPending || unhideMutation.isPending || restrictMutation.isPending
   const requiresDoubleConfirm = actionDialog ? isDestructiveAction(actionDialog.kind) : false
   const isDoubleConfirmValid =
-    !requiresDoubleConfirm || actionConfirmText.trim().toUpperCase() === DOUBLE_CONFIRM_TOKEN
+    !requiresDoubleConfirm || isDoubleConfirmTokenValid(actionConfirmText, DOUBLE_CONFIRM_TOKEN)
+  const actionReasonError = actionDialog
+    ? getRequiredFieldError(actionReason, 'Motivo obrigatorio para executar a acao.')
+    : null
+  const actionConfirmError =
+    requiresDoubleConfirm && actionConfirmText.trim().length > 0 && !isDoubleConfirmValid
+      ? `Escreve "${DOUBLE_CONFIRM_TOKEN}" para confirmar esta acao critica.`
+      : null
+  const canSubmitAction =
+    Boolean(actionDialog) && !isActionPending && !actionReasonError && isDoubleConfirmValid
   const rollbackReview = rollbackReviewQuery.data?.rollback
   const isRollbackPending = rollbackMutation.isPending
   const rollbackRequiresDoubleConfirm = Boolean(rollbackReview?.requiresConfirm)
   const isRollbackConfirmValid =
     !rollbackRequiresDoubleConfirm ||
-    rollbackConfirmText.trim().toUpperCase() === DOUBLE_CONFIRM_TOKEN
+    isDoubleConfirmTokenValid(rollbackConfirmText, DOUBLE_CONFIRM_TOKEN)
+  const rollbackReasonError = rollbackDialog
+    ? getRequiredFieldError(rollbackReason, 'Motivo obrigatorio para executar rollback.')
+    : null
+  const rollbackConfirmError =
+    rollbackRequiresDoubleConfirm &&
+    rollbackConfirmText.trim().length > 0 &&
+    !isRollbackConfirmValid
+      ? `Escreve "${DOUBLE_CONFIRM_TOKEN}" para confirmar este rollback.`
+      : null
+  const canSubmitRollback =
+    Boolean(rollbackDialog) &&
+    !isRollbackPending &&
+    Boolean(rollbackReview?.canRollback) &&
+    !rollbackReasonError &&
+    isRollbackConfirmValid
   const bulkRequiresDoubleConfirm = (bulkDialog?.items.length ?? 0) >= 10
   const isBulkConfirmValid =
-    !bulkRequiresDoubleConfirm || bulkConfirmText.trim().toUpperCase() === DOUBLE_CONFIRM_TOKEN
+    !bulkRequiresDoubleConfirm || isDoubleConfirmTokenValid(bulkConfirmText, DOUBLE_CONFIRM_TOKEN)
+  const bulkReasonError = bulkDialog
+    ? getRequiredFieldError(bulkReason, 'Motivo obrigatorio para criar job em lote.')
+    : null
+  const bulkConfirmError =
+    bulkRequiresDoubleConfirm && bulkConfirmText.trim().length > 0 && !isBulkConfirmValid
+      ? `Escreve "${DOUBLE_CONFIRM_TOKEN}" para confirmar este lote.`
+      : null
+  const canSubmitBulk =
+    Boolean(bulkDialog) && !bulkJobMutation.isPending && !bulkReasonError && isBulkConfirmValid
   const rollbackJobApproval = rollbackJobApprovalDialog?.job.approval ?? null
   const rollbackJobApprovalRequiresConfirm =
     Number(rollbackJobApproval?.riskSummary.criticalRiskCount ?? 0) > 0
@@ -687,11 +721,12 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
   const submitAction = async () => {
     if (!actionDialog) return
 
-    const reason = actionReason.trim()
-    if (!reason) {
-      toast.error('Motivo obrigatorio para executar a acao.')
+    if (actionReasonError) {
+      toast.error(actionReasonError)
       return
     }
+
+    const reason = actionReason.trim()
     if (!isDoubleConfirmValid) {
       toast.error(`Escreve "${DOUBLE_CONFIRM_TOKEN}" para confirmar esta acao critica.`)
       return
@@ -741,11 +776,12 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
       return
     }
 
-    const reason = rollbackReason.trim()
-    if (!reason) {
-      toast.error('Motivo obrigatorio para executar rollback.')
+    if (rollbackReasonError) {
+      toast.error(rollbackReasonError)
       return
     }
+
+    const reason = rollbackReason.trim()
 
     if (!isRollbackConfirmValid) {
       toast.error(`Escreve "${DOUBLE_CONFIRM_TOKEN}" para confirmar este rollback.`)
@@ -777,11 +813,12 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
   const submitBulkJob = async () => {
     if (!bulkDialog || bulkDialog.items.length === 0) return
 
-    const reason = bulkReason.trim()
-    if (!reason) {
-      toast.error('Motivo obrigatorio para criar job em lote.')
+    if (bulkReasonError) {
+      toast.error(bulkReasonError)
       return
     }
+
+    const reason = bulkReason.trim()
 
     if (!isBulkConfirmValid) {
       toast.error(`Escreve "${DOUBLE_CONFIRM_TOKEN}" para confirmar este lote.`)
@@ -1830,7 +1867,15 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                   value={actionReason}
                   onChange={(event) => setActionReason(event.target.value)}
                   placeholder={ACTION_COPY[actionDialog.kind].reasonPlaceholder}
+                  className={
+                    actionReasonError
+                      ? 'border-destructive focus-visible:ring-destructive'
+                      : undefined
+                  }
                 />
+                {actionReasonError ? (
+                  <p className="text-xs text-destructive">{actionReasonError}</p>
+                ) : null}
               </div>
 
               <div className="space-y-2">
@@ -1864,7 +1909,15 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                     value={actionConfirmText}
                     onChange={(event) => setActionConfirmText(event.target.value)}
                     placeholder={DOUBLE_CONFIRM_TOKEN}
+                    className={
+                      actionConfirmError
+                        ? 'border-destructive focus-visible:ring-destructive'
+                        : undefined
+                    }
                   />
+                  {actionConfirmError ? (
+                    <p className="text-xs text-destructive">{actionConfirmError}</p>
+                  ) : null}
                 </div>
               ) : null}
             </div>
@@ -1879,11 +1932,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
             >
               Cancelar
             </Button>
-            <Button
-              type="button"
-              onClick={submitAction}
-              disabled={isActionPending || !actionDialog || !isDoubleConfirmValid}
-            >
+            <Button type="button" onClick={submitAction} disabled={!canSubmitAction}>
               {isActionPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               {actionDialog ? ACTION_COPY[actionDialog.kind].confirmLabel : 'Confirmar'}
             </Button>
@@ -2153,7 +2202,15 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                   value={rollbackReason}
                   onChange={(event) => setRollbackReason(event.target.value)}
                   placeholder="Ex: revisao concluida e restauracao segura"
+                  className={
+                    rollbackReasonError
+                      ? 'border-destructive focus-visible:ring-destructive'
+                      : undefined
+                  }
                 />
+                {rollbackReasonError ? (
+                  <p className="text-xs text-destructive">{rollbackReasonError}</p>
+                ) : null}
               </div>
 
               <div className="space-y-2">
@@ -2187,7 +2244,15 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                     value={rollbackConfirmText}
                     onChange={(event) => setRollbackConfirmText(event.target.value)}
                     placeholder={DOUBLE_CONFIRM_TOKEN}
+                    className={
+                      rollbackConfirmError
+                        ? 'border-destructive focus-visible:ring-destructive'
+                        : undefined
+                    }
                   />
+                  {rollbackConfirmError ? (
+                    <p className="text-xs text-destructive">{rollbackConfirmError}</p>
+                  ) : null}
                   <p className="text-xs text-amber-700">
                     Este rollback volta a expor um alvo com sinais ativos. Confirmacao forte
                     obrigatoria.
@@ -2206,16 +2271,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
             >
               Cancelar
             </Button>
-            <Button
-              type="button"
-              onClick={submitRollback}
-              disabled={
-                isRollbackPending ||
-                !rollbackDialog ||
-                !rollbackReviewQuery.data?.rollback.canRollback ||
-                !isRollbackConfirmValid
-              }
-            >
+            <Button type="button" onClick={submitRollback} disabled={!canSubmitRollback}>
               {isRollbackPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               Executar rollback assistido
             </Button>
@@ -2495,7 +2551,15 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                   value={bulkReason}
                   onChange={(event) => setBulkReason(event.target.value)}
                   placeholder="Motivo operacional para o job"
+                  className={
+                    bulkReasonError
+                      ? 'border-destructive focus-visible:ring-destructive'
+                      : undefined
+                  }
                 />
+                {bulkReasonError ? (
+                  <p className="text-xs text-destructive">{bulkReasonError}</p>
+                ) : null}
               </div>
 
               <div className="space-y-2">
@@ -2519,7 +2583,15 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                     value={bulkConfirmText}
                     onChange={(event) => setBulkConfirmText(event.target.value)}
                     placeholder={DOUBLE_CONFIRM_TOKEN}
+                    className={
+                      bulkConfirmError
+                        ? 'border-destructive focus-visible:ring-destructive'
+                        : undefined
+                    }
                   />
+                  {bulkConfirmError ? (
+                    <p className="text-xs text-destructive">{bulkConfirmError}</p>
+                  ) : null}
                 </div>
               ) : null}
             </div>
@@ -2534,11 +2606,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
             >
               Cancelar
             </Button>
-            <Button
-              type="button"
-              onClick={submitBulkJob}
-              disabled={bulkJobMutation.isPending || !bulkDialog || !isBulkConfirmValid}
-            >
+            <Button type="button" onClick={submitBulkJob} disabled={!canSubmitBulk}>
               {bulkJobMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               Criar job
             </Button>

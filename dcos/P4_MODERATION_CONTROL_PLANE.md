@@ -193,6 +193,25 @@ Cobertura adicionada:
 - `src/__tests__/features/admin/adminAccess.test.ts`
 - `src/__tests__/lib/authGuards.adminScope.test.ts`
 
+### P4.2-14 fechado - validacao em tempo real de formularios admin (2026-03-05)
+
+Entregue nesta iteracao:
+
+- helper comum `src/features/admin/lib/formValidation.ts` para regras de `required`, `double-confirm` e `inteiro positivo`.
+- `UsersManagementPage` passou a validar em tempo real os dialogs de:
+  - acao admin (`reason`, `note` quando obrigatoria e `double confirm`);
+  - creator controls (`reason` e `cooldownHours`);
+  - permissoes admin (`reason` e minimo de scopes selecionados).
+- `ContentModerationPage` passou a validar em tempo real os dialogs de:
+  - acao individual (`reason` + `double confirm`);
+  - rollback assistido (`reason` + `double confirm`);
+  - job em lote (`reason` + `double confirm`).
+- feedback inline em campo (`border-destructive` + mensagem) e submit bloqueado enquanto houver erro de validacao.
+
+Cobertura adicionada:
+
+- `src/__tests__/features/admin/adminFormValidation.test.ts`
+
 ## Fecho operacional do P4
 
 Com a iteracao final de fecho admin, o P4 fica operacionalmente fechado no frontend:
