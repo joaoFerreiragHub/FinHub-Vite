@@ -176,6 +176,23 @@ Camadas principais atualizadas:
 - confirmacao dupla em fluxos criticos como archive e certas acoes admin;
 - gating por `adminReadOnly` e por escopos nas paginas operacionais principais.
 
+### P4.2-05 fechado - guards de rota por scope (2026-03-05)
+
+Entregue nesta iteracao:
+
+- `requireAdmin` em `src/lib/auth/guards.ts` passa a validar o `pathname` admin contra escopos reais, nao apenas `role=admin`.
+- mapeamento central de acesso por path em `src/features/admin/lib/access.ts`:
+  - `getAdminModuleForPath`
+  - `canAccessAdminPath`
+  - `getDefaultAdminPath`
+- wrappers SSR de `/pages/admin/**` passam a declarar `requiredAdminModule` no `ProtectedRoute`.
+- registry de rotas admin atualizado com `/admin/auditoria`.
+
+Cobertura adicionada:
+
+- `src/__tests__/features/admin/adminAccess.test.ts`
+- `src/__tests__/lib/authGuards.adminScope.test.ts`
+
 ## Fecho operacional do P4
 
 Com a iteracao final de fecho admin, o P4 fica operacionalmente fechado no frontend:
