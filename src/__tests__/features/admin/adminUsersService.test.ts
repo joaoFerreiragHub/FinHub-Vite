@@ -423,4 +423,67 @@ describe('adminUsersService', () => {
       },
     })
   })
+
+  it('updates admin permissions and maps before/after snapshot', async () => {
+    mockedApiClient.post.mockResolvedValueOnce({
+      data: {
+        message: 'Permissoes administrativas atualizadas com sucesso.',
+        changed: true,
+        profile: 'ops',
+        before: {
+          adminReadOnly: false,
+          adminScopes: ['admin.users.read'],
+        },
+        after: {
+          adminReadOnly: true,
+          adminScopes: ['admin.users.read', 'admin.audit.read'],
+        },
+        user: {
+          id: 'admin-2',
+          email: 'ops@example.com',
+          name: 'Ops',
+          username: 'ops',
+          role: 'admin',
+          accountStatus: 'active',
+          adminReadOnly: true,
+          adminScopes: ['admin.users.read', 'admin.audit.read'],
+          creatorControls: {
+            creationBlocked: false,
+            publishingBlocked: false,
+          },
+          tokenVersion: 4,
+          createdAt: '2026-02-18T00:00:00.000Z',
+          updatedAt: '2026-02-20T00:00:00.000Z',
+        },
+      },
+    })
+
+    const result = await adminUsersService.updateAdminPermissions('admin-2', {
+      reason: 'Ajuste de permissoes',
+      adminReadOnly: true,
+      profile: 'ops',
+    })
+
+    expect(mockedApiClient.post).toHaveBeenCalledWith('/admin/users/admin-2/admin-permissions', {
+      reason: 'Ajuste de permissoes',
+      adminReadOnly: true,
+      profile: 'ops',
+    })
+    expect(result).toMatchObject({
+      changed: true,
+      profile: 'ops',
+      before: {
+        adminReadOnly: false,
+        adminScopes: ['admin.users.read'],
+      },
+      after: {
+        adminReadOnly: true,
+        adminScopes: ['admin.audit.read', 'admin.users.read'],
+      },
+      user: {
+        id: 'admin-2',
+        adminReadOnly: true,
+      },
+    })
+  })
 })

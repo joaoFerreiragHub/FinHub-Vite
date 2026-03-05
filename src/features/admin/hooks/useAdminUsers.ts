@@ -3,6 +3,7 @@ import { adminUsersService } from '../services/adminUsersService'
 import type {
   AdminAddNotePayload,
   AdminCreatorControlPayload,
+  AdminUpdatePermissionsPayload,
   AdminUserActionPayload,
   AdminUserListQuery,
 } from '../types/adminUsers'
@@ -20,6 +21,11 @@ interface AdminAddNoteMutationInput {
 interface AdminCreatorControlMutationInput {
   userId: string
   payload: AdminCreatorControlPayload
+}
+
+interface AdminUpdatePermissionsMutationInput {
+  userId: string
+  payload: AdminUpdatePermissionsPayload
 }
 
 interface AdminUsersQueryOptions {
@@ -130,6 +136,21 @@ export function useApplyAdminCreatorControls() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'queue'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'metrics', 'overview'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'alerts', 'internal'] })
+    },
+  })
+}
+
+export function useUpdateAdminUserPermissions() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ userId, payload }: AdminUpdatePermissionsMutationInput) =>
+      adminUsersService.updateAdminPermissions(userId, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users', 'history', variables.userId] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'audit', 'logs'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'metrics', 'overview'] })
     },
   })
 }

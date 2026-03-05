@@ -1,5 +1,6 @@
 import { apiClient } from '@/lib/api/client'
 import type {
+  AdminPermissionSnapshot,
   AdminActorSummary,
   AdminAddNotePayload,
   AdminAddNoteResponse,
@@ -11,6 +12,9 @@ import type {
   AdminModerationEvent,
   AdminModerationHistoryResponse,
   AdminPagination,
+  AdminScopeProfile,
+  AdminUpdatePermissionsPayload,
+  AdminUpdatePermissionsResponse,
   AdminUserActionPayload,
   AdminUserActionResponse,
   AdminUserAccountStatus,
@@ -144,6 +148,20 @@ interface BackendAdminAddNoteResponse {
   event?: BackendAdminModerationEvent
 }
 
+interface BackendAdminPermissionSnapshot {
+  adminReadOnly?: boolean
+  adminScopes?: string[]
+}
+
+interface BackendAdminUpdatePermissionsResponse {
+  message?: string
+  changed?: boolean
+  profile?: string | null
+  before?: BackendAdminPermissionSnapshot
+  after?: BackendAdminPermissionSnapshot
+  user?: BackendAdminUserRecord
+}
+
 const DEFAULT_PAGE = 1
 const DEFAULT_LIMIT = 25
 
@@ -196,6 +214,16 @@ const toCreatorControlAction = (value: unknown): AdminCreatorControlResponse['ac
   if (value === 'unblock_publishing') return 'unblock_publishing'
   if (value === 'suspend_creator_ops') return 'suspend_creator_ops'
   return 'restore_creator_ops'
+}
+
+const toScopeProfile = (value: unknown): AdminScopeProfile | null => {
+  if (value === 'super') return 'super'
+  if (value === 'ops') return 'ops'
+  if (value === 'editor') return 'editor'
+  if (value === 'publisher') return 'publisher'
+  if (value === 'claims') return 'claims'
+  if (value === 'support') return 'support'
+  return null
 }
 
 const mapActor = (actor?: BackendAdminActorSummary | null): AdminActorSummary | null => {
@@ -416,6 +444,21 @@ const mapModerationEvent = (item: BackendAdminModerationEvent): AdminModerationE
   }
 }
 
+const mapPermissionSnapshot = (
+  snapshot: BackendAdminPermissionSnapshot | undefined,
+  fallbackUser: AdminUserRecord,
+): AdminPermissionSnapshot => ({
+  adminReadOnly:
+    typeof snapshot?.adminReadOnly === 'boolean'
+      ? snapshot.adminReadOnly
+      : fallbackUser.adminReadOnly,
+  adminScopes: Array.isArray(snapshot?.adminScopes)
+    ? snapshot.adminScopes
+        .filter((scope): scope is string => typeof scope === 'string')
+        .sort((left, right) => left.localeCompare(right))
+    : [...fallbackUser.adminScopes].sort((left, right) => left.localeCompare(right)),
+})
+
 const buildListQueryParams = (
   query: AdminUserListQuery,
 ): Record<string, string | number | boolean> => {
@@ -558,6 +601,30 @@ export const adminUsersService = {
     userId: string,
     payload: AdminUserActionPayload,
   ): Promise<AdminUserActionResponse> => postUserAction(userId, 'force-logout', payload),
+
+  updateAdminPermissions: async (
+    userId: string,
+    payload: AdminUpdatePermissionsPayload,
+  ): Promise<AdminUpdatePermissionsResponse> => {
+    const response = await apiClient.post<BackendAdminUpdatePermissionsResponse>(
+      `/admin/users/${userId}/admin-permissions`,
+      payload,
+    )
+
+    const mappedUser = response.data.user ? mapAdminUser(response.data.user) : null
+    if (!mappedUser) {
+      throw new Error('Resposta admin invalida: user em falta.')
+    }
+
+    return {
+      message: response.data.message ?? 'Permissoes administrativas atualizadas com sucesso.',
+      changed: Boolean(response.data.changed),
+      profile: toScopeProfile(response.data.profile),
+      before: mapPermissionSnapshot(response.data.before, mappedUser),
+      after: mapPermissionSnapshot(response.data.after, mappedUser),
+      user: mappedUser,
+    }
+  },
 
   applyCreatorControls: async (
     userId: string,

@@ -7,6 +7,7 @@ import {
   RefreshCcw,
   Search,
   ShieldAlert,
+  ShieldCheck,
   SlidersHorizontal,
   Sparkles,
 } from 'lucide-react'
@@ -19,6 +20,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  Checkbox,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -53,8 +55,9 @@ import {
   useForceLogoutAdminUser,
   useSuspendAdminUser,
   useUnbanAdminUser,
+  useUpdateAdminUserPermissions,
 } from '../hooks/useAdminUsers'
-import { hasAdminScope } from '../lib/access'
+import { ADMIN_SCOPES, hasAdminScope } from '../lib/access'
 import {
   CreatorControlsSummary,
   FALSE_POSITIVE_AUTOMATED_RULE_LABEL,
@@ -65,12 +68,15 @@ import {
   TrustScoreBar,
   TRUST_RECOMMENDATION_LABEL,
 } from '../components/RiskSignals'
-import type {
-  AdminCreatorControlAction,
-  AdminUserAccountStatus,
-  AdminUserListQuery,
-  AdminUserRecord,
-  AdminUserRole,
+import {
+  ADMIN_SCOPE_PROFILE_OPTIONS,
+  ADMIN_SCOPE_PROFILE_SCOPES,
+  type AdminScopeProfile,
+  type AdminCreatorControlAction,
+  type AdminUserAccountStatus,
+  type AdminUserListQuery,
+  type AdminUserRecord,
+  type AdminUserRole,
 } from '../types/adminUsers'
 
 type RoleFilter = AdminUserRole | 'all'
@@ -78,6 +84,9 @@ type StatusFilter = AdminUserAccountStatus | 'all'
 type ReadOnlyFilter = 'all' | 'yes' | 'no'
 type UserActionKind = 'suspend' | 'ban' | 'unban' | 'force-logout' | 'note'
 type CreatorControlDialogState = {
+  user: AdminUserRecord
+}
+type AdminPermissionsDialogState = {
   user: AdminUserRecord
 }
 
@@ -205,6 +214,73 @@ const CREATOR_CONTROL_REASON_DEFAULT: Record<AdminCreatorControlAction, string> 
   restore_creator_ops: 'Operacao do creator restaurada apos revisao',
 }
 
+type AdminScope = (typeof ADMIN_SCOPES)[number]
+
+const DEFAULT_ADMIN_PERMISSIONS_REASON = 'Atualizacao de permissoes administrativas'
+const VALID_ADMIN_SCOPE_SET = new Set<string>(ADMIN_SCOPES)
+
+const ADMIN_SCOPE_PROFILE_LABEL: Record<AdminScopeProfile | 'custom', string> = {
+  custom: 'Custom',
+  super: 'Super',
+  ops: 'Ops',
+  editor: 'Editor',
+  publisher: 'Publisher',
+  claims: 'Claims',
+  support: 'Support',
+}
+
+const ADMIN_SCOPE_LABEL: Record<AdminScope, string> = {
+  'admin.users.read': 'Users Read',
+  'admin.users.write': 'Users Write',
+  'admin.content.read': 'Content Read',
+  'admin.content.moderate': 'Content Moderate',
+  'admin.content.create': 'Content Create',
+  'admin.content.edit': 'Content Edit',
+  'admin.content.publish': 'Content Publish',
+  'admin.content.archive': 'Content Archive',
+  'admin.home.curate': 'Home Curate',
+  'admin.directory.manage': 'Directory Manage',
+  'admin.claim.review': 'Claim Review',
+  'admin.claim.transfer': 'Claim Transfer',
+  'admin.brands.read': 'Brands Read',
+  'admin.brands.write': 'Brands Write',
+  'admin.uploads.read': 'Uploads Read',
+  'admin.uploads.write': 'Uploads Write',
+  'admin.metrics.read': 'Metrics Read',
+  'admin.audit.read': 'Audit Read',
+  'admin.support.session.assist': 'Support Assist',
+}
+
+const normalizeAdminScopes = (scopes: string[]): AdminScope[] => {
+  const unique = new Set<AdminScope>()
+
+  for (const scope of scopes) {
+    if (!VALID_ADMIN_SCOPE_SET.has(scope)) continue
+    unique.add(scope as AdminScope)
+  }
+
+  return [...unique].sort((left, right) => left.localeCompare(right))
+}
+
+const isSameScopeSet = (left: string[], right: string[]): boolean => {
+  if (left.length !== right.length) return false
+  for (let index = 0; index < left.length; index += 1) {
+    if (left[index] !== right[index]) return false
+  }
+  return true
+}
+
+const resolveProfileFromScopes = (scopes: AdminScope[]): AdminScopeProfile | 'custom' => {
+  for (const profile of ADMIN_SCOPE_PROFILE_OPTIONS) {
+    const profileScopes = normalizeAdminScopes(ADMIN_SCOPE_PROFILE_SCOPES[profile])
+    if (isSameScopeSet(scopes, profileScopes)) {
+      return profile
+    }
+  }
+
+  return 'custom'
+}
+
 const formatDateTime = (value: string | null): string => {
   if (!value) return '-'
   const date = new Date(value)
@@ -310,6 +386,17 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
   )
   const [creatorControlNote, setCreatorControlNote] = useState('')
   const [creatorControlCooldownHours, setCreatorControlCooldownHours] = useState('24')
+  const [adminPermissionsDialog, setAdminPermissionsDialog] =
+    useState<AdminPermissionsDialogState | null>(null)
+  const [adminPermissionsProfile, setAdminPermissionsProfile] = useState<
+    AdminScopeProfile | 'custom'
+  >('custom')
+  const [adminPermissionsReadOnly, setAdminPermissionsReadOnly] = useState(false)
+  const [adminPermissionsScopes, setAdminPermissionsScopes] = useState<AdminScope[]>([])
+  const [adminPermissionsReason, setAdminPermissionsReason] = useState(
+    DEFAULT_ADMIN_PERMISSIONS_REASON,
+  )
+  const [adminPermissionsNote, setAdminPermissionsNote] = useState('')
 
   const rawAuthUser = useAuthStore((state) => state.user)
   const authUser = (rawAuthUser as unknown as CurrentAdminMeta | null) ?? null
@@ -333,6 +420,7 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
   const forceLogoutMutation = useForceLogoutAdminUser()
   const addNoteMutation = useAddAdminUserNote()
   const creatorControlsMutation = useApplyAdminCreatorControls()
+  const updateAdminPermissionsMutation = useUpdateAdminUserPermissions()
 
   const pagination = usersQuery.data?.pagination
   const users = usersQuery.data?.items ?? []
@@ -364,9 +452,28 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
     forceLogoutMutation.isPending ||
     addNoteMutation.isPending
   const isCreatorControlPending = creatorControlsMutation.isPending
+  const isAdminPermissionsPending = updateAdminPermissionsMutation.isPending
   const requiresDoubleConfirm = actionDialog ? isDestructiveAction(actionDialog.kind) : false
   const isDoubleConfirmValid =
     !requiresDoubleConfirm || actionConfirmText.trim().toUpperCase() === DOUBLE_CONFIRM_TOKEN
+  const adminPermissionDiff = useMemo(() => {
+    if (!adminPermissionsDialog) return null
+
+    const beforeScopes = normalizeAdminScopes(adminPermissionsDialog.user.adminScopes)
+    const afterScopes = normalizeAdminScopes(adminPermissionsScopes)
+    const added = afterScopes.filter((scope) => !beforeScopes.includes(scope))
+    const removed = beforeScopes.filter((scope) => !afterScopes.includes(scope))
+    const readOnlyChanged = adminPermissionsDialog.user.adminReadOnly !== adminPermissionsReadOnly
+
+    return {
+      beforeScopes,
+      afterScopes,
+      added,
+      removed,
+      readOnlyChanged,
+      changed: readOnlyChanged || added.length > 0 || removed.length > 0,
+    }
+  }, [adminPermissionsDialog, adminPermissionsReadOnly, adminPermissionsScopes])
 
   const applyFilters = () => {
     setQueryFilters(filters)
@@ -401,6 +508,18 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
     setCreatorControlCooldownHours('24')
   }
 
+  const openAdminPermissionsDialog = (user: AdminUserRecord) => {
+    const normalizedScopes = normalizeAdminScopes(user.adminScopes)
+    const profile = resolveProfileFromScopes(normalizedScopes)
+
+    setAdminPermissionsDialog({ user })
+    setAdminPermissionsProfile(profile)
+    setAdminPermissionsReadOnly(Boolean(user.adminReadOnly))
+    setAdminPermissionsScopes(normalizedScopes)
+    setAdminPermissionsReason(DEFAULT_ADMIN_PERMISSIONS_REASON)
+    setAdminPermissionsNote('')
+  }
+
   const closeActionDialog = (force = false) => {
     if (!force && isActionPending) return
     setActionDialog(null)
@@ -425,6 +544,16 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
     setCreatorControlReason(CREATOR_CONTROL_REASON_DEFAULT.set_cooldown)
     setCreatorControlNote('')
     setCreatorControlCooldownHours('24')
+  }
+
+  const closeAdminPermissionsDialog = (force = false) => {
+    if (!force && isAdminPermissionsPending) return
+    setAdminPermissionsDialog(null)
+    setAdminPermissionsProfile('custom')
+    setAdminPermissionsReadOnly(false)
+    setAdminPermissionsScopes([])
+    setAdminPermissionsReason(DEFAULT_ADMIN_PERMISSIONS_REASON)
+    setAdminPermissionsNote('')
   }
 
   const handleActionSubmit = async () => {
@@ -526,6 +655,64 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
       })
       toast.success(result.message)
       closeCreatorControlDialog(true)
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
+  }
+
+  const handleAdminPermissionsProfileChange = (value: string) => {
+    const profile = value as AdminScopeProfile | 'custom'
+    setAdminPermissionsProfile(profile)
+
+    if (profile === 'custom') return
+    setAdminPermissionsScopes(normalizeAdminScopes(ADMIN_SCOPE_PROFILE_SCOPES[profile]))
+  }
+
+  const handleAdminScopeToggle = (scope: AdminScope, checked: boolean) => {
+    setAdminPermissionsProfile('custom')
+    setAdminPermissionsScopes((previous) => {
+      if (checked) {
+        return normalizeAdminScopes([...previous, scope])
+      }
+
+      return previous.filter((value) => value !== scope)
+    })
+  }
+
+  const handleAdminPermissionsSubmit = async () => {
+    if (!adminPermissionsDialog) return
+
+    const reason = adminPermissionsReason.trim()
+    if (!reason) {
+      toast.error('Motivo obrigatorio para atualizar permissoes admin.')
+      return
+    }
+
+    const scopes = normalizeAdminScopes(adminPermissionsScopes)
+    if (scopes.length === 0) {
+      toast.error('Seleciona pelo menos um scope admin.')
+      return
+    }
+
+    if (!adminPermissionDiff?.changed) {
+      toast.error('Nao existem alteracoes para aplicar.')
+      return
+    }
+
+    try {
+      const result = await updateAdminPermissionsMutation.mutateAsync({
+        userId: adminPermissionsDialog.user.id,
+        payload: {
+          reason,
+          note: adminPermissionsNote.trim() || undefined,
+          adminReadOnly: adminPermissionsReadOnly,
+          adminScopes: scopes,
+          profile: adminPermissionsProfile === 'custom' ? undefined : adminPermissionsProfile,
+        },
+      })
+
+      toast.success(result.message)
+      closeAdminPermissionsDialog(true)
     } catch (error) {
       toast.error(getErrorMessage(error))
     }
@@ -793,6 +980,8 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
                 {users.map((user) => {
                   const canActOnUser =
                     canWriteUsers && user.role !== 'admin' && authUser?.id !== user.id
+                  const canManageAdminPermissions =
+                    canWriteUsers && user.role === 'admin' && authUser?.id !== user.id
                   const isBlocked = user.accountStatus !== 'active'
 
                   return (
@@ -886,6 +1075,19 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
                             >
                               <SlidersHorizontal className="h-4 w-4" />
                               Controlo creator
+                            </Button>
+                          ) : null}
+
+                          {user.role === 'admin' ? (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              disabled={!canManageAdminPermissions}
+                              onClick={() => openAdminPermissionsDialog(user)}
+                            >
+                              <ShieldCheck className="h-4 w-4" />
+                              Permissoes
                             </Button>
                           ) : null}
 
@@ -1087,6 +1289,173 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
             >
               {isActionPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               {actionDialog ? ACTION_COPY[actionDialog.kind].confirmLabel : 'Confirmar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(adminPermissionsDialog)}
+        onOpenChange={(open) => (!open ? closeAdminPermissionsDialog() : null)}
+      >
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>
+              Permissoes admin
+              {adminPermissionsDialog ? ` - ${adminPermissionsDialog.user.username}` : ''}
+            </DialogTitle>
+            <DialogDescription>
+              Edita scopes e modo read-only com diff visivel antes de confirmar.
+            </DialogDescription>
+          </DialogHeader>
+
+          {adminPermissionsDialog ? (
+            <div className="space-y-4">
+              <div className="rounded-md border border-border/70 bg-muted/20 p-3 text-xs text-muted-foreground">
+                <p className="font-medium text-foreground">
+                  {adminPermissionsDialog.user.name} (@{adminPermissionsDialog.user.username})
+                </p>
+                <p>
+                  Estado atual: {adminPermissionsDialog.user.adminReadOnly ? 'Read-only' : 'Write'}{' '}
+                  com {normalizeAdminScopes(adminPermissionsDialog.user.adminScopes).length} scopes.
+                </p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Perfil recomendado</Label>
+                  <Select
+                    value={adminPermissionsProfile}
+                    onValueChange={handleAdminPermissionsProfileChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleciona perfil" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="custom">{ADMIN_SCOPE_PROFILE_LABEL.custom}</SelectItem>
+                      {ADMIN_SCOPE_PROFILE_OPTIONS.map((profile) => (
+                        <SelectItem key={profile} value={profile}>
+                          {ADMIN_SCOPE_PROFILE_LABEL[profile]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Modo de escrita</Label>
+                  <Select
+                    value={adminPermissionsReadOnly ? 'readonly' : 'write'}
+                    onValueChange={(value) => setAdminPermissionsReadOnly(value === 'readonly')}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleciona modo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="write">Write</SelectItem>
+                      <SelectItem value="readonly">Read-only</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Scopes ativos</Label>
+                <div className="grid gap-2 rounded-md border border-border/70 p-3 md:grid-cols-2">
+                  {ADMIN_SCOPES.map((scope) => (
+                    <label key={scope} className="flex items-center gap-2 text-sm">
+                      <Checkbox
+                        checked={adminPermissionsScopes.includes(scope)}
+                        onCheckedChange={(checked) =>
+                          handleAdminScopeToggle(scope, checked === true)
+                        }
+                      />
+                      <span>{ADMIN_SCOPE_LABEL[scope]}</span>
+                      <span className="text-xs text-muted-foreground">({scope})</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {adminPermissionDiff ? (
+                <div className="space-y-3 rounded-md border border-border/70 bg-muted/10 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Preview do diff
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Read-only:{' '}
+                    {adminPermissionDiff.readOnlyChanged
+                      ? `${adminPermissionsDialog.user.adminReadOnly ? 'sim' : 'nao'} -> ${adminPermissionsReadOnly ? 'sim' : 'nao'}`
+                      : 'sem alteracao'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Scopes: +{adminPermissionDiff.added.length} / -
+                    {adminPermissionDiff.removed.length}
+                  </p>
+                  {adminPermissionDiff.added.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {adminPermissionDiff.added.map((scope) => (
+                        <Badge key={`add-${scope}`} variant="secondary">
+                          + {scope}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : null}
+                  {adminPermissionDiff.removed.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {adminPermissionDiff.removed.map((scope) => (
+                        <Badge key={`remove-${scope}`} variant="outline">
+                          - {scope}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
+              <div className="space-y-2">
+                <Label htmlFor="admin-permissions-reason">Motivo</Label>
+                <Input
+                  id="admin-permissions-reason"
+                  value={adminPermissionsReason}
+                  onChange={(event) => setAdminPermissionsReason(event.target.value)}
+                  placeholder="Motivo operacional para auditoria."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="admin-permissions-note">Nota adicional (opcional)</Label>
+                <Textarea
+                  id="admin-permissions-note"
+                  rows={3}
+                  value={adminPermissionsNote}
+                  onChange={(event) => setAdminPermissionsNote(event.target.value)}
+                  placeholder="Contexto complementar para auditoria."
+                />
+              </div>
+            </div>
+          ) : null}
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => closeAdminPermissionsDialog()}
+              disabled={isAdminPermissionsPending}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              onClick={handleAdminPermissionsSubmit}
+              disabled={
+                isAdminPermissionsPending ||
+                !adminPermissionsDialog ||
+                !adminPermissionDiff?.changed
+              }
+            >
+              {isAdminPermissionsPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              Aplicar permissoes
             </Button>
           </DialogFooter>
         </DialogContent>

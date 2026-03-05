@@ -26,6 +26,87 @@ export type AdminCreatorControlAction =
   | 'suspend_creator_ops'
   | 'restore_creator_ops'
 
+export type AdminScopeProfile = 'super' | 'ops' | 'editor' | 'publisher' | 'claims' | 'support'
+
+export const ADMIN_SCOPE_PROFILE_OPTIONS: AdminScopeProfile[] = [
+  'super',
+  'ops',
+  'editor',
+  'publisher',
+  'claims',
+  'support',
+]
+
+export const ADMIN_SCOPE_PROFILE_SCOPES: Record<AdminScopeProfile, string[]> = {
+  super: [
+    'admin.users.read',
+    'admin.users.write',
+    'admin.content.read',
+    'admin.content.moderate',
+    'admin.content.create',
+    'admin.content.edit',
+    'admin.content.publish',
+    'admin.content.archive',
+    'admin.home.curate',
+    'admin.directory.manage',
+    'admin.claim.review',
+    'admin.claim.transfer',
+    'admin.brands.read',
+    'admin.brands.write',
+    'admin.uploads.read',
+    'admin.uploads.write',
+    'admin.metrics.read',
+    'admin.audit.read',
+    'admin.support.session.assist',
+  ],
+  ops: [
+    'admin.users.read',
+    'admin.users.write',
+    'admin.content.read',
+    'admin.content.moderate',
+    'admin.content.create',
+    'admin.content.edit',
+    'admin.content.publish',
+    'admin.content.archive',
+    'admin.home.curate',
+    'admin.directory.manage',
+    'admin.claim.review',
+    'admin.brands.read',
+    'admin.brands.write',
+    'admin.uploads.read',
+    'admin.uploads.write',
+    'admin.metrics.read',
+    'admin.audit.read',
+  ],
+  editor: [
+    'admin.content.read',
+    'admin.content.create',
+    'admin.content.edit',
+    'admin.home.curate',
+    'admin.directory.manage',
+    'admin.brands.read',
+    'admin.audit.read',
+  ],
+  publisher: [
+    'admin.content.read',
+    'admin.content.publish',
+    'admin.content.archive',
+    'admin.home.curate',
+    'admin.metrics.read',
+    'admin.audit.read',
+  ],
+  claims: ['admin.claim.review', 'admin.claim.transfer', 'admin.audit.read'],
+  support: [
+    'admin.users.read',
+    'admin.content.read',
+    'admin.brands.read',
+    'admin.uploads.read',
+    'admin.metrics.read',
+    'admin.audit.read',
+    'admin.support.session.assist',
+  ],
+}
+
 export type CreatorRiskLevel = 'low' | 'medium' | 'high' | 'critical'
 export type CreatorTrustRecommendedAction =
   | 'none'
@@ -198,4 +279,26 @@ export interface AdminAddNoteResponse {
 export interface AdminCreatorTrustProfileResponse {
   user: AdminUserRecord
   trustSignals: AdminCreatorTrustSignals | null
+}
+
+export interface AdminPermissionSnapshot {
+  adminReadOnly: boolean
+  adminScopes: string[]
+}
+
+export interface AdminUpdatePermissionsPayload {
+  reason: string
+  note?: string
+  adminReadOnly: boolean
+  adminScopes?: string[]
+  profile?: AdminScopeProfile
+}
+
+export interface AdminUpdatePermissionsResponse {
+  message: string
+  changed: boolean
+  profile: AdminScopeProfile | null
+  before: AdminPermissionSnapshot
+  after: AdminPermissionSnapshot
+  user: AdminUserRecord
 }
