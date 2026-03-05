@@ -3,7 +3,7 @@ import { ProtectedRoute } from '@/shared/guards'
 
 function AdminCreatorsPage() {
   return (
-    <ProtectedRoute allowedRoles={['admin']}>
+    <ProtectedRoute allowedRoles={['admin']} requiredAdminModule="creators">
       <div className="mx-auto max-w-7xl p-6">
         <CreatorsRiskBoardPage />
       </div>

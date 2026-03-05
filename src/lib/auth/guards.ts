@@ -1,5 +1,6 @@
 import { redirect, LoaderFunctionArgs } from 'react-router-dom'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import { canAccessAdminPath, getDefaultAdminPath } from '@/features/admin/lib/access'
 
 /**
  * Require user to be authenticated
@@ -40,7 +41,7 @@ export function requireCreator() {
  * Require user to be an Admin
  * Redirects to home if not authorized
  */
-export function requireAdmin() {
+export function requireAdmin(args?: LoaderFunctionArgs) {
   const { isAuthenticated, user } = useAuthStore.getState()
 
   if (!isAuthenticated) {
@@ -49,6 +50,19 @@ export function requireAdmin() {
 
   if (user?.role !== 'admin') {
     return redirect('/')
+  }
+
+  const requestUrl = args?.request?.url
+
+  if (requestUrl) {
+    const pathname = new URL(requestUrl).pathname
+    if (!canAccessAdminPath(user, pathname)) {
+      const fallbackPath = getDefaultAdminPath(user)
+      if (pathname !== fallbackPath) {
+        return redirect(fallbackPath)
+      }
+      return redirect('/')
+    }
   }
 
   return null

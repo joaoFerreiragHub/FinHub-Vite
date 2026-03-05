@@ -8,6 +8,7 @@ import {
   Users,
   LifeBuoy,
   Newspaper,
+  ClipboardList,
 } from 'lucide-react'
 
 export const adminRoutes = [
@@ -57,6 +58,12 @@ export const adminRoutes = [
     path: '/admin/stats',
     label: 'Estatisticas',
     icon: BarChart3,
+    allowedRoles: ['admin'] as UserRole[],
+  },
+  {
+    path: '/admin/auditoria',
+    label: 'Auditoria',
+    icon: ClipboardList,
     allowedRoles: ['admin'] as UserRole[],
   },
 ]

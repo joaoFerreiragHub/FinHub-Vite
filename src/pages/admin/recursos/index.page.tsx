@@ -3,7 +3,7 @@ import { ProtectedRoute } from '@/shared/guards'
 
 function AdminResourcesPage() {
   return (
-    <ProtectedRoute allowedRoles={['admin']}>
+    <ProtectedRoute allowedRoles={['admin']} requiredAdminModule="brands">
       <div className="mx-auto max-w-7xl p-6">
         <BrandsManagementPage />
       </div>

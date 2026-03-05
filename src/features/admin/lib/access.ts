@@ -198,3 +198,51 @@ export const getAccessibleAdminModules = (user: User | null | undefined): AdminM
 
 export const findAdminModule = (key: AdminModuleKey): AdminModuleConfig | undefined =>
   ADMIN_MODULES.find((moduleConfig) => moduleConfig.key === key)
+
+const normalizePathname = (pathname: string): string => {
+  if (pathname.trim().length === 0) return '/'
+  const pathWithoutQuery = pathname.split('?')[0]?.split('#')[0] ?? pathname
+  if (pathWithoutQuery.length > 1 && pathWithoutQuery.endsWith('/')) {
+    return pathWithoutQuery.slice(0, -1)
+  }
+  return pathWithoutQuery
+}
+
+const getNonDashboardModules = (): AdminModuleConfig[] =>
+  ADMIN_MODULES.filter((moduleConfig) => moduleConfig.key !== 'dashboard').sort(
+    (left, right) => right.path.length - left.path.length,
+  )
+
+export const getAdminModuleForPath = (pathname: string): AdminModuleConfig | undefined => {
+  const normalizedPath = normalizePathname(pathname)
+  const dashboardModule = findAdminModule('dashboard')
+
+  if (normalizedPath === dashboardModule?.path) {
+    return dashboardModule
+  }
+
+  for (const moduleConfig of getNonDashboardModules()) {
+    const modulePath = moduleConfig.path
+    if (normalizedPath === modulePath || normalizedPath.startsWith(`${modulePath}/`)) {
+      return moduleConfig
+    }
+  }
+
+  return undefined
+}
+
+export const canAccessAdminPath = (user: User | null | undefined, pathname: string): boolean => {
+  if (!isAdminUser(user)) return false
+
+  const targetModule = getAdminModuleForPath(pathname)
+  if (!targetModule) return false
+
+  return canReadAdminModule(user, targetModule)
+}
+
+export const getDefaultAdminPath = (user: User | null | undefined): string => {
+  if (!isAdminUser(user)) return '/'
+
+  const firstAccessibleModule = getAccessibleAdminModules(user)[0]
+  return firstAccessibleModule?.path ?? '/'
+}

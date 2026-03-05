@@ -3,7 +3,7 @@ import { ProtectedRoute } from '@/shared/guards'
 
 function AdminEditorialCmsPage() {
   return (
-    <ProtectedRoute allowedRoles={['admin']}>
+    <ProtectedRoute allowedRoles={['admin']} requiredAdminModule="editorial">
       <div className="mx-auto max-w-7xl p-6">
         <EditorialCmsPage />
       </div>
