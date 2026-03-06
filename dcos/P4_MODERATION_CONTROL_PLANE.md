@@ -230,6 +230,18 @@ Cobertura adicionada:
 
 - `src/__tests__/features/admin/AdminAuditLogsPage.test.tsx`
 
+### Hotfix admin route - ModuleCard icon map (2026-03-06)
+
+Correcao aplicada em `/admin` para evitar crash em runtime/hydration:
+
+- `AdminDashboardPage` tinha modulo `creators` disponivel em `ADMIN_MODULES`, mas sem entrada correspondente em `MODULE_ICONS`, o que produzia `Icon=undefined` no `ModuleCard`.
+- foi adicionada a chave `creators` ao mapa de icones e fallback defensivo em `ModuleCard` (`MODULE_ICONS[key] ?? Shield`) para evitar regressao semelhante no futuro.
+
+Validacao:
+
+- `npm run typecheck:p1`
+- `npm run build` (SSR + client)
+
 ## Fecho operacional do P4
 
 Com a iteracao final de fecho admin, o P4 fica operacionalmente fechado no frontend:

@@ -143,6 +143,7 @@ interface SurfaceControlDialogState {
 const MODULE_ICONS: Record<AdminModuleConfig['key'], ElementType> = {
   dashboard: BarChart3,
   users: Users,
+  creators: Radar,
   content: ShieldCheck,
   editorial: Newspaper,
   support: LifeBuoy,
@@ -207,7 +208,7 @@ const toMinReportPriority = (value: string): 'low' | 'medium' | 'high' | 'critic
 }
 
 function ModuleCard({ moduleConfig, canWrite, alertCount }: ModuleCardProps) {
-  const Icon = MODULE_ICONS[moduleConfig.key]
+  const Icon = MODULE_ICONS[moduleConfig.key] ?? Shield
 
   return (
     <a
