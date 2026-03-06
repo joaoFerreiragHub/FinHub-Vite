@@ -230,6 +230,28 @@ Cobertura adicionada:
 
 - `src/__tests__/features/admin/AdminAuditLogsPage.test.tsx`
 
+### P4.2-15 fechado - atalhos de teclado e command palette admin (2026-03-06)
+
+Entregue nesta iteracao:
+
+- `AdminLayout` passa a expor trigger de `Command palette` para navegacao admin.
+- `Ctrl/Cmd+K` abre command palette com modulos filtrados pelos scopes efetivos do admin.
+- atalhos de teclado de navegacao rapida `G + tecla` adicionados de forma scope-aware:
+  - `G D` dashboard
+  - `G U` utilizadores
+  - `G R` creators/risk
+  - `G C` moderacao de conteudo
+  - `G E` editorial
+  - `G S` suporte
+  - `G B` recursos
+  - `G A` auditoria
+  - `G T` estatisticas
+- guardrail de UX: atalhos nao disparam enquanto o foco estiver em `input/textarea/select` ou campos content-editable.
+
+Cobertura adicionada:
+
+- `src/__tests__/features/admin/adminKeyboardShortcuts.test.ts`
+
 ### Hotfix admin route - ModuleCard icon map (2026-03-06)
 
 Correcao aplicada em `/admin` para evitar crash em runtime/hydration:

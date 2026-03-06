@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import AdminSidebar from '../components/AdminSidebar'
+import AdminCommandPalette from '../components/AdminCommandPalette'
 import Header from '@/components/layout/Header'
 import AssistedSessionBanner from '../components/AssistedSessionBanner'
 import { cn } from '@/lib/utils'
@@ -47,6 +48,7 @@ export default function AdminLayout() {
 
         <main className="relative z-0 min-h-[calc(100vh-4rem)] flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           <div className="mx-auto w-full max-w-6xl">
+            <AdminCommandPalette className="mb-4" />
             <Outlet />
           </div>
         </main>
