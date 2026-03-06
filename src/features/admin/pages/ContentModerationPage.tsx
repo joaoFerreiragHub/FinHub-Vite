@@ -1521,276 +1521,439 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
               </p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  {canModerateContent ? (
-                    <TableHead className="w-[48px]">
-                      <Checkbox
-                        aria-label="Selecionar conteudos da pagina"
-                        checked={partiallySelected ? 'indeterminate' : allVisibleSelected}
-                        onCheckedChange={toggleSelectVisible}
-                      />
-                    </TableHead>
-                  ) : null}
-                  <TableHead>Conteudo</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Criador</TableHead>
-                  <TableHead>Ultima moderacao</TableHead>
-                  <TableHead>Risco e sinais</TableHead>
-                  <TableHead className="w-[360px]">Acoes</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              <div className="space-y-3 md:hidden">
                 {items.map((item) => {
                   const canAct = canModerateContent
+                  const selected = selectedContentKeys.includes(contentSelectionKey(item))
+
                   return (
-                    <TableRow key={`${item.contentType}-${item.id}`}>
-                      {canModerateContent ? (
-                        <TableCell>
-                          <Checkbox
-                            aria-label={`Selecionar ${item.title}`}
-                            checked={selectedContentKeys.includes(contentSelectionKey(item))}
-                            onCheckedChange={() => toggleSelectItem(item)}
-                          />
-                        </TableCell>
-                      ) : null}
-                      <TableCell>
+                    <div
+                      key={`mobile-${item.contentType}-${item.id}`}
+                      className="rounded-lg border border-border/70 p-3"
+                    >
+                      <div className="flex items-start justify-between gap-3">
                         <div className="space-y-1">
                           <p className="text-sm font-medium">{item.title}</p>
                           <p className="text-xs text-muted-foreground">/{item.slug}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {item.description || 'Sem descricao resumida.'}
-                          </p>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-2">
-                          <Badge variant="outline">{CONTENT_TYPE_LABEL[item.contentType]}</Badge>
-                          <Badge variant="outline">{item.status}</Badge>
-                          <Badge variant={MODERATION_STATUS_BADGE(item.moderationStatus)}>
-                            {MODERATION_STATUS_LABEL[item.moderationStatus]}
-                          </Badge>
-                          <ReportPriorityBadge
-                            priority={item.reportSignals.priority}
-                            openReports={item.reportSignals.openReports}
+                        {canModerateContent ? (
+                          <Checkbox
+                            aria-label={`Selecionar ${item.title}`}
+                            checked={selected}
+                            onCheckedChange={() => toggleSelectItem(item)}
                           />
-                          <AutomatedDetectionBadge
-                            severity={item.automatedSignals.severity}
-                            score={item.automatedSignals.score}
-                            active={item.automatedSignals.active}
-                          />
-                        </div>
-                        {item.moderationReason && (
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            {item.moderationReason}
-                          </p>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-2 text-xs">
-                          <p>{formatActor(item.creator)}</p>
-                          {item.creatorTrustSignals ? (
-                            <>
-                              <RiskLevelBadge
-                                riskLevel={item.creatorTrustSignals.riskLevel}
-                                score={item.creatorTrustSignals.trustScore}
-                              />
-                              <TrustScoreBar value={item.creatorTrustSignals.trustScore} compact />
-                            </>
-                          ) : null}
-                          {item.creator ? (
-                            <div className="flex flex-wrap gap-2 pt-1">
-                              <Button asChild type="button" size="sm" variant="outline">
-                                <Link
-                                  to={buildAdminCreatorRiskHref({
-                                    creatorId: item.creator.id,
-                                    view: 'trust',
-                                    source: 'content',
-                                    contentType: item.contentType,
-                                    contentId: item.id,
-                                  })}
-                                >
-                                  <ArrowUpRight className="h-4 w-4" />
-                                  Creator
-                                </Link>
-                              </Button>
-                              {canAct ? (
-                                <Button asChild type="button" size="sm">
-                                  <Link
-                                    to={buildAdminCreatorRiskHref({
-                                      creatorId: item.creator.id,
-                                      view: 'controls',
-                                      source: 'content',
-                                      contentType: item.contentType,
-                                      contentId: item.id,
-                                    })}
-                                  >
-                                    <ShieldAlert className="h-4 w-4" />
-                                    Controlar
-                                  </Link>
-                                </Button>
-                              ) : null}
-                            </div>
-                          ) : null}
-                          <p className="text-muted-foreground">
-                            Atualizado: {formatDateTime(item.updatedAt)}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1 text-xs text-muted-foreground">
-                          <p>Data: {formatDateTime(item.moderatedAt)}</p>
-                          <p>Autor: {formatActor(item.moderatedBy)}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-2">
-                          <div className="flex flex-wrap gap-1.5">
-                            <TrustRecommendationBadge
-                              action={
-                                item.creatorTrustSignals?.recommendedAction ??
-                                (item.automatedSignals.recommendedAction === 'hide'
-                                  ? 'block_publishing'
-                                  : item.automatedSignals.recommendedAction === 'restrict'
-                                    ? 'set_cooldown'
-                                    : item.policySignals.recommendedAction === 'review'
-                                      ? 'review'
-                                      : item.policySignals.recommendedAction === 'hide'
-                                        ? 'block_publishing'
-                                        : item.policySignals.recommendedAction === 'restrict'
-                                          ? 'set_cooldown'
-                                          : 'none')
-                              }
-                            />
-                            {item.automatedSignals.active ? (
-                              <Badge
-                                variant="outline"
-                                className="border-orange-500/40 text-orange-700"
-                              >
-                                Auto: {item.automatedSignals.recommendedAction}
-                              </Badge>
-                            ) : null}
-                            {item.policySignals.recommendedAction !== 'none' ? (
-                              <Badge variant="outline" className="border-sky-500/40 text-sky-700">
-                                Policy: {item.policySignals.recommendedAction}
-                              </Badge>
-                            ) : null}
-                          </div>
-                          {item.creatorTrustSignals?.summary.activeControlFlags.length ? (
-                            <div className="flex flex-wrap gap-1.5">
-                              {item.creatorTrustSignals.summary.activeControlFlags.map((flag) => (
-                                <Badge key={flag} variant="outline">
-                                  {flag}
-                                </Badge>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">
-                              Sem barreiras ativas.
-                            </span>
-                          )}
-                          <div className="space-y-1 text-xs text-muted-foreground">
-                            <p>
-                              {item.reportSignals.topReasons[0]
-                                ? `Top report: ${item.reportSignals.topReasons[0].reason}`
-                                : 'Sem motivo dominante por report.'}
-                            </p>
-                            <p>
-                              Perfil policy: {item.policySignals.profile.label} · hide/high com{' '}
-                              {item.policySignals.thresholds.highPriorityHideMinUniqueReporters}+
-                              reporters
-                            </p>
-                            <p>
-                              {item.automatedSignals.active &&
-                              item.automatedSignals.triggeredRules[0]
-                                ? `Auto rule: ${AUTOMATED_RULE_LABEL[item.automatedSignals.triggeredRules[0].rule]}`
-                                : 'Sem regra automatica dominante.'}
-                            </p>
-                            {item.creatorTrustSignals ? (
-                              <p>
-                                FP tuning:{' '}
-                                {item.creatorTrustSignals.summary.falsePositiveCompensationScore30d}{' '}
-                                pts
-                                {item.creatorTrustSignals.summary.dominantFalsePositiveCategory30d
-                                  ? ` · ${FALSE_POSITIVE_CATEGORY_LABEL[item.creatorTrustSignals.summary.dominantFalsePositiveCategory30d]}`
-                                  : ''}
-                              </p>
-                            ) : null}
-                            {item.automatedSignals.active ? (
-                              <p>
-                                Origem auto: {item.automatedSignals.triggerSource ?? 'n/a'} · ultimo
-                                sinal {formatDateTime(item.automatedSignals.lastDetectedAt)}
-                              </p>
-                            ) : null}
-                            {item.automatedSignals.automation.executed ? (
-                              <p className="text-orange-700">
-                                Auto-hide tecnico executado em{' '}
-                                {formatDateTime(item.automatedSignals.automation.lastAttemptAt)}
-                              </p>
-                            ) : item.automatedSignals.active &&
-                              item.automatedSignals.automation.eligible ? (
-                              <p className="text-orange-700">Elegivel para auto-hide tecnico.</p>
-                            ) : null}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-2">
-                          {item.moderationStatus === 'visible' ? (
-                            <>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="outline"
-                                disabled={!canAct}
-                                onClick={() => openActionDialog('hide', item)}
-                              >
-                                <EyeOff className="h-4 w-4" />
-                                Ocultar
-                              </Button>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="outline"
-                                disabled={!canAct}
-                                onClick={() => openActionDialog('restrict', item)}
-                              >
-                                <ShieldAlert className="h-4 w-4" />
-                                Restringir
-                              </Button>
-                            </>
-                          ) : (
+                        ) : null}
+                      </div>
+
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        {item.description || 'Sem descricao resumida.'}
+                      </p>
+
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <Badge variant="outline">{CONTENT_TYPE_LABEL[item.contentType]}</Badge>
+                        <Badge variant="outline">{item.status}</Badge>
+                        <Badge variant={MODERATION_STATUS_BADGE(item.moderationStatus)}>
+                          {MODERATION_STATUS_LABEL[item.moderationStatus]}
+                        </Badge>
+                        <ReportPriorityBadge
+                          priority={item.reportSignals.priority}
+                          openReports={item.reportSignals.openReports}
+                        />
+                        <AutomatedDetectionBadge
+                          severity={item.automatedSignals.severity}
+                          score={item.automatedSignals.score}
+                          active={item.automatedSignals.active}
+                        />
+                      </div>
+
+                      <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+                        <p>Criador: {formatActor(item.creator)}</p>
+                        <p>Ultima moderacao: {formatDateTime(item.moderatedAt)}</p>
+                        <p>Moderado por: {formatActor(item.moderatedBy)}</p>
+                        {item.reportSignals.topReasons[0] ? (
+                          <p>Top report: {item.reportSignals.topReasons[0].reason}</p>
+                        ) : null}
+                      </div>
+
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {item.creator ? (
+                          <Button asChild type="button" size="sm" variant="outline">
+                            <Link
+                              to={buildAdminCreatorRiskHref({
+                                creatorId: item.creator.id,
+                                view: 'trust',
+                                source: 'content',
+                                contentType: item.contentType,
+                                contentId: item.id,
+                              })}
+                            >
+                              <ArrowUpRight className="h-4 w-4" />
+                              Creator
+                            </Link>
+                          </Button>
+                        ) : null}
+
+                        {item.creator && canAct ? (
+                          <Button asChild type="button" size="sm">
+                            <Link
+                              to={buildAdminCreatorRiskHref({
+                                creatorId: item.creator.id,
+                                view: 'controls',
+                                source: 'content',
+                                contentType: item.contentType,
+                                contentId: item.id,
+                              })}
+                            >
+                              <ShieldAlert className="h-4 w-4" />
+                              Controlar
+                            </Link>
+                          </Button>
+                        ) : null}
+
+                        {item.moderationStatus === 'visible' ? (
+                          <>
                             <Button
                               type="button"
                               size="sm"
                               variant="outline"
                               disabled={!canAct}
-                              onClick={() => openActionDialog('unhide', item)}
+                              onClick={() => openActionDialog('hide', item)}
                             >
-                              <Undo2 className="h-4 w-4" />
-                              Reativar
+                              <EyeOff className="h-4 w-4" />
+                              Ocultar
                             </Button>
-                          )}
-
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              disabled={!canAct}
+                              onClick={() => openActionDialog('restrict', item)}
+                            >
+                              <ShieldAlert className="h-4 w-4" />
+                              Restringir
+                            </Button>
+                          </>
+                        ) : (
                           <Button
                             type="button"
                             size="sm"
-                            variant="ghost"
-                            onClick={() => {
-                              setHistoryTarget(item)
-                              setHistoryPage(1)
-                            }}
+                            variant="outline"
+                            disabled={!canAct}
+                            onClick={() => openActionDialog('unhide', item)}
                           >
-                            Historico
+                            <Undo2 className="h-4 w-4" />
+                            Reativar
                           </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                        )}
+
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setHistoryTarget(item)
+                            setHistoryPage(1)
+                          }}
+                        >
+                          Historico
+                        </Button>
+                      </div>
+                    </div>
                   )
                 })}
-              </TableBody>
-            </Table>
+              </div>
+
+              <div className="hidden overflow-auto md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      {canModerateContent ? (
+                        <TableHead className="w-[48px]">
+                          <Checkbox
+                            aria-label="Selecionar conteudos da pagina"
+                            checked={partiallySelected ? 'indeterminate' : allVisibleSelected}
+                            onCheckedChange={toggleSelectVisible}
+                          />
+                        </TableHead>
+                      ) : null}
+                      <TableHead>Conteudo</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead>Criador</TableHead>
+                      <TableHead>Ultima moderacao</TableHead>
+                      <TableHead>Risco e sinais</TableHead>
+                      <TableHead className="w-[360px]">Acoes</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {items.map((item) => {
+                      const canAct = canModerateContent
+                      return (
+                        <TableRow key={`${item.contentType}-${item.id}`}>
+                          {canModerateContent ? (
+                            <TableCell>
+                              <Checkbox
+                                aria-label={`Selecionar ${item.title}`}
+                                checked={selectedContentKeys.includes(contentSelectionKey(item))}
+                                onCheckedChange={() => toggleSelectItem(item)}
+                              />
+                            </TableCell>
+                          ) : null}
+                          <TableCell>
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium">{item.title}</p>
+                              <p className="text-xs text-muted-foreground">/{item.slug}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {item.description || 'Sem descricao resumida.'}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-2">
+                              <Badge variant="outline">
+                                {CONTENT_TYPE_LABEL[item.contentType]}
+                              </Badge>
+                              <Badge variant="outline">{item.status}</Badge>
+                              <Badge variant={MODERATION_STATUS_BADGE(item.moderationStatus)}>
+                                {MODERATION_STATUS_LABEL[item.moderationStatus]}
+                              </Badge>
+                              <ReportPriorityBadge
+                                priority={item.reportSignals.priority}
+                                openReports={item.reportSignals.openReports}
+                              />
+                              <AutomatedDetectionBadge
+                                severity={item.automatedSignals.severity}
+                                score={item.automatedSignals.score}
+                                active={item.automatedSignals.active}
+                              />
+                            </div>
+                            {item.moderationReason && (
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                {item.moderationReason}
+                              </p>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-2 text-xs">
+                              <p>{formatActor(item.creator)}</p>
+                              {item.creatorTrustSignals ? (
+                                <>
+                                  <RiskLevelBadge
+                                    riskLevel={item.creatorTrustSignals.riskLevel}
+                                    score={item.creatorTrustSignals.trustScore}
+                                  />
+                                  <TrustScoreBar
+                                    value={item.creatorTrustSignals.trustScore}
+                                    compact
+                                  />
+                                </>
+                              ) : null}
+                              {item.creator ? (
+                                <div className="flex flex-wrap gap-2 pt-1">
+                                  <Button asChild type="button" size="sm" variant="outline">
+                                    <Link
+                                      to={buildAdminCreatorRiskHref({
+                                        creatorId: item.creator.id,
+                                        view: 'trust',
+                                        source: 'content',
+                                        contentType: item.contentType,
+                                        contentId: item.id,
+                                      })}
+                                    >
+                                      <ArrowUpRight className="h-4 w-4" />
+                                      Creator
+                                    </Link>
+                                  </Button>
+                                  {canAct ? (
+                                    <Button asChild type="button" size="sm">
+                                      <Link
+                                        to={buildAdminCreatorRiskHref({
+                                          creatorId: item.creator.id,
+                                          view: 'controls',
+                                          source: 'content',
+                                          contentType: item.contentType,
+                                          contentId: item.id,
+                                        })}
+                                      >
+                                        <ShieldAlert className="h-4 w-4" />
+                                        Controlar
+                                      </Link>
+                                    </Button>
+                                  ) : null}
+                                </div>
+                              ) : null}
+                              <p className="text-muted-foreground">
+                                Atualizado: {formatDateTime(item.updatedAt)}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1 text-xs text-muted-foreground">
+                              <p>Data: {formatDateTime(item.moderatedAt)}</p>
+                              <p>Autor: {formatActor(item.moderatedBy)}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-2">
+                              <div className="flex flex-wrap gap-1.5">
+                                <TrustRecommendationBadge
+                                  action={
+                                    item.creatorTrustSignals?.recommendedAction ??
+                                    (item.automatedSignals.recommendedAction === 'hide'
+                                      ? 'block_publishing'
+                                      : item.automatedSignals.recommendedAction === 'restrict'
+                                        ? 'set_cooldown'
+                                        : item.policySignals.recommendedAction === 'review'
+                                          ? 'review'
+                                          : item.policySignals.recommendedAction === 'hide'
+                                            ? 'block_publishing'
+                                            : item.policySignals.recommendedAction === 'restrict'
+                                              ? 'set_cooldown'
+                                              : 'none')
+                                  }
+                                />
+                                {item.automatedSignals.active ? (
+                                  <Badge
+                                    variant="outline"
+                                    className="border-orange-500/40 text-orange-700"
+                                  >
+                                    Auto: {item.automatedSignals.recommendedAction}
+                                  </Badge>
+                                ) : null}
+                                {item.policySignals.recommendedAction !== 'none' ? (
+                                  <Badge
+                                    variant="outline"
+                                    className="border-sky-500/40 text-sky-700"
+                                  >
+                                    Policy: {item.policySignals.recommendedAction}
+                                  </Badge>
+                                ) : null}
+                              </div>
+                              {item.creatorTrustSignals?.summary.activeControlFlags.length ? (
+                                <div className="flex flex-wrap gap-1.5">
+                                  {item.creatorTrustSignals.summary.activeControlFlags.map(
+                                    (flag) => (
+                                      <Badge key={flag} variant="outline">
+                                        {flag}
+                                      </Badge>
+                                    ),
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">
+                                  Sem barreiras ativas.
+                                </span>
+                              )}
+                              <div className="space-y-1 text-xs text-muted-foreground">
+                                <p>
+                                  {item.reportSignals.topReasons[0]
+                                    ? `Top report: ${item.reportSignals.topReasons[0].reason}`
+                                    : 'Sem motivo dominante por report.'}
+                                </p>
+                                <p>
+                                  Perfil policy: {item.policySignals.profile.label} · hide/high com{' '}
+                                  {item.policySignals.thresholds.highPriorityHideMinUniqueReporters}
+                                  + reporters
+                                </p>
+                                <p>
+                                  {item.automatedSignals.active &&
+                                  item.automatedSignals.triggeredRules[0]
+                                    ? `Auto rule: ${AUTOMATED_RULE_LABEL[item.automatedSignals.triggeredRules[0].rule]}`
+                                    : 'Sem regra automatica dominante.'}
+                                </p>
+                                {item.creatorTrustSignals ? (
+                                  <p>
+                                    FP tuning:{' '}
+                                    {
+                                      item.creatorTrustSignals.summary
+                                        .falsePositiveCompensationScore30d
+                                    }{' '}
+                                    pts
+                                    {item.creatorTrustSignals.summary
+                                      .dominantFalsePositiveCategory30d
+                                      ? ` · ${FALSE_POSITIVE_CATEGORY_LABEL[item.creatorTrustSignals.summary.dominantFalsePositiveCategory30d]}`
+                                      : ''}
+                                  </p>
+                                ) : null}
+                                {item.automatedSignals.active ? (
+                                  <p>
+                                    Origem auto: {item.automatedSignals.triggerSource ?? 'n/a'} ·
+                                    ultimo sinal{' '}
+                                    {formatDateTime(item.automatedSignals.lastDetectedAt)}
+                                  </p>
+                                ) : null}
+                                {item.automatedSignals.automation.executed ? (
+                                  <p className="text-orange-700">
+                                    Auto-hide tecnico executado em{' '}
+                                    {formatDateTime(item.automatedSignals.automation.lastAttemptAt)}
+                                  </p>
+                                ) : item.automatedSignals.active &&
+                                  item.automatedSignals.automation.eligible ? (
+                                  <p className="text-orange-700">
+                                    Elegivel para auto-hide tecnico.
+                                  </p>
+                                ) : null}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-2">
+                              {item.moderationStatus === 'visible' ? (
+                                <>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={!canAct}
+                                    onClick={() => openActionDialog('hide', item)}
+                                  >
+                                    <EyeOff className="h-4 w-4" />
+                                    Ocultar
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={!canAct}
+                                    onClick={() => openActionDialog('restrict', item)}
+                                  >
+                                    <ShieldAlert className="h-4 w-4" />
+                                    Restringir
+                                  </Button>
+                                </>
+                              ) : (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={!canAct}
+                                  onClick={() => openActionDialog('unhide', item)}
+                                >
+                                  <Undo2 className="h-4 w-4" />
+                                  Reativar
+                                </Button>
+                              )}
+
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  setHistoryTarget(item)
+                                  setHistoryPage(1)
+                                }}
+                              >
+                                Historico
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
 
           {pagination && (isCursorPagination || pagination.pages > 1) && (

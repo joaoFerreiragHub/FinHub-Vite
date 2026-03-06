@@ -212,6 +212,24 @@ Cobertura adicionada:
 
 - `src/__tests__/features/admin/adminFormValidation.test.ts`
 
+### P4.2-13 fechado - modo card mobile para tabelas admin (2026-03-05)
+
+Entregue nesta iteracao:
+
+- `UsersManagementPage` passou a renderizar lista em cards no mobile (`md:hidden`) e manter tabela densa no desktop (`md:block`).
+- `ContentModerationPage` passou a renderizar queue em cards no mobile com:
+  - selecao por item;
+  - estado/risco essencial;
+  - acoes operacionais (hide/restrict/unhide, historico e links para creator).
+- `AdminAuditLogsPage` passou a renderizar eventos em cards no mobile e tabela completa no desktop.
+- padrao de responsividade aplicado:
+  - mobile: cards verticais com contexto e acoes;
+  - desktop: tabela completa com maior densidade de dados.
+
+Cobertura adicionada:
+
+- `src/__tests__/features/admin/AdminAuditLogsPage.test.tsx`
+
 ## Fecho operacional do P4
 
 Com a iteracao final de fecho admin, o P4 fica operacionalmente fechado no frontend:

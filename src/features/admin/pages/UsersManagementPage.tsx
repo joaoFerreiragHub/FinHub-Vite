@@ -1022,17 +1022,8 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
               </p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Utilizador</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Risco creator</TableHead>
-                  <TableHead>Atividade</TableHead>
-                  <TableHead className="w-[420px]">Acoes</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              <div className="space-y-3 md:hidden">
                 {users.map((user) => {
                   const canActOnUser =
                     canWriteUsers && user.role !== 'admin' && authUser?.id !== user.id
@@ -1041,55 +1032,53 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
                   const isBlocked = user.accountStatus !== 'active'
 
                   return (
-                    <TableRow key={user.id}>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium">{user.name}</p>
-                          <p className="text-xs text-muted-foreground">@{user.username}</p>
-                          <p className="text-xs text-muted-foreground">{user.email}</p>
-                          {user.role === 'admin' ? (
-                            <p className="text-[11px] text-muted-foreground">
-                              {user.adminReadOnly ? 'Admin read-only' : 'Admin write'} ·{' '}
-                              {user.adminScopes.length} scopes
-                            </p>
-                          ) : null}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-2">
-                          <Badge variant={getStatusBadgeVariant(user.accountStatus)}>
-                            {STATUS_LABEL[user.accountStatus]}
-                          </Badge>
-                          <Badge variant="outline">{ROLE_LABEL[user.role]}</Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell>
+                    <div
+                      key={`mobile-${user.id}`}
+                      className="rounded-lg border border-border/70 p-3"
+                    >
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium">{user.name}</p>
+                        <p className="text-xs text-muted-foreground">@{user.username}</p>
+                        <p className="text-xs text-muted-foreground">{user.email}</p>
+                        {user.role === 'admin' ? (
+                          <p className="text-[11px] text-muted-foreground">
+                            {user.adminReadOnly ? 'Admin read-only' : 'Admin write'} ·{' '}
+                            {user.adminScopes.length} scopes
+                          </p>
+                        ) : null}
+                      </div>
+
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <Badge variant={getStatusBadgeVariant(user.accountStatus)}>
+                          {STATUS_LABEL[user.accountStatus]}
+                        </Badge>
+                        <Badge variant="outline">{ROLE_LABEL[user.role]}</Badge>
+                      </div>
+
+                      <div className="mt-3 space-y-2">
                         {user.role === 'creator' ? (
-                          <div className="space-y-2">
-                            {user.trustSignals ? (
-                              <>
-                                <div className="flex flex-wrap gap-1.5">
-                                  <RiskLevelBadge
-                                    riskLevel={user.trustSignals.riskLevel}
-                                    score={user.trustSignals.trustScore}
-                                  />
-                                  <TrustRecommendationBadge
-                                    action={user.trustSignals.recommendedAction}
-                                  />
-                                </div>
-                                <TrustScoreBar value={user.trustSignals.trustScore} compact />
-                                <CreatorControlsSummary controls={user.creatorControls} dense />
-                                <p className="text-xs text-muted-foreground">
-                                  {user.trustSignals.reasons[0] ??
-                                    'Sem sinais de risco relevantes.'}
-                                </p>
-                              </>
-                            ) : (
-                              <span className="text-xs text-muted-foreground">
-                                Sem trust profile calculado.
-                              </span>
-                            )}
-                          </div>
+                          user.trustSignals ? (
+                            <>
+                              <div className="flex flex-wrap gap-1.5">
+                                <RiskLevelBadge
+                                  riskLevel={user.trustSignals.riskLevel}
+                                  score={user.trustSignals.trustScore}
+                                />
+                                <TrustRecommendationBadge
+                                  action={user.trustSignals.recommendedAction}
+                                />
+                              </div>
+                              <TrustScoreBar value={user.trustSignals.trustScore} compact />
+                              <CreatorControlsSummary controls={user.creatorControls} dense />
+                              <p className="text-xs text-muted-foreground">
+                                {user.trustSignals.reasons[0] ?? 'Sem sinais de risco relevantes.'}
+                              </p>
+                            </>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">
+                              Sem trust profile calculado.
+                            </span>
+                          )
                         ) : (
                           <div className="space-y-1 text-xs text-muted-foreground">
                             <p>
@@ -1100,128 +1089,333 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
                             ) : null}
                           </div>
                         )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1 text-xs text-muted-foreground">
-                          <p>Ultimo login: {formatDateTime(user.lastLoginAt)}</p>
-                          <p>Ultima atividade: {formatDateTime(user.lastActiveAt)}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-2">
-                          {user.role === 'creator' ? (
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setTrustProfileUser(user)}
-                            >
-                              <Sparkles className="h-4 w-4" />
-                              Risco
-                            </Button>
-                          ) : null}
+                      </div>
 
-                          {user.role === 'creator' ? (
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="outline"
-                              disabled={!canWriteUsers}
-                              onClick={() => openCreatorControlDialog(user)}
-                            >
-                              <SlidersHorizontal className="h-4 w-4" />
-                              Controlo creator
-                            </Button>
-                          ) : null}
+                      <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+                        <p>Ultimo login: {formatDateTime(user.lastLoginAt)}</p>
+                        <p>Ultima atividade: {formatDateTime(user.lastActiveAt)}</p>
+                      </div>
 
-                          {user.role === 'admin' ? (
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="outline"
-                              disabled={!canManageAdminPermissions}
-                              onClick={() => openAdminPermissionsDialog(user)}
-                            >
-                              <ShieldCheck className="h-4 w-4" />
-                              Permissoes
-                            </Button>
-                          ) : null}
-
-                          {isBlocked ? (
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="outline"
-                              disabled={!canActOnUser}
-                              onClick={() => openActionDialog('unban', user)}
-                            >
-                              Reativar
-                            </Button>
-                          ) : (
-                            <>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="outline"
-                                disabled={!canActOnUser}
-                                onClick={() => openActionDialog('suspend', user)}
-                              >
-                                <ShieldAlert className="h-4 w-4" />
-                                Suspender
-                              </Button>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="destructive"
-                                disabled={!canActOnUser}
-                                onClick={() => openActionDialog('ban', user)}
-                              >
-                                <Ban className="h-4 w-4" />
-                                Banir
-                              </Button>
-                            </>
-                          )}
-
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {user.role === 'creator' ? (
                           <Button
                             type="button"
                             size="sm"
                             variant="outline"
-                            disabled={!canActOnUser}
-                            onClick={() => openActionDialog('force-logout', user)}
+                            onClick={() => setTrustProfileUser(user)}
                           >
-                            <LogOut className="h-4 w-4" />
-                            Force logout
+                            <Sparkles className="h-4 w-4" />
+                            Risco
                           </Button>
+                        ) : null}
 
+                        {user.role === 'creator' ? (
                           <Button
                             type="button"
                             size="sm"
                             variant="outline"
                             disabled={!canWriteUsers}
-                            onClick={() => openActionDialog('note', user)}
+                            onClick={() => openCreatorControlDialog(user)}
                           >
-                            <FileText className="h-4 w-4" />
-                            Nota
+                            <SlidersHorizontal className="h-4 w-4" />
+                            Controlo creator
                           </Button>
+                        ) : null}
 
+                        {user.role === 'admin' ? (
                           <Button
                             type="button"
                             size="sm"
-                            variant="ghost"
-                            onClick={() => {
-                              setHistoryUser(user)
-                              setHistoryPage(1)
-                            }}
+                            variant="outline"
+                            disabled={!canManageAdminPermissions}
+                            onClick={() => openAdminPermissionsDialog(user)}
                           >
-                            Historico
+                            <ShieldCheck className="h-4 w-4" />
+                            Permissoes
                           </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                        ) : null}
+
+                        {isBlocked ? (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            disabled={!canActOnUser}
+                            onClick={() => openActionDialog('unban', user)}
+                          >
+                            Reativar
+                          </Button>
+                        ) : (
+                          <>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              disabled={!canActOnUser}
+                              onClick={() => openActionDialog('suspend', user)}
+                            >
+                              <ShieldAlert className="h-4 w-4" />
+                              Suspender
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="destructive"
+                              disabled={!canActOnUser}
+                              onClick={() => openActionDialog('ban', user)}
+                            >
+                              <Ban className="h-4 w-4" />
+                              Banir
+                            </Button>
+                          </>
+                        )}
+
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          disabled={!canActOnUser}
+                          onClick={() => openActionDialog('force-logout', user)}
+                        >
+                          <LogOut className="h-4 w-4" />
+                          Force logout
+                        </Button>
+
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          disabled={!canWriteUsers}
+                          onClick={() => openActionDialog('note', user)}
+                        >
+                          <FileText className="h-4 w-4" />
+                          Nota
+                        </Button>
+
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setHistoryUser(user)
+                            setHistoryPage(1)
+                          }}
+                        >
+                          Historico
+                        </Button>
+                      </div>
+                    </div>
                   )
                 })}
-              </TableBody>
-            </Table>
+              </div>
+
+              <div className="hidden overflow-auto md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Utilizador</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead>Risco creator</TableHead>
+                      <TableHead>Atividade</TableHead>
+                      <TableHead className="w-[420px]">Acoes</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {users.map((user) => {
+                      const canActOnUser =
+                        canWriteUsers && user.role !== 'admin' && authUser?.id !== user.id
+                      const canManageAdminPermissions =
+                        canWriteUsers && user.role === 'admin' && authUser?.id !== user.id
+                      const isBlocked = user.accountStatus !== 'active'
+
+                      return (
+                        <TableRow key={user.id}>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium">{user.name}</p>
+                              <p className="text-xs text-muted-foreground">@{user.username}</p>
+                              <p className="text-xs text-muted-foreground">{user.email}</p>
+                              {user.role === 'admin' ? (
+                                <p className="text-[11px] text-muted-foreground">
+                                  {user.adminReadOnly ? 'Admin read-only' : 'Admin write'} ·{' '}
+                                  {user.adminScopes.length} scopes
+                                </p>
+                              ) : null}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-2">
+                              <Badge variant={getStatusBadgeVariant(user.accountStatus)}>
+                                {STATUS_LABEL[user.accountStatus]}
+                              </Badge>
+                              <Badge variant="outline">{ROLE_LABEL[user.role]}</Badge>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {user.role === 'creator' ? (
+                              <div className="space-y-2">
+                                {user.trustSignals ? (
+                                  <>
+                                    <div className="flex flex-wrap gap-1.5">
+                                      <RiskLevelBadge
+                                        riskLevel={user.trustSignals.riskLevel}
+                                        score={user.trustSignals.trustScore}
+                                      />
+                                      <TrustRecommendationBadge
+                                        action={user.trustSignals.recommendedAction}
+                                      />
+                                    </div>
+                                    <TrustScoreBar value={user.trustSignals.trustScore} compact />
+                                    <CreatorControlsSummary controls={user.creatorControls} dense />
+                                    <p className="text-xs text-muted-foreground">
+                                      {user.trustSignals.reasons[0] ??
+                                        'Sem sinais de risco relevantes.'}
+                                    </p>
+                                  </>
+                                ) : (
+                                  <span className="text-xs text-muted-foreground">
+                                    Sem trust profile calculado.
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="space-y-1 text-xs text-muted-foreground">
+                                <p>
+                                  {user.role === 'admin'
+                                    ? 'Perfil administrativo'
+                                    : 'Nao aplicavel'}
+                                </p>
+                                {user.role === 'admin' ? (
+                                  <p>
+                                    {user.adminReadOnly ? 'Read-only' : 'Write'} sem trust score
+                                  </p>
+                                ) : null}
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1 text-xs text-muted-foreground">
+                              <p>Ultimo login: {formatDateTime(user.lastLoginAt)}</p>
+                              <p>Ultima atividade: {formatDateTime(user.lastActiveAt)}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-2">
+                              {user.role === 'creator' ? (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setTrustProfileUser(user)}
+                                >
+                                  <Sparkles className="h-4 w-4" />
+                                  Risco
+                                </Button>
+                              ) : null}
+
+                              {user.role === 'creator' ? (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={!canWriteUsers}
+                                  onClick={() => openCreatorControlDialog(user)}
+                                >
+                                  <SlidersHorizontal className="h-4 w-4" />
+                                  Controlo creator
+                                </Button>
+                              ) : null}
+
+                              {user.role === 'admin' ? (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={!canManageAdminPermissions}
+                                  onClick={() => openAdminPermissionsDialog(user)}
+                                >
+                                  <ShieldCheck className="h-4 w-4" />
+                                  Permissoes
+                                </Button>
+                              ) : null}
+
+                              {isBlocked ? (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={!canActOnUser}
+                                  onClick={() => openActionDialog('unban', user)}
+                                >
+                                  Reativar
+                                </Button>
+                              ) : (
+                                <>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={!canActOnUser}
+                                    onClick={() => openActionDialog('suspend', user)}
+                                  >
+                                    <ShieldAlert className="h-4 w-4" />
+                                    Suspender
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="destructive"
+                                    disabled={!canActOnUser}
+                                    onClick={() => openActionDialog('ban', user)}
+                                  >
+                                    <Ban className="h-4 w-4" />
+                                    Banir
+                                  </Button>
+                                </>
+                              )}
+
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                disabled={!canActOnUser}
+                                onClick={() => openActionDialog('force-logout', user)}
+                              >
+                                <LogOut className="h-4 w-4" />
+                                Force logout
+                              </Button>
+
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                disabled={!canWriteUsers}
+                                onClick={() => openActionDialog('note', user)}
+                              >
+                                <FileText className="h-4 w-4" />
+                                Nota
+                              </Button>
+
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  setHistoryUser(user)
+                                  setHistoryPage(1)
+                                }}
+                              >
+                                Historico
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
 
           {pagination && pagination.pages > 1 && (

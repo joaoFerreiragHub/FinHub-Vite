@@ -290,55 +290,91 @@ export default function AdminAuditLogsPage() {
               Sem logs para os filtros atuais.
             </div>
           ) : (
-            <div className="overflow-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Quando</TableHead>
-                    <TableHead>Actor</TableHead>
-                    <TableHead>Acao</TableHead>
-                    <TableHead>Resource</TableHead>
-                    <TableHead>Outcome</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Path</TableHead>
-                    <TableHead>Reason</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {items.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="whitespace-nowrap text-xs">
+            <>
+              <div className="space-y-3 md:hidden">
+                {items.map((item) => (
+                  <div key={`mobile-${item.id}`} className="rounded-lg border border-border/70 p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-xs text-muted-foreground">
                         {formatDateTime(item.createdAt)}
-                      </TableCell>
-                      <TableCell className="text-xs">
-                        {item.actor?.username ||
-                          item.actor?.name ||
-                          item.actor?.email ||
-                          item.actor?.id ||
-                          'N/A'}
-                      </TableCell>
-                      <TableCell className="text-xs font-medium">{item.action}</TableCell>
-                      <TableCell className="text-xs">
-                        {item.resourceType}
-                        {item.resourceId ? `:${item.resourceId}` : ''}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={outcomeVariant(item.outcome)}>
-                          {outcomeLabel[item.outcome]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-xs">{item.statusCode}</TableCell>
-                      <TableCell className="max-w-[320px] truncate text-xs">
-                        {item.method} {item.path}
-                      </TableCell>
-                      <TableCell className="max-w-[240px] truncate text-xs">
-                        {item.reason || '-'}
-                      </TableCell>
+                      </p>
+                      <Badge variant={outcomeVariant(item.outcome)}>
+                        {outcomeLabel[item.outcome]}
+                      </Badge>
+                    </div>
+                    <p className="mt-2 text-sm font-medium">{item.action}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Actor:{' '}
+                      {item.actor?.username ||
+                        item.actor?.name ||
+                        item.actor?.email ||
+                        item.actor?.id ||
+                        'N/A'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Resource: {item.resourceType}
+                      {item.resourceId ? `:${item.resourceId}` : ''}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      HTTP: {item.statusCode} · {item.method} {item.path}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Reason: {item.reason || '-'}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="hidden overflow-auto md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Quando</TableHead>
+                      <TableHead>Actor</TableHead>
+                      <TableHead>Acao</TableHead>
+                      <TableHead>Resource</TableHead>
+                      <TableHead>Outcome</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Path</TableHead>
+                      <TableHead>Reason</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {items.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="whitespace-nowrap text-xs">
+                          {formatDateTime(item.createdAt)}
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          {item.actor?.username ||
+                            item.actor?.name ||
+                            item.actor?.email ||
+                            item.actor?.id ||
+                            'N/A'}
+                        </TableCell>
+                        <TableCell className="text-xs font-medium">{item.action}</TableCell>
+                        <TableCell className="text-xs">
+                          {item.resourceType}
+                          {item.resourceId ? `:${item.resourceId}` : ''}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={outcomeVariant(item.outcome)}>
+                            {outcomeLabel[item.outcome]}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs">{item.statusCode}</TableCell>
+                        <TableCell className="max-w-[320px] truncate text-xs">
+                          {item.method} {item.path}
+                        </TableCell>
+                        <TableCell className="max-w-[240px] truncate text-xs">
+                          {item.reason || '-'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
 
           <div className="flex items-center justify-between">
