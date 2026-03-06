@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 export default function AdminLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const location = useLocation()
+  const ultrawideContainerClass = 'max-w-[1920px]'
 
   useEffect(() => {
     setMobileOpen(false)
@@ -23,10 +24,11 @@ export default function AdminLayout() {
       <Header
         onSidebarToggle={() => setMobileOpen((prev) => !prev)}
         sidebarToggleLabel="Abrir menu de administracao"
+        containerClassName={ultrawideContainerClass}
       />
-      <AssistedSessionBanner />
+      <AssistedSessionBanner containerClassName={ultrawideContainerClass} />
 
-      <div className="mx-auto flex w-full max-w-[1600px]">
+      <div className={cn('mx-auto flex w-full', ultrawideContainerClass)}>
         <AdminSidebar className="sticky top-16 hidden h-[calc(100vh-4rem)] lg:block" />
 
         <div
@@ -46,8 +48,8 @@ export default function AdminLayout() {
           onNavigate={() => setMobileOpen(false)}
         />
 
-        <main className="relative z-0 min-h-[calc(100vh-4rem)] flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-          <div className="mx-auto w-full max-w-6xl">
+        <main className="relative z-0 min-h-[calc(100vh-4rem)] flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8 2xl:px-10">
+          <div className="mx-auto w-full">
             <AdminCommandPalette className="mb-4" />
             <Outlet />
           </div>

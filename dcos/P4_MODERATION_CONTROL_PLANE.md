@@ -252,6 +252,23 @@ Cobertura adicionada:
 
 - `src/__tests__/features/admin/adminKeyboardShortcuts.test.ts`
 
+### P4.2-16 fechado - layout ultrawide/adaptativo (2026-03-06)
+
+Entregue nesta iteracao:
+
+- `Header` e `AssistedSessionBanner` passam a aceitar largura de container configuravel, mantendo default atual fora do admin.
+- `AdminLayout` passa a usar container ultrawide (`max-w-[1920px]`) para aproveitar melhor ecras 2K/4K.
+- o bloco central admin deixa de ficar preso a `max-w-6xl`, preservando responsividade mobile e densidade desktop.
+- paginas com maior densidade operacional ganham distribuicao adicional em ultrawide (`2xl`):
+  - `UsersManagementPage` KPI cards em `2xl:grid-cols-8`;
+  - `ContentModerationPage` KPI cards em `2xl:grid-cols-8`;
+  - `ContentModerationPage` painel `Lote assincrono + Jobs recentes` com proporcao `2xl` mais ampla para triagem paralela.
+
+Validacao desta iteracao:
+
+- `npm run typecheck:p1`
+- `npm run build` (SSR + client)
+
 ### Hotfix admin route - ModuleCard icon map (2026-03-06)
 
 Correcao aplicada em `/admin` para evitar crash em runtime/hydration:

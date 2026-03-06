@@ -2,6 +2,7 @@ import { ShieldAlert } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { Button } from '@/components/ui'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import { cn } from '@/lib/utils'
 import { adminAssistedSessionsService } from '../services/adminAssistedSessionsService'
 import {
   clearAssistedSessionAdminBackup,
@@ -17,7 +18,13 @@ const formatDateTime = (value: string): string => {
   }).format(date)
 }
 
-export default function AssistedSessionBanner() {
+interface AssistedSessionBannerProps {
+  containerClassName?: string
+}
+
+export default function AssistedSessionBanner({
+  containerClassName = 'max-w-[1600px]',
+}: AssistedSessionBannerProps) {
   const user = useAuthStore((state) => state.user)
   const setUser = useAuthStore((state) => state.setUser)
   const logout = useAuthStore((state) => state.logout)
@@ -49,7 +56,12 @@ export default function AssistedSessionBanner() {
 
   return (
     <div className="border-b border-yellow-600/30 bg-yellow-500/10">
-      <div className="mx-auto flex w-full max-w-[1600px] flex-wrap items-center justify-between gap-3 px-4 py-2 sm:px-6 lg:px-10">
+      <div
+        className={cn(
+          'mx-auto flex w-full flex-wrap items-center justify-between gap-3 px-4 py-2 sm:px-6 lg:px-10',
+          containerClassName,
+        )}
+      >
         <div className="flex items-center gap-2 text-sm text-yellow-800 dark:text-yellow-300">
           <ShieldAlert className="h-4 w-4" />
           <span>

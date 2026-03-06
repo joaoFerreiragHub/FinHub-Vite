@@ -805,7 +805,7 @@ export default function UsersManagementPage({ embedded = false }: UsersManagemen
         </Card>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5 2xl:grid-cols-8">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Total de utilizadores</CardDescription>
