@@ -273,3 +273,4 @@ Antes de producao, manter alinhado com o backend:
 1. limpar bypass TLS de ambiente (`NODE_TLS_REJECT_UNAUTHORIZED=0` ou equivalente);
 2. rever migracao futura de `vite-plugin-ssr` para stack suportada sem warnings legados;
 3. reduzir warnings residuais deprecados de Vite/Vike (`glob as -> query`) e os future flags do React Router nos testes.
+4. validar `/admin/*` com sessao real (JWT emitido pelo backend), nunca com tokens `dev-*`; em mock auth nao existe refresh real e os pedidos protegidos podem falhar com `401`.

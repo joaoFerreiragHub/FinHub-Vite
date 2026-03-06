@@ -11,6 +11,9 @@ import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestCo
  */
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const DEV_MOCK_REFRESH_UNSUPPORTED_ERROR = 'Dev mock token does not support refresh'
+const DEV_MOCK_AUTH_401_MESSAGE =
+  'Sessao DEV mock sem refresh automatico. Inicia sessao real para validar rotas admin protegidas.'
 
 // Flag para evitar refresh loops
 let isRefreshing = false
@@ -35,8 +38,19 @@ const isDevMockToken = (token: unknown): token is string => {
   return import.meta.env.DEV && typeof token === 'string' && token.startsWith('dev-')
 }
 
+const canUseBrowserStorage = (): boolean =>
+  typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
+
+const redirectToHome = (): void => {
+  if (typeof window !== 'undefined') {
+    window.location.href = '/'
+  }
+}
+
 const readAuthState = (): Record<string, unknown> | null => {
-  const authStorage = localStorage.getItem('auth-storage')
+  if (!canUseBrowserStorage()) return null
+
+  const authStorage = window.localStorage.getItem('auth-storage')
   if (!authStorage) return null
 
   try {
@@ -70,8 +84,12 @@ export const apiClient: AxiosInstance = axios.create({
  */
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    if (!canUseBrowserStorage()) {
+      return config
+    }
+
     // Obter token do localStorage (evitar import circular com store)
-    const authStorage = localStorage.getItem('auth-storage')
+    const authStorage = window.localStorage.getItem('auth-storage')
 
     if (authStorage) {
       try {
@@ -142,12 +160,19 @@ apiClient.interceptors.response.use(
         }
 
         // Limpar auth e redirecionar para homepage (login é via dialog)
-        localStorage.removeItem('auth-storage')
-        window.location.href = '/'
+        if (canUseBrowserStorage()) {
+          window.localStorage.removeItem('auth-storage')
+        }
+        redirectToHome()
         return Promise.reject(error)
       }
 
       // Se já está refreshing, adicionar à fila
+      if (hasDevMockSession()) {
+        console.warn('[AUTH] Sessao DEV mock recebeu 401; refresh automatico desativado')
+        return Promise.reject(error)
+      }
+
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject })
@@ -175,7 +200,7 @@ apiClient.interceptors.response.use(
 
         if (!refreshToken) throw new Error('No refresh token')
         if (isDevMockToken(refreshToken)) {
-          throw new Error('Dev mock token does not support refresh')
+          throw new Error(DEV_MOCK_REFRESH_UNSUPPORTED_ERROR)
         }
 
         // Fazer request de refresh
@@ -191,7 +216,9 @@ apiClient.interceptors.response.use(
           refreshToken: newRefreshToken,
         }
 
-        localStorage.setItem('auth-storage', JSON.stringify({ state: updatedState }))
+        if (canUseBrowserStorage()) {
+          window.localStorage.setItem('auth-storage', JSON.stringify({ state: updatedState }))
+        }
 
         // Processar fila de requests falhados
         processQueue(null, accessToken)
@@ -211,8 +238,10 @@ apiClient.interceptors.response.use(
         }
 
         // Limpar auth e redirecionar para homepage (login é via dialog)
-        localStorage.removeItem('auth-storage')
-        window.location.href = '/'
+        if (canUseBrowserStorage()) {
+          window.localStorage.removeItem('auth-storage')
+        }
+        redirectToHome()
 
         return Promise.reject(refreshError)
       } finally {
@@ -230,6 +259,14 @@ apiClient.interceptors.response.use(
  */
 export function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
+    if (error.response?.status === 401 && hasDevMockSession()) {
+      return DEV_MOCK_AUTH_401_MESSAGE
+    }
+
+    if (error.message === DEV_MOCK_REFRESH_UNSUPPORTED_ERROR) {
+      return DEV_MOCK_AUTH_401_MESSAGE
+    }
+
     const payload = error.response?.data as
       | { message?: string; error?: string; details?: string }
       | undefined
@@ -239,6 +276,10 @@ export function getErrorMessage(error: unknown): string {
   }
 
   if (error instanceof Error) {
+    if (error.message === DEV_MOCK_REFRESH_UNSUPPORTED_ERROR) {
+      return DEV_MOCK_AUTH_401_MESSAGE
+    }
+
     return error.message
   }
 
