@@ -4,7 +4,7 @@ import { AlertCircle, BookmarkPlus, ListPlus, Trash2 } from 'lucide-react'
 import { Badge, Card, CardContent } from '@/components/ui'
 import { MarketsNav } from '@/features/markets/components/MarketsNav'
 import {
-  fetchWatchlistTickerSnapshot,
+  fetchWatchlistBatchSnapshots,
   type WatchlistTickerSnapshot,
 } from '@/features/markets/services/marketToolsApi'
 import { useWatchlist } from '@/features/tools/stocks/components'
@@ -35,6 +35,15 @@ export default function MarketWatchlistPage() {
     () => [...new Set(watchlist.map((item) => item.toUpperCase()))],
     [watchlist],
   )
+
+  const watchlistSnapshotQuery = useQuery({
+    queryKey: ['markets', 'watchlist-snapshot-batch', normalizedList],
+    queryFn: () => fetchWatchlistBatchSnapshots(normalizedList),
+    enabled: normalizedList.length > 0,
+    staleTime: 60 * 1000,
+    refetchInterval: 60 * 1000,
+    retry: 1,
+  })
 
   return (
     <div className="px-4 pb-10 pt-6 sm:px-6 lg:px-10">
@@ -91,15 +100,27 @@ export default function MarketWatchlistPage() {
               </div>
             ) : (
               <>
+                {watchlistSnapshotQuery.isError ? (
+                  <div className="mb-4 rounded-md border border-red-500/40 bg-red-500/10 p-3 text-xs text-red-300">
+                    Nao foi possivel atualizar os dados da watchlist em batch.
+                  </div>
+                ) : null}
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {normalizedList.map((symbol) => (
-                    <WatchlistCard key={symbol} symbol={symbol} onRemove={() => remove(symbol)} />
+                    <WatchlistCard
+                      key={symbol}
+                      symbol={symbol}
+                      snapshot={watchlistSnapshotQuery.data?.[symbol]}
+                      isLoading={watchlistSnapshotQuery.isLoading}
+                      isError={watchlistSnapshotQuery.isError}
+                      onRemove={() => remove(symbol)}
+                    />
                   ))}
                 </div>
 
                 <div className="mt-5 rounded-lg border border-border/40 bg-background/50 p-3 text-xs text-muted-foreground">
                   <p>
-                    Dados da watchlist carregados via FMP atraves do endpoint de quick analysis.
+                    Dados da watchlist carregados via FMP atraves do endpoint batch snapshot.
                   </p>
                 </div>
               </>
@@ -113,19 +134,14 @@ export default function MarketWatchlistPage() {
 
 interface WatchlistCardProps {
   symbol: string
+  snapshot?: WatchlistTickerSnapshot
+  isLoading: boolean
+  isError: boolean
   onRemove: () => void
 }
 
-function WatchlistCard({ symbol, onRemove }: WatchlistCardProps) {
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ['markets', 'watchlist-snapshot', symbol],
-    queryFn: () => fetchWatchlistTickerSnapshot(symbol),
-    staleTime: 60 * 1000,
-    refetchInterval: 60 * 1000,
-    retry: 1,
-  })
-
-  const snapshot: WatchlistTickerSnapshot = data ?? {
+function WatchlistCard({ symbol, snapshot, isLoading, isError, onRemove }: WatchlistCardProps) {
+  const resolvedSnapshot: WatchlistTickerSnapshot = snapshot ?? {
     symbol,
     name: symbol,
   }
@@ -150,7 +166,7 @@ function WatchlistCard({ symbol, onRemove }: WatchlistCardProps) {
             <h3 className="truncate text-lg font-bold text-foreground">{symbol}</h3>
           </div>
           <p className="truncate text-xs text-muted-foreground">
-            {isLoading ? 'A carregar dados...' : snapshot.name}
+            {isLoading ? 'A carregar dados...' : resolvedSnapshot.name}
           </p>
         </div>
 
@@ -180,11 +196,11 @@ function WatchlistCard({ symbol, onRemove }: WatchlistCardProps) {
         </div>
       ) : (
         <div className="space-y-1">
-          <p className="text-2xl font-bold text-foreground">{formatMoney(snapshot.price)}</p>
+          <p className="text-2xl font-bold text-foreground">{formatMoney(resolvedSnapshot.price)}</p>
           <p className="text-xs text-muted-foreground">
-            Market Cap: {formatMarketCap(snapshot.marketCap)}
+            Market Cap: {formatMarketCap(resolvedSnapshot.marketCap)}
           </p>
-          <p className="text-xs text-muted-foreground">Setor: {snapshot.sector || 'N/A'}</p>
+          <p className="text-xs text-muted-foreground">Setor: {resolvedSnapshot.sector || 'N/A'}</p>
         </div>
       )}
 

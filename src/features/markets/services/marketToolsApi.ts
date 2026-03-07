@@ -144,6 +144,22 @@ export interface WatchlistTickerSnapshot {
   price?: number
   marketCap?: number
   sector?: string
+  volume?: number
+  change24hPercent?: number
+}
+
+interface WatchlistBatchSnapshotItem {
+  symbol?: string
+  name?: string
+  price?: number | string
+  marketCap?: number | string
+  volume?: number | string
+  change24hPercent?: number | string
+  sector?: string | null
+}
+
+interface WatchlistBatchSnapshotResponse {
+  items?: WatchlistBatchSnapshotItem[]
 }
 
 function toOptionalNumber(value: unknown): number | undefined {
@@ -153,6 +169,17 @@ function toOptionalNumber(value: unknown): number | undefined {
     if (Number.isFinite(parsed)) return parsed
   }
   return undefined
+}
+
+function normalizeWatchlistSymbols(symbols: string[]): string[] {
+  const unique = new Set<string>()
+  for (const item of symbols) {
+    const symbol = item.trim().toUpperCase()
+    if (!symbol) continue
+    unique.add(symbol)
+  }
+
+  return [...unique]
 }
 
 export async function fetchCryptoList() {
@@ -202,4 +229,43 @@ export async function fetchWatchlistTickerSnapshot(
     marketCap: toOptionalNumber(data?.marketCap),
     sector: data?.sector,
   }
+}
+
+export async function fetchWatchlistBatchSnapshots(
+  symbols: string[],
+): Promise<Record<string, WatchlistTickerSnapshot>> {
+  const normalizedSymbols = normalizeWatchlistSymbols(symbols)
+  if (normalizedSymbols.length === 0) return {}
+
+  const { data } = await apiClient.get<WatchlistBatchSnapshotResponse>('/stocks/batch-snapshot', {
+    params: {
+      symbols: normalizedSymbols.join(','),
+    },
+  })
+
+  const snapshots: Record<string, WatchlistTickerSnapshot> = {}
+  for (const symbol of normalizedSymbols) {
+    snapshots[symbol] = {
+      symbol,
+      name: symbol,
+    }
+  }
+
+  const items = Array.isArray(data?.items) ? data.items : []
+  for (const item of items) {
+    const symbol = typeof item?.symbol === 'string' ? item.symbol.trim().toUpperCase() : ''
+    if (!symbol || !snapshots[symbol]) continue
+
+    snapshots[symbol] = {
+      symbol,
+      name: item?.name || symbol,
+      price: toOptionalNumber(item?.price),
+      marketCap: toOptionalNumber(item?.marketCap),
+      volume: toOptionalNumber(item?.volume),
+      change24hPercent: toOptionalNumber(item?.change24hPercent),
+      sector: item?.sector || undefined,
+    }
+  }
+
+  return snapshots
 }

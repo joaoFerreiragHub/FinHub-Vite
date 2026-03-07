@@ -1021,3 +1021,19 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - `npm run test:e2e -- e2e/admin.creator-risk.p4.spec.ts` -> PASS
 - Documento tecnico de entrada no frontend:
   - `dcos/P4_MODERATION_CONTROL_PLANE.md`
+
+## 47) O1-09 quick fix frontend - watchlist em batch (2026-03-07)
+- Integracao da watchlist migrada para endpoint batch backend:
+  - `GET /api/stocks/batch-snapshot`
+- Entregas frontend:
+  - `MarketWatchlistPage` deixa de fazer N queries por card e passa a 1 query por lista;
+  - fallback por simbolo mantido quando o payload batch nao devolve todos os tickers;
+  - tratamento de erro por lista com alerta dedicado;
+  - `marketToolsApi` expandido com `fetchWatchlistBatchSnapshots`.
+- Testes unitarios:
+  - `src/__tests__/features/markets/marketToolsApi.watchlist.test.ts`
+  - cobertura de mapeamento quick-analysis, mapeamento batch com dedupe/fallback e input vazio.
+- Validacao tecnica:
+  - `npx eslint` (ficheiros alterados) -> PASS
+  - `npm run test -- --runInBand src/__tests__/features/markets/marketToolsApi.watchlist.test.ts` -> PASS
+  - `npm run typecheck:p1` -> BLOQUEADO por erro pre-existente de ambiente: `TS2688 Cannot find type definition file for 'date-fns'`.
