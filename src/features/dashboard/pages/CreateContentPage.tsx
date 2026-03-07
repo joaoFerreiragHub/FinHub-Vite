@@ -1,11 +1,41 @@
-import { PlaceholderPage } from '@/components/layout/PlaceholderPage'
+import { Card } from '@/components/ui'
+import { ArticleForm } from '@/features/creators/dashboard/articles/components/ArticleForm'
+import { useCreateArticle } from '@/features/hub/articles/hooks/useArticles'
+import type { CreateArticleDto } from '@/features/hub/articles/types'
 
 export default function CreateContentPage() {
+  const createArticle = useCreateArticle()
+
+  const handleSubmit = async (data: CreateArticleDto) => {
+    await createArticle.mutateAsync(data)
+  }
+
   return (
-    <PlaceholderPage
-      section="Dashboard de criador"
-      title="Criar Conteúdo"
-      description="Estamos a finalizar a experiencia desta pagina com o mesmo padrao de navegacao e responsividade da Home."
-    />
+    <div className="mx-auto max-w-4xl space-y-6">
+      <header>
+        <h1 className="text-2xl font-semibold tracking-tight">Criar artigo</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Publica conhecimento financeiro para a tua audiencia.
+        </p>
+      </header>
+
+      <Card className="p-6 sm:p-8">
+        <ArticleForm
+          onSubmit={handleSubmit}
+          submitText="Publicar artigo"
+          redirectTo="/dashboard/conteudo"
+        />
+      </Card>
+
+      <Card className="border-dashed bg-muted/30 p-5">
+        <h2 className="text-sm font-semibold uppercase tracking-wide">Checklist rapido</h2>
+        <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
+          <li>Titulo claro e objetivo.</li>
+          <li>Descricao curta para SEO.</li>
+          <li>Estrutura do texto em secoes com headings.</li>
+          <li>Call to action no fim para engagement.</li>
+        </ul>
+      </Card>
+    </div>
   )
 }

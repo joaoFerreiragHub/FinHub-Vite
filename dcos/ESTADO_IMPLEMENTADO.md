@@ -1160,3 +1160,31 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
 - Validacao tecnica:
   - `npx eslint src/features/dashboard/pages/DashboardOverviewPage.tsx` -> PASS
   - `npm run typecheck:p1` -> PASS.
+
+## 54) O2-07 fechado - fluxo criar/editar/publicar artigo no dashboard (2026-03-07)
+- Fluxo editorial de artigos passou a funcionar no dashboard principal de criador:
+  - `/dashboard/conteudo` com listagem real de artigos do proprio criador;
+  - `/dashboard/criar` com criacao de artigo ligada a API;
+  - `/dashboard/conteudo/artigos/:id/editar` para edicao de artigo existente.
+- Entregas funcionais no fluxo:
+  - filtros por estado + ordenacao na gestao;
+  - acao de publicar artigo em rascunho;
+  - acao de editar e eliminar artigo;
+  - redirecionamento coerente para o novo fluxo `/dashboard/*` apos criar/editar.
+- Ajustes tecnicos associados:
+  - `ArticleForm` passou a aceitar `redirectTo` para reutilizacao em fluxos diferentes;
+  - novo hook `useArticleById` em artigos para suportar edicao por `id`;
+  - invalidação de cache ajustada para query `article-by-id`;
+  - sidebar do dashboard atualizada para realcar subrotas de conteudo.
+- Ficheiros alterados:
+  - `src/features/dashboard/pages/ContentManagementPage.tsx`
+  - `src/features/dashboard/pages/CreateContentPage.tsx`
+  - `src/features/dashboard/pages/EditArticlePage.tsx`
+  - `src/features/dashboard/components/DashboardSidebar.tsx`
+  - `src/router.tsx`
+  - `src/features/creators/dashboard/articles/components/ArticleForm.tsx`
+  - `src/features/creators/dashboard/articles/pages/EditArticle.tsx`
+  - `src/features/hub/articles/hooks/useArticles.ts`
+- Validacao tecnica:
+  - `npx eslint` (ficheiros alterados do fluxo) -> PASS
+  - `npm run typecheck:p1` -> PASS.

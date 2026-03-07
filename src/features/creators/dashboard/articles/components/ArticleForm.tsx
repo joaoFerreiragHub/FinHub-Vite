@@ -30,6 +30,7 @@ interface ArticleFormCreateProps {
   onSubmit: (data: CreateArticleDto) => Promise<void>
   submitText?: string
   showDraftOption?: boolean
+  redirectTo?: string
 }
 
 interface ArticleFormEditProps {
@@ -37,6 +38,7 @@ interface ArticleFormEditProps {
   onSubmit: (data: UpdateArticleDto) => Promise<void>
   submitText?: string
   showDraftOption?: boolean
+  redirectTo?: string
 }
 
 export type ArticleFormProps = ArticleFormCreateProps | ArticleFormEditProps
@@ -45,6 +47,7 @@ export function ArticleForm(props: ArticleFormProps) {
   const { article } = props
   const submitText = props.submitText ?? (article ? 'Atualizar' : 'Criar Artigo')
   const showDraftOption = props.showDraftOption ?? true
+  const redirectTo = props.redirectTo ?? '/creators/dashboard/articles'
   const navigate = useNavigate()
   const [serverError, setServerError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -119,7 +122,7 @@ export function ArticleForm(props: ArticleFormProps) {
         }
         await props.onSubmit(createPayload)
       }
-      navigate('/creators/dashboard/articles')
+      navigate(redirectTo)
     } catch (error) {
       setServerError(getErrorMessage(error))
     } finally {
@@ -284,7 +287,7 @@ export function ArticleForm(props: ArticleFormProps) {
           type="button"
           variant="ghost"
           size="lg"
-          onClick={() => navigate('/creators/dashboard/articles')}
+          onClick={() => navigate(redirectTo)}
         >
           Cancelar
         </Button>

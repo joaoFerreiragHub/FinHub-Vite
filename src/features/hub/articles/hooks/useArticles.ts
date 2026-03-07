@@ -24,6 +24,17 @@ export function useArticle(slug: string) {
 }
 
 /**
+ * Hook para buscar artigo por ID
+ */
+export function useArticleById(id: string) {
+  return useQuery({
+    queryKey: ['article-by-id', id],
+    queryFn: () => articleService.getArticleById(id),
+    enabled: !!id,
+  })
+}
+
+/**
  * Hook para buscar artigos do creator atual
  */
 export function useMyArticles(filters?: ArticleFilters) {
@@ -59,6 +70,7 @@ export function useUpdateArticle() {
       articleService.updateArticle(id, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['article', variables.id] })
+      queryClient.invalidateQueries({ queryKey: ['article-by-id', variables.id] })
       queryClient.invalidateQueries({ queryKey: ['my-articles'] })
       queryClient.invalidateQueries({ queryKey: ['articles'] })
     },
@@ -90,6 +102,7 @@ export function usePublishArticle() {
     mutationFn: (id: string) => articleService.publishArticle(id),
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ['article', id] })
+      queryClient.invalidateQueries({ queryKey: ['article-by-id', id] })
       queryClient.invalidateQueries({ queryKey: ['my-articles'] })
     },
   })

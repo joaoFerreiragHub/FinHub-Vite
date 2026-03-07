@@ -9,8 +9,8 @@ interface DashboardSidebarProps {
 
 const links = [
   { path: '/dashboard', label: 'Overview', icon: LayoutDashboard },
-  { path: '/dashboard/conteudo', label: 'Meu conteudo', icon: FolderKanban },
-  { path: '/dashboard/criar', label: 'Criar novo', icon: PenSquare },
+  { path: '/dashboard/conteudo', label: 'Artigos', icon: FolderKanban },
+  { path: '/dashboard/criar', label: 'Criar artigo', icon: PenSquare },
   { path: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
   { path: '/dashboard/seguidores', label: 'Seguidores', icon: Users },
   { path: '/dashboard/perfil', label: 'Perfil', icon: User },
@@ -23,7 +23,10 @@ export default function DashboardSidebar({ className, onNavigate }: DashboardSid
     <aside className={cn('h-full w-72 border-r border-border bg-card', className)}>
       <nav className="space-y-1 p-4">
         {links.map((link) => {
-          const isActive = location.pathname === link.path
+          const isOverviewRoute = link.path === '/dashboard'
+          const isActive = isOverviewRoute
+            ? location.pathname === link.path
+            : location.pathname.startsWith(link.path)
           return (
             <Link
               key={link.path}

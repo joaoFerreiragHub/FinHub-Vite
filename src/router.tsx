@@ -83,6 +83,7 @@ import NotificationsPage from '@/features/user/pages/NotificationsPage'
 import DashboardOverviewPage from '@/features/dashboard/pages/DashboardOverviewPage'
 import ContentManagementPage from '@/features/dashboard/pages/ContentManagementPage'
 import CreateContentPage from '@/features/dashboard/pages/CreateContentPage'
+import EditArticlePage from '@/features/dashboard/pages/EditArticlePage'
 import AnalyticsPage from '@/features/dashboard/pages/AnalyticsPage'
 import FollowersPage from '@/features/dashboard/pages/FollowersPage'
 import ProfileEditPage from '@/features/dashboard/pages/ProfileEditPage'
@@ -423,6 +424,10 @@ const router = createBrowserRouter([
       {
         path: 'conteudo',
         element: <ContentManagementPage />,
+      },
+      {
+        path: 'conteudo/artigos/:id/editar',
+        element: <EditArticlePage />,
       },
       {
         path: 'criar',

@@ -1,7 +1,7 @@
 import { useParams, Navigate } from 'react-router-dom'
 import { DashboardLayout } from '@/shared/layouts'
 import { ArticleForm } from '../components/ArticleForm'
-import { useArticle, useUpdateArticle } from '@/features/hub/articles/hooks/useArticles'
+import { useArticleById, useUpdateArticle } from '@/features/hub/articles/hooks/useArticles'
 import { Card } from '@/components/ui'
 import type { UpdateArticleDto } from '@/features/hub/articles/types'
 
@@ -10,7 +10,7 @@ import type { UpdateArticleDto } from '@/features/hub/articles/types'
  */
 export function EditArticle() {
   const { id } = useParams<{ id: string }>()
-  const { data: article, isLoading, error } = useArticle(id!)
+  const { data: article, isLoading, error } = useArticleById(id ?? '')
   const updateArticle = useUpdateArticle()
 
   const handleSubmit = async (data: UpdateArticleDto) => {
