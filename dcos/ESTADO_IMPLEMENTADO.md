@@ -1316,3 +1316,27 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - `npm run typecheck` -> PASS
   - `npm run build` -> PASS
   - `npm run contract:openapi` -> PASS.
+
+## 60) O3-01 fechado - OAuth Google (2026-03-07)
+- OAuth Google integrado no backend (`API_finhub`) com fluxo completo:
+  - `GET /api/auth/google/start` para iniciar autenticacao e redirecionar para Google;
+  - `GET /api/auth/google/callback` para trocar `code`, resolver `userinfo`, fazer auto-login/provisionamento por email verificado e emitir JWT da plataforma.
+- Protecoes e comportamento do fluxo:
+  - `state` anti-CSRF com TTL e consumo unico;
+  - validacao de configuracao por env antes de iniciar fluxo;
+  - bloqueio de contas `suspended/banned` tambem no login OAuth;
+  - redirect para callback frontend com tokens em `hash fragment` (evita exposicao em query/logs de servidor).
+- Integracao frontend concluida:
+  - botao `Continuar com Google` no `LoginForm`;
+  - nova pagina/rota de callback (`/oauth/google/callback`) para consumir tokens, obter `/auth/me` e hidratar `auth-store`.
+- Configuracao adicionada no backend `.env.example`:
+  - `GOOGLE_OAUTH_CLIENT_ID`
+  - `GOOGLE_OAUTH_CLIENT_SECRET`
+  - `GOOGLE_OAUTH_REDIRECT_URI`
+  - `GOOGLE_OAUTH_FRONTEND_CALLBACK_URL`
+  - `GOOGLE_OAUTH_STATE_TTL_SECONDS`
+- Validacao tecnica:
+  - backend: `npm run typecheck` -> PASS
+  - backend: `npm run build` -> PASS
+  - backend: `npm run contract:openapi` -> PASS
+  - frontend: `npm run typecheck:p1` -> PASS.
