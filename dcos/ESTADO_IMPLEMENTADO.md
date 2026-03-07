@@ -1294,3 +1294,25 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - `npm run typecheck` -> PASS
   - `npm run build` -> PASS
   - `npm run contract:openapi` -> PASS.
+
+## 59) O2-12 fechado - importacao URL externa (oEmbed MVP) (2026-03-07)
+- Importacao de URL externa entregue no backend (`API_finhub`) com modulo dedicado:
+  - service `externalContent.service.ts` para deteccao de provider, normalizacao de URL, extracao via oEmbed e fallback local;
+  - controller `externalContent.controller.ts` para listagem de providers suportados e importacao;
+  - routes `externalContent.routes.ts` registadas no router principal em `/api/external-content`.
+- Endpoints adicionados:
+  - `GET /api/external-content/providers`
+  - `POST /api/external-content/import-url`
+- Cobertura MVP implementada:
+  - providers: `youtube`, `spotify`, `instagram`, `tiktok`, `vimeo`, `soundcloud` (com fallback `generic`);
+  - extracao de metadata (`title`, `description`, `thumbnail`, `author`, `embedHtml`, dimensoes, `duration` quando disponivel);
+  - resposta inclui `suggestedDraft` com `sourceType=external_content` para prefill de formularios de conteudo;
+  - cache em memoria com TTL configuravel por env para reduzir chamadas repetidas a providers externos.
+- Configuracao adicionada em `.env.example`:
+  - `EXTERNAL_CONTENT_OEMBED_TIMEOUT_MS`
+  - `EXTERNAL_CONTENT_IMPORT_CACHE_TTL_SECONDS`
+  - `INSTAGRAM_OEMBED_ACCESS_TOKEN`
+- Validacao tecnica no backend:
+  - `npm run typecheck` -> PASS
+  - `npm run build` -> PASS
+  - `npm run contract:openapi` -> PASS.
