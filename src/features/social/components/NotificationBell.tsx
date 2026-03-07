@@ -2,7 +2,11 @@ import { Bell } from 'lucide-react'
 import { Button } from '@/components/ui'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui'
 import { useNotificationStore } from '../stores/useNotificationStore'
-import { useNotifications, useMarkAllNotificationsRead } from '../hooks/useSocial'
+import {
+  useNotifications,
+  useMarkAllNotificationsRead,
+  useMarkNotificationRead,
+} from '../hooks/useSocial'
 import { NotificationList } from './NotificationList'
 import type { Notification } from '../types'
 
@@ -18,6 +22,7 @@ export function NotificationBell({
   const { unreadCount, isOpen, setOpen } = useNotificationStore()
   const { data } = useNotifications(5)
   const markAllRead = useMarkAllNotificationsRead()
+  const markRead = useMarkNotificationRead()
 
   const notifications = data?.items ?? []
 
@@ -53,6 +58,9 @@ export function NotificationBell({
           <NotificationList
             notifications={notifications}
             onClickNotification={(n) => {
+              if (!n.isRead) {
+                markRead.mutate(n.id)
+              }
               setOpen(false)
               onClickNotification?.(n)
             }}
