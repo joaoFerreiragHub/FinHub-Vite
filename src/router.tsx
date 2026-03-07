@@ -20,6 +20,7 @@ import HomePage from '@/features/home/HomePage'
 // Pages - Auth
 import LoginPage from '@/features/auth/pages/LoginPage'
 import RegisterPage from '@/features/auth/pages/RegisterPage'
+import GoogleOAuthCallbackPage from '@/features/auth/pages/GoogleOAuthCallbackPage'
 
 // Pages - Explore
 import ExplorePage from '@/features/explore/pages/ExplorePage'
@@ -400,6 +401,10 @@ const router = createBrowserRouter([
         path: 'registar',
         element: <RegisterPage />,
         loader: redirectIfAuthenticated,
+      },
+      {
+        path: 'oauth/google/callback',
+        element: <GoogleOAuthCallbackPage />,
       },
     ],
   },

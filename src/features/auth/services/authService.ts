@@ -1,6 +1,8 @@
 import { apiClient } from '@/lib/api/client'
 import { LoginCredentials, RegisterData, AuthResponse, RefreshResponse, MeResponse } from '../types'
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+
 /**
  * Authentication Service
  *
@@ -65,5 +67,26 @@ export const authService = {
   getCurrentUser: async (): Promise<MeResponse> => {
     const response = await apiClient.get<MeResponse>('/auth/me')
     return response.data
+  },
+
+  /**
+   * Obter usuÃ¡rio atual com token explicito (callback OAuth)
+   */
+  getCurrentUserWithAccessToken: async (accessToken: string): Promise<MeResponse> => {
+    const response = await apiClient.get<MeResponse>('/auth/me', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    })
+    return response.data
+  },
+
+  /**
+   * URL para iniciar OAuth Google no backend
+   */
+  getGoogleOAuthStartUrl: (redirectPath = '/dashboard'): string => {
+    const params = new URLSearchParams()
+    params.set('redirectPath', redirectPath)
+    return `${API_BASE_URL}/auth/google/start?${params.toString()}`
   },
 }

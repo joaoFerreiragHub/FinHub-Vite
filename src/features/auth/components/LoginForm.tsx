@@ -6,12 +6,15 @@ import { useAuthStore } from '../stores/useAuthStore'
 import { loginSchema, type LoginFormData } from '../schemas/authSchemas'
 import { Button, Input, Label } from '@/components/ui'
 import { getErrorMessage } from '@/lib/api/client'
+import { authService } from '../services/authService'
 
 export function LoginForm() {
   const navigate = useNavigate()
   const location = useLocation()
   const login = useAuthStore((state) => state.login)
   const [serverError, setServerError] = useState<string | null>(null)
+  const fromPath =
+    (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard'
 
   const {
     register,
@@ -31,12 +34,14 @@ export function LoginForm() {
 
     try {
       await login(data)
-      const from =
-        (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard'
-      navigate(from, { replace: true })
+      navigate(fromPath, { replace: true })
     } catch (error) {
       setServerError(getErrorMessage(error))
     }
+  }
+
+  const handleGoogleLogin = () => {
+    window.location.href = authService.getGoogleOAuthStartUrl(fromPath)
   }
 
   return (
@@ -81,6 +86,10 @@ export function LoginForm() {
 
       <Button type="submit" variant="default" size="lg" className="w-full" isLoading={isSubmitting}>
         Entrar
+      </Button>
+
+      <Button type="button" variant="outline" size="lg" className="w-full" onClick={handleGoogleLogin}>
+        Continuar com Google
       </Button>
 
       <div className="text-center text-sm text-muted-foreground">
