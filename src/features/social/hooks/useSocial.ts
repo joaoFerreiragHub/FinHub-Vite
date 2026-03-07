@@ -3,7 +3,11 @@ import { socialService } from '../services/socialService'
 import { useSocialStore } from '../stores/useSocialStore'
 import { useNotificationStore } from '../stores/useNotificationStore'
 import type { ContentType } from '@/features/hub/types'
-import type { FollowedCreator, NotificationPreferencesPatchInput } from '../types'
+import type {
+  FollowedCreator,
+  NotificationPreferencesPatchInput,
+  SearchFilterType,
+} from '../types'
 
 interface CreatorSubscriptionMutationInput {
   creatorId: string
@@ -175,7 +179,7 @@ export function useMyProfile() {
 
 // ========== SEARCH ==========
 
-export function useGlobalSearch(query: string, type?: ContentType) {
+export function useGlobalSearch(query: string, type?: SearchFilterType) {
   return useQuery({
     queryKey: ['search', query, type],
     queryFn: () => socialService.search(query, type ? { type } : undefined),

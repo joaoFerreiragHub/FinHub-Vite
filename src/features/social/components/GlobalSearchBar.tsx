@@ -8,6 +8,7 @@ import {
   BookOpen,
   Headphones,
   User,
+  Building2,
 } from 'lucide-react'
 import { Dialog, DialogContent } from '@/components/ui'
 import { Button } from '@/components/ui'
@@ -27,6 +28,7 @@ const typeIcons: Record<string, typeof FileText> = {
   [ContentType.BOOK]: BookOpen,
   [ContentType.PODCAST]: Headphones,
   creator: User,
+  brand: Building2,
 }
 
 const typeLabels: Record<string, string> = {
@@ -37,6 +39,7 @@ const typeLabels: Record<string, string> = {
   [ContentType.BOOK]: 'Livros',
   [ContentType.PODCAST]: 'Podcasts',
   creator: 'Criadores',
+  brand: 'Recursos',
 }
 
 export function GlobalSearchBar({ onNavigate }: GlobalSearchBarProps) {
