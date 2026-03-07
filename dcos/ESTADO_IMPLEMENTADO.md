@@ -1136,3 +1136,27 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
 - Validacao tecnica:
   - `npx eslint` (ficheiros SEO alterados) -> PASS
   - `npm run typecheck:p1` -> PASS.
+
+## 53) O2-06 fechado - dashboard criador overview ligado a API (2026-03-07)
+- Pagina `/dashboard` deixou de placeholder e passou a overview operacional com dados reais do criador.
+- Integracao API no overview:
+  - agregacao de conteudo proprio via endpoints `me`:
+    - `GET /api/articles/me`
+    - `GET /api/videos/me`
+    - `GET /api/courses/me`
+    - `GET /api/lives/me`
+    - `GET /api/podcasts/me`
+    - `GET /api/books/me`
+  - leitura de followers do perfil publico:
+    - `GET /api/creators/:username`
+- UX entregue no dashboard:
+  - cards de KPI (`conteudo total`, `publicados`, `rascunhos`, `views`, `rating medio`, `seguidores`);
+  - ranking de top conteudos por views;
+  - lista de conteudo mais recente;
+  - atalhos para criar/gerir conteudo e analytics;
+  - degradacao graciosa com alerta quando parte das fontes falha.
+- Ficheiro alterado:
+  - `src/features/dashboard/pages/DashboardOverviewPage.tsx`
+- Validacao tecnica:
+  - `npx eslint src/features/dashboard/pages/DashboardOverviewPage.tsx` -> PASS
+  - `npm run typecheck:p1` -> PASS.
