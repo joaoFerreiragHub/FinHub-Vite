@@ -1115,3 +1115,24 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - limpeza local do pacote extraneous `@types/date-fns` do `node_modules`.
 - Validacao tecnica:
   - `npm run typecheck:p1` -> PASS.
+
+## 52) O2-05 fechado - SEO base (meta, sitemap, robots) (2026-03-07)
+- SEO de superficie publica aplicado no frontend:
+  - metadados dinamicos por rota publica (title, description, canonical, Open Graph e Twitter cards);
+  - injecao no layout publico via `PublicRouteSeo` em `MainLayout`;
+  - `HelmetProvider` ativado no root da app para suporte consistente de meta tags.
+- Defaults SEO de documento atualizados:
+  - `index.html` com `lang="pt"`, `description`, `robots` e title base da marca.
+- SEO tecnico estatico entregue:
+  - `public/robots.txt` com `Allow` global, bloqueio de areas privadas (`/admin`, `/dashboard`, conta/notificacoes) e referencia ao sitemap;
+  - `public/sitemap.xml` com rotas publicas principais da plataforma (`/`, explorar, criadores, recursos, aprender, mercados, legais).
+- Ficheiros alterados:
+  - `src/components/seo/PublicRouteSeo.tsx`
+  - `src/layouts/MainLayout.tsx`
+  - `src/App.tsx`
+  - `index.html`
+  - `public/robots.txt`
+  - `public/sitemap.xml`
+- Validacao tecnica:
+  - `npx eslint` (ficheiros SEO alterados) -> PASS
+  - `npm run typecheck:p1` -> PASS.

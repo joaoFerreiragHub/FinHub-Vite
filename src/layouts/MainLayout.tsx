@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import AssistedSessionBanner from '@/features/admin/components/AssistedSessionBanner'
+import { PublicRouteSeo } from '@/components/seo/PublicRouteSeo'
 
 /**
  * Layout principal da aplicação (público)
@@ -10,6 +11,7 @@ import AssistedSessionBanner from '@/features/admin/components/AssistedSessionBa
 export default function MainLayout() {
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <PublicRouteSeo />
       <Header />
       <AssistedSessionBanner />
 

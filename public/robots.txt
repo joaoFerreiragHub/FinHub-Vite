@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# Areas privadas
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /conta
+Disallow: /meus-favoritos
+Disallow: /a-seguir
+Disallow: /notificacoes
+
+Sitemap: https://finhub.pt/sitemap.xml
+
