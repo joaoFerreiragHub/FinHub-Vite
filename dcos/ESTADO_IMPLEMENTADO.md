@@ -1051,3 +1051,36 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - `npx eslint` (ficheiros alterados) -> PASS
   - `npm run test -- --runInBand src/__tests__/features/creators/publicCreatorsService.test.ts` -> PASS
   - `npm run typecheck:p1` -> BLOQUEADO por erro pre-existente de ambiente: `TS2688 Cannot find type definition file for 'date-fns'`.
+
+## 49) O2-01 fechado - explorar agregada e verticais ligadas a API (2026-03-07)
+- Pagina `/explorar/tudo` deixou de ser placeholder e passou a feed agregado real com:
+  - pesquisa global por termo;
+  - ordenacao (`recent`, `popular`, `rating`, `views`);
+  - secao principal de destaques + secoes por vertical (`artigos`, `videos`, `cursos`, `eventos`, `podcasts`, `livros`);
+  - degradacao graciosa quando uma das fontes falha (restante feed continua disponivel).
+- Paginas verticais de explorar deixam de placeholder e passam a consumir API publica:
+  - `/explorar/artigos`
+  - `/explorar/videos`
+  - `/explorar/cursos`
+  - `/explorar/eventos`
+  - `/explorar/podcasts`
+  - `/explorar/livros`
+- Camada tecnica adicionada:
+  - service de agregacao e normalizacao publica:
+    - `src/features/explore/services/publicExploreService.ts`
+  - componentes reutilizaveis de UI:
+    - `src/features/explore/components/ExploreCollectionPage.tsx`
+    - `src/features/explore/components/ExploreContentGrid.tsx`
+    - `src/features/explore/components/ExploreContentCard.tsx`
+  - pages atualizadas:
+    - `src/features/explore/pages/ExplorePage.tsx`
+    - `src/features/explore/pages/ExploreArticlesPage.tsx`
+    - `src/features/explore/pages/ExploreVideosPage.tsx`
+    - `src/features/explore/pages/ExploreCoursesPage.tsx`
+    - `src/features/explore/pages/ExploreEventsPage.tsx`
+    - `src/features/explore/pages/ExplorePodcastsPage.tsx`
+    - `src/features/explore/pages/ExploreBooksPage.tsx`
+- Validacao tecnica:
+  - `npx eslint` (ficheiros alterados de explore) -> PASS
+  - `npm run typecheck:p1` -> BLOQUEADO por erro pre-existente de ambiente: `TS2688 Cannot find type definition file for 'date-fns'`
+  - `npx tsc --noEmit --pretty false -p tsconfig.app.json` -> BLOQUEADO pelo mesmo erro pre-existente (`date-fns` types).

@@ -1,11 +1,12 @@
-import { PlaceholderPage } from '@/components/layout/PlaceholderPage'
+import { ExploreCollectionPage } from '@/features/explore/components/ExploreCollectionPage'
 
 export default function ExplorePodcastsPage() {
   return (
-    <PlaceholderPage
-      section="Explorar"
+    <ExploreCollectionPage
+      kind="podcasts"
       title="Explorar Podcasts"
-      description="Estamos a finalizar a experiencia desta pagina com o mesmo padrao de navegacao e responsividade da Home."
+      subtitle="Episodios e entrevistas para aprender em qualquer contexto."
+      searchPlaceholder="Pesquisar podcasts..."
     />
   )
 }

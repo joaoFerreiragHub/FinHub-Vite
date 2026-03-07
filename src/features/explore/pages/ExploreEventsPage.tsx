@@ -1,11 +1,12 @@
-import { PlaceholderPage } from '@/components/layout/PlaceholderPage'
+import { ExploreCollectionPage } from '@/features/explore/components/ExploreCollectionPage'
 
 export default function ExploreEventsPage() {
   return (
-    <PlaceholderPage
-      section="Explorar"
+    <ExploreCollectionPage
+      kind="events"
       title="Explorar Eventos"
-      description="Estamos a finalizar a experiencia desta pagina com o mesmo padrao de navegacao e responsividade da Home."
+      subtitle="Descobre eventos ao vivo, workshops e sessoes especiais."
+      searchPlaceholder="Pesquisar eventos..."
     />
   )
 }

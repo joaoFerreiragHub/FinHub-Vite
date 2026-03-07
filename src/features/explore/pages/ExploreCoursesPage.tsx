@@ -1,11 +1,12 @@
-import { PlaceholderPage } from '@/components/layout/PlaceholderPage'
+import { ExploreCollectionPage } from '@/features/explore/components/ExploreCollectionPage'
 
 export default function ExploreCoursesPage() {
   return (
-    <PlaceholderPage
-      section="Explorar"
+    <ExploreCollectionPage
+      kind="courses"
       title="Explorar Cursos"
-      description="Estamos a finalizar a experiencia desta pagina com o mesmo padrao de navegacao e responsividade da Home."
+      subtitle="Cursos estruturados para evoluires do basico ao avancado."
+      searchPlaceholder="Pesquisar cursos..."
     />
   )
 }

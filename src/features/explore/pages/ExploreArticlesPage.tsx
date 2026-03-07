@@ -1,11 +1,12 @@
-import { PlaceholderPage } from '@/components/layout/PlaceholderPage'
+import { ExploreCollectionPage } from '@/features/explore/components/ExploreCollectionPage'
 
 export default function ExploreArticlesPage() {
   return (
-    <PlaceholderPage
-      section="Explorar"
+    <ExploreCollectionPage
+      kind="articles"
       title="Explorar Artigos"
-      description="Estamos a finalizar a experiencia desta pagina com o mesmo padrao de navegacao e responsividade da Home."
+      subtitle="Analises, guias e opiniao financeira em formato de leitura."
+      searchPlaceholder="Pesquisar artigos..."
     />
   )
 }

@@ -1,11 +1,12 @@
-import { PlaceholderPage } from '@/components/layout/PlaceholderPage'
+import { ExploreCollectionPage } from '@/features/explore/components/ExploreCollectionPage'
 
 export default function ExploreBooksPage() {
   return (
-    <PlaceholderPage
-      section="Explorar"
+    <ExploreCollectionPage
+      kind="books"
       title="Explorar Livros"
-      description="Estamos a finalizar a experiencia desta pagina com o mesmo padrao de navegacao e responsividade da Home."
+      subtitle="Livros recomendados para reforcar conhecimento financeiro."
+      searchPlaceholder="Pesquisar livros..."
     />
   )
 }

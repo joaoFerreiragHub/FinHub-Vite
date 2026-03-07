@@ -1,11 +1,12 @@
-import { PlaceholderPage } from '@/components/layout/PlaceholderPage'
+import { ExploreCollectionPage } from '@/features/explore/components/ExploreCollectionPage'
 
 export default function ExploreVideosPage() {
   return (
-    <PlaceholderPage
-      section="Explorar"
-      title="Explorar Vídeos"
-      description="Estamos a finalizar a experiencia desta pagina com o mesmo padrao de navegacao e responsividade da Home."
+    <ExploreCollectionPage
+      kind="videos"
+      title="Explorar Videos"
+      subtitle="Conteudo em video para aprender temas praticos de forma direta."
+      searchPlaceholder="Pesquisar videos..."
     />
   )
 }
