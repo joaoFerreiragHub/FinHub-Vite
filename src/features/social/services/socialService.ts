@@ -2,6 +2,7 @@ import { apiClient } from '@/lib/api/client'
 import { ContentType } from '@/features/hub/types'
 import {
   NotificationType,
+  type SearchFilterType,
   type FollowedCreator,
   type FavoriteItem,
   type Notification,
@@ -771,10 +772,8 @@ export const socialService = {
   },
 
   // ========== SEARCH ==========
-  // Nota: Endpoint de search ainda nao implementado no backend.
 
-  search: async (query: string, filters?: { type?: ContentType }): Promise<SearchResponse> => {
-    // TODO: Implementar endpoint no backend.
+  search: async (query: string, filters?: { type?: SearchFilterType }): Promise<SearchResponse> => {
     const response = await apiClient.get<SearchResponse>('/search', {
       params: { q: query, ...filters },
     })

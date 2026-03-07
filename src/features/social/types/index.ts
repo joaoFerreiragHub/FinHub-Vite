@@ -116,7 +116,9 @@ export interface UserProfile extends User {
 
 // ========== SEARCH ==========
 
-export type SearchResultType = ContentType | 'creator'
+export type SearchContentType = Exclude<ContentType, ContentType.NEWS>
+export type SearchResultType = SearchContentType | 'creator' | 'brand'
+export type SearchFilterType = SearchResultType
 
 export interface SearchResult {
   id: string

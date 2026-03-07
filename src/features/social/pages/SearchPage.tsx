@@ -8,6 +8,7 @@ import {
   BookOpen,
   Headphones,
   User,
+  Building2,
 } from 'lucide-react'
 import { Input } from '@/components/ui'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui'
@@ -15,7 +16,7 @@ import { Skeleton } from '@/components/ui'
 import { Badge } from '@/components/ui'
 import { ContentType } from '@/features/hub/types'
 import { useGlobalSearch } from '../hooks/useSocial'
-import type { SearchResult } from '../types'
+import type { SearchFilterType, SearchResult } from '../types'
 import { PublicSurfaceDisabledState } from '@/features/platform/components/PublicSurfaceDisabledState'
 import { usePublicSurfaceControl } from '@/features/platform/hooks/usePublicSurfaceControl'
 
@@ -27,9 +28,12 @@ const typeIcons: Record<string, typeof FileText> = {
   [ContentType.BOOK]: BookOpen,
   [ContentType.PODCAST]: Headphones,
   creator: User,
+  brand: Building2,
 }
 
-const typeLabels: Record<string, string> = {
+type SearchTabType = 'all' | SearchFilterType
+
+const typeLabels: Record<SearchTabType, string> = {
   all: 'Todos',
   [ContentType.ARTICLE]: 'Artigos',
   [ContentType.COURSE]: 'Cursos',
@@ -38,15 +42,16 @@ const typeLabels: Record<string, string> = {
   [ContentType.BOOK]: 'Livros',
   [ContentType.PODCAST]: 'Podcasts',
   creator: 'Criadores',
+  brand: 'Recursos',
 }
 
 export function SearchPage() {
   const searchSurface = usePublicSurfaceControl('search')
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
-  const [selectedType, setSelectedType] = useState('all')
+  const [selectedType, setSelectedType] = useState<SearchTabType>('all')
 
-  const queryType = selectedType === 'all' ? undefined : (selectedType as ContentType)
+  const queryType = selectedType === 'all' ? undefined : selectedType
   const { data, isLoading } = useGlobalSearch(debouncedQuery, queryType)
 
   // Get initial query from URL
@@ -98,7 +103,7 @@ export function SearchPage() {
       </div>
 
       {/* Type filters */}
-      <Tabs value={selectedType} onValueChange={setSelectedType}>
+      <Tabs value={selectedType} onValueChange={(value) => setSelectedType(value as SearchTabType)}>
         <TabsList className="flex-wrap">
           {Object.entries(typeLabels).map(([value, label]) => (
             <TabsTrigger key={value} value={value}>

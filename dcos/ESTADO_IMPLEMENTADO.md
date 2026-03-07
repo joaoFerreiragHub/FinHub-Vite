@@ -1340,3 +1340,20 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - backend: `npm run build` -> PASS
   - backend: `npm run contract:openapi` -> PASS
   - frontend: `npm run typecheck:p1` -> PASS.
+
+## 61) O3-02 fechado - pesquisa global (2026-03-07)
+- Pesquisa global fechada ponta-a-ponta entre backend e frontend:
+  - backend com novo endpoint publico `GET /api/search` (filtros `q`, `type`, `types`, `limit`) com rate-limit de pesquisa;
+  - cobertura cross-content para `article`, `course`, `video`, `event`, `book`, `podcast`, `creator` e `brand`;
+  - ranking combinado por relevancia textual e sinais de popularidade/qualidade para ordenar resultados.
+- Integracao frontend alinhada ao endpoint real:
+  - `socialService.search(...)` deixou de estar em modo TODO e passou a consumir `/search` como fonte oficial;
+  - tipagem de pesquisa corrigida com `SearchFilterType` (inclui `creator` e `brand`, sem cast indevido para `ContentType`);
+  - `SearchPage` e `GlobalSearchBar` atualizados para apresentar resultados de `brand` com label/icone `Recursos`.
+- Compatibilidade:
+  - suporta tanto filtro singular (`type`) como multiplo (`types=...`) para chamadas atuais e futuras.
+- Validacao tecnica:
+  - backend: `npm run typecheck` -> PASS
+  - backend: `npm run build` -> PASS
+  - backend: `npm run contract:openapi` -> PASS
+  - frontend: `npm run typecheck:p1` -> PASS.
