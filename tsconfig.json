@@ -11,6 +11,7 @@
       "@/*": ["src/*"]
     },
     "typeRoots": ["./node_modules/@types", "./src/types"],
+    "types": ["vite/client", "node"],
     "target": "ES2022",
     "lib": ["DOM", "ES2023"],
     "module": "ESNext",

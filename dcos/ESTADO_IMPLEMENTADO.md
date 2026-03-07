@@ -1102,3 +1102,16 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
 - Validacao tecnica:
   - `npx eslint` (ficheiros alterados de detalhe) -> PASS
   - `npm run typecheck:p1` -> BLOQUEADO por erro pre-existente de ambiente: `TS2688 Cannot find type definition file for 'date-fns'`.
+
+## 51) Hotfix dev tooling - TS2688 date-fns resolvido (2026-03-07)
+- Incidente:
+  - `npm run typecheck:p1` falhava com `TS2688 Cannot find type definition file for 'date-fns'`.
+- Causa identificada:
+  - pacote `@types/date-fns` legacy/stub estava presente como `extraneous` no `node_modules` e era carregado como type library implicita.
+- Correcao aplicada:
+  - restricao explicita de type libraries no TS config app/editor:
+    - `tsconfig.app.json` -> `"types": ["vite/client", "node"]`
+    - `tsconfig.json` -> `"types": ["vite/client", "node"]`
+  - limpeza local do pacote extraneous `@types/date-fns` do `node_modules`.
+- Validacao tecnica:
+  - `npm run typecheck:p1` -> PASS.
