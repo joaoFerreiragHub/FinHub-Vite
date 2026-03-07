@@ -1084,3 +1084,21 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - `npx eslint` (ficheiros alterados de explore) -> PASS
   - `npm run typecheck:p1` -> BLOQUEADO por erro pre-existente de ambiente: `TS2688 Cannot find type definition file for 'date-fns'`
   - `npx tsc --noEmit --pretty false -p tsconfig.app.json` -> BLOQUEADO pelo mesmo erro pre-existente (`date-fns` types).
+
+## 50) O2-02 fechado - detalhe publico artigo/video/curso (2026-03-07)
+- Rotas publicas de detalhe deixaram de placeholder e passaram a consumir API real:
+  - `/artigos/:slug`
+  - `/videos/:slug`
+  - `/cursos/:slug`
+- Entregas do MVP publico:
+  - fetch por slug via hooks reais (`useArticle`, `useVideo`, `useCourse`);
+  - increment de views no detalhe com os services reais (`articleService`, `videoService`, `courseService`);
+  - estados de `loading` e fallback de erro para `/explorar/*` por vertical;
+  - layout publico com metadados base (autor, data, views, rating) e bloco de conteudo consumivel.
+- Ficheiros alterados:
+  - `src/features/content/pages/ArticleDetailPage.tsx`
+  - `src/features/content/pages/VideoDetailPage.tsx`
+  - `src/features/content/pages/CourseDetailPage.tsx`
+- Validacao tecnica:
+  - `npx eslint` (ficheiros alterados de detalhe) -> PASS
+  - `npm run typecheck:p1` -> BLOQUEADO por erro pre-existente de ambiente: `TS2688 Cannot find type definition file for 'date-fns'`.
