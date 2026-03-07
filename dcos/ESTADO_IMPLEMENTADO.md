@@ -1357,3 +1357,18 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - backend: `npm run build` -> PASS
   - backend: `npm run contract:openapi` -> PASS
   - frontend: `npm run typecheck:p1` -> PASS.
+
+## 62) O3-03 fechado - centro de notificacoes (2026-03-07)
+- Centro de notificacoes ligado no header principal em uso (`src/components/layout/Header.tsx`):
+  - `NotificationBell` visivel em desktop e mobile para utilizadores autenticados;
+  - acesso direto a `/notificacoes` e navegacao por notificacao selecionada.
+- Fluxo de leitura melhorado no dropdown:
+  - clique numa notificacao passa a disparar `mark as read` automaticamente antes da navegacao;
+  - botao de `Marcar todas como lidas` mantido no popover.
+- Alinhamento de links de destino das notificacoes com rotas publicas ativas:
+  - `article/course/video/event/book/podcast` mapeados para `/artigos|/cursos|/videos|/eventos|/livros|/podcasts/:slug`;
+  - `news` encaminha para `/aprender/noticias`.
+- Qualidade:
+  - teste de `NotificationBell` atualizado para mockar o novo hook `useMarkNotificationRead`.
+- Validacao tecnica:
+  - frontend: `npm run typecheck:p1` -> PASS.

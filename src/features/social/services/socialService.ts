@@ -284,20 +284,20 @@ const buildTargetUrl = (
 
   switch (targetType) {
     case 'article':
-      return `/hub/articles/${targetId}`
+      return `/artigos/${targetId}`
     case 'course':
-      return `/hub/courses/${targetId}`
+      return `/cursos/${targetId}`
     case 'video':
-      return `/hub/videos/${targetId}`
+      return `/videos/${targetId}`
     case 'live':
     case 'event':
-      return `/hub/lives/${targetId}`
+      return `/eventos/${targetId}`
     case 'book':
-      return `/hub/books/${targetId}`
+      return `/livros/${targetId}`
     case 'podcast':
-      return `/hub/podcasts/${targetId}`
+      return `/podcasts/${targetId}`
     case 'news':
-      return `/noticias/${targetId}`
+      return '/aprender/noticias'
     default:
       return undefined
   }

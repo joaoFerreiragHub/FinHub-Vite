@@ -38,6 +38,10 @@ jest.mock('@/features/social/hooks/useSocial', () => ({
     mutate: jest.fn(),
     isPending: false,
   }),
+  useMarkNotificationRead: () => ({
+    mutate: jest.fn(),
+    isPending: false,
+  }),
 }))
 
 beforeEach(() => {

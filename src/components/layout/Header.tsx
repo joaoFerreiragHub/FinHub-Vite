@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Menu, X, LayoutDashboard, PanelLeft, User, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui'
 import { ToggleTheme } from '@/components/ui/toggle-theme'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import { NotificationBell } from '@/features/social/components/NotificationBell'
 import { cn } from '@/lib/utils'
 
 const navItems = [
@@ -79,6 +80,7 @@ export default function Header({
   sidebarToggleLabel = 'Abrir menu lateral',
 }: HeaderProps) {
   const location = useLocation()
+  const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
   const { isAuthenticated, user, logout } = useAuthStore()
 
@@ -133,6 +135,12 @@ export default function Header({
             </>
           ) : (
             <>
+              <NotificationBell
+                onNavigateToNotifications={() => navigate('/notificacoes')}
+                onClickNotification={(notification) => {
+                  navigate(notification.targetUrl || '/notificacoes')
+                }}
+              />
               <Button variant="outline" asChild>
                 <Link to="/dashboard">
                   <LayoutDashboard className="h-4 w-4" />
@@ -155,6 +163,14 @@ export default function Header({
 
         <div className="flex items-center gap-1 md:hidden">
           <ToggleTheme />
+          {isAuthenticated && (
+            <NotificationBell
+              onNavigateToNotifications={() => navigate('/notificacoes')}
+              onClickNotification={(notification) => {
+                navigate(notification.targetUrl || '/notificacoes')
+              }}
+            />
+          )}
           <Button
             variant="ghost"
             size="icon"
