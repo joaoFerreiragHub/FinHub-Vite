@@ -1,10 +1,12 @@
 import type { CreatorFull } from '@/features/creators/types/creator'
 import SidebarLayout from '@/shared/layouts/SidebarLayout'
+import { useQuery } from '@tanstack/react-query'
 import { mockCreatorsFull } from '@/lib/mock/mockCreatorsFull'
 import ContentSections from '@/features/creators/components/public/ContentSections'
 import CreatorProfile from '@/features/creators/components/public/CreatorProfile'
 import { PublicSurfaceDisabledState } from '@/features/platform/components/PublicSurfaceDisabledState'
 import { usePublicSurfaceControl } from '@/features/platform/hooks/usePublicSurfaceControl'
+import { fetchPublicCreatorProfile } from '@/features/creators/services/publicCreatorsService'
 
 export const passToClient = ['routeParams', 'pageProps', 'user']
 
@@ -85,10 +87,18 @@ export function Page(props: any) {
 function CreatorPage({ username }: { username: string }) {
   const creatorPageSurface = usePublicSurfaceControl('creator_page')
   const normalizedUsername = username.toLowerCase().trim()
+  const creatorQuery = useQuery({
+    queryKey: ['public-creator-profile', normalizedUsername],
+    queryFn: () => fetchPublicCreatorProfile(normalizedUsername),
+    enabled: normalizedUsername.length > 0,
+    staleTime: 60 * 1000,
+    retry: 1,
+  })
+
   const found = mockCreatorsFull.find(
     (creator) => creator.username?.toLowerCase().trim() === normalizedUsername,
   )
-  const creatorData: CreatorFull = found ?? createFallbackCreator(username)
+  const creatorData: CreatorFull = creatorQuery.data ?? found ?? createFallbackCreator(username)
 
   if (creatorPageSurface.data && !creatorPageSurface.data.enabled) {
     return (
@@ -107,6 +117,12 @@ function CreatorPage({ username }: { username: string }) {
   return (
     <SidebarLayout>
       <div className="max-w-7xl mx-auto px-4 py-10 space-y-10">
+        {creatorQuery.isError ? (
+          <div className="rounded-md border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-xs text-amber-100">
+            Perfil carregado em fallback local porque a API publica de creators nao respondeu.
+          </div>
+        ) : null}
+
         <CreatorProfile
           creatorData={creatorData}
           averageCreatorRating={creatorData.averageRating ?? 0}

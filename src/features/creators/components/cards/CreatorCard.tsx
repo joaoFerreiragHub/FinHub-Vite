@@ -22,7 +22,8 @@ export function CreatorCard({
 }: CreatorCardProps) {
   const [imageFailed, setImageFailed] = useState(false)
   const profileUrl = `/creators/${encodeURIComponent(creator.username)}`
-  const followerCount = creator.followers?.length ?? 0
+  const followerCount =
+    typeof creator.followersCount === 'number' ? creator.followersCount : creator.followers?.length ?? 0
   const rating = creator.averageRating ?? 0
   const imageUrl = creator.profilePictureUrl
   const hasImage = Boolean(imageUrl) && !imageFailed

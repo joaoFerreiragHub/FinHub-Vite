@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Compass, Sparkles, Users } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { Creator } from '@/features/creators/types/creator'
 import { Button } from '@/components/ui'
 import LoadingSpinner from '@/components/ui/loading-spinner'
@@ -9,7 +10,7 @@ import { CreatorCard } from '@/features/creators/components/cards/CreatorCard'
 import { addVisitedTopics } from '@/features/hub/utils/visitedTopics'
 import { useVisitedTopics } from '@/features/hub/hooks/useVisitedTopics'
 import { CreatorModal } from '@/features/creators/components/modals/CreatorModal'
-import { mockCreators } from '@/features/creators/components/api/mockCreators'
+import { fetchPublicCreators } from '@/features/creators/services/publicCreatorsService'
 import { PageHero, FilterBar } from '@/components/public'
 import { PublicSurfaceDisabledState } from '@/features/platform/components/PublicSurfaceDisabledState'
 import { usePublicSurfaceControl } from '@/features/platform/hooks/usePublicSurfaceControl'
@@ -27,62 +28,77 @@ export function Page() {
   const [selectedRating, setSelectedRating] = useState<number | null>(null)
   const [selectedFrequency, setSelectedFrequency] = useState('')
   const [selectedType, setSelectedType] = useState('')
-  const [creators, setCreators] = useState<Creator[]>([])
-  const [loading, setLoading] = useState(true)
   const [selectedCreator, setSelectedCreator] = useState<Creator | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const visitedTopics = useVisitedTopics()
 
+  const mappedSortBy = sortOption === 'rating' ? 'rating' : sortOption === 'recent' ? 'newest' : 'followers'
+  const creatorsQuery = useQuery({
+    queryKey: ['public-creators', mappedSortBy, selectedRating, searchTerm],
+    queryFn: () =>
+      fetchPublicCreators({
+        search: searchTerm || undefined,
+        minRating: selectedRating ?? undefined,
+        sortBy: mappedSortBy,
+        sortOrder: 'desc',
+        limit: 120,
+      }),
+    staleTime: 60 * 1000,
+    retry: 1,
+  })
+
+  const apiCreators = useMemo(() => creatorsQuery.data ?? [], [creatorsQuery.data])
+
+  const creators = useMemo(() => {
+    let filtered = [...apiCreators]
+
+    if (selectedTopic) {
+      filtered = filtered.filter((creator) =>
+        creator.topics.length > 0 ? creator.topics.includes(selectedTopic) : true,
+      )
+    }
+
+    if (selectedRating !== null) {
+      filtered = filtered.filter((creator) => (creator.averageRating ?? 0) >= selectedRating)
+    }
+
+    if (selectedFrequency === 'daily') {
+      filtered = filtered.filter((creator) => {
+        const value = (creator.publicationFrequency ?? '').toLowerCase()
+        return value ? value.startsWith('di') : true
+      })
+    } else if (selectedFrequency === 'weekly') {
+      filtered = filtered.filter((creator) => {
+        const value = (creator.publicationFrequency ?? '').toLowerCase()
+        return value ? value.startsWith('se') : true
+      })
+    }
+
+    if (selectedType) {
+      filtered = filtered.filter((creator) =>
+        creator.typeOfContent?.toLowerCase() ? creator.typeOfContent.toLowerCase() === selectedType.toLowerCase() : true,
+      )
+    }
+
+    if (sortOption === 'rating') {
+      filtered.sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0))
+    } else if (sortOption === 'recent') {
+      filtered.sort((a, b) => (Date.parse(b.createdAt ?? '') || 0) - (Date.parse(a.createdAt ?? '') || 0))
+    } else {
+      filtered.sort((a, b) => (b.followersCount ?? b.followers?.length ?? 0) - (a.followersCount ?? a.followers?.length ?? 0))
+    }
+
+    return filtered
+  }, [apiCreators, selectedFrequency, selectedRating, selectedTopic, selectedType, sortOption])
+
   const topics = useMemo(
     () =>
-      Array.from(new Set(mockCreators.flatMap((creator) => creator.topics))).map((topic) => ({
+      Array.from(new Set(creators.flatMap((creator) => creator.topics))).map((topic) => ({
         label: topic,
         value: topic,
       })),
-    [],
+    [creators],
   )
-
-  useEffect(() => {
-    setLoading(true)
-    const timer = setTimeout(() => {
-      let filtered = [...mockCreators]
-
-      if (selectedTopic) {
-        filtered = filtered.filter((creator) => creator.topics.includes(selectedTopic))
-      }
-
-      if (selectedRating !== null) {
-        filtered = filtered.filter((creator) => (creator.averageRating ?? 0) >= selectedRating)
-      }
-
-      if (selectedFrequency === 'daily') {
-        filtered = filtered.filter((creator) =>
-          (creator.publicationFrequency ?? '').toLowerCase().startsWith('di'),
-        )
-      } else if (selectedFrequency === 'weekly') {
-        filtered = filtered.filter((creator) =>
-          (creator.publicationFrequency ?? '').toLowerCase().startsWith('se'),
-        )
-      }
-
-      if (selectedType) {
-        filtered = filtered.filter(
-          (creator) => creator.typeOfContent?.toLowerCase() === selectedType.toLowerCase(),
-        )
-      }
-
-      if (sortOption === 'rating') {
-        filtered.sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0))
-      } else if (sortOption === 'recent') {
-        filtered.reverse()
-      }
-
-      setCreators(filtered)
-      setLoading(false)
-    }, 250)
-
-    return () => clearTimeout(timer)
-  }, [selectedFrequency, selectedRating, selectedTopic, selectedType, sortOption])
 
   const handleSearch = (query: string) => {
     const cleanQuery = query.trim().toLowerCase()
@@ -144,6 +160,7 @@ export function Page() {
     .slice(0, 8)
 
   const premiumCreators = creators.filter((creator) => creator.isPremium).length
+  const loading = creatorsQuery.isLoading
 
   if (creatorPageSurface.data && !creatorPageSurface.data.enabled) {
     return (
@@ -203,6 +220,12 @@ export function Page() {
         />
 
         <div className="space-y-2 pt-6">
+          {creatorsQuery.isError ? (
+            <div className="mx-4 rounded-md border border-red-500/40 bg-red-500/10 p-3 text-xs text-red-300 sm:mx-6 md:mx-10 lg:mx-12">
+              Nao foi possivel carregar a lista de criadores da API neste momento.
+            </div>
+          ) : null}
+
           {topCreators.length > 0 && (
             <ContentRow title="Top criadores da semana">
               {topCreators.map((creator) => (

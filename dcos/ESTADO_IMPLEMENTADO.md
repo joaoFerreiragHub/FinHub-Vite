@@ -1037,3 +1037,17 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - `npx eslint` (ficheiros alterados) -> PASS
   - `npm run test -- --runInBand src/__tests__/features/markets/marketToolsApi.watchlist.test.ts` -> PASS
   - `npm run typecheck:p1` -> BLOQUEADO por erro pre-existente de ambiente: `TS2688 Cannot find type definition file for 'date-fns'`.
+
+## 48) O2-03 arranque frontend - creators publicos ligados a API (2026-03-07)
+- Pagina `/creators` deixa de depender apenas de mock e passa a consumir `GET /api/creators`.
+- Perfil publico `/creators/:username` passa a tentar `GET /api/creators/:username` com fallback local em indisponibilidade.
+- Camada dedicada adicionada:
+  - `src/features/creators/services/publicCreatorsService.ts`
+- Mapeamento para UI de cards:
+  - suporte a `followersCount` em `Creator` + leitura no `CreatorCard`.
+- Testes unitarios:
+  - `src/__tests__/features/creators/publicCreatorsService.test.ts`.
+- Validacao tecnica:
+  - `npx eslint` (ficheiros alterados) -> PASS
+  - `npm run test -- --runInBand src/__tests__/features/creators/publicCreatorsService.test.ts` -> PASS
+  - `npm run typecheck:p1` -> BLOQUEADO por erro pre-existente de ambiente: `TS2688 Cannot find type definition file for 'date-fns'`.

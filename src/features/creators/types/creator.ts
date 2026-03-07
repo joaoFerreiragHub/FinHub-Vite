@@ -78,6 +78,7 @@ export interface Creator {
   }
 
   socialMediaLinks: SocialMediaLink[]
+  followersCount?: number
   followers: { userId: string }[]
   famous: ('Youtube' | 'Spotify' | 'Instagram' | 'Facebook' | 'Tiktok' | 'Twitter' | 'other')[]
   content: CreatorContent[]
