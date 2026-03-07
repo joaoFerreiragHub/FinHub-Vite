@@ -1223,3 +1223,29 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
 - Validacao tecnica:
   - `npx eslint` (ficheiros alterados do fluxo video) -> PASS
   - `npm run typecheck:p1` -> PASS.
+
+## 56) O2-09 fechado - backend Reels CRUD (2026-03-07)
+- CRUD de `reels` entregue no backend (`API_finhub`) com stack completa:
+  - model dedicado `Reel` baseado em `BaseContent`;
+  - service `reel.service.ts` com list/get/create/update/delete/publish + stats;
+  - controller `reel.controller.ts` com handlers HTTP e validacao base;
+  - routes `reel.routes.ts` com endpoints publicos, creator e interacoes.
+- Endpoints principais adicionados:
+  - `GET /api/reels`
+  - `GET /api/reels/:slug`
+  - `GET /api/reels/id/:id`
+  - `POST /api/reels`
+  - `PATCH /api/reels/:id`
+  - `DELETE /api/reels/:id`
+  - `PATCH /api/reels/:id/publish`
+  - `POST /api/reels/:id/like`
+  - `POST /api/reels/:id/favorite`
+  - `GET /api/reels/me` (com alias `/api/reels/my`)
+  - `GET /api/reels/stats`
+- Integracao transversal adicional:
+  - registo de `/api/reels` no router principal (`src/routes/index.ts`);
+  - `targetMetadata.service` atualizado para resolver `targetType: 'reel'` em eventos sociais.
+- Validacao tecnica no backend:
+  - `npm run typecheck` -> PASS
+  - `npm run build` -> PASS
+  - `npm run contract:openapi` -> PASS.
