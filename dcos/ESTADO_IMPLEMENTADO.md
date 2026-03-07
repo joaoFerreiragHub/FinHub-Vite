@@ -1249,3 +1249,26 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - `npm run typecheck` -> PASS
   - `npm run build` -> PASS
   - `npm run contract:openapi` -> PASS.
+
+## 57) O2-10 fechado - backend Playlists CRUD (2026-03-07)
+- CRUD de `playlists` entregue no backend (`API_finhub`) como schema proprio (nao BaseContent):
+  - model `Playlist` com itens ordenados, visibilidade, status e playlist principal por creator;
+  - service `playlist.service.ts` com list/get/create/update/delete + stats de creator;
+  - controller `playlist.controller.ts` com handlers publicos e privados;
+  - routes `playlist.routes.ts` registadas no router principal em `/api/playlists`.
+- Endpoints principais adicionados:
+  - `GET /api/playlists`
+  - `GET /api/playlists/:slug`
+  - `GET /api/playlists/id/:id`
+  - `POST /api/playlists`
+  - `PATCH /api/playlists/:id`
+  - `DELETE /api/playlists/:id`
+  - `GET /api/playlists/me` (com alias `/api/playlists/my`)
+  - `GET /api/playlists/stats`
+- Integracao adicional:
+  - `/api/playlists` exposto no `src/routes/index.ts`;
+  - resposta de playlist inclui aliases legados (`playlistName`, `videoLinks`, `isSelected`, `viewsCount`) para compatibilidade progressiva com o frontend atual.
+- Validacao tecnica no backend:
+  - `npm run typecheck` -> PASS
+  - `npm run build` -> PASS
+  - `npm run contract:openapi` -> PASS.
