@@ -247,12 +247,13 @@ Accao:
 1. mover thresholds de alertas para env/config minima
 2. documentar no runbook e `.env.example`
 
-### 3.4 Precedencia moderacao > editorial
+### 3.4 Precedencia moderacao > editorial - FECHADO (2026-03-07)
 
-Accao:
+Accao executada:
 
-1. validar endpoints publicos
-2. documentar a regra de governanca
+1. regra formalizada nos docs de Moderation Control Plane e Admin Editorial CMS;
+2. frontend passou a explicitar "Visibilidade efetiva" por item em `/admin/conteudo`;
+3. helper dedicado e teste unitario adicionados para evitar regressao da precedencia.
 
 ### 3.5 Fecho formal do P3
 

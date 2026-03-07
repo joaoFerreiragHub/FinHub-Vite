@@ -133,6 +133,7 @@ Perfis sugeridos:
 - `showOnHome`
 - `showOnLanding`
 - `showOnShowAll`
+- regra de governanca cruzada: `moderationStatus` tem precedencia sobre estas flags; quando `hidden|restricted`, o item nao aparece em superficies publicas mesmo com flags editoriais ativas.
 
 ## 6) API alvo (MVP)
 

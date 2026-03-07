@@ -176,6 +176,20 @@ Camadas principais atualizadas:
 - confirmacao dupla em fluxos criticos como archive e certas acoes admin;
 - gating por `adminReadOnly` e por escopos nas paginas operacionais principais.
 
+## Regra de precedencia de visibilidade (2026-03-07)
+
+Regra oficial para superficies publicas:
+
+1. `moderationStatus=hidden|restricted` bloqueia sempre a exposicao publica.
+2. so com `moderationStatus=visible` o estado editorial passa a decidir (`published` publica; `draft/archived` mantem fora do publico).
+3. consequencia operacional: `unhide` nao implica publicacao automatica quando o estado editorial nao estiver em `published`.
+
+Alinhamento aplicado no frontend:
+
+- helper dedicado `src/features/admin/lib/contentVisibility.ts`;
+- `ContentModerationPage` passa a mostrar "Visibilidade efetiva" por item;
+- copy de impacto em `unhide` atualizada para refletir a precedencia de governanca.
+
 ### P4.2-05 fechado - guards de rota por scope (2026-03-05)
 
 Entregue nesta iteracao:

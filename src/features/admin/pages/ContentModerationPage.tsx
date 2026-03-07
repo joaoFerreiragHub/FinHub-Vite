@@ -76,6 +76,10 @@ import {
   type AdminContentDeepLinkPanel,
 } from '../lib/moderationControlPlaneLinks'
 import { hasAdminScope } from '../lib/access'
+import {
+  EFFECTIVE_VISIBILITY_LABEL,
+  resolveEffectivePublicVisibility,
+} from '../lib/contentVisibility'
 import { getRequiredFieldError, isDoubleConfirmTokenValid } from '../lib/formValidation'
 import type {
   AdminContentJob,
@@ -263,10 +267,17 @@ const getImpactSummary = (kind: ContentActionKind, content: AdminContentQueueIte
     ]
   }
 
+  const visibilityAfterUnhide = resolveEffectivePublicVisibility({
+    moderationStatus: 'visible',
+    publishStatus: content.status,
+  })
+
   return [
-    `${target} volta ao estado visivel.`,
-    'Item regressa a listagens/publicacao conforme estado editorial.',
-    'Reversao fica registada no historico para compliance.',
+    `${target} volta ao estado visivel na moderacao.`,
+    visibilityAfterUnhide === 'visible'
+      ? 'Como o estado editorial esta "published", o item volta ao publico.'
+      : `Moderacao fica "visible", mas o estado editorial "${content.status}" ainda bloqueia o publico.`,
+    'Precedencia aplicada: moderationStatus bloqueia sempre antes do estado editorial.',
   ]
 }
 
@@ -1526,6 +1537,10 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                 {items.map((item) => {
                   const canAct = canModerateContent
                   const selected = selectedContentKeys.includes(contentSelectionKey(item))
+                  const effectiveVisibility = resolveEffectivePublicVisibility({
+                    moderationStatus: item.moderationStatus,
+                    publishStatus: item.status,
+                  })
 
                   return (
                     <div
@@ -1566,6 +1581,9 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                           active={item.automatedSignals.active}
                         />
                       </div>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Visibilidade efetiva: {EFFECTIVE_VISIBILITY_LABEL[effectiveVisibility]}
+                      </p>
 
                       <div className="mt-3 space-y-1 text-xs text-muted-foreground">
                         <p>Criador: {formatActor(item.creator)}</p>
@@ -1688,6 +1706,10 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                   <TableBody>
                     {items.map((item) => {
                       const canAct = canModerateContent
+                      const effectiveVisibility = resolveEffectivePublicVisibility({
+                        moderationStatus: item.moderationStatus,
+                        publishStatus: item.status,
+                      })
                       return (
                         <TableRow key={`${item.contentType}-${item.id}`}>
                           {canModerateContent ? (
@@ -1732,6 +1754,9 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                                 {item.moderationReason}
                               </p>
                             )}
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              Visibilidade efetiva: {EFFECTIVE_VISIBILITY_LABEL[effectiveVisibility]}
+                            </p>
                           </TableCell>
                           <TableCell>
                             <div className="space-y-2 text-xs">

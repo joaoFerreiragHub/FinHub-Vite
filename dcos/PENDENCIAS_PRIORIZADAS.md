@@ -383,7 +383,7 @@ Estado atual do P3: EM CURSO (arranque tecnico ja iniciado; falta fechar cobertu
   3. invariant de `eventId` em false positives por rollback;
   4. TTL/index/rate limit/caching minimo nos pontos mais caros;
   5. E2E dos fluxos novos do Moderation Control Plane;
-  6. clarificar precedencia `moderationStatus > editorialVisibility`.
+  6. clarificar precedencia `moderationStatus > editorialVisibility` (FECHADO em 2026-03-07 no frontend/docs).
 
 ### 4.3 Outros itens adiados para depois do P4 admin
 
