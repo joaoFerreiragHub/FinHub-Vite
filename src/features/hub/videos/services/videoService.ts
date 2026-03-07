@@ -13,6 +13,11 @@ export const videoService = {
     return response.data
   },
 
+  getVideoById: async (id: string): Promise<Video> => {
+    const response = await apiClient.get<Video>(`/videos/id/${id}`)
+    return response.data
+  },
+
   getMyVideos: async (filters?: ContentFilters): Promise<ContentListResponse<Video>> => {
     const response = await apiClient.get<ContentListResponse<Video>>('/videos/me', {
       params: filters,
@@ -35,7 +40,7 @@ export const videoService = {
   },
 
   publishVideo: async (id: string): Promise<Video> => {
-    const response = await apiClient.post<Video>(`/videos/${id}/publish`)
+    const response = await apiClient.patch<Video>(`/videos/${id}/publish`)
     return response.data
   },
 

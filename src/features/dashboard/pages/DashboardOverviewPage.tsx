@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { AlertTriangle, Clock3, Eye, FileText, Star, Users } from 'lucide-react'
+import { AlertTriangle, Clapperboard, Clock3, Eye, FileText, Star, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { articleService } from '@/features/hub/articles/services/articleService'
@@ -347,6 +347,13 @@ export default function DashboardOverviewPage() {
             Criar novo conteudo
           </Link>
           <Link
+            to="/dashboard/criar/video"
+            className="flex items-center gap-2 rounded-lg border border-border/60 px-3 py-2 text-sm hover:bg-muted/40"
+          >
+            <Clapperboard className="h-4 w-4" />
+            Criar video
+          </Link>
+          <Link
             to="/dashboard/conteudo"
             className="flex items-center gap-2 rounded-lg border border-border/60 px-3 py-2 text-sm hover:bg-muted/40"
           >
@@ -363,4 +370,3 @@ export default function DashboardOverviewPage() {
     </div>
   )
 }
-

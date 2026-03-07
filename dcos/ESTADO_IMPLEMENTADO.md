@@ -1188,3 +1188,38 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
 - Validacao tecnica:
   - `npx eslint` (ficheiros alterados do fluxo) -> PASS
   - `npm run typecheck:p1` -> PASS.
+
+## 55) O2-08 fechado - fluxo criar/editar/publicar video no dashboard (2026-03-07)
+- Fluxo editorial de videos entregue no dashboard principal:
+  - `/dashboard/conteudo/videos` para gestao operacional de videos;
+  - `/dashboard/criar/video` para criacao de video;
+  - `/dashboard/conteudo/videos/:id/editar` para edicao de video.
+- Integracao no dashboard existente:
+  - sidebar com entrada dedicada para `Videos`;
+  - rota `/dashboard/conteudo` passa a redirecionar para `/dashboard/conteudo/artigos` (mantendo compatibilidade);
+  - atalhos no overview incluem acao direta para criar video.
+- Entregas funcionais do fluxo:
+  - filtros por estado/ordenacao na gestao de videos;
+  - acao de publicar video em rascunho;
+  - acao de editar e eliminar video;
+  - redirecionamento consistente no form de video apos criar/editar.
+- Ajustes tecnicos associados:
+  - `VideoForm` passou a aceitar `redirectTo` para reutilizacao em fluxos diferentes;
+  - novo hook `useVideoById` e endpoint frontend `getVideoById` para carregar edicao por `id`;
+  - invalidacao de cache reforcada para query `video-by-id`;
+  - publish de video alinhado para `PATCH /api/videos/:id/publish`.
+- Ficheiros alterados:
+  - `src/features/dashboard/pages/VideoManagementPage.tsx`
+  - `src/features/dashboard/pages/CreateVideoPage.tsx`
+  - `src/features/dashboard/pages/EditVideoPage.tsx`
+  - `src/features/dashboard/components/DashboardSidebar.tsx`
+  - `src/features/dashboard/pages/DashboardOverviewPage.tsx`
+  - `src/features/dashboard/pages/CreateContentPage.tsx`
+  - `src/router.tsx`
+  - `src/features/creators/dashboard/videos/components/VideoForm.tsx`
+  - `src/features/creators/dashboard/videos/pages/EditVideo.tsx`
+  - `src/features/hub/videos/hooks/useVideos.ts`
+  - `src/features/hub/videos/services/videoService.ts`
+- Validacao tecnica:
+  - `npx eslint` (ficheiros alterados do fluxo video) -> PASS
+  - `npm run typecheck:p1` -> PASS.

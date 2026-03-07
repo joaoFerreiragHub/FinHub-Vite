@@ -16,6 +16,7 @@ interface VideoFormCreateProps {
   onSubmit: (data: CreateVideoDto) => Promise<void>
   submitText?: string
   showDraftOption?: boolean
+  redirectTo?: string
 }
 
 interface VideoFormEditProps {
@@ -23,6 +24,7 @@ interface VideoFormEditProps {
   onSubmit: (data: UpdateVideoDto) => Promise<void>
   submitText?: string
   showDraftOption?: boolean
+  redirectTo?: string
 }
 
 export type VideoFormProps = VideoFormCreateProps | VideoFormEditProps
@@ -31,6 +33,7 @@ export function VideoForm(props: VideoFormProps) {
   const { video } = props
   const submitText = props.submitText ?? (video ? 'Atualizar' : 'Criar Video')
   const showDraftOption = props.showDraftOption ?? true
+  const redirectTo = props.redirectTo ?? '/creators/dashboard/videos'
   const navigate = useNavigate()
   const [serverError, setServerError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -119,7 +122,7 @@ export function VideoForm(props: VideoFormProps) {
         }
         await props.onSubmit(createPayload)
       }
-      navigate('/creators/dashboard/videos')
+      navigate(redirectTo)
     } catch (error) {
       setServerError(getErrorMessage(error))
     } finally {
@@ -295,7 +298,7 @@ export function VideoForm(props: VideoFormProps) {
           type="button"
           variant="ghost"
           size="lg"
-          onClick={() => navigate('/creators/dashboard/videos')}
+          onClick={() => navigate(redirectTo)}
         >
           Cancelar
         </Button>

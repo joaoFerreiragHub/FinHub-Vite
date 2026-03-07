@@ -1,7 +1,7 @@
 import { useParams, Navigate } from 'react-router-dom'
 import { DashboardLayout } from '@/shared/layouts'
 import { VideoForm } from '../components/VideoForm'
-import { useVideo, useUpdateVideo } from '@/features/hub/videos/hooks/useVideos'
+import { useVideoById, useUpdateVideo } from '@/features/hub/videos/hooks/useVideos'
 import { Card } from '@/components/ui'
 import type { UpdateVideoDto } from '@/features/hub/videos/types'
 
@@ -10,7 +10,7 @@ import type { UpdateVideoDto } from '@/features/hub/videos/types'
  */
 export function EditVideo() {
   const { id } = useParams<{ id: string }>()
-  const { data: video, isLoading, error } = useVideo(id!)
+  const { data: video, isLoading, error } = useVideoById(id ?? '')
   const updateVideo = useUpdateVideo()
 
   const handleSubmit = async (data: UpdateVideoDto) => {

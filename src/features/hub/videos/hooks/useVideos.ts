@@ -18,6 +18,14 @@ export function useVideo(slug: string) {
   })
 }
 
+export function useVideoById(id: string) {
+  return useQuery({
+    queryKey: ['video-by-id', id],
+    queryFn: () => videoService.getVideoById(id),
+    enabled: !!id,
+  })
+}
+
 export function useMyVideos(filters?: ContentFilters) {
   return useQuery({
     queryKey: ['my-videos', filters],
@@ -40,7 +48,9 @@ export function useUpdateVideo() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateVideoDto }) =>
       videoService.updateVideo(id, data),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['video', variables.id] })
+      queryClient.invalidateQueries({ queryKey: ['video-by-id', variables.id] })
       queryClient.invalidateQueries({ queryKey: ['videos'] })
       queryClient.invalidateQueries({ queryKey: ['my-videos'] })
     },
@@ -62,7 +72,9 @@ export function usePublishVideo() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => videoService.publishVideo(id),
-    onSuccess: () => {
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['video', id] })
+      queryClient.invalidateQueries({ queryKey: ['video-by-id', id] })
       queryClient.invalidateQueries({ queryKey: ['videos'] })
       queryClient.invalidateQueries({ queryKey: ['my-videos'] })
     },

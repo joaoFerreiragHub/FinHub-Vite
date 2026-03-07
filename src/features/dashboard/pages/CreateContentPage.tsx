@@ -1,4 +1,5 @@
 import { Card } from '@/components/ui'
+import { Link } from 'react-router-dom'
 import { ArticleForm } from '@/features/creators/dashboard/articles/components/ArticleForm'
 import { useCreateArticle } from '@/features/hub/articles/hooks/useArticles'
 import type { CreateArticleDto } from '@/features/hub/articles/types'
@@ -16,6 +17,13 @@ export default function CreateContentPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Criar artigo</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Publica conhecimento financeiro para a tua audiencia.
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Preferes formato audiovisual?{' '}
+          <Link to="/dashboard/criar/video" className="text-primary underline underline-offset-2">
+            Criar video
+          </Link>
+          .
         </p>
       </header>
 

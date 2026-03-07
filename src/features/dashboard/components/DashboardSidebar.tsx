@@ -1,5 +1,13 @@
 import { Link, useLocation } from 'react-router-dom'
-import { BarChart3, LayoutDashboard, PenSquare, User, Users, FolderKanban } from 'lucide-react'
+import {
+  BarChart3,
+  Clapperboard,
+  FolderKanban,
+  LayoutDashboard,
+  PenSquare,
+  User,
+  Users,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface DashboardSidebarProps {
@@ -9,7 +17,8 @@ interface DashboardSidebarProps {
 
 const links = [
   { path: '/dashboard', label: 'Overview', icon: LayoutDashboard },
-  { path: '/dashboard/conteudo', label: 'Artigos', icon: FolderKanban },
+  { path: '/dashboard/conteudo/artigos', label: 'Artigos', icon: FolderKanban },
+  { path: '/dashboard/conteudo/videos', label: 'Videos', icon: Clapperboard },
   { path: '/dashboard/criar', label: 'Criar artigo', icon: PenSquare },
   { path: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
   { path: '/dashboard/seguidores', label: 'Seguidores', icon: Users },

@@ -84,6 +84,9 @@ import DashboardOverviewPage from '@/features/dashboard/pages/DashboardOverviewP
 import ContentManagementPage from '@/features/dashboard/pages/ContentManagementPage'
 import CreateContentPage from '@/features/dashboard/pages/CreateContentPage'
 import EditArticlePage from '@/features/dashboard/pages/EditArticlePage'
+import VideoManagementPage from '@/features/dashboard/pages/VideoManagementPage'
+import CreateVideoPage from '@/features/dashboard/pages/CreateVideoPage'
+import EditVideoPage from '@/features/dashboard/pages/EditVideoPage'
 import AnalyticsPage from '@/features/dashboard/pages/AnalyticsPage'
 import FollowersPage from '@/features/dashboard/pages/FollowersPage'
 import ProfileEditPage from '@/features/dashboard/pages/ProfileEditPage'
@@ -423,6 +426,10 @@ const router = createBrowserRouter([
       },
       {
         path: 'conteudo',
+        element: <Navigate to="/dashboard/conteudo/artigos" replace />,
+      },
+      {
+        path: 'conteudo/artigos',
         element: <ContentManagementPage />,
       },
       {
@@ -430,8 +437,20 @@ const router = createBrowserRouter([
         element: <EditArticlePage />,
       },
       {
+        path: 'conteudo/videos',
+        element: <VideoManagementPage />,
+      },
+      {
+        path: 'conteudo/videos/:id/editar',
+        element: <EditVideoPage />,
+      },
+      {
         path: 'criar',
         element: <CreateContentPage />,
+      },
+      {
+        path: 'criar/video',
+        element: <CreateVideoPage />,
       },
       {
         path: 'analytics',
