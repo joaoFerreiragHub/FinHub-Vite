@@ -1272,3 +1272,25 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - `npm run typecheck` -> PASS
   - `npm run build` -> PASS
   - `npm run contract:openapi` -> PASS.
+
+## 58) O2-11 fechado - backend Announcements CRUD (2026-03-07)
+- CRUD de `announcements` entregue no backend (`API_finhub`) com schema proprio (nao BaseContent):
+  - model `Announcement` com `title/body`, `type` (`inline|popup`), `scope` (`creator|platform`), `isVisible`, `publishedAt` e `expiresAt`;
+  - service `announcement.service.ts` com list/get/create/update/delete + listagem/stats do creator;
+  - controller `announcement.controller.ts` para handlers publicos/privados;
+  - routes `announcement.routes.ts` registadas no router principal em `/api/announcements`.
+- Endpoints principais adicionados:
+  - `GET /api/announcements`
+  - `GET /api/announcements/id/:id`
+  - `POST /api/announcements`
+  - `PATCH /api/announcements/:id`
+  - `DELETE /api/announcements/:id`
+  - `GET /api/announcements/me` (com alias `/api/announcements/my`)
+  - `GET /api/announcements/stats`
+- Compatibilidade e governanca:
+  - resposta inclui alias `text` e `creatorId` para compatibilidade com tipos/hook frontend existentes;
+  - filtros publicos suportam `creator`, `scope`, `type`, `search` e janela ativa por expiracao.
+- Validacao tecnica no backend:
+  - `npm run typecheck` -> PASS
+  - `npm run build` -> PASS
+  - `npm run contract:openapi` -> PASS.
