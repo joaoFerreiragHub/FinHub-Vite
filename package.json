@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start": "yarn lint && yarn test && yarn ssr:dev",
-    "start:spa": "yarn validate && yarn dev",
-    "start:ssr": "yarn validate && vite",
+    "start": "npm run lint && npm run test && npm run ssr:dev",
+    "start:spa": "npm run validate && npm run dev",
+    "start:ssr": "npm run validate && vite",
     "dev": "vite",
     "ssr:dev": "vite",
     "build": "npm run typecheck:p1 && vite build",
@@ -27,10 +27,11 @@
     "build-storybook": "cross-env DISABLE_SSR_PLUGIN=true storybook build",
     "check:deps": "depcheck",
     "prepare": "husky install",
-    "postinstall": "yarn prepare",
-    "validate": "yarn format:check && yarn lint && yarn test",
+    "postinstall": "npm run prepare",
+    "validate": "npm run format:check && npm run lint && npm run test",
     "typecheck:p1": "npx tsc --noEmit --pretty false -p tsconfig.p1.json",
-    "typecheck:full": "npx tsc --noEmit --pretty false -p tsconfig.app.json"
+    "typecheck:full": "npx tsc --noEmit --pretty false -p tsconfig.app.json",
+    "checking": "npm run typecheck:p1 && npm run lint"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",
