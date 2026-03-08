@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 
-import { Label } from '@/components/ui'
+import { Checkbox, Label } from '@/components/ui'
 import { Button, Input } from '@/components/ui'
 interface RegisterData {
   name: string
@@ -15,6 +15,12 @@ interface RegisterData {
   email: string
   password: string
   confirmPassword: string
+  termsAccepted: boolean
+  privacyAccepted: boolean
+  financialDisclaimerAccepted: boolean
+  cookieAnalytics: boolean
+  cookieMarketing: boolean
+  cookiePreferences: boolean
 }
 
 interface RegisterDialogProps {
@@ -23,6 +29,8 @@ interface RegisterDialogProps {
   onRegister: (data: RegisterData) => Promise<void> | void
 }
 
+type RegisterTextField = 'name' | 'username' | 'email' | 'password' | 'confirmPassword'
+
 export function RegisterDialog({ open, onOpenChange, onRegister }: RegisterDialogProps) {
   const [formData, setFormData] = useState<RegisterData>({
     name: '',
@@ -30,6 +38,12 @@ export function RegisterDialog({ open, onOpenChange, onRegister }: RegisterDialo
     email: '',
     password: '',
     confirmPassword: '',
+    termsAccepted: false,
+    privacyAccepted: false,
+    financialDisclaimerAccepted: false,
+    cookieAnalytics: false,
+    cookieMarketing: false,
+    cookiePreferences: false,
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -60,6 +74,15 @@ export function RegisterDialog({ open, onOpenChange, onRegister }: RegisterDialo
       return
     }
 
+    if (
+      !formData.termsAccepted ||
+      !formData.privacyAccepted ||
+      !formData.financialDisclaimerAccepted
+    ) {
+      setError('Deves aceitar Termos, Privacidade e Aviso Legal para criar conta')
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -74,6 +97,12 @@ export function RegisterDialog({ open, onOpenChange, onRegister }: RegisterDialo
         email: '',
         password: '',
         confirmPassword: '',
+        termsAccepted: false,
+        privacyAccepted: false,
+        financialDisclaimerAccepted: false,
+        cookieAnalytics: false,
+        cookieMarketing: false,
+        cookiePreferences: false,
       })
       onOpenChange(false)
     } catch (err) {
@@ -83,8 +112,12 @@ export function RegisterDialog({ open, onOpenChange, onRegister }: RegisterDialo
     }
   }
 
-  const handleChange = (field: keyof RegisterData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (field: RegisterTextField) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [field]: e.target.value }))
+  }
+
+  const handleCheckedChange = (field: keyof RegisterData) => (checked: boolean) => {
+    setFormData((prev) => ({ ...prev, [field]: checked }))
   }
 
   return (
@@ -170,6 +203,94 @@ export function RegisterDialog({ open, onOpenChange, onRegister }: RegisterDialo
               disabled={isLoading}
               minLength={6}
             />
+          </div>
+
+          <div className="space-y-2 rounded-lg border border-border p-3">
+            <div className="flex items-start gap-2">
+              <Checkbox
+                id="dialog-terms"
+                checked={formData.termsAccepted}
+                onCheckedChange={(checked) =>
+                  handleCheckedChange('termsAccepted')(Boolean(checked))
+                }
+              />
+              <Label htmlFor="dialog-terms" className="text-xs text-muted-foreground">
+                Aceito os{' '}
+                <a href="/termos" className="underline">
+                  Termos de Servico
+                </a>
+              </Label>
+            </div>
+            <div className="flex items-start gap-2">
+              <Checkbox
+                id="dialog-privacy"
+                checked={formData.privacyAccepted}
+                onCheckedChange={(checked) =>
+                  handleCheckedChange('privacyAccepted')(Boolean(checked))
+                }
+              />
+              <Label htmlFor="dialog-privacy" className="text-xs text-muted-foreground">
+                Aceito a{' '}
+                <a href="/privacidade" className="underline">
+                  Politica de Privacidade
+                </a>
+              </Label>
+            </div>
+            <div className="flex items-start gap-2">
+              <Checkbox
+                id="dialog-disclaimer"
+                checked={formData.financialDisclaimerAccepted}
+                onCheckedChange={(checked) =>
+                  handleCheckedChange('financialDisclaimerAccepted')(Boolean(checked))
+                }
+              />
+              <Label htmlFor="dialog-disclaimer" className="text-xs text-muted-foreground">
+                Li e aceito o{' '}
+                <a href="/aviso-legal" className="underline">
+                  Aviso Legal Financeiro
+                </a>
+              </Label>
+            </div>
+          </div>
+
+          <div className="space-y-2 rounded-lg border border-border p-3">
+            <p className="text-xs font-medium text-foreground">Cookies opcionais</p>
+            <div className="flex items-start gap-2">
+              <Checkbox
+                id="dialog-cookie-analytics"
+                checked={formData.cookieAnalytics}
+                onCheckedChange={(checked) =>
+                  handleCheckedChange('cookieAnalytics')(Boolean(checked))
+                }
+              />
+              <Label htmlFor="dialog-cookie-analytics" className="text-xs text-muted-foreground">
+                Analytics
+              </Label>
+            </div>
+            <div className="flex items-start gap-2">
+              <Checkbox
+                id="dialog-cookie-preferences"
+                checked={formData.cookiePreferences}
+                onCheckedChange={(checked) =>
+                  handleCheckedChange('cookiePreferences')(Boolean(checked))
+                }
+              />
+              <Label htmlFor="dialog-cookie-preferences" className="text-xs text-muted-foreground">
+                Preferencias
+              </Label>
+            </div>
+            <div className="flex items-start gap-2">
+              <Checkbox
+                id="dialog-cookie-marketing"
+                checked={formData.cookieMarketing}
+                onCheckedChange={(checked) =>
+                  handleCheckedChange('cookieMarketing')(Boolean(checked))
+                }
+              />
+              <Label htmlFor="dialog-cookie-marketing" className="text-xs text-muted-foreground">
+                Marketing
+              </Label>
+            </div>
           </div>
 
           <div className="flex gap-2 pt-4">

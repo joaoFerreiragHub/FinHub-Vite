@@ -5,24 +5,20 @@ const CAPTCHA_ENABLED = (import.meta.env.VITE_CAPTCHA_PROVIDER ?? 'disabled') !=
 /**
  * Schema de validação para Login
  */
-export const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Email é obrigatório')
-    .email('Email inválido'),
-  password: z
-    .string()
-    .min(1, 'Password é obrigatória')
-    .min(6, 'Password deve ter pelo menos 6 caracteres'),
-  rememberMe: z.boolean().optional(),
-  captchaToken: z.string().optional(),
-}).refine(
-  (data) => !CAPTCHA_ENABLED || Boolean(data.captchaToken?.trim()),
-  {
+export const loginSchema = z
+  .object({
+    email: z.string().min(1, 'Email é obrigatório').email('Email inválido'),
+    password: z
+      .string()
+      .min(1, 'Password é obrigatória')
+      .min(6, 'Password deve ter pelo menos 6 caracteres'),
+    rememberMe: z.boolean().optional(),
+    captchaToken: z.string().optional(),
+  })
+  .refine((data) => !CAPTCHA_ENABLED || Boolean(data.captchaToken?.trim()), {
     message: 'Confirma o CAPTCHA para continuar',
     path: ['captchaToken'],
-  }
-)
+  })
 
 export type LoginFormData = z.infer<typeof loginSchema>
 
@@ -42,10 +38,7 @@ export const registerSchema = z
       .max(50, 'Apelido não pode ter mais de 50 caracteres')
       .optional()
       .or(z.literal('')),
-    email: z
-      .string()
-      .min(1, 'Email é obrigatório')
-      .email('Email inválido'),
+    email: z.string().min(1, 'Email é obrigatório').email('Email inválido'),
     username: z
       .string()
       .min(1, 'Username é obrigatório')
@@ -59,10 +52,20 @@ export const registerSchema = z
       .regex(/[A-Z]/, 'Password deve conter pelo menos uma letra maiúscula')
       .regex(/[a-z]/, 'Password deve conter pelo menos uma letra minúscula')
       .regex(/[0-9]/, 'Password deve conter pelo menos um número'),
-    confirmPassword: z
-      .string()
-      .min(1, 'Confirmação de password é obrigatória'),
+    confirmPassword: z.string().min(1, 'Confirmação de password é obrigatória'),
     captchaToken: z.string().optional(),
+    termsAccepted: z
+      .boolean()
+      .refine((value) => value === true, 'Deves aceitar os Termos de Servico'),
+    privacyAccepted: z
+      .boolean()
+      .refine((value) => value === true, 'Deves aceitar a Politica de Privacidade'),
+    financialDisclaimerAccepted: z
+      .boolean()
+      .refine((value) => value === true, 'Deves aceitar o Aviso Legal Financeiro'),
+    cookieAnalytics: z.boolean().optional(),
+    cookieMarketing: z.boolean().optional(),
+    cookiePreferences: z.boolean().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'As passwords não coincidem',
@@ -79,10 +82,7 @@ export type RegisterFormData = z.infer<typeof registerSchema>
  * Schema de validação para Forgot Password
  */
 export const forgotPasswordSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Email é obrigatório')
-    .email('Email inválido'),
+  email: z.string().min(1, 'Email é obrigatório').email('Email inválido'),
 })
 
 export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>
@@ -99,9 +99,7 @@ export const resetPasswordSchema = z
       .regex(/[A-Z]/, 'Password deve conter pelo menos uma letra maiúscula')
       .regex(/[a-z]/, 'Password deve conter pelo menos uma letra minúscula')
       .regex(/[0-9]/, 'Password deve conter pelo menos um número'),
-    confirmPassword: z
-      .string()
-      .min(1, 'Confirmação de password é obrigatória'),
+    confirmPassword: z.string().min(1, 'Confirmação de password é obrigatória'),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'As passwords não coincidem',

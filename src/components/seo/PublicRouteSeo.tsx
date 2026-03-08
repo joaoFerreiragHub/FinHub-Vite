@@ -26,8 +26,7 @@ const resolveSeoMeta = (pathname: string): SeoMeta => {
   if (pathname === '/explorar/tudo') {
     return {
       title: withBrand('Explorar Conteudo'),
-      description:
-        'Descobre artigos, videos, cursos, eventos, podcasts e livros num feed unico.',
+      description: 'Descobre artigos, videos, cursos, eventos, podcasts e livros num feed unico.',
     }
   }
 
@@ -78,8 +77,7 @@ const resolveSeoMeta = (pathname: string): SeoMeta => {
   if (pathname.startsWith('/recursos')) {
     return {
       title: withBrand('Recursos'),
-      description:
-        'Compara corretoras, plataformas e outros recursos com informacao centralizada.',
+      description: 'Compara corretoras, plataformas e outros recursos com informacao centralizada.',
     }
   }
 
@@ -110,6 +108,21 @@ const resolveSeoMeta = (pathname: string): SeoMeta => {
     return {
       title: withBrand('Politica de Privacidade'),
       description: 'Consulta a politica de privacidade e tratamento de dados da FinHub.',
+    }
+  }
+
+  if (pathname === '/cookies') {
+    return {
+      title: withBrand('Politica de Cookies'),
+      description: 'Consulta a politica de cookies e a gestao de consentimentos na FinHub.',
+    }
+  }
+
+  if (pathname === '/aviso-legal') {
+    return {
+      title: withBrand('Aviso Legal Financeiro'),
+      description:
+        'Conhece o aviso legal financeiro da FinHub e os limites de responsabilidade do conteudo.',
     }
   }
 
@@ -167,4 +180,3 @@ export function PublicRouteSeo() {
     </Helmet>
   )
 }
-

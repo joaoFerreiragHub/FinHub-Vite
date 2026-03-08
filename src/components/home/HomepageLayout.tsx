@@ -13,8 +13,12 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui'
 import { ToggleTheme } from '@/components/ui'
+import { CookieConsentBanner } from '@/features/auth/components/CookieConsentBanner'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { LoginDialog, RegisterDialog } from '@/features/auth/components/forms'
+import { DEFAULT_COOKIE_CONSENT_VERSION } from '@/features/auth/services/cookieConsentStorage'
+
+const legalVersion = import.meta.env.VITE_LEGAL_VERSION || DEFAULT_COOKIE_CONSENT_VERSION
 
 type NavLink = {
   label: string
@@ -82,6 +86,12 @@ export function HomepageLayout({ children }: HomepageLayoutProps) {
       email: string
       password: string
       confirmPassword: string
+      termsAccepted: boolean
+      privacyAccepted: boolean
+      financialDisclaimerAccepted: boolean
+      cookieAnalytics: boolean
+      cookieMarketing: boolean
+      cookiePreferences: boolean
     }) => {
       await register({
         name: data.name.trim(),
@@ -89,6 +99,18 @@ export function HomepageLayout({ children }: HomepageLayoutProps) {
         email: data.email.trim(),
         password: data.password,
         confirmPassword: data.confirmPassword,
+        legalAcceptance: {
+          termsAccepted: data.termsAccepted,
+          privacyAccepted: data.privacyAccepted,
+          financialDisclaimerAccepted: data.financialDisclaimerAccepted,
+          version: legalVersion,
+        },
+        cookieConsent: {
+          analytics: data.cookieAnalytics,
+          marketing: data.cookieMarketing,
+          preferences: data.cookiePreferences,
+          version: legalVersion,
+        },
       })
       setRegisterOpen(false)
     },
@@ -343,6 +365,18 @@ export function HomepageLayout({ children }: HomepageLayoutProps) {
                 >
                   Privacidade
                 </a>
+                <a
+                  href="/cookies"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Cookies
+                </a>
+                <a
+                  href="/aviso-legal"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Aviso legal
+                </a>
               </div>
             </div>
           </div>
@@ -353,6 +387,8 @@ export function HomepageLayout({ children }: HomepageLayoutProps) {
           </div>
         </div>
       </footer>
+
+      <CookieConsentBanner />
 
       {/* Dialogs */}
       <LoginDialog open={loginOpen} onOpenChange={setLoginOpen} onLogin={handleLogin} />

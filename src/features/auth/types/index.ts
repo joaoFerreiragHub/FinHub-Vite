@@ -29,6 +29,27 @@ export interface UserCookieConsent {
   version?: string | null
 }
 
+export interface UserLegalAcceptance {
+  termsAcceptedAt?: string | null
+  privacyAcceptedAt?: string | null
+  financialDisclaimerAcceptedAt?: string | null
+  version?: string | null
+}
+
+export interface RegisterLegalAcceptanceInput {
+  termsAccepted: boolean
+  privacyAccepted: boolean
+  financialDisclaimerAccepted: boolean
+  version?: string
+}
+
+export interface RegisterCookieConsentInput {
+  analytics?: boolean
+  marketing?: boolean
+  preferences?: boolean
+  version?: string
+}
+
 /**
  * User interface
  */
@@ -45,6 +66,7 @@ export interface User {
   adminReadOnly?: boolean
   adminScopes?: string[]
   assistedSession?: AssistedSessionContext
+  legalAcceptance?: UserLegalAcceptance
   cookieConsent?: UserCookieConsent
   isEmailVerified: boolean
   favoriteTopics?: string[]
@@ -85,6 +107,8 @@ export interface RegisterData {
   password: string
   confirmPassword: string
   captchaToken?: string
+  legalAcceptance: RegisterLegalAcceptanceInput
+  cookieConsent?: RegisterCookieConsentInput
 }
 
 /**

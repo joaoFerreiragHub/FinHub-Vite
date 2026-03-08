@@ -109,6 +109,8 @@ import ContactPage from '@/pages/ContactPage'
 import FAQPage from '@/pages/FAQPage'
 import TermsPage from '@/pages/TermsPage'
 import PrivacyPage from '@/pages/PrivacyPage'
+import CookiesPage from '@/pages/CookiesPage'
+import FinancialDisclaimerPage from '@/pages/FinancialDisclaimerPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 
 /**
@@ -389,6 +391,14 @@ const router = createBrowserRouter([
       {
         path: 'privacidade',
         element: <PrivacyPage />,
+      },
+      {
+        path: 'cookies',
+        element: <CookiesPage />,
+      },
+      {
+        path: 'aviso-legal',
+        element: <FinancialDisclaimerPage />,
       },
     ],
   },

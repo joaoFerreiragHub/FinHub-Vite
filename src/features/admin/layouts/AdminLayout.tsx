@@ -5,6 +5,7 @@ import AdminSidebar from '../components/AdminSidebar'
 import AdminCommandPalette from '../components/AdminCommandPalette'
 import Header from '@/components/layout/Header'
 import AssistedSessionBanner from '../components/AssistedSessionBanner'
+import { CookieConsentBanner } from '@/features/auth/components/CookieConsentBanner'
 import { cn } from '@/lib/utils'
 import { PageTracker } from '@/shared/providers'
 
@@ -29,6 +30,7 @@ export default function AdminLayout() {
         containerClassName={ultrawideContainerClass}
       />
       <AssistedSessionBanner containerClassName={ultrawideContainerClass} />
+      <CookieConsentBanner />
 
       <div className={cn('mx-auto flex w-full', ultrawideContainerClass)}>
         <AdminSidebar className="sticky top-16 hidden h-[calc(100vh-4rem)] lg:block" />
