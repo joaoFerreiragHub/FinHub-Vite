@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui'
 import { Skeleton } from '@/components/ui'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
@@ -79,6 +79,7 @@ export function UserProfilePage({ username }: UserProfilePageProps) {
 
 function ActivityTab() {
   const { data, isLoading } = useActivityFeed(false, 10)
+  const items = useMemo(() => data?.pages.flatMap((page) => page.items) ?? [], [data])
 
   if (isLoading) {
     return (
@@ -90,7 +91,7 @@ function ActivityTab() {
     )
   }
 
-  if (!data || data.length === 0) {
+  if (items.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-border p-8 text-center">
         <p className="text-muted-foreground">Sem atividade recente</p>
@@ -100,7 +101,7 @@ function ActivityTab() {
 
   return (
     <div className="space-y-3">
-      {data.map((item) => (
+      {items.map((item) => (
         <ActivityFeedItem key={item.id} item={item} />
       ))}
     </div>
