@@ -1,5 +1,6 @@
 import { apiClient } from '@/lib/api/client'
-import { ContentType } from '@/features/hub/types'
+import { UserRole } from '@/features/auth/types'
+import { ContentCategory, ContentType, PublishStatus } from '@/features/hub/types'
 import {
   NotificationType,
   type SearchFilterType,
@@ -525,6 +526,41 @@ const mapCreatorSubscriptionsResponse = (
   }
 }
 
+const mapBackendCategoryToHubCategory = (
+  rawCategory?: string,
+): ContentCategory => {
+  switch (rawCategory) {
+    case 'crypto':
+      return ContentCategory.CRYPTO
+    case 'finance':
+    case 'personal-finance':
+      return ContentCategory.PERSONAL_FINANCE
+    case 'investing':
+    case 'trading':
+    case 'analysis':
+      return ContentCategory.STOCKS
+    case 'economics':
+    case 'business':
+    case 'education':
+      return ContentCategory.BASICS
+    case 'technology':
+      return ContentCategory.TRENDS
+    case 'news':
+      return ContentCategory.NEWS
+    default:
+      return ContentCategory.NEWS
+  }
+}
+
+const mapBackendRequiredRoleToUserRole = (
+  rawRole?: BackendFeedContent['requiredRole'],
+): UserRole => {
+  if (rawRole === 'premium') return UserRole.PREMIUM
+  if (rawRole === 'creator') return UserRole.CREATOR
+  if (rawRole === 'admin') return UserRole.ADMIN
+  return UserRole.FREE
+}
+
 const mapFeedItem = (item: BackendFeedItem): ActivityFeedItem | null => {
   if (!item.content) return null
 
@@ -547,7 +583,7 @@ const mapFeedItem = (item: BackendFeedItem): ActivityFeedItem | null => {
       coverImage: content.coverImage ?? undefined,
       creator: content.creatorId ?? resolveId(content.creator) ?? '',
       creatorId: content.creatorId ?? resolveId(content.creator) ?? '',
-      category: (content.category ?? 'news') as any,
+      category: mapBackendCategoryToHubCategory(content.category),
       tags: Array.isArray(content.tags) ? content.tags : [],
       viewCount: Number(content.viewCount ?? 0),
       likeCount: Number(content.likeCount ?? 0),
@@ -558,10 +594,10 @@ const mapFeedItem = (item: BackendFeedItem): ActivityFeedItem | null => {
       reviewCount: Number(content.reviewCount ?? content.ratingCount ?? 0),
       commentCount: Number(content.commentCount ?? 0),
       commentsEnabled: Boolean(content.commentsEnabled ?? true),
-      requiredRole: (content.requiredRole ?? 'free') as any,
+      requiredRole: mapBackendRequiredRoleToUserRole(content.requiredRole),
       isPremium: Boolean(content.isPremium),
       isFeatured: Boolean(content.isFeatured),
-      status: (content.status ?? 'published') as any,
+      status: PublishStatus.PUBLISHED,
       isPublished: Boolean(content.isPublished ?? true),
       publishedAt: content.publishedAt,
       createdAt: content.createdAt ?? item.createdAt ?? new Date().toISOString(),
