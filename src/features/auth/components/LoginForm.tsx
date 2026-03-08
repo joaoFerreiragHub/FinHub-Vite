@@ -7,6 +7,7 @@ import { loginSchema, type LoginFormData } from '../schemas/authSchemas'
 import { Button, Input, Label } from '@/components/ui'
 import { getErrorMessage } from '@/lib/api/client'
 import { authService } from '../services/authService'
+import { CaptchaField } from './CaptchaField'
 
 export function LoginForm() {
   const navigate = useNavigate()
@@ -19,6 +20,8 @@ export function LoginForm() {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -26,6 +29,7 @@ export function LoginForm() {
       email: '',
       password: '',
       rememberMe: false,
+      captchaToken: '',
     },
   })
 
@@ -68,6 +72,15 @@ export function LoginForm() {
           <p className="text-sm text-destructive">{errors.password.message}</p>
         )}
       </div>
+
+      <input type="hidden" {...register('captchaToken')} />
+      <CaptchaField
+        value={watch('captchaToken')}
+        error={errors.captchaToken?.message}
+        onChange={(token) =>
+          setValue('captchaToken', token, { shouldDirty: true, shouldValidate: true })
+        }
+      />
 
       <div className="flex items-center justify-between">
         <label className="flex items-center gap-2 text-sm">

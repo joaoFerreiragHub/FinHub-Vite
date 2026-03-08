@@ -61,6 +61,7 @@ export interface LoginCredentials {
   email: string
   password: string
   rememberMe?: boolean
+  captchaToken?: string
 }
 
 /**
@@ -73,6 +74,7 @@ export interface RegisterData {
   username: string
   password: string
   confirmPassword: string
+  captchaToken?: string
 }
 
 /**
