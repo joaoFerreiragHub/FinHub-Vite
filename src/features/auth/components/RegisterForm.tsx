@@ -4,9 +4,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/useAuthStore'
 import { registerSchema, type RegisterFormData } from '../schemas/authSchemas'
-import { Button, Input, Label } from '@/components/ui'
+import { Button, Checkbox, Input, Label } from '@/components/ui'
 import { getErrorMessage } from '@/lib/api/client'
 import { CaptchaField } from './CaptchaField'
+import { DEFAULT_COOKIE_CONSENT_VERSION } from '@/features/auth/services/cookieConsentStorage'
+
+const legalVersion = import.meta.env.VITE_LEGAL_VERSION || DEFAULT_COOKIE_CONSENT_VERSION
 
 export function RegisterForm() {
   const navigate = useNavigate()
@@ -29,6 +32,12 @@ export function RegisterForm() {
       password: '',
       confirmPassword: '',
       captchaToken: '',
+      termsAccepted: false,
+      privacyAccepted: false,
+      financialDisclaimerAccepted: false,
+      cookieAnalytics: false,
+      cookieMarketing: false,
+      cookiePreferences: false,
     },
   })
 
@@ -36,7 +45,27 @@ export function RegisterForm() {
     setServerError(null)
 
     try {
-      await registerAction(data)
+      await registerAction({
+        name: data.name,
+        lastName: data.lastName,
+        email: data.email,
+        username: data.username,
+        password: data.password,
+        confirmPassword: data.confirmPassword,
+        captchaToken: data.captchaToken,
+        legalAcceptance: {
+          termsAccepted: data.termsAccepted,
+          privacyAccepted: data.privacyAccepted,
+          financialDisclaimerAccepted: data.financialDisclaimerAccepted,
+          version: legalVersion,
+        },
+        cookieConsent: {
+          analytics: Boolean(data.cookieAnalytics),
+          marketing: Boolean(data.cookieMarketing),
+          preferences: Boolean(data.cookiePreferences),
+          version: legalVersion,
+        },
+      })
       navigate('/dashboard', { replace: true })
     } catch (error) {
       setServerError(getErrorMessage(error))
@@ -117,16 +146,124 @@ export function RegisterForm() {
         }
       />
 
-      <div className="text-xs text-muted-foreground">
-        Ao criar uma conta, voce concorda com os nossos{' '}
-        <Link to="/termos" className="text-primary hover:underline">
-          Termos de Servico
-        </Link>{' '}
-        e{' '}
-        <Link to="/privacidade" className="text-primary hover:underline">
-          Politica de Privacidade
-        </Link>
-        .
+      <div className="space-y-3 rounded-lg border border-border p-3">
+        <div className="flex items-start gap-2">
+          <Checkbox
+            id="termsAccepted"
+            checked={watch('termsAccepted')}
+            onCheckedChange={(checked) =>
+              setValue('termsAccepted', Boolean(checked), {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
+            }
+          />
+          <Label htmlFor="termsAccepted" className="text-xs leading-relaxed text-muted-foreground">
+            Aceito os{' '}
+            <Link to="/termos" className="font-medium text-primary hover:underline">
+              Termos de Servico
+            </Link>
+            .
+          </Label>
+        </div>
+        {errors.termsAccepted?.message ? (
+          <p className="text-xs text-destructive">{errors.termsAccepted.message}</p>
+        ) : null}
+
+        <div className="flex items-start gap-2">
+          <Checkbox
+            id="privacyAccepted"
+            checked={watch('privacyAccepted')}
+            onCheckedChange={(checked) =>
+              setValue('privacyAccepted', Boolean(checked), {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
+            }
+          />
+          <Label
+            htmlFor="privacyAccepted"
+            className="text-xs leading-relaxed text-muted-foreground"
+          >
+            Aceito a{' '}
+            <Link to="/privacidade" className="font-medium text-primary hover:underline">
+              Politica de Privacidade
+            </Link>
+            .
+          </Label>
+        </div>
+        {errors.privacyAccepted?.message ? (
+          <p className="text-xs text-destructive">{errors.privacyAccepted.message}</p>
+        ) : null}
+
+        <div className="flex items-start gap-2">
+          <Checkbox
+            id="financialDisclaimerAccepted"
+            checked={watch('financialDisclaimerAccepted')}
+            onCheckedChange={(checked) =>
+              setValue('financialDisclaimerAccepted', Boolean(checked), {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
+            }
+          />
+          <Label
+            htmlFor="financialDisclaimerAccepted"
+            className="text-xs leading-relaxed text-muted-foreground"
+          >
+            Li e aceito o{' '}
+            <Link to="/aviso-legal" className="font-medium text-primary hover:underline">
+              Aviso Legal Financeiro
+            </Link>
+            .
+          </Label>
+        </div>
+        {errors.financialDisclaimerAccepted?.message ? (
+          <p className="text-xs text-destructive">{errors.financialDisclaimerAccepted.message}</p>
+        ) : null}
+      </div>
+
+      <div className="space-y-2 rounded-lg border border-border p-3">
+        <p className="text-xs font-medium text-foreground">Cookies opcionais</p>
+        <div className="flex items-start gap-2">
+          <Checkbox
+            id="cookieAnalytics"
+            checked={watch('cookieAnalytics')}
+            onCheckedChange={(checked) =>
+              setValue('cookieAnalytics', Boolean(checked), { shouldDirty: true })
+            }
+          />
+          <Label htmlFor="cookieAnalytics" className="text-xs text-muted-foreground">
+            Analytics
+          </Label>
+        </div>
+        <div className="flex items-start gap-2">
+          <Checkbox
+            id="cookiePreferences"
+            checked={watch('cookiePreferences')}
+            onCheckedChange={(checked) =>
+              setValue('cookiePreferences', Boolean(checked), { shouldDirty: true })
+            }
+          />
+          <Label htmlFor="cookiePreferences" className="text-xs text-muted-foreground">
+            Preferencias
+          </Label>
+        </div>
+        <div className="flex items-start gap-2">
+          <Checkbox
+            id="cookieMarketing"
+            checked={watch('cookieMarketing')}
+            onCheckedChange={(checked) =>
+              setValue('cookieMarketing', Boolean(checked), { shouldDirty: true })
+            }
+          />
+          <Label htmlFor="cookieMarketing" className="text-xs text-muted-foreground">
+            Marketing
+          </Label>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Podes alterar estas opcoes mais tarde no banner de consentimento.
+        </p>
       </div>
 
       <Button type="submit" variant="default" size="lg" className="w-full" isLoading={isSubmitting}>

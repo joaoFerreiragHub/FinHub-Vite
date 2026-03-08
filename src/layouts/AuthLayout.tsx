@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom'
 import Header from '@/components/layout/Header'
+import { CookieConsentBanner } from '@/features/auth/components/CookieConsentBanner'
 import { PageTracker } from '@/shared/providers'
 
 /**
@@ -19,6 +20,7 @@ export default function AuthLayout() {
       />
 
       <Header />
+      <CookieConsentBanner />
 
       <main className="relative z-0 flex flex-1 items-center justify-center px-4 py-10 sm:px-6">
         <div className="w-full max-w-md rounded-2xl border border-border bg-card/95 p-6 shadow-lg sm:p-8">

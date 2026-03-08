@@ -1,7 +1,26 @@
 import { apiClient } from '@/lib/api/client'
-import { LoginCredentials, RegisterData, AuthResponse, RefreshResponse, MeResponse } from '../types'
+import {
+  LoginCredentials,
+  RegisterData,
+  AuthResponse,
+  RefreshResponse,
+  MeResponse,
+  UserCookieConsent,
+} from '../types'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+
+interface UpdateCookieConsentRequest {
+  analytics?: boolean
+  marketing?: boolean
+  preferences?: boolean
+  version?: string
+}
+
+interface UpdateCookieConsentResponse {
+  message: string
+  cookieConsent: UserCookieConsent
+}
 
 /**
  * Authentication Service
@@ -59,6 +78,19 @@ export const authService = {
    */
   resetPassword: async (token: string, newPassword: string): Promise<void> => {
     await apiClient.post('/auth/reset-password', { token, newPassword })
+  },
+
+  /**
+   * Atualizar consentimento de cookies do utilizador autenticado.
+   */
+  updateCookieConsent: async (
+    payload: UpdateCookieConsentRequest,
+  ): Promise<UpdateCookieConsentResponse> => {
+    const response = await apiClient.patch<UpdateCookieConsentResponse>(
+      '/auth/cookie-consent',
+      payload,
+    )
+    return response.data
   },
 
   /**

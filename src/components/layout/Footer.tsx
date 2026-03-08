@@ -138,6 +138,30 @@ export default function Footer() {
                   Termos
                 </Link>
               </li>
+              <li>
+                <Link
+                  to="/privacidade"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Privacidade
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/cookies"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Cookies
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/aviso-legal"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Aviso legal
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
