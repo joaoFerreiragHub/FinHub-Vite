@@ -11,6 +11,7 @@ import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestCo
  */
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const SHOULD_LOG_API_DEBUG = import.meta.env.DEV && import.meta.env.VITE_DEBUG_API === 'true'
 const DEV_MOCK_REFRESH_UNSUPPORTED_ERROR = 'Dev mock token does not support refresh'
 const DEV_MOCK_AUTH_401_MESSAGE =
   'Sessao DEV mock sem refresh automatico. Inicia sessao real para validar rotas admin protegidas.'
@@ -105,7 +106,7 @@ apiClient.interceptors.request.use(
     }
 
     // Log em desenvolvimento
-    if (import.meta.env.DEV) {
+    if (SHOULD_LOG_API_DEBUG) {
       console.log(`🌐 API Request: ${config.method?.toUpperCase()} ${config.url}`, {
         data: config.data,
         params: config.params,
@@ -126,7 +127,7 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => {
     // Log em desenvolvimento
-    if (import.meta.env.DEV) {
+    if (SHOULD_LOG_API_DEBUG) {
       console.log(
         `✅ API Response: ${response.config.method?.toUpperCase()} ${response.config.url}`,
         {
@@ -142,7 +143,7 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
 
     // Log em desenvolvimento
-    if (import.meta.env.DEV) {
+    if (SHOULD_LOG_API_DEBUG) {
       console.error(`❌ API Error: ${error.config?.method?.toUpperCase()} ${error.config?.url}`, {
         status: error.response?.status,
         message: error.message,

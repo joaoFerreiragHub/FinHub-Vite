@@ -29,7 +29,8 @@
     "prepare": "husky install",
     "postinstall": "yarn prepare",
     "validate": "yarn format:check && yarn lint && yarn test",
-    "typecheck:p1": "npx tsc --noEmit --pretty false -p tsconfig.p1.json"
+    "typecheck:p1": "npx tsc --noEmit --pretty false -p tsconfig.p1.json",
+    "typecheck:full": "npx tsc --noEmit --pretty false -p tsconfig.app.json"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",
