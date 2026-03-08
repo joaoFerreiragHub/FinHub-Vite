@@ -10,6 +10,25 @@ export enum UserRole {
   ADMIN = 'admin', // Nível 4 - Administrador
 }
 
+export type UserAccountStatus = 'active' | 'suspended' | 'banned'
+
+export interface AssistedSessionContext {
+  sessionId: string
+  adminUserId: string
+  targetUserId: string
+  scope: 'read_only'
+  expiresAt: string
+}
+
+export interface UserCookieConsent {
+  essential: boolean
+  analytics: boolean
+  marketing: boolean
+  preferences: boolean
+  consentedAt?: string | null
+  version?: string | null
+}
+
 /**
  * User interface
  */
@@ -22,6 +41,11 @@ export interface User {
   avatar?: string
   bio?: string
   role: UserRole
+  accountStatus?: UserAccountStatus
+  adminReadOnly?: boolean
+  adminScopes?: string[]
+  assistedSession?: AssistedSessionContext
+  cookieConsent?: UserCookieConsent
   isEmailVerified: boolean
   favoriteTopics?: string[]
   createdAt: string

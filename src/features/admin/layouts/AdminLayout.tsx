@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom'
 import AdminSidebar from '../components/AdminSidebar'
 import Header from '@/components/layout/Header'
 import { cn } from '@/lib/utils'
+import { PageTracker } from '@/shared/providers'
 
 /**
  * Layout responsivo do painel de administracao.
@@ -18,6 +19,7 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-muted/20 text-foreground">
+      <PageTracker />
       <Header
         onSidebarToggle={() => setMobileOpen((prev) => !prev)}
         sidebarToggleLabel="Abrir menu de administracao"

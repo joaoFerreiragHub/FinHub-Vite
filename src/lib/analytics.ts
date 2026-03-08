@@ -1,4 +1,5 @@
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import { captureEvent, identifyUser } from './analyticsProviders'
 
 export type EventName =
   | 'page_view'
@@ -22,7 +23,19 @@ export function trackEvent({ name, properties }: TrackEventProps) {
     userId: user?.id || 'anonymous',
     userRole: user?.role || 'visitor',
   }
-  console.log(`[Analytics] ${name}`, { ...baseProps, ...properties })
+
+  captureEvent(name, { ...baseProps, ...properties })
+}
+
+export function syncAnalyticsUserIdentity() {
+  const { user } = useAuthStore.getState()
+  if (!user?.id) return
+
+  identifyUser(user.id, {
+    role: user.role,
+    email: user.email,
+    username: user.username,
+  })
 }
 
 export function trackPageView(pathname: string) {
