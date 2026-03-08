@@ -42,6 +42,10 @@ Escopo: pasta `dcos`
   - bloco "Admin Editorial CMS" formalizado para P4 como extensao natural do P2.
   - objetivo: permitir ao admin operar seed/curadoria de conteudo e diretorios enquanto creators externos aderem.
   - referencia tecnica: `dcos/P4_ADMIN_EDITORIAL_CMS.md`.
+- Evolucao estrategica de negocio (2026-03-08):
+  - novo P5 formalizado para analytics de negocio, sponsorship readiness e sustentabilidade.
+  - foco em dados de aquisicao, retencao, economia de conteudo/creator, monetizacao e BI executivo.
+  - referencia tecnica: `dcos/P5_ANALYTICS_NEGOCIO_PATROCINIOS.md`.
 - Itens extra foram incorporados ao backlog de P2 (tickets internos, feature flags, compliance/log retention, alertas, modo read-only admin junior e bulk actions protegidas).
 - Livros/ferramentas/brokers-websites foram reclassificados para Prioridade 4 apos o novo replaneamento de 2026-02-21.
 - Arranque tecnico de P2.0 iniciado no backend:
@@ -144,6 +148,7 @@ Escopo: pasta `dcos`
 - Plano Admin CMS (P4): `dcos/P4_ADMIN_EDITORIAL_CMS.md`
 - Plano Moderation Control Plane (frontend): `dcos/P4_MODERATION_CONTROL_PLANE.md`
 - Plano Moderation Control Plane (backend): `API_finhub/dcos/P4_MODERATION_CONTROL_PLANE.md`
+- Plano P5 analytics de negocio/patrocinios: `dcos/P5_ANALYTICS_NEGOCIO_PATROCINIOS.md`
 
 ## Pontos remanescentes (nao bloqueantes para operacao atual)
 - Warnings de build em mocks legados e avisos de deprecacao de plugin.
@@ -153,4 +158,5 @@ Escopo: pasta `dcos`
   1. fechar P3 (Analise Rapida) com gate tecnico completo.
   2. fechar o hardening do P4 Moderation Control Plane (docs, runbook, E2E e robustez operacional).
   3. continuar P4 Admin CMS com a Fase E de E2E/hardening editorial.
+  4. arrancar P5.0 (instrumentacao e taxonomia de eventos) em paralelo controlado.
 

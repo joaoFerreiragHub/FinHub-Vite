@@ -398,6 +398,34 @@ Estado atual do P3: EM CURSO (arranque tecnico ja iniciado; falta fechar cobertu
 7. Paginas dinamicas por topico.
 8. Regular user dashboard e about completo.
 
+## Prioridade 5 - Estrategico (P5 analytics de negocio e sponsorship)
+
+Objetivo oficial do P5: transformar dados de utilizacao e operacao em vantagem competitiva de negocio, patrocinio e sustentabilidade.
+
+Documento tecnico de referencia:
+
+- `dcos/P5_ANALYTICS_NEGOCIO_PATROCINIOS.md`
+
+Estado atual: PLANEADO (nao bloqueante para fecho imediato de P4 funcional).
+
+Blocos previstos:
+
+1. P5.0 Fundacao de instrumentacao (taxonomia unica, schema de eventos e tracking unificado).
+2. P5.1 Product analytics core (funnel onboarding, ativacao e retencao por cohort).
+3. P5.2 Economia de conteudo/creators/social (consume -> engage -> follow -> return).
+4. P5.3 Sponsorship readiness (audiencia, brand safety, inventario patrocinavel).
+5. P5.4 Monetizacao e unit economics (CAC/LTV, margem por linha, receita por ativo).
+6. P5.5 BI executivo e alertas operacionais/negocio.
+
+Facetas criticas a consolidar (competitividade produto + negocio):
+
+1. aquisicao/ativacao e qualidade de onboarding;
+2. retencao/cohorts e engagement util (nao vanity);
+3. economia de conteudo e performance de creators;
+4. inventario e prova de valor para patrocinadores;
+5. unit economics e sustentabilidade financeira;
+6. governanca de dados, privacidade e confianca operacional.
+
 ## Pendencias tecnicas observadas em checklists
 1. Sem bloqueadores tecnicos pre-P1 ativos neste momento.
 2. Validacao operacional final de `npm run start` deve ser repetida no ambiente alvo com Mongo disponivel (o comando e long-running).
@@ -422,4 +450,5 @@ Estado atual do P3: EM CURSO (arranque tecnico ja iniciado; falta fechar cobertu
 2. Fechar o hardening do P4 Moderation Control Plane (docs, runbook, robustez operacional e E2E).
 3. Fechar a Fase E do P4 Admin Editorial CMS (E2E/hardening editorial).
 4. So depois mover para os restantes itens de P4 e backlog adiado.
+5. Iniciar P5 de forma incremental sem comprometer throughput funcional (P5.0 -> P5.1 -> P5.3).
 
