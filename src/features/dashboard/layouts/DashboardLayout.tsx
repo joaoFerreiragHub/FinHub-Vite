@@ -5,6 +5,7 @@ import DashboardSidebar from '../components/DashboardSidebar'
 import Header from '@/components/layout/Header'
 import AssistedSessionBanner from '@/features/admin/components/AssistedSessionBanner'
 import { cn } from '@/lib/utils'
+import { PageTracker } from '@/shared/providers'
 
 /**
  * Layout responsivo do dashboard de criador.
@@ -19,6 +20,7 @@ export default function DashboardLayout() {
 
   return (
     <div className="min-h-screen bg-muted/20 text-foreground">
+      <PageTracker />
       <Header
         onSidebarToggle={() => setMobileOpen((prev) => !prev)}
         sidebarToggleLabel="Abrir menu do dashboard"

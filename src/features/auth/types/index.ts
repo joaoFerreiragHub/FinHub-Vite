@@ -20,6 +20,15 @@ export interface AssistedSessionContext {
   expiresAt: string
 }
 
+export interface UserCookieConsent {
+  essential: boolean
+  analytics: boolean
+  marketing: boolean
+  preferences: boolean
+  consentedAt?: string | null
+  version?: string | null
+}
+
 /**
  * User interface
  */
@@ -36,6 +45,7 @@ export interface User {
   adminReadOnly?: boolean
   adminScopes?: string[]
   assistedSession?: AssistedSessionContext
+  cookieConsent?: UserCookieConsent
   isEmailVerified: boolean
   favoriteTopics?: string[]
   createdAt: string

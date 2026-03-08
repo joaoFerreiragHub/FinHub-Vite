@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom'
 import Header from '@/components/layout/Header'
+import { PageTracker } from '@/shared/providers'
 
 /**
  * Layout para autenticacao com visual alinhado ao restante produto.
@@ -7,6 +8,7 @@ import Header from '@/components/layout/Header'
 export default function AuthLayout() {
   return (
     <div className="relative flex min-h-screen flex-col bg-background text-foreground">
+      <PageTracker />
       <div
         aria-hidden="true"
         className="pointer-events-none absolute left-0 top-0 h-64 w-64 -translate-x-1/3 -translate-y-1/3 rounded-full bg-primary/15 blur-3xl"
