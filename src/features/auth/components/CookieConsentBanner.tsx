@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useInRouterContext } from 'react-router-dom'
 import { Button, Label, Switch } from '@/components/ui'
 import { getErrorMessage } from '@/lib/api/client'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
@@ -33,6 +33,7 @@ const toPreferences = (
 })
 
 export function CookieConsentBanner() {
+  const inRouterContext = useInRouterContext()
   const user = useAuthStore((state) => state.user)
   const hydrated = useAuthStore((state) => state.hydrated)
   const updateUser = useAuthStore((state) => state.updateUser)
@@ -127,6 +128,17 @@ export function CookieConsentBanner() {
 
   if (!hydrated || !visible) return null
 
+  const renderLegalLink = (path: string, label: string) =>
+    inRouterContext ? (
+      <Link to={path} className="font-medium text-primary hover:underline">
+        {label}
+      </Link>
+    ) : (
+      <a href={path} className="font-medium text-primary hover:underline">
+        {label}
+      </a>
+    )
+
   return (
     <section className="fixed bottom-4 left-4 right-4 z-[70]">
       <div className="mx-auto w-full max-w-4xl rounded-xl border border-border bg-card p-4 shadow-xl sm:p-5">
@@ -138,14 +150,8 @@ export function CookieConsentBanner() {
             <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
               Usamos cookies essenciais para seguranca e sessao. Podes ativar analytics,
               preferencias e marketing. Consulta a{' '}
-              <Link to="/cookies" className="font-medium text-primary hover:underline">
-                Politica de Cookies
-              </Link>{' '}
-              e o{' '}
-              <Link to="/aviso-legal" className="font-medium text-primary hover:underline">
-                Aviso Legal Financeiro
-              </Link>
-              .
+              {renderLegalLink('/cookies', 'Politica de Cookies')} e o{' '}
+              {renderLegalLink('/aviso-legal', 'Aviso Legal Financeiro')}.
             </p>
           </div>
 
