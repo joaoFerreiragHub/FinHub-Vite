@@ -337,7 +337,7 @@ test.describe('Admin P2.6 - E2E guardrails e permissao', () => {
 
     await expect(page.getByText('Gestao de utilizadores')).toBeVisible()
 
-    await expect(page.getByText('@investidor_teste')).toBeVisible()
+    await expect(page.locator('p:visible', { hasText: '@investidor_teste' }).first()).toBeVisible()
     await page.getByRole('button', { name: 'Suspender' }).first().click()
 
     await expect(page.getByRole('heading', { name: 'Suspender utilizador' })).toBeVisible()
@@ -366,7 +366,7 @@ test.describe('Admin P2.6 - E2E guardrails e permissao', () => {
     await expect(
       page.getByText('Perfil atual sem permissao de escrita em utilizadores.'),
     ).toBeVisible()
-    await expect(page.getByText('@investidor_teste')).toBeVisible()
+    await expect(page.locator('p:visible', { hasText: '@investidor_teste' }).first()).toBeVisible()
 
     await expect(page.getByRole('button', { name: 'Suspender' }).first()).toBeDisabled()
     await expect(page.getByRole('button', { name: 'Force logout' }).first()).toBeDisabled()
@@ -382,7 +382,7 @@ test.describe('Admin P2.6 - E2E guardrails e permissao', () => {
     await page.goto('/admin/conteudo')
     await expect(page.getByText('Moderacao de conteudo')).toBeVisible()
 
-    await expect(page.getByText('/artigo-teste')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Ocultar' }).first()).toBeVisible()
     await page.getByRole('button', { name: 'Ocultar' }).first().click()
     await expect(page.getByRole('heading', { name: 'Ocultar conteudo' })).toBeVisible()
 

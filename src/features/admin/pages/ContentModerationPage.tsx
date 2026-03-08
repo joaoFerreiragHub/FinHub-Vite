@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   ArrowUpRight,
   EyeOff,
@@ -9,7 +9,7 @@ import {
   ShieldCheck,
   Undo2,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useInRouterContext } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import {
   Badge,
@@ -136,6 +136,13 @@ interface ContentModerationPageProps {
   embedded?: boolean
 }
 
+interface OptionalRouterLinkProps {
+  to: string
+  className?: string
+  inRouterContext: boolean
+  children: ReactNode
+}
+
 const PAGE_SIZE = 20
 
 const INITIAL_FILTERS: FilterState = { ...DEFAULT_ADMIN_CONTENT_DEEP_LINK_FILTERS }
@@ -222,6 +229,22 @@ const DEFAULT_ACTION_REASON: Record<ContentActionKind, string> = {
 const DEFAULT_ROLLBACK_REASON = 'Rollback assistido apos revisao administrativa'
 const DOUBLE_CONFIRM_TOKEN = 'CONFIRMAR'
 const DESTRUCTIVE_CONTENT_ACTIONS: ContentActionKind[] = ['hide', 'restrict']
+
+const OptionalRouterLink = ({
+  to,
+  className,
+  inRouterContext,
+  children,
+}: OptionalRouterLinkProps) =>
+  inRouterContext ? (
+    <Link to={to} className={className}>
+      {children}
+    </Link>
+  ) : (
+    <a href={to} className={className}>
+      {children}
+    </a>
+  )
 
 const toQueueQuery = (
   filters: FilterState,
@@ -352,6 +375,7 @@ const WORKER_STATUS_BADGE = (
 }
 
 export default function ContentModerationPage({ embedded = false }: ContentModerationPageProps) {
+  const inRouterContext = useInRouterContext()
   const initialDeepLinkState = useMemo(() => readCurrentDeepLinkState(), [])
 
   const [filters, setFilters] = useState<FilterState>(initialDeepLinkState.filters)
@@ -1227,10 +1251,10 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
               <span className="text-muted-foreground">{activeCreatorContext}</span>
               {creatorContextHref ? (
                 <Button asChild type="button" size="sm" variant="outline">
-                  <Link to={creatorContextHref}>
+                  <OptionalRouterLink to={creatorContextHref} inRouterContext={inRouterContext}>
                     <ArrowUpRight className="h-4 w-4" />
                     Abrir trust profile
-                  </Link>
+                  </OptionalRouterLink>
                 </Button>
               ) : null}
               <Button type="button" size="sm" variant="ghost" onClick={clearCreatorContext}>
@@ -1597,7 +1621,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                       <div className="mt-3 flex flex-wrap gap-2">
                         {item.creator ? (
                           <Button asChild type="button" size="sm" variant="outline">
-                            <Link
+                            <OptionalRouterLink
                               to={buildAdminCreatorRiskHref({
                                 creatorId: item.creator.id,
                                 view: 'trust',
@@ -1605,16 +1629,17 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                                 contentType: item.contentType,
                                 contentId: item.id,
                               })}
+                              inRouterContext={inRouterContext}
                             >
                               <ArrowUpRight className="h-4 w-4" />
                               Creator
-                            </Link>
+                            </OptionalRouterLink>
                           </Button>
                         ) : null}
 
                         {item.creator && canAct ? (
                           <Button asChild type="button" size="sm">
-                            <Link
+                            <OptionalRouterLink
                               to={buildAdminCreatorRiskHref({
                                 creatorId: item.creator.id,
                                 view: 'controls',
@@ -1622,10 +1647,11 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                                 contentType: item.contentType,
                                 contentId: item.id,
                               })}
+                              inRouterContext={inRouterContext}
                             >
                               <ShieldAlert className="h-4 w-4" />
                               Controlar
-                            </Link>
+                            </OptionalRouterLink>
                           </Button>
                         ) : null}
 
@@ -1755,7 +1781,8 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                               </p>
                             )}
                             <p className="mt-1 text-xs text-muted-foreground">
-                              Visibilidade efetiva: {EFFECTIVE_VISIBILITY_LABEL[effectiveVisibility]}
+                              Visibilidade efetiva:{' '}
+                              {EFFECTIVE_VISIBILITY_LABEL[effectiveVisibility]}
                             </p>
                           </TableCell>
                           <TableCell>
@@ -1776,7 +1803,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                               {item.creator ? (
                                 <div className="flex flex-wrap gap-2 pt-1">
                                   <Button asChild type="button" size="sm" variant="outline">
-                                    <Link
+                                    <OptionalRouterLink
                                       to={buildAdminCreatorRiskHref({
                                         creatorId: item.creator.id,
                                         view: 'trust',
@@ -1784,14 +1811,15 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                                         contentType: item.contentType,
                                         contentId: item.id,
                                       })}
+                                      inRouterContext={inRouterContext}
                                     >
                                       <ArrowUpRight className="h-4 w-4" />
                                       Creator
-                                    </Link>
+                                    </OptionalRouterLink>
                                   </Button>
                                   {canAct ? (
                                     <Button asChild type="button" size="sm">
-                                      <Link
+                                      <OptionalRouterLink
                                         to={buildAdminCreatorRiskHref({
                                           creatorId: item.creator.id,
                                           view: 'controls',
@@ -1799,10 +1827,11 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                                           contentType: item.contentType,
                                           contentId: item.id,
                                         })}
+                                        inRouterContext={inRouterContext}
                                       >
                                         <ShieldAlert className="h-4 w-4" />
                                         Controlar
-                                      </Link>
+                                      </OptionalRouterLink>
                                     </Button>
                                   ) : null}
                                 </div>
