@@ -1,134 +1,221 @@
 # P5 - Analytics de Negocio, Patrocinios e Sustentabilidade
 
 Data: 2026-03-08
-Status: PLANEADO (nao bloqueante para o fecho imediato de P4 funcional)
+Status: PLANEADO (execution-ready v1)
+Release gate: nao bloqueante para o fecho imediato de P4 funcional
 
 ## 1) Objetivo de negocio
 
-Construir uma camada de dados e intelligence que permita:
+Construir uma camada de dados e intelligence para:
 
 1. tomar decisoes de produto com evidencia;
 2. provar tracao e qualidade para patrocinadores/investidores;
-3. manter sustentabilidade economica da plataforma no longo prazo.
+3. suportar sustentabilidade economica da plataforma.
 
-Sem este bloco, a plataforma pode funcionar para utilizadores, mas fica fraca para:
+Sem este bloco, a plataforma funciona para utilizadores, mas fica fraca para:
 
-- negociar sponsorships com credibilidade;
-- otimizar CAC/LTV e eficiencia operacional;
-- justificar roadmap com dados reais de impacto.
+1. negociar sponsorships com credibilidade;
+2. otimizar CAC/LTV e eficiencia operacional;
+3. defender prioridades de roadmap com dados auditaveis.
 
-## 2) Limite legal e de posicionamento
+## 2) Limites legais e de posicionamento
 
 1. O produto mantem foco educativo/contextual e simulacoes hipoteticas.
-2. Nao entra em recomendacao financeira personalizada.
-3. Qualquer analytics de AI deve respeitar minimizacao de dados e consentimento.
+2. Nao fornece recomendacao financeira personalizada.
+3. Analytics de AI respeita minimizacao de dados, consentimento e rastreabilidade.
 
-## 3) Facetas criticas que faltam para competitividade
+## 3) KPI Tree v1 (oficial)
 
-| Faceta | Porque importa | Dados/KPIs que faltam | Prioridade |
+Legenda:
+
+- Baseline inicial: `TBD` ate fechar 14 dias de coleta limpa.
+- Meta 90d: alvo apos baseline congelado.
+
+| Nivel | KPI | Formula canonica | Owner | Fonte principal | Cadencia | Meta 90d |
+|---|---|---|---|---|---|---|
+| North Star | WAEU (Weekly Active Engaged Users) | usuarios unicos/semana com >=1 acao de valor (`item_completed`, `simulation_run`, `goal_created`) | Product Lead | event model curado | semanal | +30% vs baseline |
+| Growth | Onboarding Completion Rate | `onboarding_completed / onboarding_started` | Growth Lead | eventos onboarding | diario/semanal | >=55% |
+| Growth | Activation D1 | novos users com >=1 acao de valor em 24h / novos users | Growth Lead | eventos + auth | diario/semanal | >=35% |
+| Retencao | D7 Retention | users do dia D que regressam no dia D+7 / users do dia D | Product Analytics | cohort model | semanal | >=22% |
+| Retencao | D30 Retention | users do dia D que regressam no dia D+30 / users do dia D | Product Analytics | cohort model | semanal/mensal | >=12% |
+| Conteudo | Completion Rate Conteudo | `item_completed / item_opened` por tipo de conteudo | Content Lead | eventos content | semanal | >=40% media |
+| Conteudo | Follow-after-Consume Rate | users com `follow_created` ate 24h apos `item_completed` / users com `item_completed` | Creator Ops | eventos social + content | semanal | >=8% |
+| Sponsorship | Sponsorable Fill Rate | impressoes patrocinaveis entregues / impressoes patrocinaveis disponiveis | Revenue Lead | sponsorship events | semanal | >=70% |
+| Sponsorship | Brand Safe Impression Rate | impressoes patrocinadas em contexto brand-safe / total impressoes patrocinadas | Trust & Safety | sponsorship + moderation | diario/semanal | >=98% |
+| Monetizacao | Revenue per Active User | receita total periodo / ativos no periodo | Revenue Lead | faturacao + ativos | mensal | +25% vs baseline |
+| Unit Economics | CAC Payback (meses) | `CAC medio por cohort / margem mensal media por user pago` | Finance Ops | spend + receita + custos | mensal | <=9 meses |
+| Operacao | Moderation SLA P95 | P95(tempo entre report e resolucao) em horas | Trust & Safety | moderation events | diario/semanal | <=24h |
+
+## 4) Contrato de eventos P5.0 v1
+
+### 4.1 Naming canonico
+
+Padrao obrigatorio:
+
+`<domain>.<module>.<action>.v1`
+
+Exemplos:
+
+1. `auth.onboarding.started.v1`
+2. `content.article.completed.v1`
+3. `social.follow.created.v1`
+4. `sponsorship.slot.impression.v1`
+
+### 4.2 Envelope obrigatorio
+
+Campos minimos por evento:
+
+1. `eventId` (uuid)
+2. `eventName` (string)
+3. `eventVersion` (integer)
+4. `occurredAt` (ISO datetime UTC)
+5. `userId` (nullable quando anonimo)
+6. `sessionId` (string)
+7. `requestId` (string)
+8. `platform` (`web`, `mobile`, `api`, `worker`)
+9. `surface` (pagina/modulo)
+10. `targetType` (nullable)
+11. `targetId` (nullable)
+12. `context` (objeto: `campaign`, `locale`, `segment`, `referrer`)
+13. `properties` (objeto tipado por evento)
+
+### 4.3 Catalogo minimo de eventos (v1)
+
+| Dominio | Evento | Objetivo |
+|---|---|---|
+| auth | `auth.signup.completed.v1` | medir aquisicao efetiva |
+| auth | `auth.login.success.v1` | medir retorno/entrada |
+| onboarding | `auth.onboarding.started.v1` | inicio de funil |
+| onboarding | `auth.onboarding.step_completed.v1` | drop-off por passo |
+| onboarding | `auth.onboarding.completed.v1` | conclusao de funil |
+| content | `content.feed.impression.v1` | exposicao de inventario |
+| content | `content.item.opened.v1` | interesse inicial |
+| content | `content.item.completed.v1` | consumo de valor |
+| social | `social.follow.created.v1` | qualidade creator economy |
+| social | `social.favorite.added.v1` | intencao de retorno |
+| social | `social.comment.created.v1` | engagement profundo |
+| tools | `tools.simulation.run.v1` | valor pratico da plataforma |
+| dashboard | `dashboard.widget.viewed.v1` | uso de painel pessoal |
+| dashboard | `dashboard.goal.created.v1` | compromisso do user |
+| markets | `markets.search.executed.v1` | descoberta de ativos |
+| markets | `markets.watchlist.added.v1` | intencao recorrente |
+| admin | `admin.moderation.action_applied.v1` | operacao de risco |
+| admin | `admin.moderation.case_resolved.v1` | SLA operacional |
+| sponsorship | `sponsorship.slot.impression.v1` | inventario entregue |
+| sponsorship | `sponsorship.slot.click.v1` | qualidade de atencao |
+| sponsorship | `sponsorship.lead.submitted.v1` | outcome comercial |
+
+### 4.4 Data quality gates (obrigatorios)
+
+1. Cobertura de schema valido >= 99.5%.
+2. Taxa de duplicados <= 0.5%.
+3. Latencia P95 ingestao <= 5 minutos.
+4. Eventos sem `eventId` ou `occurredAt` = 0.
+5. Jobs diarios de reconciliacao com alerta automatico.
+
+## 5) Scorecard de Sponsorship v1
+
+### 5.1 Estrutura de score
+
+| Pilar | Peso | KPI principal | Regra de score |
 |---|---|---|---|
-| Aqusicao e ativacao | sem isto nao ha escala previsivel | source/medium/campaign, onboarding funnel, activation rate D1 | Alta |
-| Retencao e engagement | define produto com "stickiness" real | DAU/WAU/MAU, retention D1/D7/D30, cohort por segmento | Alta |
-| Economia de conteudo | mostra valor do ecossistema creator | tempo de leitura/watch, completion rate, follow-after-consume | Alta |
-| Qualidade do catalogo | evita inflacao de conteudo sem impacto | CTR por modulo, save rate, revisit rate, bounce por pagina | Media |
-| Operacao admin/moderacao | reduz risco e custo operacional | SLA de moderacao, false positive cost, reincidencia por creator | Alta |
-| Receita e patrocinio | transforma tracao em monetizacao | inventario patrocinavel, fill rate, eCPM/eCPC, revenue per active user | Alta |
-| Saude financeira da plataforma | garante sobrevivencia | CAC, payback, margem por linha de produto, burn multiple | Alta |
-| Confianca/compliance | protege marca e deals B2B | incidentes, tempo de resposta, audit completeness, consent coverage | Alta |
-| Segmentacao e personalizacao | melhora conversao sem dark patterns | segmentos comportamentais, propensao por acao, uplift por experiencia | Media |
-| BI executivo para decisao | acelera gestao semanal/mensal | scorecards por area, metas vs real, alertas de desvio | Alta |
+| Alcance | 25% | impressoes qualificadas e audiencia unica | escala por volume e consistencia |
+| Qualidade | 25% | tempo ativo, completion, CTR contextual | penaliza trafego superficial |
+| Brand Safety | 25% | brand safe impression rate + incidentes | corte automatico se <95% |
+| Outcome | 15% | leads/acoes apos exposicao | score por conversao assistida |
+| Confianca Operacional | 10% | SLA reporte + auditabilidade | score maximo so com logs completos |
 
-## 4) Modelo de dados alvo (alto nivel)
+### 5.2 Pacote mensal para patrocinador
 
-### 4.1 Taxonomia unica de eventos
-1. naming canonico por dominio (`auth`, `content`, `social`, `admin`, `markets`, `tools`, `billing`).
-2. envelope comum:
-- `eventId`, `userId`, `sessionId`, `timestamp`
-- `surface`, `module`, `action`
-- `targetType`, `targetId`
-- `context` (campanha, segmento, plataforma, locale)
+Entregaveis obrigatorios:
 
-### 4.2 Camadas de armazenamento
-1. eventos brutos (append-only).
-2. modelo curado para analytics de produto/negocio.
-3. semantic layer com definicoes unicas de KPI (evita metricas contraditorias).
+1. Audience snapshot (alcance, frequencia, segmentos anonimizados).
+2. Quality snapshot (tempo medio, completion, engagement util).
+3. Brand safety report (incidentes, exposicao afetada, mitigacao).
+4. Outcome report (cliques, leads, conversoes assistidas).
+5. Appendix tecnico (metodologia, definicoes KPI, janela temporal).
 
-### 4.3 Governanca
-1. dicionario de dados com owner por KPI.
-2. qualidade de dados com monitorizacao de frescura, completude e duplicados.
-3. politica de retencao por tipo de dado e risco.
+## 6) Plano de execucao 12 semanas
 
-## 5) Blocos de execucao P5
+### Onda A (Semanas 1-4): Fundacao P5.0 + KPI tree ativa
 
-### P5.0 Fundacao de instrumentacao (bloqueante interno)
-1. taxonomia de eventos e versionamento.
-2. tracking unificado frontend + backend + jobs admin.
-3. validacao automatica de schema de evento.
+1. Fechar contrato de eventos e publicar dicionario de dados.
+2. Instrumentar eventos minimos em onboarding, conteudo, social, dashboard, admin.
+3. Ativar pipeline de validacao e reconciliacao.
+4. Congelar definicoes dos 12 KPIs oficiais.
 
-### P5.1 Product analytics core
-1. funil de aquisicao e onboarding.
-2. ativacao inicial por caso de uso (conteudo, tools, dashboard).
-3. retencao por cohort (D1/D7/D30).
+Gate de saida:
 
-### P5.2 Conteudo, creators e social economics
-1. funil consume -> engage -> follow -> return.
-2. qualidade por tipo de conteudo e por creator.
-3. indicadores de rede social util (nao vanity).
+1. cobertura de eventos minimos >= 90% nas superficies alvo;
+2. data quality gates ativos em CI/cron;
+3. dashboard executivo v0 em producao interna.
 
-### P5.3 Sponsorship readiness
-1. inventario de superficies patrocinaveis.
-2. perfis de audiencia anonimizados por segmento.
-3. relatorio de brand safety e qualidade de contexto.
+### Onda B (Semanas 5-8): Product analytics + sponsorship readiness v1
 
-### P5.4 Monetizacao e unit economics
-1. CAC/LTV por canal e por segmento.
-2. receita por utilizador ativo e por modulo.
-3. margens e custos operacionais por area.
+1. Cohorts D1/D7/D30 com segmentacao basica.
+2. Funis completos: onboarding e consume -> engage -> follow.
+3. Scorecard sponsorship v1 e primeiro pack mensal interno.
 
-### P5.5 BI executivo e operacao
-1. scorecards semanais e mensais.
-2. alertas de anomalia (queda de retencao, subida de churn, aumento de custo).
-3. dashboards dedicados para produto, growth, operacao e direcao.
+Gate de saida:
 
-## 6) Entregaveis minimos por fase
+1. 12 KPIs com baseline validado;
+2. sponsorship scorecard gerado de forma automatica;
+3. alertas de queda para 4 KPIs criticos.
 
-Fase A (4-6 semanas):
+### Onda C (Semanas 9-12): Unit economics + BI operacional
 
-1. taxonomia de eventos e tracking base em producao.
-2. funil onboarding + retention cohorts.
-3. dashboard executivo minimo (10 KPIs nucleares).
+1. CAC payback, receita por ativo e margem por linha.
+2. Dashboards por area (produto, growth, revenue, trust).
+3. Ritual semanal formal com decisao baseada em scorecard.
 
-Fase B (6-8 semanas):
+Gate de saida:
 
-1. metricas de conteudo/creator completas.
-2. pacote sponsorship readiness v1.
-3. alertas operacionais e de negocio.
+1. pacote executivo mensal completo;
+2. backlog de produto priorizado com base em dados;
+3. processo de sponsorship pronto para negociacao externa.
 
-Fase C (continuo):
+## 7) Modelo de ownership e governanca
 
-1. modelo preditivo de risco de churn e propensity de engagement.
-2. experimentacao controlada (A/B) para crescimento sustentavel.
-3. otimzacao de inventario patrocinado e revenue quality.
+### 7.1 Owners minimos
 
-## 7) Criterios de aceite (Definition of Done)
+1. Product Lead: North Star + retencao.
+2. Growth Lead: aquisicao, onboarding, ativacao.
+3. Content/Creator Lead: economia de conteudo e creators.
+4. Revenue Lead: sponsorship + monetizacao.
+5. Trust & Safety: brand safety e SLA operacionais.
+6. Data/Analytics Lead: taxonomia, qualidade e semantic layer.
 
-1. KPIs oficiais com formula unica e owner definido.
-2. dados com qualidade auditavel (sem discrepancias criticas entre fontes).
-3. dashboards usados em ritual semanal de decisao.
-4. sponsorship pack exportavel com metricas de audiencia e brand safety.
-5. gate de privacidade/compliance validado para coleta e uso de dados.
+### 7.2 Rituais
 
-## 8) Riscos e mitigacao
+1. Weekly business review (60 min): variacao de KPI, alertas e decisoes.
+2. Monthly sponsorship review: scorecard e readiness comercial.
+3. Quarterly KPI reset: revisao de metas, pesos e trade-offs.
 
-1. Risco: recolher dados demais e aumentar superficie legal.
-- mitigacao: minimizacao por design + retention policy.
-2. Risco: vanity metrics sem impacto de negocio.
-- mitigacao: KPI tree ligada a receita, retencao e custo.
-3. Risco: stack de dados complexa cedo demais.
-- mitigacao: comecar lean e evoluir por fases com ROI claro.
+## 8) Criterios de aceite (Definition of Done P5)
 
-## 9) Proximo passo recomendado
+1. KPI tree oficial com formula unica e owner definido.
+2. Contrato de eventos v1 aplicado nas superficies nucleares.
+3. Data quality gates monitorizados com alerta automatico.
+4. Scorecard sponsorship v1 gerado mensalmente.
+5. Decisoes de roadmap com rasto explicito de KPI impactado.
+6. Compliance validado para coleta, retencao e uso de dados.
 
-1. fechar o contrato de eventos P5.0.
-2. escolher os 10 KPIs executivos obrigatorios.
-3. implementar tracking nos fluxos de maior impacto (onboarding, dashboard, conteudo, social, admin).
+## 9) Riscos e mitigacao
+
+1. Risco: excesso de dados sem foco.
+   Mitigacao: limitar a 12 KPIs oficiais e backlog por impacto.
+2. Risco: vanity metrics a dominar decisoes.
+   Mitigacao: priorizar KPI ligados a retencao, receita e custo.
+3. Risco: complexidade tecnica prematura.
+   Mitigacao: evolucao por ondas com gates de saida claros.
+4. Risco: risco legal/privacidade.
+   Mitigacao: minimizacao de dados, consentimento e auditoria por defeito.
+
+## 10) Primeiros 30 dias (tarefas concretas)
+
+1. Publicar `event_dictionary_v1` com schema por evento.
+2. Instrumentar 21 eventos minimos listados na secao 4.3.
+3. Criar tabela curada `kpi_daily_snapshot`.
+4. Subir dashboard executivo v0 com os 12 KPIs.
+5. Validar primeira baseline de 14 dias.
+6. Emitir primeiro `sponsorship_pack_internal_v1`.
