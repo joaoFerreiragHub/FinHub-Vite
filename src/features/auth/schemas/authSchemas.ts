@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+const CAPTCHA_ENABLED = (import.meta.env.VITE_CAPTCHA_PROVIDER ?? 'disabled') !== 'disabled'
+
 /**
  * Schema de validação para Login
  */
@@ -13,7 +15,14 @@ export const loginSchema = z.object({
     .min(1, 'Password é obrigatória')
     .min(6, 'Password deve ter pelo menos 6 caracteres'),
   rememberMe: z.boolean().optional(),
-})
+  captchaToken: z.string().optional(),
+}).refine(
+  (data) => !CAPTCHA_ENABLED || Boolean(data.captchaToken?.trim()),
+  {
+    message: 'Confirma o CAPTCHA para continuar',
+    path: ['captchaToken'],
+  }
+)
 
 export type LoginFormData = z.infer<typeof loginSchema>
 
@@ -53,10 +62,15 @@ export const registerSchema = z
     confirmPassword: z
       .string()
       .min(1, 'Confirmação de password é obrigatória'),
+    captchaToken: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'As passwords não coincidem',
     path: ['confirmPassword'],
+  })
+  .refine((data) => !CAPTCHA_ENABLED || Boolean(data.captchaToken?.trim()), {
+    message: 'Confirma o CAPTCHA para continuar',
+    path: ['captchaToken'],
   })
 
 export type RegisterFormData = z.infer<typeof registerSchema>

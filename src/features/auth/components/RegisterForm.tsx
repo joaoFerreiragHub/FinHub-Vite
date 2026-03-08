@@ -6,6 +6,7 @@ import { useAuthStore } from '../stores/useAuthStore'
 import { registerSchema, type RegisterFormData } from '../schemas/authSchemas'
 import { Button, Input, Label } from '@/components/ui'
 import { getErrorMessage } from '@/lib/api/client'
+import { CaptchaField } from './CaptchaField'
 
 export function RegisterForm() {
   const navigate = useNavigate()
@@ -15,6 +16,8 @@ export function RegisterForm() {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -25,6 +28,7 @@ export function RegisterForm() {
       username: '',
       password: '',
       confirmPassword: '',
+      captchaToken: '',
     },
   })
 
@@ -103,6 +107,15 @@ export function RegisterForm() {
           <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
         )}
       </div>
+
+      <input type="hidden" {...register('captchaToken')} />
+      <CaptchaField
+        value={watch('captchaToken')}
+        error={errors.captchaToken?.message}
+        onChange={(token) =>
+          setValue('captchaToken', token, { shouldDirty: true, shouldValidate: true })
+        }
+      />
 
       <div className="text-xs text-muted-foreground">
         Ao criar uma conta, voce concorda com os nossos{' '}
