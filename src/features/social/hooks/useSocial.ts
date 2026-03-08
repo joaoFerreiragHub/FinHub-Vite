@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { socialService } from '../services/socialService'
 import { useSocialStore } from '../stores/useSocialStore'
 import { useNotificationStore } from '../stores/useNotificationStore'
@@ -154,9 +154,18 @@ export function useUpdateCreatorSubscription() {
 // ========== ACTIVITY FEED ==========
 
 export function useActivityFeed(followingOnly?: boolean, limit?: number) {
-  return useQuery({
+  const pageSize = limit ?? 20
+
+  return useInfiniteQuery({
     queryKey: ['social', 'activity', followingOnly, limit],
-    queryFn: () => socialService.getActivityFeed({ following: followingOnly, limit }),
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) =>
+      socialService.getActivityFeed({
+        following: followingOnly,
+        page: Number(pageParam),
+        limit: pageSize,
+      }),
+    getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.page + 1 : undefined),
   })
 }
 

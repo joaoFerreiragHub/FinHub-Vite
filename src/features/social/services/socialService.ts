@@ -12,6 +12,7 @@ import {
   type CreatorSubscription,
   type CreatorSubscriptionListResponse,
   type ActivityFeedItem,
+  type ActivityFeedResponse,
   type UserProfile,
   type SearchResponse,
 } from '../types'
@@ -134,6 +135,58 @@ interface BackendCreatorSubscriptionListResponse {
     limit: number
     total: number
     pages: number
+  }
+}
+
+interface BackendFeedContent {
+  id?: string
+  type?: string
+  slug?: string
+  title?: string
+  description?: string
+  coverImage?: string | null
+  creator?: string | BackendUser
+  creatorId?: string
+  category?: string
+  tags?: string[]
+  viewCount?: number
+  likeCount?: number
+  favoriteCount?: number
+  shareCount?: number
+  averageRating?: number
+  ratingCount?: number
+  reviewCount?: number
+  commentCount?: number
+  commentsEnabled?: boolean
+  requiredRole?: 'free' | 'premium' | 'creator' | 'admin'
+  isPremium?: boolean
+  isFeatured?: boolean
+  status?: 'draft' | 'published' | 'archived'
+  isPublished?: boolean
+  publishedAt?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+interface BackendFeedItem {
+  id?: string
+  type?: string
+  content?: BackendFeedContent
+  creatorName?: string
+  creatorAvatar?: string
+  createdAt?: string
+}
+
+interface BackendFeedResponse {
+  items?: BackendFeedItem[]
+  pagination?: {
+    page?: number
+    limit?: number
+    total?: number
+    pages?: number
+  }
+  filters?: {
+    following?: boolean
   }
 }
 
@@ -489,6 +542,78 @@ const mapCreatorSubscriptionsResponse = (
   }
 }
 
+const mapFeedItem = (item: BackendFeedItem): ActivityFeedItem | null => {
+  if (!item.content) return null
+
+  const content = item.content
+  const contentId = content.id
+  const slug = content.slug
+  const normalizedType = toContentType(content.type)
+
+  if (!contentId || !slug || !normalizedType) return null
+
+  return {
+    id: item.id ?? `${normalizedType}:${contentId}`,
+    type: 'content_published',
+    content: {
+      id: contentId,
+      type: normalizedType,
+      slug,
+      title: content.title ?? 'Sem titulo',
+      description: content.description ?? '',
+      coverImage: content.coverImage ?? undefined,
+      creator: content.creatorId ?? resolveId(content.creator) ?? '',
+      creatorId: content.creatorId ?? resolveId(content.creator) ?? '',
+      category: (content.category ?? 'news') as any,
+      tags: Array.isArray(content.tags) ? content.tags : [],
+      viewCount: Number(content.viewCount ?? 0),
+      likeCount: Number(content.likeCount ?? 0),
+      favoriteCount: Number(content.favoriteCount ?? 0),
+      shareCount: Number(content.shareCount ?? 0),
+      averageRating: Number(content.averageRating ?? 0),
+      ratingCount: Number(content.ratingCount ?? 0),
+      reviewCount: Number(content.reviewCount ?? content.ratingCount ?? 0),
+      commentCount: Number(content.commentCount ?? 0),
+      commentsEnabled: Boolean(content.commentsEnabled ?? true),
+      requiredRole: (content.requiredRole ?? 'free') as any,
+      isPremium: Boolean(content.isPremium),
+      isFeatured: Boolean(content.isFeatured),
+      status: (content.status ?? 'published') as any,
+      isPublished: Boolean(content.isPublished ?? true),
+      publishedAt: content.publishedAt,
+      createdAt: content.createdAt ?? item.createdAt ?? new Date().toISOString(),
+      updatedAt:
+        content.updatedAt ??
+        content.createdAt ??
+        item.createdAt ??
+        new Date().toISOString(),
+    },
+    creatorName: item.creatorName ?? 'Criador',
+    creatorAvatar: item.creatorAvatar ?? undefined,
+    createdAt: item.createdAt ?? content.publishedAt ?? content.createdAt ?? new Date().toISOString(),
+  }
+}
+
+const mapFeedResponse = (payload: BackendFeedResponse): ActivityFeedResponse => {
+  const items = (payload.items ?? [])
+    .map(mapFeedItem)
+    .filter((item): item is ActivityFeedItem => item !== null)
+
+  const page = payload.pagination?.page ?? 1
+  const limit = payload.pagination?.limit ?? (items.length > 0 ? items.length : 20)
+  const total = payload.pagination?.total ?? items.length
+  const pages = payload.pagination?.pages ?? Math.max(1, Math.ceil(total / Math.max(limit, 1)))
+
+  return {
+    items,
+    page,
+    limit,
+    total,
+    hasMore: page < pages,
+    following: payload.filters?.following !== false,
+  }
+}
+
 export const socialService = {
   // ========== FOLLOWS ==========
 
@@ -743,18 +868,16 @@ export const socialService = {
   },
 
   // ========== ACTIVITY FEED ==========
-  // Nota: Estes endpoints ainda nao foram implementados no backend.
-  // Mantidos para compatibilidade com o frontend existente.
 
   getActivityFeed: async (filters?: {
     following?: boolean
+    page?: number
     limit?: number
-  }): Promise<ActivityFeedItem[]> => {
-    // TODO: Implementar endpoint no backend.
-    const response = await apiClient.get<ActivityFeedItem[]>('/social/feed', {
+  }): Promise<ActivityFeedResponse> => {
+    const response = await apiClient.get<BackendFeedResponse>('/feed', {
       params: filters,
     })
-    return response.data
+    return mapFeedResponse(response.data)
   },
 
   // ========== USER PROFILE ==========

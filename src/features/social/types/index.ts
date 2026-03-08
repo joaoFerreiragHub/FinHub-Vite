@@ -104,6 +104,15 @@ export interface ActivityFeedItem {
   createdAt: string
 }
 
+export interface ActivityFeedResponse {
+  items: ActivityFeedItem[]
+  page: number
+  limit: number
+  total: number
+  hasMore: boolean
+  following: boolean
+}
+
 // ========== USER PROFILE ==========
 
 export interface UserProfile extends User {
