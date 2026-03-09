@@ -11,6 +11,8 @@ import {
   Lock,
   Newspaper,
   Radar,
+  RotateCcw,
+  Settings2,
   Shield,
   ShieldAlert,
   ShieldCheck,
@@ -42,6 +44,11 @@ import {
   TabsList,
   TabsTrigger,
   Textarea,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { getErrorMessage } from '@/lib/api/client'
@@ -67,6 +74,11 @@ import {
   useUpdateAdminSurfaceControl,
 } from '../hooks/useAdminSurfaceControls'
 import {
+  useAdminDashboardPersonalization,
+  useResetAdminDashboardPersonalization,
+  useUpdateAdminDashboardPersonalization,
+} from '../hooks/useAdminDashboardPersonalization'
+import {
   buildAdminContentHref,
   buildAdminCreatorRiskHref,
 } from '../lib/moderationControlPlaneLinks'
@@ -82,6 +94,11 @@ import type {
   AdminOperationalAlertState,
   AdminOperationalAlertType,
 } from '../types/adminOperationalAlerts'
+import type {
+  AdminDashboardDensityMode,
+  AdminDashboardPreset,
+  AdminDashboardThemeMode,
+} from '../types/adminDashboardPersonalization'
 
 type DashboardTab = 'overview' | 'users' | 'content' | 'editorial' | 'support' | 'stats' | 'brands'
 
@@ -181,6 +198,24 @@ const ALERT_STATE_LABEL: Record<AdminOperationalAlertState, string> = {
 const SURFACE_CONTROL_IMPACT_LABEL: Record<AdminSurfaceControlItem['impact'], string> = {
   read: 'Leitura',
   write: 'Escrita',
+}
+
+const DASHBOARD_PRESET_LABEL: Record<AdminDashboardPreset, string> = {
+  operations: 'Operacoes',
+  moderation: 'Moderacao',
+  monetization: 'Monetizacao',
+  custom: 'Custom',
+}
+
+const DASHBOARD_DENSITY_LABEL: Record<AdminDashboardDensityMode, string> = {
+  comfortable: 'Comfortable',
+  compact: 'Compact',
+}
+
+const DASHBOARD_THEME_LABEL: Record<AdminDashboardThemeMode, string> = {
+  system: 'System',
+  light: 'Light',
+  dark: 'Dark',
 }
 
 const alertSeverityVariant = (
@@ -283,10 +318,24 @@ export default function AdminDashboardPage() {
   const canManageAuditAlerts = canReadAudit && !user?.adminReadOnly
   const canReadSurfaceControls = canReadContent
   const canWriteSurfaceControls = Boolean(moduleAccess.content?.canWrite)
+  const canReadDashboardPersonalization = canReadStats
+  const canWriteDashboardPersonalization = canReadStats && !user?.adminReadOnly
   const [surfaceDialog, setSurfaceDialog] = useState<SurfaceControlDialogState | null>(null)
   const [surfaceReason, setSurfaceReason] = useState('')
   const [surfaceNote, setSurfaceNote] = useState('')
   const [surfacePublicMessage, setSurfacePublicMessage] = useState('')
+  const [isPersonalizationDialogOpen, setIsPersonalizationDialogOpen] = useState(false)
+  const [personalizationPreset, setPersonalizationPreset] =
+    useState<AdminDashboardPreset>('operations')
+  const [personalizationDensity, setPersonalizationDensity] =
+    useState<AdminDashboardDensityMode>('comfortable')
+  const [personalizationTheme, setPersonalizationTheme] =
+    useState<AdminDashboardThemeMode>('system')
+  const [personalizationRefreshSeconds, setPersonalizationRefreshSeconds] = useState('120')
+  const [personalizationResetPreset, setPersonalizationResetPreset] =
+    useState<AdminDashboardPreset>('operations')
+  const [personalizationReason, setPersonalizationReason] = useState('')
+  const [personalizationNote, setPersonalizationNote] = useState('')
 
   const { data: allUsers, isLoading: loadingAllUsers } = useAdminUsers(
     { limit: 1 },
@@ -332,6 +381,10 @@ export default function AdminDashboardPage() {
       enabled: canReadStats,
     },
   )
+  const { data: dashboardPersonalization, isLoading: loadingDashboardPersonalization } =
+    useAdminDashboardPersonalization(canReadDashboardPersonalization)
+  const updateDashboardPersonalizationMutation = useUpdateAdminDashboardPersonalization()
+  const resetDashboardPersonalizationMutation = useResetAdminDashboardPersonalization()
   const { data: operationalAlerts, isLoading: loadingOperationalAlerts } =
     useAdminOperationalAlerts({ windowHours: 24, limit: 6 }, { enabled: canReadAudit })
   const acknowledgeAlertMutation = useAcknowledgeAdminOperationalAlert()
@@ -423,6 +476,116 @@ export default function AdminDashboardPage() {
       setActiveTab(availableTabs[0]?.key ?? 'overview')
     }
   }, [activeTab, availableTabs])
+
+  const personalizationPreference = dashboardPersonalization?.preference
+  const isDashboardPersonalizationActionPending =
+    updateDashboardPersonalizationMutation.isPending ||
+    resetDashboardPersonalizationMutation.isPending
+
+  const hydrateDashboardPersonalizationForm = () => {
+    if (!personalizationPreference) return
+    setPersonalizationPreset(personalizationPreference.preset)
+    setPersonalizationDensity(personalizationPreference.density)
+    setPersonalizationTheme(personalizationPreference.theme)
+    setPersonalizationRefreshSeconds(String(personalizationPreference.refreshSeconds))
+    setPersonalizationResetPreset(personalizationPreference.preset)
+  }
+
+  const openDashboardPersonalizationDialog = () => {
+    hydrateDashboardPersonalizationForm()
+    setPersonalizationReason('')
+    setPersonalizationNote('')
+    setIsPersonalizationDialogOpen(true)
+  }
+
+  const closeDashboardPersonalizationDialog = (force = false) => {
+    if (!force && isDashboardPersonalizationActionPending) return
+    setIsPersonalizationDialogOpen(false)
+    setPersonalizationReason('')
+    setPersonalizationNote('')
+  }
+
+  const submitDashboardPersonalizationUpdate = async () => {
+    if (!canWriteDashboardPersonalization || !personalizationPreference) return
+
+    const refreshSeconds = Number.parseInt(personalizationRefreshSeconds, 10)
+    if (!Number.isFinite(refreshSeconds) || refreshSeconds < 30 || refreshSeconds > 3600) {
+      toast.error('refreshSeconds deve estar entre 30 e 3600 segundos.')
+      return
+    }
+
+    const payload: {
+      preset?: AdminDashboardPreset
+      density?: AdminDashboardDensityMode
+      theme?: AdminDashboardThemeMode
+      refreshSeconds?: number
+      reason?: string
+      note?: string
+    } = {}
+
+    if (personalizationPreset !== personalizationPreference.preset) {
+      payload.preset = personalizationPreset
+    }
+    if (personalizationDensity !== personalizationPreference.density) {
+      payload.density = personalizationDensity
+    }
+    if (personalizationTheme !== personalizationPreference.theme) {
+      payload.theme = personalizationTheme
+    }
+    if (refreshSeconds !== personalizationPreference.refreshSeconds) {
+      payload.refreshSeconds = refreshSeconds
+    }
+
+    const reason = personalizationReason.trim()
+    if (reason) payload.reason = reason
+
+    const note = personalizationNote.trim()
+    if (note) payload.note = note
+
+    if (
+      payload.preset === undefined &&
+      payload.density === undefined &&
+      payload.theme === undefined &&
+      payload.refreshSeconds === undefined
+    ) {
+      toast.info('Sem alteracoes para guardar na personalizacao.')
+      return
+    }
+
+    try {
+      const result = await updateDashboardPersonalizationMutation.mutateAsync(payload)
+      toast.success(result.message)
+      setPersonalizationPreset(result.preference.preset)
+      setPersonalizationDensity(result.preference.density)
+      setPersonalizationTheme(result.preference.theme)
+      setPersonalizationRefreshSeconds(String(result.preference.refreshSeconds))
+      setPersonalizationResetPreset(result.preference.preset)
+      closeDashboardPersonalizationDialog(true)
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
+  }
+
+  const submitDashboardPersonalizationReset = async () => {
+    if (!canWriteDashboardPersonalization) return
+
+    try {
+      const result = await resetDashboardPersonalizationMutation.mutateAsync({
+        preset: personalizationResetPreset,
+        reason: personalizationReason.trim() || undefined,
+        note: personalizationNote.trim() || undefined,
+      })
+      toast.success(result.message)
+      setPersonalizationPreset(result.preference.preset)
+      setPersonalizationDensity(result.preference.density)
+      setPersonalizationTheme(result.preference.theme)
+      setPersonalizationRefreshSeconds(String(result.preference.refreshSeconds))
+      setPersonalizationResetPreset(result.preference.preset)
+      closeDashboardPersonalizationDialog(true)
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
+  }
 
   const openSurfaceDialog = (item: AdminSurfaceControlItem, nextEnabled: boolean) => {
     setSurfaceDialog({ item, nextEnabled })
@@ -548,6 +711,69 @@ export default function AdminDashboardPage() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
+          {canReadDashboardPersonalization ? (
+            <Card>
+              <CardHeader className="pb-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Settings2 className="h-4 w-4 text-muted-foreground" />
+                      Personalizacao do dashboard
+                    </CardTitle>
+                    <CardDescription>
+                      Preset, densidade, tema e refresh por admin com historico versionado.
+                    </CardDescription>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={openDashboardPersonalizationDialog}
+                    disabled={
+                      !canWriteDashboardPersonalization ||
+                      loadingDashboardPersonalization ||
+                      !personalizationPreference
+                    }
+                  >
+                    Configurar
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {loadingDashboardPersonalization ? (
+                  <div className="h-16 animate-pulse rounded-md bg-muted" />
+                ) : !personalizationPreference ? (
+                  <p className="text-sm text-muted-foreground">
+                    Personalizacao indisponivel para o contexto atual.
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline">
+                      Preset: {DASHBOARD_PRESET_LABEL[personalizationPreference.preset]}
+                    </Badge>
+                    <Badge variant="outline">
+                      Densidade: {DASHBOARD_DENSITY_LABEL[personalizationPreference.density]}
+                    </Badge>
+                    <Badge variant="outline">
+                      Tema: {DASHBOARD_THEME_LABEL[personalizationPreference.theme]}
+                    </Badge>
+                    <Badge variant="outline">
+                      Refresh: {personalizationPreference.refreshSeconds}s
+                    </Badge>
+                    <Badge variant="outline">
+                      Widgets: {personalizationPreference.layout.length}
+                    </Badge>
+                    <Badge variant="outline">
+                      Filtros fixados: {personalizationPreference.pinnedFilters.length}
+                    </Badge>
+                    <Badge variant="outline">
+                      Atualizado: {formatDateTime(personalizationPreference.updatedAt)}
+                    </Badge>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ) : null}
+
           <section>
             <div className="mb-3 flex items-center gap-2">
               <Activity className="h-4 w-4 text-muted-foreground" />
@@ -1163,6 +1389,230 @@ export default function AdminDashboardPage() {
               </CardContent>
             </Card>
           ) : null}
+
+          <Dialog
+            open={isPersonalizationDialogOpen}
+            onOpenChange={(open) => (!open ? closeDashboardPersonalizationDialog() : null)}
+          >
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Personalizacao do dashboard</DialogTitle>
+                <DialogDescription>
+                  Ajusta preset, densidade, tema e refresh. O reset repoe o layout base do preset.
+                </DialogDescription>
+              </DialogHeader>
+
+              {!personalizationPreference ? (
+                <div className="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
+                  Sem dados de personalizacao disponiveis.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <label
+                        className="text-sm font-medium"
+                        htmlFor="dashboard-personalization-preset"
+                      >
+                        Preset
+                      </label>
+                      <Select
+                        value={personalizationPreset}
+                        onValueChange={(value) =>
+                          setPersonalizationPreset(value as AdminDashboardPreset)
+                        }
+                        disabled={isDashboardPersonalizationActionPending}
+                      >
+                        <SelectTrigger id="dashboard-personalization-preset">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="operations">Operacoes</SelectItem>
+                          <SelectItem value="moderation">Moderacao</SelectItem>
+                          <SelectItem value="monetization">Monetizacao</SelectItem>
+                          <SelectItem value="custom">Custom</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        className="text-sm font-medium"
+                        htmlFor="dashboard-personalization-density"
+                      >
+                        Densidade
+                      </label>
+                      <Select
+                        value={personalizationDensity}
+                        onValueChange={(value) =>
+                          setPersonalizationDensity(value as AdminDashboardDensityMode)
+                        }
+                        disabled={isDashboardPersonalizationActionPending}
+                      >
+                        <SelectTrigger id="dashboard-personalization-density">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="comfortable">Comfortable</SelectItem>
+                          <SelectItem value="compact">Compact</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        className="text-sm font-medium"
+                        htmlFor="dashboard-personalization-theme"
+                      >
+                        Tema
+                      </label>
+                      <Select
+                        value={personalizationTheme}
+                        onValueChange={(value) =>
+                          setPersonalizationTheme(value as AdminDashboardThemeMode)
+                        }
+                        disabled={isDashboardPersonalizationActionPending}
+                      >
+                        <SelectTrigger id="dashboard-personalization-theme">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="system">System</SelectItem>
+                          <SelectItem value="light">Light</SelectItem>
+                          <SelectItem value="dark">Dark</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        className="text-sm font-medium"
+                        htmlFor="dashboard-personalization-refresh"
+                      >
+                        Refresh (segundos)
+                      </label>
+                      <Input
+                        id="dashboard-personalization-refresh"
+                        type="number"
+                        min={30}
+                        max={3600}
+                        step={1}
+                        value={personalizationRefreshSeconds}
+                        onChange={(event) => setPersonalizationRefreshSeconds(event.target.value)}
+                        disabled={isDashboardPersonalizationActionPending}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label
+                      className="text-sm font-medium"
+                      htmlFor="dashboard-personalization-reason"
+                    >
+                      Motivo (opcional)
+                    </label>
+                    <Input
+                      id="dashboard-personalization-reason"
+                      value={personalizationReason}
+                      onChange={(event) => setPersonalizationReason(event.target.value)}
+                      placeholder="Ex.: ajustar painel para turno de moderacao."
+                      disabled={isDashboardPersonalizationActionPending}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium" htmlFor="dashboard-personalization-note">
+                      Nota interna (opcional)
+                    </label>
+                    <Textarea
+                      id="dashboard-personalization-note"
+                      value={personalizationNote}
+                      onChange={(event) => setPersonalizationNote(event.target.value)}
+                      rows={3}
+                      placeholder="Contexto adicional para historico admin."
+                      disabled={isDashboardPersonalizationActionPending}
+                    />
+                  </div>
+
+                  <div className="rounded-md border border-border/70 bg-muted/20 p-3">
+                    <p className="text-sm font-medium">Reset para preset base</p>
+                    <p className="text-xs text-muted-foreground">
+                      Regera layout, filtros fixados e refresh para os defaults operacionais.
+                    </p>
+                    <div className="mt-2 max-w-xs space-y-2">
+                      <label
+                        className="text-sm font-medium"
+                        htmlFor="dashboard-personalization-reset-preset"
+                      >
+                        Preset de reset
+                      </label>
+                      <Select
+                        value={personalizationResetPreset}
+                        onValueChange={(value) =>
+                          setPersonalizationResetPreset(value as AdminDashboardPreset)
+                        }
+                        disabled={isDashboardPersonalizationActionPending}
+                      >
+                        <SelectTrigger id="dashboard-personalization-reset-preset">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="operations">Operacoes</SelectItem>
+                          <SelectItem value="moderation">Moderacao</SelectItem>
+                          <SelectItem value="monetization">Monetizacao</SelectItem>
+                          <SelectItem value="custom">Custom</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => closeDashboardPersonalizationDialog()}
+                  disabled={isDashboardPersonalizationActionPending}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={submitDashboardPersonalizationReset}
+                  disabled={
+                    !canWriteDashboardPersonalization ||
+                    !personalizationPreference ||
+                    isDashboardPersonalizationActionPending
+                  }
+                >
+                  {resetDashboardPersonalizationMutation.isPending ? (
+                    <RotateCcw className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <RotateCcw className="h-4 w-4" />
+                  )}
+                  Reset
+                </Button>
+                <Button
+                  type="button"
+                  onClick={submitDashboardPersonalizationUpdate}
+                  disabled={
+                    !canWriteDashboardPersonalization ||
+                    !personalizationPreference ||
+                    isDashboardPersonalizationActionPending
+                  }
+                >
+                  {updateDashboardPersonalizationMutation.isPending ? (
+                    <Settings2 className="h-4 w-4 animate-pulse" />
+                  ) : (
+                    <Settings2 className="h-4 w-4" />
+                  )}
+                  Guardar
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           <Dialog
             open={Boolean(surfaceDialog)}
