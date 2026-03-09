@@ -22,6 +22,7 @@ describe('admin access path guards', () => {
   it('resolves admin module from known paths', () => {
     expect(getAdminModuleForPath('/admin/users')?.key).toBe('users')
     expect(getAdminModuleForPath('/admin/users/123')?.key).toBe('users')
+    expect(getAdminModuleForPath('/admin/operacoes')?.key).toBe('operations')
     expect(getAdminModuleForPath('/admin/auditoria')?.key).toBe('audit')
     expect(getAdminModuleForPath('/admin/conteudo?status=hidden')?.key).toBe('content')
   })
@@ -36,6 +37,7 @@ describe('admin access path guards', () => {
 
     expect(canAccessAdminPath(usersOnlyAdmin, '/admin/users')).toBe(true)
     expect(canAccessAdminPath(usersOnlyAdmin, '/admin/creators')).toBe(true)
+    expect(canAccessAdminPath(usersOnlyAdmin, '/admin/operacoes')).toBe(true)
     expect(canAccessAdminPath(usersOnlyAdmin, '/admin/conteudo')).toBe(false)
     expect(canAccessAdminPath(usersOnlyAdmin, '/admin/auditoria')).toBe(false)
   })

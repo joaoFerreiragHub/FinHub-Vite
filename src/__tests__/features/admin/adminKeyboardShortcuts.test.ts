@@ -23,6 +23,7 @@ describe('admin keyboard shortcuts', () => {
   it('maps module key to expected go-shortcut', () => {
     expect(getAdminShortcutForModule('dashboard')).toBe('d')
     expect(getAdminShortcutForModule('content')).toBe('c')
+    expect(getAdminShortcutForModule('operations')).toBe('o')
     expect(getAdminShortcutForModule('stats')).toBe('t')
   })
 

@@ -99,6 +99,7 @@ import CreatorsRiskBoardPage from '@/features/admin/pages/CreatorsRiskBoardPage'
 import ContentModerationPage from '@/features/admin/pages/ContentModerationPage'
 import EditorialCmsPage from '@/features/admin/pages/EditorialCmsPage'
 import BrandsManagementPage from '@/features/admin/pages/BrandsManagementPage'
+import AdminBulkImportPage from '@/features/admin/pages/AdminBulkImportPage'
 import StatsPage from '@/features/admin/pages/StatsPage'
 import AssistedSessionsPage from '@/features/admin/pages/AssistedSessionsPage'
 import AdminAuditLogsPage from '@/features/admin/pages/AdminAuditLogsPage'
@@ -517,6 +518,10 @@ const router = createBrowserRouter([
       {
         path: 'recursos',
         element: <BrandsManagementPage />,
+      },
+      {
+        path: 'operacoes',
+        element: <AdminBulkImportPage />,
       },
       {
         path: 'stats',

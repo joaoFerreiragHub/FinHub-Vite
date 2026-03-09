@@ -17,6 +17,7 @@ import {
   ShieldAlert,
   ShieldCheck,
   ClipboardList,
+  FileSpreadsheet,
   UserCheck,
   Users,
   UserX,
@@ -88,6 +89,7 @@ import AssistedSessionsPage from './AssistedSessionsPage'
 import StatsPage from './StatsPage'
 import BrandsManagementPage from './BrandsManagementPage'
 import EditorialCmsPage from './EditorialCmsPage'
+import AdminBulkImportPage from './AdminBulkImportPage'
 import type { AdminSurfaceControlItem } from '../types/adminSurfaceControls'
 import type {
   AdminOperationalAlertSeverity,
@@ -100,7 +102,15 @@ import type {
   AdminDashboardThemeMode,
 } from '../types/adminDashboardPersonalization'
 
-type DashboardTab = 'overview' | 'users' | 'content' | 'editorial' | 'support' | 'stats' | 'brands'
+type DashboardTab =
+  | 'overview'
+  | 'users'
+  | 'content'
+  | 'editorial'
+  | 'support'
+  | 'stats'
+  | 'brands'
+  | 'operations'
 
 interface StatCardProps {
   label: string
@@ -165,6 +175,7 @@ const MODULE_ICONS: Record<AdminModuleConfig['key'], ElementType> = {
   editorial: Newspaper,
   support: LifeBuoy,
   brands: Layers,
+  operations: FileSpreadsheet,
   audit: ClipboardList,
   stats: BarChart3,
 }
@@ -314,6 +325,7 @@ export default function AdminDashboardPage() {
   const canReadEditorial = Boolean(moduleAccess.editorial?.canRead)
   const canReadSupport = Boolean(moduleAccess.support?.canRead)
   const canReadStats = Boolean(moduleAccess.stats?.canRead)
+  const canReadOperations = Boolean(moduleAccess.operations?.canRead)
   const canReadAudit = hasAdminScope(user, 'admin.audit.read')
   const canManageAuditAlerts = canReadAudit && !user?.adminReadOnly
   const canReadSurfaceControls = canReadContent
@@ -457,6 +469,7 @@ export default function AdminDashboardPage() {
     if (canReadContent) tabs.push({ key: 'content', label: 'Moderacao' })
     if (canReadEditorial) tabs.push({ key: 'editorial', label: 'Editorial' })
     if (canReadSupport) tabs.push({ key: 'support', label: 'Suporte' })
+    if (canReadOperations) tabs.push({ key: 'operations', label: 'Operacoes' })
     if (canReadStats) tabs.push({ key: 'stats', label: 'Metricas' })
     if (moduleAccess.brands?.canRead) tabs.push({ key: 'brands', label: 'Recursos' })
     return tabs
@@ -465,6 +478,7 @@ export default function AdminDashboardPage() {
     canReadContent,
     canReadEditorial,
     canReadSupport,
+    canReadOperations,
     canReadStats,
     moduleAccess.brands?.canRead,
   ])
@@ -1729,6 +1743,12 @@ export default function AdminDashboardPage() {
         {canReadSupport ? (
           <TabsContent value="support">
             <AssistedSessionsPage embedded />
+          </TabsContent>
+        ) : null}
+
+        {canReadOperations ? (
+          <TabsContent value="operations">
+            <AdminBulkImportPage embedded />
           </TabsContent>
         ) : null}
 

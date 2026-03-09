@@ -10,6 +10,7 @@ import {
   Shield,
   ShieldCheck,
   Users,
+  FileSpreadsheet,
 } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
@@ -41,6 +42,7 @@ const MODULE_ICONS: Record<AdminModuleConfig['key'], ElementType> = {
   editorial: Newspaper,
   support: LifeBuoy,
   brands: Layers,
+  operations: FileSpreadsheet,
   audit: ClipboardList,
   stats: BarChart3,
 }

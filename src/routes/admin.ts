@@ -9,6 +9,7 @@ import {
   LifeBuoy,
   Newspaper,
   ClipboardList,
+  FileSpreadsheet,
 } from 'lucide-react'
 
 export const adminRoutes = [
@@ -52,6 +53,12 @@ export const adminRoutes = [
     path: '/admin/recursos',
     label: 'Recursos',
     icon: Layers,
+    allowedRoles: ['admin'] as UserRole[],
+  },
+  {
+    path: '/admin/operacoes',
+    label: 'Operacoes',
+    icon: FileSpreadsheet,
     allowedRoles: ['admin'] as UserRole[],
   },
   {
