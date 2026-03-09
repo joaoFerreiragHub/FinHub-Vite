@@ -30,6 +30,7 @@ import type {
   AdminContentReportPriority,
   AdminContentReportSignals,
   AdminContentQueueResponse,
+  AdminScheduleContentUnhidePayload,
   AdminContentType,
 } from '../types/adminContent'
 
@@ -276,6 +277,7 @@ interface BackendJobRecord {
   workerId?: string | null
   leaseExpiresAt?: string | null
   lastHeartbeatAt?: string | null
+  scheduledFor?: string | null
   actor?: BackendActorSummary | null
   items?: BackendJobItem[]
   progress?: {
@@ -328,6 +330,7 @@ interface BackendJobRecord {
   error?: string | null
   startedAt?: string | null
   finishedAt?: string | null
+  expiresAt?: string | null
   createdAt?: string
   updatedAt?: string
 }
@@ -368,6 +371,8 @@ interface BackendJobWorkerStatusResponse {
   }
   queue?: {
     queued?: number
+    scheduled?: number
+    nextScheduledAt?: string | null
     awaitingApproval?: number
     running?: number
     staleRunning?: number
@@ -862,6 +867,7 @@ const mapJob = (item: BackendJobRecord): AdminContentJob | null => {
     workerId: typeof item.workerId === 'string' ? item.workerId : null,
     leaseExpiresAt: toIsoDate(item.leaseExpiresAt) ?? null,
     lastHeartbeatAt: toIsoDate(item.lastHeartbeatAt) ?? null,
+    scheduledFor: toIsoDate(item.scheduledFor) ?? null,
     actor: mapActor(item.actor),
     items: Array.isArray(item.items)
       ? item.items
@@ -1019,6 +1025,7 @@ const mapJob = (item: BackendJobRecord): AdminContentJob | null => {
     error: typeof item.error === 'string' ? item.error : null,
     startedAt: toIsoDate(item.startedAt) ?? null,
     finishedAt: toIsoDate(item.finishedAt) ?? null,
+    expiresAt: toIsoDate(item.expiresAt) ?? null,
     createdAt: toIsoDate(item.createdAt) ?? new Date(0).toISOString(),
     updatedAt: toIsoDate(item.updatedAt) ?? new Date(0).toISOString(),
   }
@@ -1067,6 +1074,8 @@ const mapJobWorkerStatus = (data: BackendJobWorkerStatusResponse): AdminContentJ
   },
   queue: {
     queued: typeof data.queue?.queued === 'number' ? data.queue.queued : 0,
+    scheduled: typeof data.queue?.scheduled === 'number' ? data.queue.scheduled : 0,
+    nextScheduledAt: toIsoDate(data.queue?.nextScheduledAt) ?? null,
     awaitingApproval:
       typeof data.queue?.awaitingApproval === 'number' ? data.queue.awaitingApproval : 0,
     running: typeof data.queue?.running === 'number' ? data.queue.running : 0,
@@ -1330,6 +1339,27 @@ export const adminContentService = {
     payload: AdminContentModerationActionPayload,
   ): Promise<AdminContentModerationActionResponse> =>
     postModerationAction(contentType, contentId, 'unhide', payload),
+
+  scheduleContentUnhide: async (
+    contentType: AdminContentType,
+    contentId: string,
+    payload: AdminScheduleContentUnhidePayload,
+  ): Promise<AdminContentJobMutationResponse> => {
+    const response = await apiClient.post<BackendJobMutationResponse>(
+      `/admin/content/${contentType}/${contentId}/unhide/schedule`,
+      payload,
+    )
+
+    const job = response.data.job ? mapJob(response.data.job) : null
+    if (!job) {
+      throw new Error('Resposta admin invalida: job em falta.')
+    }
+
+    return {
+      message: response.data.message ?? 'Job de unhide agendado com sucesso.',
+      job,
+    }
+  },
 
   restrictContent: async (
     contentType: AdminContentType,

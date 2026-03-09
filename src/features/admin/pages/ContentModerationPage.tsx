@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   ArrowUpRight,
+  Clock3,
   EyeOff,
   Loader2,
   RefreshCcw,
@@ -65,6 +66,7 @@ import {
   useHideAdminContent,
   useRequestBulkRollbackJobReview,
   useRollbackAdminContent,
+  useScheduleAdminContentUnhide,
   useRestrictAdminContent,
   useUnhideAdminContent,
 } from '../hooks/useAdminContent'
@@ -314,6 +316,26 @@ const formatDateTime = (value: string | null): string => {
   }).format(date)
 }
 
+const toDateTimeLocalInputValue = (date: Date): string => {
+  const pad = (value: number) => String(value).padStart(2, '0')
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
+    date.getHours(),
+  )}:${pad(date.getMinutes())}`
+}
+
+const getDefaultScheduleInputValue = (): string =>
+  toDateTimeLocalInputValue(new Date(Date.now() + 60 * 60 * 1000))
+
+const parseFutureDateInputToIso = (value: string): { valid: boolean; iso?: string } => {
+  const trimmed = value.trim()
+  if (!trimmed) return { valid: false }
+  const parsed = new Date(trimmed)
+  if (Number.isNaN(parsed.getTime())) return { valid: false }
+  if (parsed.getTime() <= Date.now()) return { valid: false }
+  return { valid: true, iso: parsed.toISOString() }
+}
+
 const formatActor = (actor: AdminContentQueueItem['creator']): string => {
   if (!actor) return 'N/A'
   return actor.name || actor.username || actor.email || actor.id
@@ -394,6 +416,8 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
   const [actionNote, setActionNote] = useState('')
   const [actionConfirmText, setActionConfirmText] = useState('')
   const [actionMarkFalsePositive, setActionMarkFalsePositive] = useState(false)
+  const [actionUnhideMode, setActionUnhideMode] = useState<'immediate' | 'scheduled'>('immediate')
+  const [actionScheduledFor, setActionScheduledFor] = useState(getDefaultScheduleInputValue())
 
   const [historyTarget, setHistoryTarget] = useState<AdminContentQueueItem | null>(null)
   const [historyPage, setHistoryPage] = useState(1)
@@ -407,6 +431,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
   const [bulkAction, setBulkAction] = useState<ContentActionKind>('hide')
   const [bulkReason, setBulkReason] = useState(DEFAULT_ACTION_REASON.hide)
   const [bulkNote, setBulkNote] = useState('')
+  const [bulkScheduledFor, setBulkScheduledFor] = useState('')
   const [bulkConfirmText, setBulkConfirmText] = useState('')
   const [rollbackJobReviewDialog, setRollbackJobReviewDialog] =
     useState<RollbackJobReviewDialogState | null>(null)
@@ -488,6 +513,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
 
   const hideMutation = useHideAdminContent()
   const unhideMutation = useUnhideAdminContent()
+  const scheduleUnhideMutation = useScheduleAdminContentUnhide()
   const restrictMutation = useRestrictAdminContent()
   const rollbackMutation = useRollbackAdminContent()
   const jobsQuery = useAdminContentJobs({ page: 1, limit: 6 }, { enabled: canReadContent })
@@ -497,7 +523,10 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
   const approveRollbackJobMutation = useApproveBulkRollbackJob()
 
   const isActionPending =
-    hideMutation.isPending || unhideMutation.isPending || restrictMutation.isPending
+    hideMutation.isPending ||
+    unhideMutation.isPending ||
+    scheduleUnhideMutation.isPending ||
+    restrictMutation.isPending
   const requiresDoubleConfirm = actionDialog ? isDestructiveAction(actionDialog.kind) : false
   const isDoubleConfirmValid =
     !requiresDoubleConfirm || isDoubleConfirmTokenValid(actionConfirmText, DOUBLE_CONFIRM_TOKEN)
@@ -508,8 +537,18 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     requiresDoubleConfirm && actionConfirmText.trim().length > 0 && !isDoubleConfirmValid
       ? `Escreve "${DOUBLE_CONFIRM_TOKEN}" para confirmar esta acao critica.`
       : null
+  const actionScheduledForError =
+    actionDialog?.kind === 'unhide' && actionUnhideMode === 'scheduled'
+      ? parseFutureDateInputToIso(actionScheduledFor).valid
+        ? null
+        : 'Data/hora de agendamento invalida ou nao futura.'
+      : null
   const canSubmitAction =
-    Boolean(actionDialog) && !isActionPending && !actionReasonError && isDoubleConfirmValid
+    Boolean(actionDialog) &&
+    !isActionPending &&
+    !actionReasonError &&
+    !actionScheduledForError &&
+    isDoubleConfirmValid
   const rollbackReview = rollbackReviewQuery.data?.rollback
   const isRollbackPending = rollbackMutation.isPending
   const rollbackRequiresDoubleConfirm = Boolean(rollbackReview?.requiresConfirm)
@@ -541,8 +580,18 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     bulkRequiresDoubleConfirm && bulkConfirmText.trim().length > 0 && !isBulkConfirmValid
       ? `Escreve "${DOUBLE_CONFIRM_TOKEN}" para confirmar este lote.`
       : null
+  const bulkScheduledForError =
+    bulkDialog && bulkAction === 'unhide' && bulkScheduledFor.trim().length > 0
+      ? parseFutureDateInputToIso(bulkScheduledFor).valid
+        ? null
+        : 'Data/hora de agendamento invalida ou nao futura.'
+      : null
   const canSubmitBulk =
-    Boolean(bulkDialog) && !bulkJobMutation.isPending && !bulkReasonError && isBulkConfirmValid
+    Boolean(bulkDialog) &&
+    !bulkJobMutation.isPending &&
+    !bulkReasonError &&
+    !bulkScheduledForError &&
+    isBulkConfirmValid
   const rollbackJobApproval = rollbackJobApprovalDialog?.job.approval ?? null
   const rollbackJobApprovalRequiresConfirm =
     Number(rollbackJobApproval?.riskSummary.criticalRiskCount ?? 0) > 0
@@ -644,6 +693,8 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     setActionNote('')
     setActionConfirmText('')
     setActionMarkFalsePositive(false)
+    setActionUnhideMode('immediate')
+    setActionScheduledFor(getDefaultScheduleInputValue())
   }
 
   const closeActionDialog = (force = false) => {
@@ -653,6 +704,8 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     setActionNote('')
     setActionConfirmText('')
     setActionMarkFalsePositive(false)
+    setActionUnhideMode('immediate')
+    setActionScheduledFor(getDefaultScheduleInputValue())
   }
 
   const closeHistoryDialog = () => {
@@ -703,6 +756,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     setBulkAction('hide')
     setBulkReason(DEFAULT_ACTION_REASON.hide)
     setBulkNote('')
+    setBulkScheduledFor('')
     setBulkConfirmText('')
   }
 
@@ -712,6 +766,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     setBulkAction('hide')
     setBulkReason(DEFAULT_ACTION_REASON.hide)
     setBulkNote('')
+    setBulkScheduledFor('')
     setBulkConfirmText('')
   }
 
@@ -761,6 +816,11 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
       return
     }
 
+    if (actionScheduledForError) {
+      toast.error(actionScheduledForError)
+      return
+    }
+
     const reason = actionReason.trim()
     if (!isDoubleConfirmValid) {
       toast.error(`Escreve "${DOUBLE_CONFIRM_TOKEN}" para confirmar esta acao critica.`)
@@ -782,12 +842,31 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
         })
         toast.success(result.message)
       } else if (actionDialog.kind === 'unhide') {
-        const result = await unhideMutation.mutateAsync({
-          contentType: actionDialog.content.contentType,
-          contentId: actionDialog.content.id,
-          payload,
-        })
-        toast.success(result.message)
+        if (actionUnhideMode === 'scheduled') {
+          const parsed = parseFutureDateInputToIso(actionScheduledFor)
+          if (!parsed.valid || !parsed.iso) {
+            toast.error('Data/hora de agendamento invalida ou nao futura.')
+            return
+          }
+
+          const result = await scheduleUnhideMutation.mutateAsync({
+            contentType: actionDialog.content.contentType,
+            contentId: actionDialog.content.id,
+            payload: {
+              reason,
+              note: actionNote.trim() || undefined,
+              scheduledFor: parsed.iso,
+            },
+          })
+          toast.success(result.message)
+        } else {
+          const result = await unhideMutation.mutateAsync({
+            contentType: actionDialog.content.contentType,
+            contentId: actionDialog.content.id,
+            payload,
+          })
+          toast.success(result.message)
+        }
       } else {
         const result = await restrictMutation.mutateAsync({
           contentType: actionDialog.content.contentType,
@@ -853,6 +932,11 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
       return
     }
 
+    if (bulkScheduledForError) {
+      toast.error(bulkScheduledForError)
+      return
+    }
+
     const reason = bulkReason.trim()
 
     if (!isBulkConfirmValid) {
@@ -861,11 +945,22 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     }
 
     try {
+      const parsedScheduledFor =
+        bulkAction === 'unhide' && bulkScheduledFor.trim().length > 0
+          ? parseFutureDateInputToIso(bulkScheduledFor)
+          : null
+
+      if (parsedScheduledFor && (!parsedScheduledFor.valid || !parsedScheduledFor.iso)) {
+        toast.error('Data/hora de agendamento invalida ou nao futura.')
+        return
+      }
+
       const result = await bulkJobMutation.mutateAsync({
         action: bulkAction,
         reason,
         note: bulkNote.trim() || undefined,
         confirm: bulkRequiresDoubleConfirm ? true : undefined,
+        scheduledFor: parsedScheduledFor?.iso,
         items: bulkDialog.items.map((item) => ({
           contentType: item.contentType,
           contentId: item.id,
@@ -1337,6 +1432,10 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                     {workerStatusQuery.data.queue.awaitingApproval}
                   </p>
                   <p>
+                    Agendados: {workerStatusQuery.data.queue.scheduled} | proximo em{' '}
+                    {formatDateTime(workerStatusQuery.data.queue.nextScheduledAt)}
+                  </p>
+                  <p>
                     Running: {workerStatusQuery.data.queue.running} | retries em curso{' '}
                     {workerStatusQuery.data.queue.retrying}
                   </p>
@@ -1407,6 +1506,12 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                           >
                             {JOB_STATUS_LABEL[job.status]}
                           </Badge>
+                          {job.scheduledFor ? (
+                            <Badge variant="outline" className="border-sky-500/40 text-sky-700">
+                              <Clock3 className="h-3 w-3" />
+                              Agendado
+                            </Badge>
+                          ) : null}
                           {job.type === 'bulk_rollback' && job.approval?.required ? (
                             <Badge variant={JOB_APPROVAL_BADGE(job.approval.reviewStatus)}>
                               {JOB_APPROVAL_LABEL[job.approval.reviewStatus]}
@@ -1430,6 +1535,11 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                         Tentativa: {job.attemptCount}/{job.maxAttempts}
                         {job.workerId ? ` | worker ${job.workerId}` : ''}
                       </p>
+                      {job.scheduledFor ? (
+                        <p className="text-xs text-muted-foreground">
+                          Execucao agendada para {formatDateTime(job.scheduledFor)}
+                        </p>
+                      ) : null}
                       <p className="text-xs text-muted-foreground">
                         Actor: {job.actor?.name || job.actor?.username || job.actor?.id || 'n/a'}
                       </p>
@@ -2107,6 +2217,54 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
               </div>
 
               {actionDialog.kind === 'unhide' ? (
+                <div className="space-y-3 rounded-md border border-border/70 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Modo de reativacao
+                  </p>
+                  <Select
+                    value={actionUnhideMode}
+                    onValueChange={(value) =>
+                      setActionUnhideMode(value as 'immediate' | 'scheduled')
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="immediate">Imediata</SelectItem>
+                      <SelectItem value="scheduled">Agendada</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {actionUnhideMode === 'scheduled' ? (
+                    <div className="space-y-2">
+                      <Label htmlFor="admin-content-action-scheduled-for">
+                        Data/hora de reativacao
+                      </Label>
+                      <Input
+                        id="admin-content-action-scheduled-for"
+                        type="datetime-local"
+                        value={actionScheduledFor}
+                        onChange={(event) => setActionScheduledFor(event.target.value)}
+                        className={
+                          actionScheduledForError
+                            ? 'border-destructive focus-visible:ring-destructive'
+                            : undefined
+                        }
+                      />
+                      {actionScheduledForError ? (
+                        <p className="text-xs text-destructive">{actionScheduledForError}</p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">
+                          O worker vai executar o unhide automaticamente na hora definida.
+                        </p>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {actionDialog.kind === 'unhide' && actionUnhideMode === 'immediate' ? (
                 <label className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Checkbox
                     checked={actionMarkFalsePositive}
@@ -2151,7 +2309,11 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
             </Button>
             <Button type="button" onClick={submitAction} disabled={!canSubmitAction}>
               {isActionPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              {actionDialog ? ACTION_COPY[actionDialog.kind].confirmLabel : 'Confirmar'}
+              {actionDialog?.kind === 'unhide' && actionUnhideMode === 'scheduled'
+                ? 'Agendar reativacao'
+                : actionDialog
+                  ? ACTION_COPY[actionDialog.kind].confirmLabel
+                  : 'Confirmar'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2760,6 +2922,33 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                   </SelectContent>
                 </Select>
               </div>
+
+              {bulkAction === 'unhide' ? (
+                <div className="space-y-2">
+                  <Label htmlFor="admin-content-bulk-scheduled-for">
+                    Agendar reativacao (opcional)
+                  </Label>
+                  <Input
+                    id="admin-content-bulk-scheduled-for"
+                    type="datetime-local"
+                    value={bulkScheduledFor}
+                    onChange={(event) => setBulkScheduledFor(event.target.value)}
+                    className={
+                      bulkScheduledForError
+                        ? 'border-destructive focus-visible:ring-destructive'
+                        : undefined
+                    }
+                  />
+                  {bulkScheduledForError ? (
+                    <p className="text-xs text-destructive">{bulkScheduledForError}</p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      Se vazio, o job unhide corre imediatamente. Se preenchido, fica em fila
+                      agendada.
+                    </p>
+                  )}
+                </div>
+              ) : null}
 
               <div className="space-y-2">
                 <Label htmlFor="admin-content-bulk-reason">Motivo</Label>

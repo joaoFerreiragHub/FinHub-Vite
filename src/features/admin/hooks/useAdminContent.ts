@@ -8,6 +8,7 @@ import type {
   AdminContentQueueQuery,
   AdminContentRollbackPayload,
   AdminContentJob,
+  AdminScheduleContentUnhidePayload,
   AdminContentType,
 } from '../types/adminContent'
 
@@ -21,6 +22,12 @@ interface AdminContentRollbackMutationInput {
   contentType: AdminContentType
   contentId: string
   payload: AdminContentRollbackPayload
+}
+
+interface AdminScheduleUnhideMutationInput {
+  contentType: AdminContentType
+  contentId: string
+  payload: AdminScheduleContentUnhidePayload
 }
 
 interface AdminContentJobReviewMutationInput {
@@ -148,6 +155,25 @@ export function useUnhideAdminContent() {
       queryClient.invalidateQueries({
         queryKey: ['admin', 'content', 'history', variables.contentType, variables.contentId],
       })
+    },
+  })
+}
+
+export function useScheduleAdminContentUnhide() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ contentType, contentId, payload }: AdminScheduleUnhideMutationInput) =>
+      adminContentService.scheduleContentUnhide(contentType, contentId, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'queue'] })
+      queryClient.invalidateQueries({
+        queryKey: ['admin', 'content', 'history', variables.contentType, variables.contentId],
+      })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'jobs'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'jobs', 'worker-status'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'metrics', 'overview'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'metrics', 'drilldown'] })
     },
   })
 }

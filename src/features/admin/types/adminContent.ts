@@ -299,6 +299,7 @@ export interface AdminContentJob {
   workerId: string | null
   leaseExpiresAt: string | null
   lastHeartbeatAt: string | null
+  scheduledFor: string | null
   actor: AdminActorSummary | null
   items: AdminContentJobItem[]
   progress: {
@@ -317,6 +318,7 @@ export interface AdminContentJob {
   error: string | null
   startedAt: string | null
   finishedAt: string | null
+  expiresAt: string | null
   createdAt: string
   updatedAt: string
 }
@@ -352,6 +354,8 @@ export interface AdminContentJobWorkerStatus {
   }
   queue: {
     queued: number
+    scheduled: number
+    nextScheduledAt: string | null
     awaitingApproval: number
     running: number
     staleRunning: number
@@ -371,10 +375,15 @@ export interface AdminContentJobWorkerStatus {
 export interface AdminBulkModerationJobPayload extends AdminContentModerationActionPayload {
   action: AdminContentModerationAction
   confirm?: boolean
+  scheduledFor?: string
   items: Array<{
     contentType: AdminContentType
     contentId: string
   }>
+}
+
+export interface AdminScheduleContentUnhidePayload extends AdminContentModerationActionPayload {
+  scheduledFor: string
 }
 
 export interface AdminContentJobReviewPayload {
