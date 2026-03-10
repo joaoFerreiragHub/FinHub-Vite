@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from 'react'
 
-import CommentSection from './CommentSection'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import { getErrorMessage } from '@/lib/api/client'
 import { Badge } from '@/components/ui'
 import { Button } from '@/components/ui'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui'
+import { CommentSection } from '@/features/hub/components'
+import { useComments } from '@/features/hub/hooks/useComments'
 
 import { RatingDisplay } from '@/features/hub/components/ratings/RatingDisplay'
 import { ReviewsDisplay } from '@/features/hub/components/ratings/ReviewsDisplay'
@@ -49,6 +51,10 @@ export default function BookModal({
   const role = useAuthStore((state) => state.getRole())
   const [activeTab, setActiveTab] = useState('sobre')
   const [visitorModal, setVisitorModal] = useState(false)
+  const comments = useComments(ContentType.BOOK, book.id, {
+    enabled: Boolean(book.id),
+    currentUserId: user?.id,
+  })
 
   useEffect(() => {
     if (!ratings.length && setUserRating) {
@@ -124,8 +130,28 @@ export default function BookModal({
               </div>
             </TabsContent>
 
-            <TabsContent value="comentarios">
-              <CommentSection bookId={book.id} />
+            <TabsContent value="comentarios" className="space-y-3">
+              {comments.error ? (
+                <p className="text-sm text-red-600">
+                  Erro ao carregar comentarios: {getErrorMessage(comments.error)}
+                </p>
+              ) : null}
+
+              <CommentSection
+                targetType={ContentType.BOOK}
+                targetId={book.id}
+                currentUserId={user?.id}
+                response={comments.response}
+                onSubmitComment={comments.submitComment}
+                onReplyComment={comments.replyToComment}
+                onEditComment={comments.editComment}
+                onDeleteComment={comments.deleteComment}
+                onLikeComment={comments.likeComment}
+                onLoadMore={comments.loadMore}
+                isLoading={comments.isLoading}
+                sortBy={comments.sortBy}
+                onSortChange={comments.setSortBy}
+              />
             </TabsContent>
 
             <TabsContent value="avaliar">
