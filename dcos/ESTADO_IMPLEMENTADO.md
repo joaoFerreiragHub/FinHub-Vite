@@ -1372,3 +1372,22 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - teste de `NotificationBell` atualizado para mockar o novo hook `useMarkNotificationRead`.
 - Validacao tecnica:
   - frontend: `npm run typecheck:p1` -> PASS.
+
+## 63) O2 public comments + aliases + e2e smoke (2026-03-10)
+- Detalhe publico de artigo com comentarios reais ligado ao stack HUB social:
+  - `src/features/content/pages/ArticleDetailPage.tsx` passa a usar `CommentSection` + `useComments` para `ContentType.ARTICLE`;
+  - suporte operacional a submeter, responder, editar, remover, like e carregar mais comentarios;
+  - erro de comentarios apresentado via `getErrorMessage` mantendo fallback de renderizacao do detalhe.
+- Alias de rotas curtas publicas para paridade de navegacao e testes:
+  - `src/pages/artigos/@slug.page.tsx`
+  - `src/pages/recursos/index.page.tsx`
+  - `src/pages/recursos/@slug.page.tsx`
+  - wrappers Vike com `HomepageLayout` + `MemoryRouter` para fornecer contexto de `react-router` aos detalhes/listagem.
+- Cobertura E2E smoke de comentarios para rotas curtas:
+  - novo teste `e2e/comments.smoke.spec.ts`;
+  - cenarios cobertos:
+    - `/artigos/:slug` (load arvore + criar comentario);
+    - `/recursos/:slug` (load arvore + criar comentario em `directory_entry`);
+  - setup de sessao autenticada e consentimento de cookies em `localStorage` para evitar bloqueios de UI durante o smoke.
+- Validacao tecnica:
+  - `npm run test:e2e -- e2e/comments.smoke.spec.ts` -> PASS (2/2).

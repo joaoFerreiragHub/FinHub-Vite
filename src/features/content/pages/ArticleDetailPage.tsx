@@ -3,6 +3,11 @@ import { Link, Navigate, useParams } from 'react-router-dom'
 import { Eye, Star } from 'lucide-react'
 import { useArticle } from '@/features/hub/articles/hooks/useArticles'
 import { articleService } from '@/features/hub/articles/services/articleService'
+import { CommentSection } from '@/features/hub/components'
+import { useComments } from '@/features/hub/hooks/useComments'
+import { ContentType } from '@/features/hub/types'
+import { getErrorMessage } from '@/lib/api/client'
+import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 
 const formatDate = (value?: string): string => {
   if (!value) return 'Data indisponivel'
@@ -33,6 +38,12 @@ const hasHtml = (value: string): boolean => /<\/?[a-z][\s\S]*>/i.test(value)
 export default function ArticleDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const { data: article, isLoading, isError } = useArticle(slug || '')
+  const currentUserId = useAuthStore((state) => state.user?.id)
+  const comments = useComments(ContentType.ARTICLE, article?.id ?? '', {
+    enabled: Boolean(article?.id && article.commentsEnabled),
+    currentUserId,
+    contentQueryKey: ['article', slug],
+  })
 
   useEffect(() => {
     if (article?.id) {
@@ -115,9 +126,35 @@ export default function ArticleDetailPage() {
               <div className="whitespace-pre-wrap text-sm leading-7 text-foreground">{body}</div>
             )}
           </article>
+
+          {article.commentsEnabled && (
+            <section className="space-y-3">
+              {comments.error ? (
+                <p className="text-sm text-red-600">
+                  Erro ao carregar comentarios: {getErrorMessage(comments.error)}
+                </p>
+              ) : null}
+
+              <CommentSection
+                targetType={ContentType.ARTICLE}
+                targetId={article.id}
+                currentUserId={currentUserId}
+                response={comments.response}
+                enabled={article.commentsEnabled}
+                onSubmitComment={comments.submitComment}
+                onReplyComment={comments.replyToComment}
+                onEditComment={comments.editComment}
+                onDeleteComment={comments.deleteComment}
+                onLikeComment={comments.likeComment}
+                onLoadMore={comments.loadMore}
+                isLoading={comments.isLoading}
+                sortBy={comments.sortBy}
+                onSortChange={comments.setSortBy}
+              />
+            </section>
+          )}
         </div>
       </div>
     </div>
   )
 }
-
