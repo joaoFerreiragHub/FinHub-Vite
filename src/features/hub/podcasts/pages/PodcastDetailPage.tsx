@@ -9,9 +9,13 @@ import {
   CommentSection,
 } from '@/features/hub/components'
 import { usePermissions, usePaywall } from '@/features/auth'
+import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import { getErrorMessage } from '@/lib/api/client'
 import { isRoleAtLeast } from '@/lib/permissions/config'
 import { Card, Button } from '@/components/ui'
 import type { PodcastEpisode } from '../types'
+import { useComments } from '@/features/hub/hooks/useComments'
+import { ContentType } from '@/features/hub/types'
 
 /**
  * Pagina de detalhe do podcast (publica)
@@ -22,6 +26,13 @@ export function PodcastDetailPage() {
   const { role } = usePermissions()
   const { PaywallComponent } = usePaywall()
   const [expandedEpisode, setExpandedEpisode] = useState<string | null>(null)
+  const currentUserId = useAuthStore((state) => state.user?.id)
+  const hasAccess = podcast ? isRoleAtLeast(role, podcast.requiredRole) : false
+  const comments = useComments(ContentType.PODCAST, podcast?.id ?? '', {
+    enabled: hasAccess && Boolean(podcast?.commentsEnabled),
+    currentUserId,
+    contentQueryKey: ['podcast', slug],
+  })
 
   useEffect(() => {
     if (podcast?.id) {
@@ -40,8 +51,6 @@ export function PodcastDetailPage() {
   if (error || !podcast) {
     return <Navigate to="/hub/podcasts" replace />
   }
-
-  const hasAccess = isRoleAtLeast(role, podcast.requiredRole)
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -243,33 +252,28 @@ export function PodcastDetailPage() {
 
             {/* Comments */}
             {hasAccess && podcast.commentsEnabled && (
-              <section>
+              <section className="space-y-3">
+                {comments.error ? (
+                  <p className="text-sm text-red-600">
+                    Erro ao carregar comentarios: {getErrorMessage(comments.error)}
+                  </p>
+                ) : null}
+
                 <CommentSection
                   targetType={podcast.type}
                   targetId={podcast.id}
-                  response={{
-                    items: [],
-                    total: podcast.commentCount,
-                    limit: 10,
-                    offset: 0,
-                    hasMore: false,
-                  }}
+                  currentUserId={currentUserId}
+                  response={comments.response}
                   enabled={podcast.commentsEnabled}
-                  onSubmitComment={async (content) => {
-                    console.log('Submit comment:', content)
-                  }}
-                  onReplyComment={async (commentId, content) => {
-                    console.log('Reply:', commentId, content)
-                  }}
-                  onEditComment={async (commentId, content) => {
-                    console.log('Edit:', commentId, content)
-                  }}
-                  onDeleteComment={async (commentId) => {
-                    console.log('Delete:', commentId)
-                  }}
-                  onLikeComment={async (commentId) => {
-                    console.log('Like:', commentId)
-                  }}
+                  onSubmitComment={comments.submitComment}
+                  onReplyComment={comments.replyToComment}
+                  onEditComment={comments.editComment}
+                  onDeleteComment={comments.deleteComment}
+                  onLikeComment={comments.likeComment}
+                  onLoadMore={comments.loadMore}
+                  isLoading={comments.isLoading}
+                  sortBy={comments.sortBy}
+                  onSortChange={comments.setSortBy}
                 />
               </section>
             )}

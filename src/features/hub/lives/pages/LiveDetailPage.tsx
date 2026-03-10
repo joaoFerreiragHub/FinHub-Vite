@@ -9,8 +9,12 @@ import {
   CommentSection,
 } from '@/features/hub/components'
 import { usePermissions, usePaywall } from '@/features/auth'
+import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import { getErrorMessage } from '@/lib/api/client'
 import { isRoleAtLeast } from '@/lib/permissions/config'
 import { Card, Button } from '@/components/ui'
+import { useComments } from '@/features/hub/hooks/useComments'
+import { ContentType } from '@/features/hub/types'
 
 /**
  * Pagina de detalhe do evento (publica)
@@ -21,6 +25,13 @@ export function LiveDetailPage() {
   const { role } = usePermissions()
   const { PaywallComponent } = usePaywall()
   const registerMutation = useRegisterLive()
+  const currentUserId = useAuthStore((state) => state.user?.id)
+  const hasAccess = live ? isRoleAtLeast(role, live.requiredRole) : false
+  const comments = useComments(ContentType.EVENT, live?.id ?? '', {
+    enabled: hasAccess && Boolean(live?.commentsEnabled),
+    currentUserId,
+    contentQueryKey: ['live', slug],
+  })
 
   useEffect(() => {
     if (live?.id) {
@@ -39,8 +50,6 @@ export function LiveDetailPage() {
   if (error || !live) {
     return <Navigate to="/hub/lives" replace />
   }
-
-  const hasAccess = isRoleAtLeast(role, live.requiredRole)
 
   const handleRegister = async () => {
     try {
@@ -208,33 +217,28 @@ export function LiveDetailPage() {
 
             {/* Comments */}
             {hasAccess && live.commentsEnabled && (
-              <section>
+              <section className="space-y-3">
+                {comments.error ? (
+                  <p className="text-sm text-red-600">
+                    Erro ao carregar comentarios: {getErrorMessage(comments.error)}
+                  </p>
+                ) : null}
+
                 <CommentSection
                   targetType={live.type}
                   targetId={live.id}
-                  response={{
-                    items: [],
-                    total: live.commentCount,
-                    limit: 10,
-                    offset: 0,
-                    hasMore: false,
-                  }}
+                  currentUserId={currentUserId}
+                  response={comments.response}
                   enabled={live.commentsEnabled}
-                  onSubmitComment={async (content) => {
-                    console.log('Submit comment:', content)
-                  }}
-                  onReplyComment={async (commentId, content) => {
-                    console.log('Reply to comment:', commentId, content)
-                  }}
-                  onEditComment={async (commentId, content) => {
-                    console.log('Edit comment:', commentId, content)
-                  }}
-                  onDeleteComment={async (commentId) => {
-                    console.log('Delete comment:', commentId)
-                  }}
-                  onLikeComment={async (commentId) => {
-                    console.log('Like comment:', commentId)
-                  }}
+                  onSubmitComment={comments.submitComment}
+                  onReplyComment={comments.replyToComment}
+                  onEditComment={comments.editComment}
+                  onDeleteComment={comments.deleteComment}
+                  onLikeComment={comments.likeComment}
+                  onLoadMore={comments.loadMore}
+                  isLoading={comments.isLoading}
+                  sortBy={comments.sortBy}
+                  onSortChange={comments.setSortBy}
                 />
               </section>
             )}

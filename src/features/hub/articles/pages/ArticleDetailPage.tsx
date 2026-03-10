@@ -9,7 +9,11 @@ import {
   CommentSection,
 } from '@/features/hub/components'
 import { usePermissions, usePaywall } from '@/features/auth'
+import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import { getErrorMessage } from '@/lib/api/client'
 import { isRoleAtLeast } from '@/lib/permissions/config'
+import { useComments } from '@/features/hub/hooks/useComments'
+import { ContentType } from '@/features/hub/types'
 
 /**
  * Pagina de detalhe do artigo (publica)
@@ -19,6 +23,13 @@ export function ArticleDetailPage() {
   const { data: article, isLoading, error } = useArticle(slug!)
   const { role } = usePermissions()
   const { PaywallComponent } = usePaywall()
+  const currentUserId = useAuthStore((state) => state.user?.id)
+  const hasAccess = article ? isRoleAtLeast(role, article.requiredRole) : false
+  const comments = useComments(ContentType.ARTICLE, article?.id ?? '', {
+    enabled: hasAccess && Boolean(article?.commentsEnabled),
+    currentUserId,
+    contentQueryKey: ['article', slug],
+  })
 
   useEffect(() => {
     if (article?.id) {
@@ -37,8 +48,6 @@ export function ArticleDetailPage() {
   if (error || !article) {
     return <Navigate to="/hub/articles" replace />
   }
-
-  const hasAccess = isRoleAtLeast(role, article.requiredRole)
 
   return (
     <div className="min-h-screen bg-background">
@@ -133,33 +142,28 @@ export function ArticleDetailPage() {
             <hr className="border-border" />
 
             {hasAccess && article.commentsEnabled && (
-              <section>
+              <section className="space-y-3">
+                {comments.error ? (
+                  <p className="text-sm text-red-600">
+                    Erro ao carregar comentarios: {getErrorMessage(comments.error)}
+                  </p>
+                ) : null}
+
                 <CommentSection
                   targetType={article.type}
                   targetId={article.id}
-                  response={{
-                    items: [],
-                    total: article.commentCount,
-                    limit: 10,
-                    offset: 0,
-                    hasMore: false,
-                  }}
+                  currentUserId={currentUserId}
+                  response={comments.response}
                   enabled={article.commentsEnabled}
-                  onSubmitComment={async (content) => {
-                    console.log('Submit comment:', content)
-                  }}
-                  onReplyComment={async (commentId, content) => {
-                    console.log('Reply to comment:', commentId, content)
-                  }}
-                  onEditComment={async (commentId, content) => {
-                    console.log('Edit comment:', commentId, content)
-                  }}
-                  onDeleteComment={async (commentId) => {
-                    console.log('Delete comment:', commentId)
-                  }}
-                  onLikeComment={async (commentId) => {
-                    console.log('Like comment:', commentId)
-                  }}
+                  onSubmitComment={comments.submitComment}
+                  onReplyComment={comments.replyToComment}
+                  onEditComment={comments.editComment}
+                  onDeleteComment={comments.deleteComment}
+                  onLikeComment={comments.likeComment}
+                  onLoadMore={comments.loadMore}
+                  isLoading={comments.isLoading}
+                  sortBy={comments.sortBy}
+                  onSortChange={comments.setSortBy}
                 />
               </section>
             )}

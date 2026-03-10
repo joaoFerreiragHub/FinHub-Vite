@@ -9,8 +9,12 @@ import {
   CommentSection,
 } from '@/features/hub/components'
 import { usePermissions, usePaywall } from '@/features/auth'
+import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import { getErrorMessage } from '@/lib/api/client'
 import { isRoleAtLeast } from '@/lib/permissions/config'
 import { Card, Button } from '@/components/ui'
+import { useComments } from '@/features/hub/hooks/useComments'
+import { ContentType } from '@/features/hub/types'
 
 /**
  * Pagina de detalhe do livro (publica)
@@ -20,6 +24,13 @@ export function BookDetailPage() {
   const { data: book, isLoading, error } = useBook(slug!)
   const { role } = usePermissions()
   const { PaywallComponent } = usePaywall()
+  const currentUserId = useAuthStore((state) => state.user?.id)
+  const hasAccess = book ? isRoleAtLeast(role, book.requiredRole) : false
+  const comments = useComments(ContentType.BOOK, book?.id ?? '', {
+    enabled: hasAccess && Boolean(book?.commentsEnabled),
+    currentUserId,
+    contentQueryKey: ['book', slug],
+  })
 
   useEffect(() => {
     if (book?.id) {
@@ -38,8 +49,6 @@ export function BookDetailPage() {
   if (error || !book) {
     return <Navigate to="/hub/books" replace />
   }
-
-  const hasAccess = isRoleAtLeast(role, book.requiredRole)
 
   return (
     <div className="min-h-screen bg-background">
@@ -154,33 +163,28 @@ export function BookDetailPage() {
 
             {/* Comments */}
             {hasAccess && book.commentsEnabled && (
-              <section>
+              <section className="space-y-3">
+                {comments.error ? (
+                  <p className="text-sm text-red-600">
+                    Erro ao carregar comentarios: {getErrorMessage(comments.error)}
+                  </p>
+                ) : null}
+
                 <CommentSection
                   targetType={book.type}
                   targetId={book.id}
-                  response={{
-                    items: [],
-                    total: book.commentCount,
-                    limit: 10,
-                    offset: 0,
-                    hasMore: false,
-                  }}
+                  currentUserId={currentUserId}
+                  response={comments.response}
                   enabled={book.commentsEnabled}
-                  onSubmitComment={async (content) => {
-                    console.log('Submit comment:', content)
-                  }}
-                  onReplyComment={async (commentId, content) => {
-                    console.log('Reply:', commentId, content)
-                  }}
-                  onEditComment={async (commentId, content) => {
-                    console.log('Edit:', commentId, content)
-                  }}
-                  onDeleteComment={async (commentId) => {
-                    console.log('Delete:', commentId)
-                  }}
-                  onLikeComment={async (commentId) => {
-                    console.log('Like:', commentId)
-                  }}
+                  onSubmitComment={comments.submitComment}
+                  onReplyComment={comments.replyToComment}
+                  onEditComment={comments.editComment}
+                  onDeleteComment={comments.deleteComment}
+                  onLikeComment={comments.likeComment}
+                  onLoadMore={comments.loadMore}
+                  isLoading={comments.isLoading}
+                  sortBy={comments.sortBy}
+                  onSortChange={comments.setSortBy}
                 />
               </section>
             )}
