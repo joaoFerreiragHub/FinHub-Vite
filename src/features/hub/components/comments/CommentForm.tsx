@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui'
-import { type ContentType } from '../../types'
+import { type CommentTargetType } from '../../types'
 
 import { cn } from '@/lib/utils'
 import { getErrorMessage } from '@/lib/api/client'
@@ -22,7 +22,7 @@ export interface CommentFormProps {
   /**
    * Tipo e ID do conteúdo alvo
    */
-  targetType: ContentType
+  targetType: CommentTargetType
   targetId: string
   /**
    * ID do comentário pai (se for reply)

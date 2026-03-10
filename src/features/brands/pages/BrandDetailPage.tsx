@@ -1,6 +1,8 @@
 import { ArrowLeft, ArrowRight, ExternalLink, ShieldCheck } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
-import { RatingsSection } from '@/features/hub/components'
+import { CommentSection, RatingsSection } from '@/features/hub/components'
+import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import { getErrorMessage } from '@/lib/api/client'
 import {
   Badge,
   Button,
@@ -16,6 +18,7 @@ import {
   usePublicDirectoryDetailBySlug,
   usePublicDirectoryRelatedContent,
 } from '@/features/brands/hooks/usePublicDirectories'
+import { useDirectoryComments } from '@/features/brands/hooks/useDirectoryComments'
 import type { PublicDirectoryRelatedContentType } from '@/features/brands/services/publicDirectoriesService'
 
 const numberFormatter = new Intl.NumberFormat('pt-PT')
@@ -81,11 +84,23 @@ const formatDate = (value: string | null) => {
 
 export default function BrandDetailPage() {
   const { slug = '' } = useParams<{ slug: string }>()
+  const normalizedSlug = slug.trim().toLowerCase()
+  const currentUserId = useAuthStore((state) => state.user?.id)
 
-  const detailQuery = usePublicDirectoryDetailBySlug(slug)
+  const detailQuery = usePublicDirectoryDetailBySlug(normalizedSlug)
   const entry = detailQuery.data
-  const relatedQuery = usePublicDirectoryRelatedContent(entry?.verticalType ?? null, slug, 9, {
-    enabled: Boolean(entry?.verticalType),
+  const relatedQuery = usePublicDirectoryRelatedContent(
+    entry?.verticalType ?? null,
+    normalizedSlug,
+    9,
+    {
+      enabled: Boolean(entry?.verticalType),
+    },
+  )
+  const comments = useDirectoryComments(entry?.id ?? '', {
+    enabled: Boolean(entry?.id),
+    currentUserId,
+    contentQueryKey: ['directories', 'detail-by-slug', normalizedSlug],
   })
 
   if (detailQuery.isLoading) {
@@ -362,7 +377,33 @@ export default function BrandDetailPage() {
             targetId={entry.id}
             formTitle="Avaliar este recurso"
             sectionTitle="Avaliacoes e reviews"
-            contentQueryKey={['directories', 'detail-by-slug', slug.trim().toLowerCase()]}
+            contentQueryKey={['directories', 'detail-by-slug', normalizedSlug]}
+          />
+        </section>
+
+        <section className="space-y-4">
+          {comments.error ? (
+            <Card className="border-red-200 bg-red-50 text-red-800">
+              <CardContent className="p-4 text-sm">
+                Erro ao carregar comentarios: {getErrorMessage(comments.error)}
+              </CardContent>
+            </Card>
+          ) : null}
+
+          <CommentSection
+            targetType="directory_entry"
+            targetId={entry.id}
+            currentUserId={currentUserId}
+            response={comments.response}
+            onSubmitComment={comments.submitComment}
+            onReplyComment={comments.replyToComment}
+            onEditComment={comments.editComment}
+            onDeleteComment={comments.deleteComment}
+            onLikeComment={comments.likeComment}
+            onLoadMore={comments.loadMore}
+            isLoading={comments.isLoading}
+            sortBy={comments.sortBy}
+            onSortChange={comments.setSortBy}
           />
         </section>
 

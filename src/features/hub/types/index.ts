@@ -37,6 +37,7 @@ export {
 // Comment types (universal)
 export {
   type Comment,
+  type CommentTargetType,
   type CreateCommentDto,
   type UpdateCommentDto,
   type CommentFilters,

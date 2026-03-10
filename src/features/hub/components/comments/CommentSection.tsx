@@ -1,6 +1,6 @@
 import { type HTMLAttributes } from 'react'
 import { cn } from '@/lib/utils'
-import { type ContentType, type Comment, type CommentListResponse } from '../../types'
+import { type Comment, type CommentListResponse, type CommentTargetType } from '../../types'
 import { CommentForm } from './CommentForm'
 import { CommentCard } from './CommentCard'
 import { Button } from '@/components/ui'
@@ -11,7 +11,7 @@ export interface CommentSectionProps extends HTMLAttributes<HTMLDivElement> {
   /**
    * Tipo e ID do conteúdo
    */
-  targetType: ContentType
+  targetType: CommentTargetType
   targetId: string
   /**
    * Resposta da lista de comentários

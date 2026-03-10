@@ -1,6 +1,8 @@
 import { type User } from '@/features/auth/types'
 import { type ContentType } from './base'
 
+export type CommentTargetType = ContentType | 'creator' | 'directory_entry' | 'brand'
+
 /**
  * Comentário universal do HUB
  */
@@ -8,7 +10,7 @@ export interface Comment {
   id: string
 
   // Conteúdo alvo
-  targetType: ContentType
+  targetType: CommentTargetType
   targetId: string
   parentCommentId?: string | null
 
@@ -43,7 +45,7 @@ export interface Comment {
  * Dados para criar comentário/reply
  */
 export interface CreateCommentDto {
-  targetType: ContentType
+  targetType: CommentTargetType
   targetId: string
   content: string
   parentCommentId?: string
@@ -60,7 +62,7 @@ export interface UpdateCommentDto {
  * Filtros para listar comentários
  */
 export interface CommentFilters {
-  targetType?: ContentType
+  targetType?: CommentTargetType
   targetId?: string
   userId?: string
   parentCommentId?: string | null
