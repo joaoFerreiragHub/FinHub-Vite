@@ -32,7 +32,14 @@ export default function MarketWatchlistPage() {
   const { watchlist, remove } = useWatchlist()
 
   const normalizedList = useMemo(
-    () => [...new Set(watchlist.map((item) => item.toUpperCase()))],
+    () => [
+      ...new Set(
+        (Array.isArray(watchlist) ? watchlist : [])
+          .filter((item): item is string => typeof item === 'string')
+          .map((item) => item.trim().toUpperCase())
+          .filter((item) => item.length > 0),
+      ),
+    ],
     [watchlist],
   )
 
@@ -119,9 +126,7 @@ export default function MarketWatchlistPage() {
                 </div>
 
                 <div className="mt-5 rounded-lg border border-border/40 bg-background/50 p-3 text-xs text-muted-foreground">
-                  <p>
-                    Dados da watchlist carregados via FMP atraves do endpoint batch snapshot.
-                  </p>
+                  <p>Dados da watchlist carregados via FMP atraves do endpoint batch snapshot.</p>
                 </div>
               </>
             )}
@@ -145,15 +150,17 @@ function WatchlistCard({ symbol, snapshot, isLoading, isError, onRemove }: Watch
     symbol,
     name: symbol,
   }
+  const hasImage =
+    typeof resolvedSnapshot.image === 'string' && resolvedSnapshot.image.trim().length > 0
 
   return (
     <div className="group relative overflow-hidden rounded-xl border border-border/60 bg-card/60 p-4 backdrop-blur-sm transition-all duration-200 hover:border-primary/40 hover:bg-card/80 hover:shadow-lg">
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="mb-2 flex items-center gap-2">
-            {snapshot.image ? (
+            {hasImage ? (
               <img
-                src={snapshot.image}
+                src={resolvedSnapshot.image}
                 alt={`Logo ${symbol}`}
                 className="h-8 w-8 rounded-full border border-border/70 bg-background object-cover"
                 loading="lazy"
@@ -196,7 +203,9 @@ function WatchlistCard({ symbol, snapshot, isLoading, isError, onRemove }: Watch
         </div>
       ) : (
         <div className="space-y-1">
-          <p className="text-2xl font-bold text-foreground">{formatMoney(resolvedSnapshot.price)}</p>
+          <p className="text-2xl font-bold text-foreground">
+            {formatMoney(resolvedSnapshot.price)}
+          </p>
           <p className="text-xs text-muted-foreground">
             Market Cap: {formatMarketCap(resolvedSnapshot.marketCap)}
           </p>

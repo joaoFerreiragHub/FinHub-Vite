@@ -1404,3 +1404,17 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - mocking controlado de `GET /api/stocks/quick-analysis/:symbol`.
 - Validacao tecnica:
   - `npm run test:e2e -- e2e/stocks.quick-analysis.smoke.spec.ts` -> PASS.
+
+## 65) Watchlist hardening + smoke e2e (2026-03-10)
+- Correcao de estabilidade na pagina `/mercados/watchlist`:
+  - `src/features/markets/pages/MarketWatchlistPage.tsx` deixava escapar acesso direto a `snapshot.image` quando `snapshot` ainda estava `undefined` (loading/erro), podendo rebentar a renderizacao;
+  - acesso agora protegido com `resolvedSnapshot` + `hasImage` (sem crash em loading, erro e fallback).
+- Robustez adicional de input da watchlist:
+  - normalizacao de simbolos passou a filtrar entradas invalidas/vazias antes de `trim().toUpperCase()`.
+- Cobertura E2E adicionada:
+  - novo ficheiro `e2e/watchlist.smoke.spec.ts`;
+  - cenarios:
+    - carga com batch snapshot valido (cards e nomes renderizados);
+    - fallback de erro quando `GET /api/stocks/batch-snapshot` falha (banner de erro + cards em estado de falha).
+- Validacao tecnica:
+  - `npm run test:e2e -- e2e/watchlist.smoke.spec.ts` -> PASS.
