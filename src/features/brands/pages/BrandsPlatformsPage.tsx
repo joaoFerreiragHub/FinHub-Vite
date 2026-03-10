@@ -1,11 +1,11 @@
-import { PlaceholderPage } from '@/components/layout/PlaceholderPage'
+import { BrandsVerticalPage } from '@/features/brands/components/BrandsVerticalPage'
 
 export default function BrandsPlatformsPage() {
   return (
-    <PlaceholderPage
-      section="Recursos"
+    <BrandsVerticalPage
+      vertical="fintech"
       title="Plataformas"
-      description="Estamos a finalizar a experiencia desta pagina com o mesmo padrao de navegacao e responsividade da Home."
+      description="Plataformas financeiras e fintech publicadas no diretorio, com visao consolidada para comparacao."
     />
   )
 }

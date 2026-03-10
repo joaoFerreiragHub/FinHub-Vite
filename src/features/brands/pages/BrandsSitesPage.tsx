@@ -1,11 +1,11 @@
-import { PlaceholderPage } from '@/components/layout/PlaceholderPage'
+import { BrandsVerticalPage } from '@/features/brands/components/BrandsVerticalPage'
 
 export default function BrandsSitesPage() {
   return (
-    <PlaceholderPage
-      section="Recursos"
+    <BrandsVerticalPage
+      vertical="site"
       title="Sites"
-      description="Estamos a finalizar a experiencia desta pagina com o mesmo padrao de navegacao e responsividade da Home."
+      description="Sites e portais financeiros publicados no diretorio, com ordenacao por destaque, rating e popularidade."
     />
   )
 }

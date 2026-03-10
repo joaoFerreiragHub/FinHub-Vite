@@ -1,11 +1,11 @@
-import { PlaceholderPage } from '@/components/layout/PlaceholderPage'
+import { BrandsVerticalPage } from '@/features/brands/components/BrandsVerticalPage'
 
 export default function BrandsLivrosPage() {
   return (
-    <PlaceholderPage
-      section="Recursos"
+    <BrandsVerticalPage
+      vertical="other"
       title="Livros Externos"
-      description="Estamos a finalizar a experiencia desta pagina com o mesmo padrao de navegacao e responsividade da Home."
+      description="Colecao editorial de recursos mapeados como 'outros' para contexto de livros e materiais de referencia."
     />
   )
 }

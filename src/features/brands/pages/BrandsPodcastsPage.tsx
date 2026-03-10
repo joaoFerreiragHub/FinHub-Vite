@@ -1,11 +1,11 @@
-import { PlaceholderPage } from '@/components/layout/PlaceholderPage'
+import { BrandsVerticalPage } from '@/features/brands/components/BrandsVerticalPage'
 
 export default function BrandsPodcastsPage() {
   return (
-    <PlaceholderPage
-      section="Recursos"
+    <BrandsVerticalPage
+      vertical="podcast"
       title="Podcasts Externos"
-      description="Estamos a finalizar a experiencia desta pagina com o mesmo padrao de navegacao e responsividade da Home."
+      description="Podcasts publicados no diretorio para acompanhamento continuo de mercados e literacia financeira."
     />
   )
 }

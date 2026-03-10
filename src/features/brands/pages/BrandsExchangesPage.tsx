@@ -1,11 +1,11 @@
-import { PlaceholderPage } from '@/components/layout/PlaceholderPage'
+import { BrandsVerticalPage } from '@/features/brands/components/BrandsVerticalPage'
 
 export default function BrandsExchangesPage() {
   return (
-    <PlaceholderPage
-      section="Recursos"
+    <BrandsVerticalPage
+      vertical="exchange"
       title="Exchanges"
-      description="Estamos a finalizar a experiencia desta pagina com o mesmo padrao de navegacao e responsividade da Home."
+      description="Exchanges listadas no diretorio com dados de reputacao, engagement e estado de verificacao."
     />
   )
 }

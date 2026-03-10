@@ -6,6 +6,7 @@ export type RatingTargetType =
   | 'podcast'
   | 'live'
   | 'creator'
+  | 'directory_entry'
   | 'brand'
 
 export type RatingSort = 'recent' | 'helpful' | 'rating'
