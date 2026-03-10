@@ -1391,3 +1391,16 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - setup de sessao autenticada e consentimento de cookies em `localStorage` para evitar bloqueios de UI durante o smoke.
 - Validacao tecnica:
   - `npm run test:e2e -- e2e/comments.smoke.spec.ts` -> PASS (2/2).
+
+## 64) P3.5 quality gate - stocks quick analysis smoke e2e (2026-03-10)
+- Cobertura E2E dedicada para a superficie publica de analise de acoes:
+  - novo ficheiro `e2e/stocks.quick-analysis.smoke.spec.ts`.
+- Cenarios cobertos:
+  - sucesso em `/stocks` com pesquisa de ticker e renderizacao da analise rapida;
+  - visibilidade do bloco de governance de metricas (`FinHub Score`, `Core`, `Direto`, `Calculado`, `Sem dado`, `Erro fonte`);
+  - degradacao funcional com erro amigavel quando ticker nao existe (`404` em quick-analysis).
+- Setup de teste:
+  - contexto visitante com consentimento de cookies seedado em `localStorage`;
+  - mocking controlado de `GET /api/stocks/quick-analysis/:symbol`.
+- Validacao tecnica:
+  - `npm run test:e2e -- e2e/stocks.quick-analysis.smoke.spec.ts` -> PASS.
