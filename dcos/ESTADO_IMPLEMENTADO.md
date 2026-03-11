@@ -1534,3 +1534,18 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
 - Validacao tecnica:
   - `npm run test:e2e -- e2e/recursos.verticals.smoke.spec.ts` -> PASS.
   - `npm run test:e2e -- e2e/recursos.index.smoke.spec.ts e2e/recursos.verticals.smoke.spec.ts` -> PASS (4/4).
+
+## 75) Hardening de dependencias e auditoria de seguranca (2026-03-11)
+- Atualizacao de dependencias com foco em vulnerabilidades exploraveis:
+  - runtime/dev tooling atualizado em `package.json` com refresh de `axios`, `react-router-dom`, `vite`, `posthog-js`, `playwright`, `storybook` e `eslint`.
+  - remocao de dependencia nao utilizada e vulneravel: `@mantine/rte` (stack `quill`/`quill-mention`).
+  - override adicionado para `@tootallnate/once` seguro no grafo de testes.
+- Resultado de auditoria local (`npm audit`):
+  - antes: 31 vulnerabilidades (incluindo `high` e `critical`);
+  - depois: 2 vulnerabilidades `moderate`, 0 `high`, 0 `critical`.
+- Limitacao residual (documentada):
+  - as 2 moderadas restantes estao encadeadas a `vite-plugin-ssr@0.4.142` (`esbuild` interno), e a correcao automatica proposta pelo `npm audit fix --force` quebra imports usados no projeto (`vite-plugin-ssr/server`), exigindo migracao dedicada para stack suportada.
+- Validacao tecnica apos hardening:
+  - `npm run typecheck:p1` -> PASS.
+  - `npm run build` -> PASS.
+  - `npm run test:e2e -- e2e/recursos.index.smoke.spec.ts` -> PASS.
