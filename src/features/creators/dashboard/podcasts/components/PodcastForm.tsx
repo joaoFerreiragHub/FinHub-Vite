@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useNavigate } from 'react-router-dom'
 import { Button, Input, Card, Label } from '@/components/ui'
 import { ContentCategory } from '@/features/hub/types'
 import {
@@ -31,9 +30,13 @@ export function PodcastForm(props: PodcastFormProps) {
   const { podcast } = props
   const submitText = props.submitText ?? (podcast ? 'Atualizar' : 'Criar Podcast')
   const showDraftOption = props.showDraftOption ?? true
-  const navigate = useNavigate()
   const [serverError, setServerError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const navigateTo = (path: string) => {
+    if (typeof window !== 'undefined') {
+      window.location.assign(path)
+    }
+  }
 
   const {
     register,
@@ -113,7 +116,7 @@ export function PodcastForm(props: PodcastFormProps) {
         }
         await props.onSubmit(createPayload)
       }
-      navigate('/creators/dashboard/podcasts')
+      navigateTo('/creators/dashboard/podcasts')
     } catch (error) {
       setServerError(getErrorMessage(error))
     } finally {
@@ -293,7 +296,7 @@ export function PodcastForm(props: PodcastFormProps) {
           type="button"
           variant="ghost"
           size="lg"
-          onClick={() => navigate('/creators/dashboard/podcasts')}
+          onClick={() => navigateTo('/creators/dashboard/podcasts')}
         >
           Cancelar
         </Button>

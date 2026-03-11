@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useNavigate } from 'react-router-dom'
 import { Button, Input, Card, Label } from '@/components/ui'
 import { ContentCategory } from '@/features/hub/types'
 import type { Article, CreateArticleDto, UpdateArticleDto } from '@/features/hub/articles/types'
@@ -48,9 +47,13 @@ export function ArticleForm(props: ArticleFormProps) {
   const submitText = props.submitText ?? (article ? 'Atualizar' : 'Criar Artigo')
   const showDraftOption = props.showDraftOption ?? true
   const redirectTo = props.redirectTo ?? '/creators/dashboard/articles'
-  const navigate = useNavigate()
   const [serverError, setServerError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const navigateTo = (path: string) => {
+    if (typeof window !== 'undefined') {
+      window.location.assign(path)
+    }
+  }
 
   const {
     register,
@@ -122,7 +125,7 @@ export function ArticleForm(props: ArticleFormProps) {
         }
         await props.onSubmit(createPayload)
       }
-      navigate(redirectTo)
+      navigateTo(redirectTo)
     } catch (error) {
       setServerError(getErrorMessage(error))
     } finally {
@@ -283,12 +286,7 @@ export function ArticleForm(props: ArticleFormProps) {
           </Button>
         )}
 
-        <Button
-          type="button"
-          variant="ghost"
-          size="lg"
-          onClick={() => navigate(redirectTo)}
-        >
+        <Button type="button" variant="ghost" size="lg" onClick={() => navigateTo(redirectTo)}>
           Cancelar
         </Button>
       </div>

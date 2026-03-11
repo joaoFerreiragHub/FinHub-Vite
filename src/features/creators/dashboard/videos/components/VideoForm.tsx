@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useNavigate } from 'react-router-dom'
 import { Button, Input, Card, Label } from '@/components/ui'
 import { ContentCategory } from '@/features/hub/types'
 import {
@@ -34,9 +33,13 @@ export function VideoForm(props: VideoFormProps) {
   const submitText = props.submitText ?? (video ? 'Atualizar' : 'Criar Video')
   const showDraftOption = props.showDraftOption ?? true
   const redirectTo = props.redirectTo ?? '/creators/dashboard/videos'
-  const navigate = useNavigate()
   const [serverError, setServerError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const navigateTo = (path: string) => {
+    if (typeof window !== 'undefined') {
+      window.location.assign(path)
+    }
+  }
 
   const {
     register,
@@ -122,7 +125,7 @@ export function VideoForm(props: VideoFormProps) {
         }
         await props.onSubmit(createPayload)
       }
-      navigate(redirectTo)
+      navigateTo(redirectTo)
     } catch (error) {
       setServerError(getErrorMessage(error))
     } finally {
@@ -294,12 +297,7 @@ export function VideoForm(props: VideoFormProps) {
           </Button>
         )}
 
-        <Button
-          type="button"
-          variant="ghost"
-          size="lg"
-          onClick={() => navigate(redirectTo)}
-        >
+        <Button type="button" variant="ghost" size="lg" onClick={() => navigateTo(redirectTo)}>
           Cancelar
         </Button>
       </div>

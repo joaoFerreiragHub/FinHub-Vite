@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useNavigate } from 'react-router-dom'
 import { Button, Input, Card, Label } from '@/components/ui'
 import { ContentCategory } from '@/features/hub/types'
 import {
@@ -31,9 +30,13 @@ export function CourseForm(props: CourseFormProps) {
   const { course } = props
   const submitText = props.submitText ?? (course ? 'Atualizar' : 'Criar Curso')
   const showDraftOption = props.showDraftOption ?? true
-  const navigate = useNavigate()
   const [serverError, setServerError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const navigateTo = (path: string) => {
+    if (typeof window !== 'undefined') {
+      window.location.assign(path)
+    }
+  }
 
   const {
     register,
@@ -139,7 +142,7 @@ export function CourseForm(props: CourseFormProps) {
         }
         await props.onSubmit(createPayload)
       }
-      navigate('/creators/dashboard/courses')
+      navigateTo('/creators/dashboard/courses')
     } catch (error) {
       setServerError(getErrorMessage(error))
     } finally {
@@ -372,7 +375,7 @@ export function CourseForm(props: CourseFormProps) {
           type="button"
           variant="ghost"
           size="lg"
-          onClick={() => navigate('/creators/dashboard/courses')}
+          onClick={() => navigateTo('/creators/dashboard/courses')}
         >
           Cancelar
         </Button>

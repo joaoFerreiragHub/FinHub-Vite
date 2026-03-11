@@ -1,8 +1,8 @@
-import type { PageContextBuiltInClientWithClientRouting } from 'vite-plugin-ssr/types'
+import type { PageContextBuiltInClientWithClientRouting } from 'vike/types'
 import type { ReactNode } from 'react'
 import type { User } from '@/features/auth/types'
 
-import type { PageContextServer } from 'vite-plugin-ssr/types'
+import type { PageContextServer } from 'vike/types'
 
 export type PageContextWithUsernameClient = PageContextBuiltInClientWithClientRouting & {
   routeParams: { username: string }

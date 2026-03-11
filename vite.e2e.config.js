@@ -2,7 +2,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
-import ssr from 'vite-plugin-ssr/plugin'
+import ssr from 'vike/plugin'
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url))
 const srcDir = path.resolve(rootDir, 'src')

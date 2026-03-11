@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useNavigate } from 'react-router-dom'
 import { Button, Input, Card, Label } from '@/components/ui'
 import { ContentCategory } from '@/features/hub/types'
 import { liveFormSchema, type LiveFormValues } from '@/features/hub/lives/schemas/liveFormSchema'
@@ -28,9 +27,13 @@ export function LiveForm(props: LiveFormProps) {
   const { live } = props
   const submitText = props.submitText ?? (live ? 'Atualizar' : 'Criar Evento')
   const showDraftOption = props.showDraftOption ?? true
-  const navigate = useNavigate()
   const [serverError, setServerError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const navigateTo = (path: string) => {
+    if (typeof window !== 'undefined') {
+      window.location.assign(path)
+    }
+  }
 
   const {
     register,
@@ -140,7 +143,7 @@ export function LiveForm(props: LiveFormProps) {
         }
         await props.onSubmit(createPayload)
       }
-      navigate('/creators/dashboard/lives')
+      navigateTo('/creators/dashboard/lives')
     } catch (error) {
       setServerError(getErrorMessage(error))
     } finally {
@@ -379,7 +382,7 @@ export function LiveForm(props: LiveFormProps) {
           type="button"
           variant="ghost"
           size="lg"
-          onClick={() => navigate('/creators/dashboard/lives')}
+          onClick={() => navigateTo('/creators/dashboard/lives')}
         >
           Cancelar
         </Button>

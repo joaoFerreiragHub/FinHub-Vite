@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Loader2, Rss } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui'
 import { Skeleton } from '@/components/ui'
 import { ActivityFeedItem } from '../components/ActivityFeedItem'
@@ -30,7 +29,6 @@ const resolveContentUrl = (type: ContentType, slug: string): string | null => {
 
 export function ActivityFeedPage() {
   const feedSurface = usePublicSurfaceControl('derived_feeds')
-  const navigate = useNavigate()
   const [followingOnly, setFollowingOnly] = useState(false)
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
   const { data, isPending, isError, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
@@ -50,7 +48,7 @@ export function ActivityFeedPage() {
           void fetchNextPage()
         }
       },
-      { threshold: 0.2 }
+      { threshold: 0.2 },
     )
 
     observer.observe(target)
@@ -141,7 +139,9 @@ export function ActivityFeedPage() {
               onClick={() => {
                 const slug = item.content.slug
                 const url = resolveContentUrl(item.content.type, slug)
-                if (url) navigate(url)
+                if (url && typeof window !== 'undefined') {
+                  window.location.assign(url)
+                }
               }}
             />
           ))}
@@ -149,8 +149,7 @@ export function ActivityFeedPage() {
           <div ref={loadMoreRef} className="flex min-h-12 items-center justify-center">
             {isFetchingNextPage ? (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                A carregar mais...
+                <Loader2 className="h-4 w-4 animate-spin" />A carregar mais...
               </div>
             ) : hasNextPage ? (
               <span className="text-xs text-muted-foreground">A deslizar para mais...</span>

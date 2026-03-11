@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useNavigate } from 'react-router-dom'
 import { Button, Input, Card, Label } from '@/components/ui'
 import { ContentCategory } from '@/features/hub/types'
 import { bookFormSchema, type BookFormValues } from '@/features/hub/books/schemas/bookFormSchema'
@@ -28,9 +27,13 @@ export function BookForm(props: BookFormProps) {
   const { book } = props
   const submitText = props.submitText ?? (book ? 'Atualizar' : 'Adicionar Livro')
   const showDraftOption = props.showDraftOption ?? true
-  const navigate = useNavigate()
   const [serverError, setServerError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const navigateTo = (path: string) => {
+    if (typeof window !== 'undefined') {
+      window.location.assign(path)
+    }
+  }
 
   const {
     register,
@@ -136,7 +139,7 @@ export function BookForm(props: BookFormProps) {
         }
         await props.onSubmit(createPayload)
       }
-      navigate('/creators/dashboard/books')
+      navigateTo('/creators/dashboard/books')
     } catch (error) {
       setServerError(getErrorMessage(error))
     } finally {
@@ -346,7 +349,7 @@ export function BookForm(props: BookFormProps) {
           type="button"
           variant="ghost"
           size="lg"
-          onClick={() => navigate('/creators/dashboard/books')}
+          onClick={() => navigateTo('/creators/dashboard/books')}
         >
           Cancelar
         </Button>
