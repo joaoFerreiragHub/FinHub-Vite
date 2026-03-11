@@ -1498,3 +1498,15 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - mocking controlado do endpoint `GET /api/crypto`.
 - Validacao tecnica:
   - `npm run test:e2e -- e2e/crypto-list.smoke.spec.ts` -> PASS.
+
+## 72) /mercados/acoes route smoke e2e (2026-03-11)
+- Cobertura E2E dedicada para a rota migrada de acoes:
+  - novo ficheiro `e2e/markets-stocks.route.smoke.spec.ts`.
+- Cenarios cobertos:
+  - pesquisa em `/mercados/acoes` com renderizacao de analise rapida e toggle de watchlist local;
+  - tratamento de ticker inexistente com erro amigavel (`404`).
+- Setup de teste:
+  - contexto visitante com consentimento de cookies em `localStorage`;
+  - mocking controlado de `GET /api/stocks/quick-analysis/:symbol`.
+- Validacao tecnica:
+  - `npm run test:e2e -- e2e/markets-stocks.route.smoke.spec.ts` -> PASS.
