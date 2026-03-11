@@ -2,7 +2,6 @@ import { HomepageLayout } from '@/components/home/HomepageLayout'
 import CourseDetailPage from '@/features/content/pages/CourseDetailPage'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const passToClient = ['routeParams']
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

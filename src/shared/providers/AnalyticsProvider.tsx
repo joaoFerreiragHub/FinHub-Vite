@@ -16,6 +16,7 @@ import {
 export function AnalyticsProvider() {
   const user = useAuthStore((state) => state.user)
   const hydrated = useAuthStore((state) => state.hydrated)
+  const userCookieConsent = user?.cookieConsent
   const [visitorConsentGranted, setVisitorConsentGranted] = useState<boolean>(() =>
     Boolean(readStoredCookieConsent()?.analytics),
   )
@@ -40,12 +41,12 @@ export function AnalyticsProvider() {
   useEffect(() => {
     if (!hydrated) return
 
-    if (user?.cookieConsent) {
-      writeStoredCookieConsent(user.cookieConsent)
+    if (userCookieConsent) {
+      writeStoredCookieConsent(userCookieConsent)
       dispatchCookieConsentUpdated()
     }
 
-    const consentGranted = user?.id ? Boolean(user.cookieConsent?.analytics) : visitorConsentGranted
+    const consentGranted = user?.id ? Boolean(userCookieConsent?.analytics) : visitorConsentGranted
 
     setAnalyticsConsent(consentGranted)
 
@@ -57,12 +58,9 @@ export function AnalyticsProvider() {
     resetAnalyticsIdentity()
   }, [
     hydrated,
+    userCookieConsent,
     visitorConsentGranted,
     user?.id,
-    user?.cookieConsent?.analytics,
-    user?.cookieConsent?.marketing,
-    user?.cookieConsent?.preferences,
-    user?.cookieConsent?.version,
     user?.email,
     user?.role,
     user?.username,

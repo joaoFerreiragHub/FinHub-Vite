@@ -32,6 +32,7 @@ export function useMLPredictionsEnhanced(
 
   // Base predictions hook
   const predictions = useMLPredictions(symbol, showFullAnalysis, baseOptions)
+  const { loading, refetch } = predictions
 
   // Real-time updates (optional)
   const realtime = useMLPredictionsRealTime(enableRealtime && symbol ? symbol : '', {
@@ -45,14 +46,14 @@ export function useMLPredictionsEnhanced(
 
   // Auto-refresh setup
   React.useEffect(() => {
-    if (!autoRefresh || !symbol || predictions.loading) return
+    if (!autoRefresh || !symbol || loading) return
 
     const interval = setInterval(() => {
-      predictions.refetch()
+      refetch()
     }, refreshInterval)
 
     return () => clearInterval(interval)
-  }, [autoRefresh, symbol, predictions.loading, predictions.refetch, refreshInterval])
+  }, [autoRefresh, loading, refetch, refreshInterval, symbol])
 
   // Merge real-time data with cached data
   const mergedData = React.useMemo(() => {

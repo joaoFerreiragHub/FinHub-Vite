@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ElementType } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ElementType } from 'react'
 import {
   BarChart3,
   ClipboardList,
@@ -61,31 +61,31 @@ export default function AdminCommandPalette({ className }: AdminCommandPalettePr
 
   const modules = useMemo(() => getAccessibleAdminModules(user), [user])
 
-  const clearGoShortcutTimer = () => {
+  const clearGoShortcutTimer = useCallback(() => {
     if (goShortcutTimerRef.current !== null) {
       window.clearTimeout(goShortcutTimerRef.current)
       goShortcutTimerRef.current = null
     }
-  }
+  }, [])
 
-  const resetGoShortcut = () => {
+  const resetGoShortcut = useCallback(() => {
     goShortcutArmedRef.current = false
     clearGoShortcutTimer()
-  }
+  }, [clearGoShortcutTimer])
 
-  const armGoShortcut = () => {
+  const armGoShortcut = useCallback(() => {
     goShortcutArmedRef.current = true
     clearGoShortcutTimer()
     goShortcutTimerRef.current = window.setTimeout(() => {
       goShortcutArmedRef.current = false
       goShortcutTimerRef.current = null
     }, GO_SHORTCUT_ARM_TIMEOUT_MS)
-  }
+  }, [clearGoShortcutTimer])
 
   useEffect(() => {
     setOpen(false)
     resetGoShortcut()
-  }, [location.pathname])
+  }, [location.pathname, resetGoShortcut])
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -122,21 +122,21 @@ export default function AdminCommandPalette({ className }: AdminCommandPalettePr
 
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
-  }, [location.pathname, navigate, open, user])
+  }, [armGoShortcut, location.pathname, navigate, open, resetGoShortcut, user])
 
   useEffect(() => {
     return () => {
       clearGoShortcutTimer()
     }
-  }, [])
+  }, [clearGoShortcutTimer])
 
-  const navigateToPath = (path: string) => {
+  const navigateToPath = useCallback((path: string) => {
     setOpen(false)
     resetGoShortcut()
     if (path !== location.pathname) {
       navigate(path)
     }
-  }
+  }, [location.pathname, navigate, resetGoShortcut])
 
   return (
     <>

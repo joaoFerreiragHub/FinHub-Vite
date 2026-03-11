@@ -23,6 +23,8 @@ const cookieConsentVersion =
   import.meta.env.VITE_COOKIE_CONSENT_VERSION ||
   import.meta.env.VITE_LEGAL_VERSION ||
   DEFAULT_COOKIE_CONSENT_VERSION
+const shouldHideCookieBannerInDev =
+  import.meta.env.DEV && import.meta.env.VITE_SHOW_COOKIE_BANNER_IN_DEV !== 'true'
 
 const toPreferences = (
   consent: UserCookieConsent | null | undefined,
@@ -37,6 +39,7 @@ export function CookieConsentBanner() {
   const user = useAuthStore((state) => state.user)
   const hydrated = useAuthStore((state) => state.hydrated)
   const updateUser = useAuthStore((state) => state.updateUser)
+  const userCookieConsent = user?.cookieConsent
 
   const [visible, setVisible] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -53,10 +56,10 @@ export function CookieConsentBanner() {
     const storedConsent = readStoredCookieConsent()
 
     if (user?.id) {
-      if (user.cookieConsent?.consentedAt) {
-        const userPreferences = toPreferences(user.cookieConsent)
+      if (userCookieConsent?.consentedAt) {
+        const userPreferences = toPreferences(userCookieConsent)
         setPreferences(userPreferences)
-        writeStoredCookieConsent(user.cookieConsent)
+        writeStoredCookieConsent(userCookieConsent)
         dispatchCookieConsentUpdated()
         setVisible(false)
         return
@@ -76,15 +79,7 @@ export function CookieConsentBanner() {
     }
 
     setVisible(true)
-  }, [
-    hydrated,
-    user?.id,
-    user?.cookieConsent?.consentedAt,
-    user?.cookieConsent?.analytics,
-    user?.cookieConsent?.marketing,
-    user?.cookieConsent?.preferences,
-    user?.cookieConsent?.version,
-  ])
+  }, [hydrated, user?.id, userCookieConsent])
 
   const payload = useMemo(
     () => ({
@@ -126,7 +121,7 @@ export function CookieConsentBanner() {
     }
   }
 
-  if (!hydrated || !visible) return null
+  if (shouldHideCookieBannerInDev || !hydrated || !visible) return null
 
   const renderLegalLink = (path: string, label: string) =>
     inRouterContext ? (

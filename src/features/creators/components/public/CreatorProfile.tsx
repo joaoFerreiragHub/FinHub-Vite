@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import axios from 'axios'
 
 import { Bell, UserPlus, Users } from 'lucide-react'
@@ -54,13 +54,9 @@ const CreatorProfile: React.FC<Props> = ({
   const isOwnProfile = user?.id === creatorData?._id
   const isRegularUser = user?.role === 'RegularUser'
 
-  useEffect(() => {
-    if (creatorData?._id && user && !isOwnProfile && isRegularUser) {
-      checkIfFollowing()
-    }
-  }, [creatorData?._id, user])
+  const checkIfFollowing = useCallback(async () => {
+    if (!user?.id || !creatorData?.username) return
 
-  const checkIfFollowing = async () => {
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/socialRouter/isFollowing/${user.id}/${creatorData.username}`,
@@ -69,7 +65,13 @@ const CreatorProfile: React.FC<Props> = ({
     } catch (error) {
       console.error('Erro ao verificar se segue:', error)
     }
-  }
+  }, [creatorData?.username, user?.id])
+
+  useEffect(() => {
+    if (creatorData?._id && user && !isOwnProfile && isRegularUser) {
+      void checkIfFollowing()
+    }
+  }, [checkIfFollowing, creatorData?._id, isOwnProfile, isRegularUser, user])
 
   const handleFollowClick = async () => {
     if (!isRegularUser) {

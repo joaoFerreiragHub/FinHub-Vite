@@ -30,4 +30,23 @@ export default [
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
     },
   },
+  {
+    files: ['src/pages/**/*.{ts,tsx}'],
+    rules: {
+      // Vike pages export route metadata alongside components.
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+  {
+    files: [
+      'src/components/ui/**/*.{ts,tsx}',
+      'src/features/admin/components/RiskSignals.tsx',
+      'src/features/tools/stocks/components/quickAnalysis/QuickMetricGovernanceContext.tsx',
+      'src/renderer/PageShell.tsx',
+    ],
+    rules: {
+      // These files intentionally export helpers/constants together with components/hooks.
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ]
