@@ -1471,3 +1471,18 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - mocking controlado do endpoint de comparacao de ETFs.
 - Validacao tecnica:
   - `npm run test:e2e -- e2e/etfs.overlap.smoke.spec.ts` -> PASS.
+
+## 70) REITs toolkit smoke e2e (2026-03-11)
+- Cobertura E2E dedicada para o toolkit de REITs:
+  - novo ficheiro `e2e/reits.toolkit.smoke.spec.ts`.
+- Cenarios cobertos:
+  - sucesso em `/mercados/reits` com carregamento da analise e renderizacao de blocos DDM/FFO/NAV;
+  - degradacao amigavel quando um endpoint de REIT falha durante o carregamento.
+- Setup de teste:
+  - contexto visitante com consentimento de cookies em `localStorage`;
+  - mocking controlado dos endpoints:
+    - `GET /api/reits/calculateDDM`
+    - `GET /api/reits/calculateFFO`
+    - `GET /api/reits/calculateNAV`
+- Validacao tecnica:
+  - `npm run test:e2e -- e2e/reits.toolkit.smoke.spec.ts` -> PASS.
