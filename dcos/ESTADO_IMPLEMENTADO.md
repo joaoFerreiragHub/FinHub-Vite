@@ -1560,3 +1560,17 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - `dcos/MUST_READ_VIKE_V1_AGENTE.md`
 - Regra operacional fixada:
   - checkpoints de sessao obrigatorios em `ESTADO_IMPLEMENTADO.md` durante toda a migracao V1.
+
+## 77) Vike V1 - Fase 0 (inventario concluido) (2026-03-11)
+- Inventario base do legado V0.4 documentado em:
+  - `dcos/VIKE_V1_FASE0_INVENTARIO.md`
+- Contagens consolidadas:
+  - 97 ficheiros `*.page.tsx`;
+  - 1 ficheiro `*.page.config.ts`;
+  - 100 ficheiros `*.page.*` no total;
+  - 13 rotas dinamicas `@param`;
+  - 63 `index.page.tsx`.
+- Entrada tecnica identificada para migracao:
+  - `_default.page.client.tsx`, `_default.page.server.tsx`, `_error.page.tsx`, `pageContext.ts`, `PageShell.tsx`.
+- Proximo passo confirmado:
+  - Fase 1 com mapping V0.4 -> V1 e plano de rename/move para switch estrutural em bloco.
