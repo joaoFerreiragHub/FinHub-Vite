@@ -218,6 +218,7 @@ describe('ContentModerationPage', () => {
     } as never)
     mockedHooks.useHideAdminContent.mockReturnValue(buildIdleMutation() as never)
     mockedHooks.useUnhideAdminContent.mockReturnValue(buildIdleMutation() as never)
+    mockedHooks.useScheduleAdminContentUnhide.mockReturnValue(buildIdleMutation() as never)
     mockedHooks.useRestrictAdminContent.mockReturnValue(buildIdleMutation() as never)
     mockedHooks.useRollbackAdminContent.mockReturnValue(buildIdleMutation() as never)
     mockedHooks.useCreateBulkModerationJob.mockReturnValue(buildIdleMutation() as never)
