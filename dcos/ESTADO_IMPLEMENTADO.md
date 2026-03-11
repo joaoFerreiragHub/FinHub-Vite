@@ -1418,3 +1418,18 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
     - fallback de erro quando `GET /api/stocks/batch-snapshot` falha (banner de erro + cards em estado de falha).
 - Validacao tecnica:
   - `npm run test:e2e -- e2e/watchlist.smoke.spec.ts` -> PASS.
+
+## 66) Rotas curtas videos/cursos + smoke e2e de detalhe publico (2026-03-11)
+- Aliases de rota curta adicionados para detalhe publico:
+  - `src/pages/videos/@slug.page.tsx`
+  - `src/pages/cursos/@slug.page.tsx`
+- Implementacao alinhada ao padrao das outras rotas curtas:
+  - `HomepageLayout` + `MemoryRouter` para garantir contexto de `react-router`;
+  - fallback visual quando `slug` nao e resolvido.
+- Cobertura E2E adicionada:
+  - novo ficheiro `e2e/content-details.smoke.spec.ts`;
+  - cenarios cobertos:
+    - `/videos/:slug` com carga de detalhe e increment de view;
+    - `/cursos/:slug` com carga de detalhe, outcomes e modulos.
+- Validacao tecnica:
+  - `npm run test:e2e -- e2e/content-details.smoke.spec.ts` -> PASS.
