@@ -1486,3 +1486,15 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
     - `GET /api/reits/calculateNAV`
 - Validacao tecnica:
   - `npm run test:e2e -- e2e/reits.toolkit.smoke.spec.ts` -> PASS.
+
+## 71) Crypto list smoke e2e (2026-03-11)
+- Cobertura E2E dedicada para a lista de cripto:
+  - novo ficheiro `e2e/crypto-list.smoke.spec.ts`.
+- Cenarios cobertos:
+  - sucesso em `/mercados/cripto` com renderizacao da lista e filtro por pesquisa;
+  - degradacao amigavel quando `GET /api/crypto` falha.
+- Setup de teste:
+  - contexto visitante com consentimento de cookies em `localStorage`;
+  - mocking controlado do endpoint `GET /api/crypto`.
+- Validacao tecnica:
+  - `npm run test:e2e -- e2e/crypto-list.smoke.spec.ts` -> PASS.
