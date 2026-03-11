@@ -21,4 +21,3 @@ export function Page(props: any) {
   return <EditorialDirectoryPage verticalSlug={resolveVerticalSlug(props)} mode="show-all" />
 }
 
-export default { Page }

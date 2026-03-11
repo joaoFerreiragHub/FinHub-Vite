@@ -11,7 +11,7 @@ Estado inicial: Fase 0 (inventario) concluida
 - CP4: concluido (ondas `hub` e `creators` convertidas para `+Page`).
 - CP5: concluido (ondas `admin` convertidas para `+Page`).
 - CP6: concluido (remocao de legado `*.page.*` + validacao sem warning de design deprecated).
-- CP7: em fecho documental/final de branch para merge.
+- CP7: concluido (hotfix pos-merge aplicado para remover exports ambiguos em `+Page`).
 
 ### Evidencias desta ronda (2026-03-11)
 - `yarn lint` -> PASS.
@@ -20,6 +20,11 @@ Estado inicial: Fase 0 (inventario) concluida
 - `yarn ssr:dev` -> arranque limpo; warning `You are using Vike's deprecated design` nao observado.
 - `yarn test:e2e:release -- --list` -> PASS (listagem de 12 testes); observacao: reporter HTML com EPERM no ambiente local, sem bloquear comando.
 - `yarn test:e2e:a11y -- --list` -> PASS (listagem de 2 testes).
+- hotfix runtime (23:31): erro Vike `Wrong Usage ... +Page.tsx is ambiguous` resolvido com remocao de `export default { Page }` nas `+Page` migradas.
+- validacao pos-hotfix:
+  - request SSR para `/mercados/reits` responde HTML da pagina (sem `An error occured`);
+  - `yarn lint` -> PASS;
+  - `yarn build` -> PASS.
 
 ## 1) Objetivo e definicao de concluido
 - Objetivo: migrar de Vike V0.4 para V1 sem regressao funcional e sem perda de produtividade.

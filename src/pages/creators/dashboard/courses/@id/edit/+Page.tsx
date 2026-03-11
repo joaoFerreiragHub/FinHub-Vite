@@ -30,4 +30,3 @@ export function Page(props: any) {
   )
 }
 
-export default { Page }

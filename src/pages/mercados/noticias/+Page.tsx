@@ -4,4 +4,3 @@ export function Page() {
   return <NoticiasPage />
 }
 
-export default { Page }

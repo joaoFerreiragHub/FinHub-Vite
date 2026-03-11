@@ -1619,3 +1619,20 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
 - Estado final desta fase:
   - migracao funcional V1 fechada no branch `chore/vike-v1-migration-plan`;
   - proximo passo operacional: commit/push desta ronda e abrir merge para `master/main`.
+
+## 81) Vike V1 - Hotfix pos-merge (erro de navegacao 500) (2026-03-11)
+- Incidente identificado em runtime:
+  - erro Vike `Wrong Usage` em requests SSR:
+    - `/src/pages/+Page.tsx is ambiguous: remove export default or export { Page }`.
+  - impacto observado: paginas como `/mercados/reits` renderizavam fallback `An error occured.`.
+- Causa raiz:
+  - alguns ficheiros `+Page.tsx` ficaram com export duplo apos migracao:
+    - `export function Page() { ... }`
+    - `export default { Page }`
+- Correcao aplicada:
+  - removido `export default { Page }` nas paginas migradas que usavam `export function Page`.
+  - mantido apenas um contrato de export por ficheiro `+Page`.
+- Validacao apos correcao:
+  - request SSR para `/mercados/reits` devolve HTML da pagina (sem erro de fallback);
+  - `yarn lint` -> PASS;
+  - `yarn build` -> PASS.

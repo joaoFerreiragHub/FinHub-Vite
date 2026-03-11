@@ -8,11 +8,12 @@ Data da consolidacao: 2026-03-01 (revisto apos consolidacao do P4 Editorial CMS 
 - Documento MUST READ: `dcos/MUST_READ_VIKE_V1_AGENTE.md`.
 - Plano executavel com checkpoints: `dcos/VIKE_V1_PLANO_EXECUCAO.md`.
 - Estado atual:
-  - CP1..CP6 concluido;
+  - CP1..CP7 concluido;
   - warning `deprecated design` removido no arranque SSR;
-  - `yarn lint`, `yarn test`, `yarn build` e `yarn ssr:dev` validados nesta ronda.
+  - merge para `master` concluido;
+  - hotfix pos-merge aplicado para erro `+Page.tsx is ambiguous` (navegacao 500).
 - Gate final restante:
-  - fechar CP7 com commit/push desta ronda e merge `chore/vike-v1-migration-plan` -> `master/main`.
+  - nenhum bloqueador tecnico aberto para Vike V1 neste momento.
 
 ## Prioridade 0 - Fechada (2026-02-18)
 1. P0.1 contratos social frontend x backend fechados.
