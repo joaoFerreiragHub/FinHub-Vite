@@ -2,6 +2,14 @@
 
 Data da consolidacao: 2026-03-01 (revisto apos consolidacao do P4 Editorial CMS e Moderation Control Plane).
 
+## Prioridade ativa (2026-03-11)
+1. Migracao Vike V0.4 -> V1 sem perda de progresso funcional.
+- Branch de trabalho: `chore/vike-v1-migration-plan`.
+- Documento MUST READ: `dcos/MUST_READ_VIKE_V1_AGENTE.md`.
+- Gate de conclusao:
+  - remover warning `deprecated design`;
+  - `yarn lint`, `yarn test`, `yarn build`, `yarn ssr:dev` verdes.
+
 ## Prioridade 0 - Fechada (2026-02-18)
 1. P0.1 contratos social frontend x backend fechados.
 2. P0.2 limpeza de endpoints legados fechada.

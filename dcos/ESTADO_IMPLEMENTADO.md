@@ -1549,3 +1549,14 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - `npm run typecheck:p1` -> PASS.
   - `npm run build` -> PASS.
   - `npm run test:e2e -- e2e/recursos.index.smoke.spec.ts` -> PASS.
+
+## 76) Arranque da migracao Vike V1 em branch dedicado (2026-03-11)
+- Branch dedicado criado para proteger progresso atual:
+  - `chore/vike-v1-migration-plan` (tracking remoto ativo).
+- Estado de integracao antes da migracao:
+  - `master` atualizado e alinhado com `chore/security-vike-migration` (fast-forward).
+  - warning atual de runtime identificado: `You are using Vike's deprecated design`.
+- Documento obrigatorio para agentes adicionado:
+  - `dcos/MUST_READ_VIKE_V1_AGENTE.md`
+- Regra operacional fixada:
+  - checkpoints de sessao obrigatorios em `ESTADO_IMPLEMENTADO.md` durante toda a migracao V1.
