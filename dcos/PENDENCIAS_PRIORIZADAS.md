@@ -6,6 +6,7 @@ Data da consolidacao: 2026-03-01 (revisto apos consolidacao do P4 Editorial CMS 
 1. Migracao Vike V0.4 -> V1 sem perda de progresso funcional.
 - Branch de trabalho: `chore/vike-v1-migration-plan`.
 - Documento MUST READ: `dcos/MUST_READ_VIKE_V1_AGENTE.md`.
+- Plano executavel com checkpoints: `dcos/VIKE_V1_PLANO_EXECUCAO.md`.
 - Gate de conclusao:
   - remover warning `deprecated design`;
   - `yarn lint`, `yarn test`, `yarn build`, `yarn ssr:dev` verdes.

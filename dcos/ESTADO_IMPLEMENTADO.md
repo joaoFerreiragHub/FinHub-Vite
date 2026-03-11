@@ -1574,3 +1574,17 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - `_default.page.client.tsx`, `_default.page.server.tsx`, `_error.page.tsx`, `pageContext.ts`, `PageShell.tsx`.
 - Proximo passo confirmado:
   - Fase 1 com mapping V0.4 -> V1 e plano de rename/move para switch estrutural em bloco.
+
+## 78) Vike V1 - Plano de execucao com gates de qualidade (2026-03-11)
+- Plano detalhado consolidado em:
+  - `dcos/VIKE_V1_PLANO_EXECUCAO.md`
+- Estrutura definida:
+  - 7 checkpoints (CP1..CP7) com escopo, gate tecnico e estrategia de commit/push.
+- Gates obrigatorios por checkpoint:
+  - `yarn lint`
+  - `yarn test`
+  - `yarn build`
+  - `yarn ssr:dev`
+  - E2E smoke direcionado por onda de migracao (public, hub/creators, admin).
+- Regra de merge mantida:
+  - sem merge para `master` antes do CP7 completo.
