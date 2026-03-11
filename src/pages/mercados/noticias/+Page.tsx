@@ -1,4 +1,4 @@
-import { Page as NoticiasPage } from '@/pages/noticias/index.page'
+import { Page as NoticiasPage } from '@/pages/noticias/+Page'
 
 export function Page() {
   return <NoticiasPage />

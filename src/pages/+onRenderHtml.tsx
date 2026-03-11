@@ -3,13 +3,11 @@ import { escapeInject, dangerouslySkipEscape } from 'vike/server'
 import type { PageContext } from '../lib/types/pageContext'
 import { PageShell } from '../renderer/PageShell'
 
-export const passToClient = ['routeParams', 'pageProps', 'user']
-
 type RenderResult = {
   documentHtml: ReturnType<typeof escapeInject>
 }
 
-export const render = async (pageContext: PageContext): Promise<RenderResult> => {
+async function onRenderHtml(pageContext: PageContext): Promise<RenderResult> {
   // console.log('Server-side PageContext:', pageContext)
   const { Page, pageProps } = pageContext
 
@@ -54,3 +52,5 @@ export const render = async (pageContext: PageContext): Promise<RenderResult> =>
 
   return { documentHtml }
 }
+
+export default onRenderHtml

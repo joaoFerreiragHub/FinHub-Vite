@@ -7,9 +7,12 @@ Data da consolidacao: 2026-03-01 (revisto apos consolidacao do P4 Editorial CMS 
 - Branch de trabalho: `chore/vike-v1-migration-plan`.
 - Documento MUST READ: `dcos/MUST_READ_VIKE_V1_AGENTE.md`.
 - Plano executavel com checkpoints: `dcos/VIKE_V1_PLANO_EXECUCAO.md`.
-- Gate de conclusao:
-  - remover warning `deprecated design`;
-  - `yarn lint`, `yarn test`, `yarn build`, `yarn ssr:dev` verdes.
+- Estado atual:
+  - CP1..CP6 concluido;
+  - warning `deprecated design` removido no arranque SSR;
+  - `yarn lint`, `yarn test`, `yarn build` e `yarn ssr:dev` validados nesta ronda.
+- Gate final restante:
+  - fechar CP7 com commit/push desta ronda e merge `chore/vike-v1-migration-plan` -> `master/main`.
 
 ## Prioridade 0 - Fechada (2026-02-18)
 1. P0.1 contratos social frontend x backend fechados.

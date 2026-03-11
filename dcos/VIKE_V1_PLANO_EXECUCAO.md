@@ -4,6 +4,23 @@ Data: 2026-03-11
 Branch: `chore/vike-v1-migration-plan`  
 Estado inicial: Fase 0 (inventario) concluida
 
+## 0) Estado de execucao (checkpoint 2026-03-11)
+- CP1: concluido (mapping e inventario fechados em docs).
+- CP2: concluido (entrypoints globais migrados para `+onRenderClient` e `+onRenderHtml`).
+- CP3: concluido (ondas public/core convertidas para `+Page`).
+- CP4: concluido (ondas `hub` e `creators` convertidas para `+Page`).
+- CP5: concluido (ondas `admin` convertidas para `+Page`).
+- CP6: concluido (remocao de legado `*.page.*` + validacao sem warning de design deprecated).
+- CP7: em fecho documental/final de branch para merge.
+
+### Evidencias desta ronda (2026-03-11)
+- `yarn lint` -> PASS.
+- `yarn test` -> PASS (35 suites / 189 testes).
+- `yarn build` -> PASS.
+- `yarn ssr:dev` -> arranque limpo; warning `You are using Vike's deprecated design` nao observado.
+- `yarn test:e2e:release -- --list` -> PASS (listagem de 12 testes); observacao: reporter HTML com EPERM no ambiente local, sem bloquear comando.
+- `yarn test:e2e:a11y -- --list` -> PASS (listagem de 2 testes).
+
 ## 1) Objetivo e definicao de concluido
 - Objetivo: migrar de Vike V0.4 para V1 sem regressao funcional e sem perda de produtividade.
 - Definicao de concluido:

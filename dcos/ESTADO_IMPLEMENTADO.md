@@ -1588,3 +1588,34 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - E2E smoke direcionado por onda de migracao (public, hub/creators, admin).
 - Regra de merge mantida:
   - sem merge para `master` antes do CP7 completo.
+
+## 79) Vike V1 - Switch estrutural concluido (CP2..CP6) (2026-03-11)
+- Conversao estrutural do routing/render para design V1 concluida em `src/pages/**`:
+  - `_default.page.client.tsx` -> `src/pages/+onRenderClient.tsx`;
+  - `_default.page.server.tsx` -> `src/pages/+onRenderHtml.tsx`;
+  - `_error.page.tsx` e restantes `*.page.tsx` migrados para `+Page.tsx`;
+  - `*.page.config.ts` migrado para `+config.ts` quando aplicavel.
+- Limpeza de legado concluida:
+  - remocao dos ficheiros V0.4 `*.page.*` (incluindo `*.d.ts` stale de pages);
+  - validacao por grep sem referencias restantes a `index.page`/`_default.page`.
+- Ajustes de compatibilidade aplicados durante o switch:
+  - `src/pages/creators/@username/+config.ts` alinhado com export `default`;
+  - imports legados para `index.page` corrigidos (`HomePage` e `mercados/noticias`).
+- Validacao tecnica desta ronda:
+  - `yarn lint` -> PASS;
+  - `yarn test` -> PASS (35 suites / 189 testes);
+  - `yarn build` -> PASS;
+  - `yarn ssr:dev` arranca sem warning `deprecated design`.
+- Observacoes nao-bloqueantes:
+  - warning de `import.meta.env` bare expression em `src/lib/utils/env.ts`;
+  - warnings de chave duplicada em `src/lib/mock/mockCourses.ts`;
+  - warning de chunks grandes e sourcemap warnings ja existentes;
+  - `test:e2e:release -- --list` lista testes com sucesso, mas o reporter HTML pode dar EPERM local no copy de ficheiros.
+
+## 80) Vike V1 - Gate final CP7 (pre-merge) (2026-03-11)
+- Listagem de suites finais validada:
+  - `yarn test:e2e:release -- --list` -> PASS (12 testes listados);
+  - `yarn test:e2e:a11y -- --list` -> PASS (2 testes listados).
+- Estado final desta fase:
+  - migracao funcional V1 fechada no branch `chore/vike-v1-migration-plan`;
+  - proximo passo operacional: commit/push desta ronda e abrir merge para `master/main`.
