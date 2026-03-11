@@ -1510,3 +1510,27 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - mocking controlado de `GET /api/stocks/quick-analysis/:symbol`.
 - Validacao tecnica:
   - `npm run test:e2e -- e2e/markets-stocks.route.smoke.spec.ts` -> PASS.
+
+## 73) /recursos index smoke e2e (2026-03-11)
+- Cobertura E2E dedicada para o index publico de recursos:
+  - novo ficheiro `e2e/recursos.index.smoke.spec.ts`.
+- Cenarios cobertos:
+  - carga de `/recursos` com categorias, featured e pesquisa global;
+  - fallback amigavel quando `GET /api/directories/categories` e `GET /api/directories/featured` falham.
+- Setup de teste:
+  - contexto visitante com consentimento de cookies em `localStorage`;
+  - mocking controlado dos endpoints `GET /api/directories/categories`, `GET /api/directories/featured` e `GET /api/directories/search`.
+- Validacao tecnica:
+  - `npm run test:e2e -- e2e/recursos.index.smoke.spec.ts` -> PASS.
+
+## 74) /recursos verticais smoke e2e + wrappers de rota direta (2026-03-11)
+- Cobertura E2E dedicada para as verticais publicas de recursos:
+  - novo ficheiro `e2e/recursos.verticals.smoke.spec.ts`.
+- Cenarios cobertos:
+  - carga de `/recursos/corretoras` com filtros ativos e toggle de `featured`;
+  - fallback amigavel em `/recursos/exchanges` quando a listagem falha.
+- Correcao de roteamento para acesso direto em SSR:
+  - adicionados wrappers Vike para rotas verticais em `src/pages/recursos/*.page.tsx` (`corretoras`, `plataformas`, `exchanges`, `apps`, `sites`, `podcasts`, `livros`).
+- Validacao tecnica:
+  - `npm run test:e2e -- e2e/recursos.verticals.smoke.spec.ts` -> PASS.
+  - `npm run test:e2e -- e2e/recursos.index.smoke.spec.ts e2e/recursos.verticals.smoke.spec.ts` -> PASS (4/4).
