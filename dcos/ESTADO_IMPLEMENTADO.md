@@ -1433,3 +1433,13 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
     - `/cursos/:slug` com carga de detalhe, outcomes e modulos.
 - Validacao tecnica:
   - `npm run test:e2e -- e2e/content-details.smoke.spec.ts` -> PASS.
+
+## 67) Mercados -> Watchlist navigation smoke + resilience (2026-03-11)
+- Cobertura E2E de navegacao real para watchlist:
+  - novo ficheiro `e2e/markets-watchlist.navigation.smoke.spec.ts`;
+  - cenario de fluxo `/mercados` -> click em link de watchlist -> `/mercados/watchlist` com cards renderizados.
+- Resiliencia adicional validada em E2E:
+  - cenario com `markets-watchlist` corrompido no `localStorage` (valor nao-array) sem crash de pagina;
+  - estado final esperado: heading carregado + fallback `Watchlist vazia`.
+- Validacao tecnica:
+  - `npm run test:e2e -- e2e/markets-watchlist.navigation.smoke.spec.ts` -> PASS.
