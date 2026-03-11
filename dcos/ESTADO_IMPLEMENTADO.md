@@ -1443,3 +1443,19 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - estado final esperado: heading carregado + fallback `Watchlist vazia`.
 - Validacao tecnica:
   - `npm run test:e2e -- e2e/markets-watchlist.navigation.smoke.spec.ts` -> PASS.
+
+## 68) Watchlist end-to-end flow smoke (2026-03-11)
+- Fluxo ponta-a-ponta de watchlist coberto em E2E:
+  - novo ficheiro `e2e/watchlist.end-to-end.smoke.spec.ts`.
+- Cenario coberto (single flow):
+  - abrir `/stocks`;
+  - pesquisar ticker (`AAPL`);
+  - adicionar na watchlist pelo botao de estrela;
+  - navegar para `/mercados/watchlist`;
+  - validar ticker/nome renderizados;
+  - remover ticker e confirmar estado `Watchlist vazia`.
+- Mocking de API no fluxo:
+  - `GET /api/stocks/quick-analysis/AAPL`;
+  - `GET /api/stocks/batch-snapshot` com leitura de `symbols` em query para resposta consistente com a lista.
+- Validacao tecnica:
+  - `npm run test:e2e -- e2e/watchlist.end-to-end.smoke.spec.ts` -> PASS.
