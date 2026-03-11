@@ -1459,3 +1459,15 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - `GET /api/stocks/batch-snapshot` com leitura de `symbols` em query para resposta consistente com a lista.
 - Validacao tecnica:
   - `npm run test:e2e -- e2e/watchlist.end-to-end.smoke.spec.ts` -> PASS.
+
+## 69) ETF overlap smoke e2e (2026-03-11)
+- Cobertura E2E dedicada para o comparador de ETFs:
+  - novo ficheiro `e2e/etfs.overlap.smoke.spec.ts`.
+- Cenarios cobertos:
+  - comparacao em `/mercados/etfs` com renderizacao de holdings e overlap setorial;
+  - degradacao amigavel quando `GET /api/etfs/compare-yahoo` devolve erro.
+- Setup de teste:
+  - contexto visitante com consentimento de cookies em `localStorage`;
+  - mocking controlado do endpoint de comparacao de ETFs.
+- Validacao tecnica:
+  - `npm run test:e2e -- e2e/etfs.overlap.smoke.spec.ts` -> PASS.
