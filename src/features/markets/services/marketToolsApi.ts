@@ -83,6 +83,7 @@ export interface ReitFfoResponse {
   ffoPayoutRatio?: number | string | null
   debtToEbitda?: number | string | null
   debtToEquity?: number | string | null
+  interestCoverage?: number | null
   // Phase 2: Period tag
   ffoDataPeriod?: string | null
   // Phase 4: Confidence

@@ -277,6 +277,7 @@ export default function ReitsToolkitPage() {
   const priceToNAV = toNum(data?.nav?.priceToNAV)
   const payoutRatio = toNum(data?.ffo?.ffoPayoutRatio)
   const debtEbitda = toNum(data?.ffo?.debtToEbitda)
+  const interestCoverage = toNum(data?.ffo?.interestCoverage)
   const reitSubtype = data?.ffo?.reitSubtype
   const subtypeConfidence = data?.ffo?.reitSubtypeConfidence
   const subtypeReason = data?.ffo?.reitSubtypeReasons?.[0] ?? null
@@ -310,7 +311,9 @@ export default function ReitsToolkitPage() {
 
   // Prioridade: subtipo (confidence >= medium) > perfil (confidence high) > mixed
   const useSubtypeWeights = Boolean(reitSubtype && subtypeConfidence !== 'low')
-  const useProfileWeights = Boolean(ENABLE_DYNAMIC_WEIGHTS && data?.ddm?.profileConfidence === 'high')
+  const useProfileWeights = Boolean(
+    ENABLE_DYNAMIC_WEIGHTS && data?.ddm?.profileConfidence === 'high',
+  )
   const weights = useSubtypeWeights
     ? SUBTYPE_WEIGHTS[reitSubtype as ReitSubtype]
     : useProfileWeights
@@ -322,12 +325,24 @@ export default function ReitsToolkitPage() {
       ? `Pesos por perfil (${activeProfile})`
       : 'Pesos baseline (misto)'
 
+  // Dívida: label e info adaptam consoante o que está disponível
+  // Prioridade: debtToEbitda > interestCoverage (fallback quando totalDebt é sentinel)
   const debtMetricLabel =
-    reitSubtype === 'net-lease' && debtEbitda !== null ? 'Div./EBITDA (proxy)' : 'Div./EBITDA'
+    debtEbitda !== null
+      ? reitSubtype === 'net-lease'
+        ? 'Div./EBITDA (proxy)'
+        : 'Div./EBITDA'
+      : interestCoverage !== null
+        ? 'Cob. de Juros'
+        : 'Div./EBITDA'
   const debtMetricInfo =
-    reitSubtype === 'net-lease'
-      ? 'Para net-lease REITs o EBITDA e frequentemente estimado por proxy (Operating Income + D&A), pois o FMP pode nao reportar EBITDA direto.'
-      : INFO.debtEbitda
+    debtEbitda !== null
+      ? reitSubtype === 'net-lease'
+        ? 'Para net-lease REITs o EBITDA e frequentemente estimado por proxy (Operating Income + D&A), pois o FMP pode nao reportar EBITDA direto.'
+        : INFO.debtEbitda
+      : interestCoverage !== null
+        ? 'Cobertura de Juros (EBITDA / Juros pagos). Usado como proxy de alavancagem quando o FMP nao reporta a divida direta para este REIT (ex: estruturas de finance lease como a VICI). Acima de 4x indica cobertura solida; abaixo de 2x e preocupante.'
+        : INFO.debtEbitda
 
   // ── Valuation Score (combinação ponderada dos sinais disponíveis) ───────────
   // Calcula um score 0-100 com base nos dados já carregados, sem nova chamada à API.
@@ -370,13 +385,29 @@ export default function ReitsToolkitPage() {
       missing.push('Payout')
     }
 
-    // Dívida/EBITDA: <5x muito conservador, >9x risco
+    // Dívida: usa debtToEbitda se disponível; fallback para interestCoverage quando totalDebt é sentinel
     if (debtEbitda !== null) {
       const ds =
         debtEbitda < 4 ? 95 : debtEbitda < 6 ? 80 : debtEbitda < 7.5 ? 52 : debtEbitda < 9 ? 28 : 8
       weighted += ds * weights.debt
       total += weights.debt
       metrics.push(debtMetricLabel)
+    } else if (interestCoverage !== null) {
+      // Coverage ratio: quanto maior, melhor (inverso do debt/ebitda)
+      // VICI 4.45x → 75, NNN 4.25x → 75, GLPI 4.04x → 70
+      const cs =
+        interestCoverage > 6
+          ? 90
+          : interestCoverage > 4
+            ? 75
+            : interestCoverage > 2
+              ? 50
+              : interestCoverage > 1.5
+                ? 25
+                : 8
+      weighted += cs * weights.debt
+      total += weights.debt
+      metrics.push('Cob. de Juros')
     } else {
       missing.push(debtMetricLabel)
     }
@@ -389,7 +420,15 @@ export default function ReitsToolkitPage() {
         : toNum(data?.nav?.economicNAV?.scenarios?.base?.priceVsNav)
     if (ecoNavBase !== null) {
       const ns =
-        ecoNavBase < -15 ? 95 : ecoNavBase < 0 ? 80 : ecoNavBase < 15 ? 60 : ecoNavBase < 30 ? 32 : 10
+        ecoNavBase < -15
+          ? 95
+          : ecoNavBase < 0
+            ? 80
+            : ecoNavBase < 15
+              ? 60
+              : ecoNavBase < 30
+                ? 32
+                : 10
       weighted += ns * weights.nav
       total += weights.nav
       metrics.push('vs. ECO NAV')
@@ -555,13 +594,15 @@ export default function ReitsToolkitPage() {
                                 ? 'Crescimento'
                                 : activeProfile === 'income'
                                   ? 'Rendimento'
-                                : 'Misto'}
+                                  : 'Misto'}
                             </Badge>
                           )}
                           {reitSubtype && (
                             <span className="rounded border border-border/40 bg-muted/30 px-1.5 py-0.5 text-[10px] text-muted-foreground/70">
                               {SUBTYPE_LABELS[reitSubtype]}
-                              {subtypeConfidence ? ` (${CONFIDENCE_LABELS[subtypeConfidence]})` : ''}
+                              {subtypeConfidence
+                                ? ` (${CONFIDENCE_LABELS[subtypeConfidence]})`
+                                : ''}
                             </span>
                           )}
                         </div>
@@ -862,9 +903,11 @@ export default function ReitsToolkitPage() {
                       <MetricRow
                         label={debtMetricLabel}
                         value={
-                          data.ffo.debtToEbitda
-                            ? `${Number(data.ffo.debtToEbitda).toFixed(1)}x`
-                            : 'N/A'
+                          debtEbitda !== null
+                            ? `${debtEbitda.toFixed(1)}x`
+                            : interestCoverage !== null
+                              ? `${interestCoverage.toFixed(1)}x`
+                              : 'N/A'
                         }
                         info={debtMetricInfo}
                         highlight={
@@ -872,7 +915,13 @@ export default function ReitsToolkitPage() {
                             ? debtEbitda < 6
                               ? 'positive'
                               : 'negative'
-                            : undefined
+                            : interestCoverage !== null
+                              ? interestCoverage > 4
+                                ? 'positive'
+                                : interestCoverage > 2
+                                  ? 'neutral'
+                                  : 'negative'
+                              : undefined
                         }
                       />
                       <MetricRow
@@ -1264,15 +1313,30 @@ export default function ReitsToolkitPage() {
                           </p>
                         </div>
                       )}
-                      {debtEbitda !== null && (
+                      {(debtEbitda !== null || interestCoverage !== null) && (
                         <div className="rounded-lg border border-border/40 bg-muted/20 px-3 py-2.5">
                           <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/60">
                             {debtMetricLabel}
                           </p>
                           <p
-                            className={`mt-1 text-lg font-bold tabular-nums leading-none ${debtEbitda < 6 ? 'text-emerald-400' : debtEbitda > 8 ? 'text-red-400' : 'text-foreground'}`}
+                            className={`mt-1 text-lg font-bold tabular-nums leading-none ${
+                              debtEbitda !== null
+                                ? debtEbitda < 6
+                                  ? 'text-emerald-400'
+                                  : debtEbitda > 8
+                                    ? 'text-red-400'
+                                    : 'text-foreground'
+                                : interestCoverage! > 4
+                                  ? 'text-emerald-400'
+                                  : interestCoverage! > 2
+                                    ? 'text-foreground'
+                                    : 'text-red-400'
+                            }`}
                           >
-                            {debtEbitda.toFixed(1)}x
+                            {debtEbitda !== null
+                              ? debtEbitda.toFixed(1)
+                              : interestCoverage!.toFixed(1)}
+                            x
                           </p>
                           <p className="mt-1 text-[10px] text-muted-foreground/50">
                             peso {(weights.debt * 100).toFixed(0)}%
