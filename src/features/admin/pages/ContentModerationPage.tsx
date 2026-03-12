@@ -44,6 +44,7 @@ import {
 } from '@/components/ui'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import type { User } from '@/features/auth/types'
+import { trackFeature } from '@/lib/analytics'
 import { getErrorMessage } from '@/lib/api/client'
 import { cn } from '@/lib/utils'
 import {
@@ -70,6 +71,7 @@ import {
   useRestrictAdminContent,
   useUnhideAdminContent,
 } from '../hooks/useAdminContent'
+import { useAdminModerationTemplates } from '../hooks/useAdminModerationTemplates'
 import {
   buildAdminCreatorRiskHref,
   DEFAULT_ADMIN_CONTENT_DEEP_LINK_FILTERS,
@@ -92,6 +94,7 @@ import type {
   AdminContentQueueQuery,
   AdminContentType,
 } from '../types/adminContent'
+import type { AdminModerationTemplateItem } from '../types/adminModerationTemplates'
 
 type ContentTypeFilter = AdminContentType | 'all'
 type ModerationFilter = AdminContentModerationStatus | 'all'
@@ -231,6 +234,12 @@ const DEFAULT_ACTION_REASON: Record<ContentActionKind, string> = {
 const DEFAULT_ROLLBACK_REASON = 'Rollback assistido apos revisao administrativa'
 const DOUBLE_CONFIRM_TOKEN = 'CONFIRMAR'
 const DESTRUCTIVE_CONTENT_ACTIONS: ContentActionKind[] = ['hide', 'restrict']
+const TEMPLATE_NONE_VALUE = '__manual__'
+const ACTION_TEMPLATE_TAG_HINTS: Record<ContentActionKind, string[]> = {
+  hide: ['hide', 'hidden', 'ocultar', 'ocultacao'],
+  unhide: ['unhide', 'visible', 'reativar', 'reativacao'],
+  restrict: ['restrict', 'restricted', 'restringir', 'restricao'],
+}
 
 const OptionalRouterLink = ({
   to,
@@ -272,6 +281,32 @@ const toQueueQuery = (
 
 const isDestructiveAction = (kind: ContentActionKind): boolean =>
   DESTRUCTIVE_CONTENT_ACTIONS.includes(kind)
+
+const normalizeTemplateTag = (value: string): string =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_')
+
+const matchesTemplateAction = (
+  template: AdminModerationTemplateItem,
+  action: ContentActionKind,
+): boolean => {
+  const tags = template.tags.map(normalizeTemplateTag)
+  if (tags.length === 0) return false
+  return ACTION_TEMPLATE_TAG_HINTS[action].some((hint) => tags.includes(hint))
+}
+
+const sortTemplatesForAction = (
+  templates: AdminModerationTemplateItem[],
+  action: ContentActionKind,
+): AdminModerationTemplateItem[] =>
+  [...templates].sort((left, right) => {
+    const leftMatched = matchesTemplateAction(left, action)
+    const rightMatched = matchesTemplateAction(right, action)
+    if (leftMatched !== rightMatched) return leftMatched ? -1 : 1
+    return left.label.localeCompare(right.label, 'pt-PT')
+  })
 
 const getImpactSummary = (kind: ContentActionKind, content: AdminContentQueueItem): string[] => {
   const target = `${CONTENT_TYPE_LABEL[content.contentType]} /${content.slug}`
@@ -414,6 +449,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
   const [actionDialog, setActionDialog] = useState<ContentActionDialogState | null>(null)
   const [actionReason, setActionReason] = useState('')
   const [actionNote, setActionNote] = useState('')
+  const [actionTemplateCode, setActionTemplateCode] = useState(TEMPLATE_NONE_VALUE)
   const [actionConfirmText, setActionConfirmText] = useState('')
   const [actionMarkFalsePositive, setActionMarkFalsePositive] = useState(false)
   const [actionUnhideMode, setActionUnhideMode] = useState<'immediate' | 'scheduled'>('immediate')
@@ -431,6 +467,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
   const [bulkAction, setBulkAction] = useState<ContentActionKind>('hide')
   const [bulkReason, setBulkReason] = useState(DEFAULT_ACTION_REASON.hide)
   const [bulkNote, setBulkNote] = useState('')
+  const [bulkTemplateCode, setBulkTemplateCode] = useState(TEMPLATE_NONE_VALUE)
   const [bulkScheduledFor, setBulkScheduledFor] = useState('')
   const [bulkConfirmText, setBulkConfirmText] = useState('')
   const [rollbackJobReviewDialog, setRollbackJobReviewDialog] =
@@ -510,6 +547,41 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     rollbackDialog?.eventId ?? null,
     Boolean(rollbackDialog),
   )
+  const moderationTemplatesQuery = useAdminModerationTemplates(
+    {
+      active: true,
+      limit: 100,
+    },
+    {
+      enabled: canReadContent,
+    },
+  )
+  const moderationTemplates = moderationTemplatesQuery.data?.items ?? []
+  const actionTemplates = useMemo(
+    () =>
+      actionDialog
+        ? sortTemplatesForAction(moderationTemplates, actionDialog.kind)
+        : moderationTemplates,
+    [actionDialog, moderationTemplates],
+  )
+  const bulkTemplates = useMemo(
+    () => sortTemplatesForAction(moderationTemplates, bulkAction),
+    [bulkAction, moderationTemplates],
+  )
+  const selectedActionTemplate = useMemo(
+    () =>
+      actionTemplateCode === TEMPLATE_NONE_VALUE
+        ? null
+        : moderationTemplates.find((item) => item.code === actionTemplateCode) ?? null,
+    [actionTemplateCode, moderationTemplates],
+  )
+  const selectedBulkTemplate = useMemo(
+    () =>
+      bulkTemplateCode === TEMPLATE_NONE_VALUE
+        ? null
+        : moderationTemplates.find((item) => item.code === bulkTemplateCode) ?? null,
+    [bulkTemplateCode, moderationTemplates],
+  )
 
   const hideMutation = useHideAdminContent()
   const unhideMutation = useUnhideAdminContent()
@@ -527,12 +599,19 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     unhideMutation.isPending ||
     scheduleUnhideMutation.isPending ||
     restrictMutation.isPending
-  const requiresDoubleConfirm = actionDialog ? isDestructiveAction(actionDialog.kind) : false
+  const requiresDoubleConfirm = Boolean(
+    actionDialog &&
+      (isDestructiveAction(actionDialog.kind) || selectedActionTemplate?.requiresDoubleConfirm),
+  )
   const isDoubleConfirmValid =
     !requiresDoubleConfirm || isDoubleConfirmTokenValid(actionConfirmText, DOUBLE_CONFIRM_TOKEN)
   const actionReasonError = actionDialog
     ? getRequiredFieldError(actionReason, 'Motivo obrigatorio para executar a acao.')
     : null
+  const actionNoteError =
+    actionDialog && selectedActionTemplate?.requiresNote
+      ? getRequiredFieldError(actionNote, 'Este template exige nota operacional.')
+      : null
   const actionConfirmError =
     requiresDoubleConfirm && actionConfirmText.trim().length > 0 && !isDoubleConfirmValid
       ? `Escreve "${DOUBLE_CONFIRM_TOKEN}" para confirmar esta acao critica.`
@@ -547,6 +626,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     Boolean(actionDialog) &&
     !isActionPending &&
     !actionReasonError &&
+    !actionNoteError &&
     !actionScheduledForError &&
     isDoubleConfirmValid
   const rollbackReview = rollbackReviewQuery.data?.rollback
@@ -570,12 +650,17 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     Boolean(rollbackReview?.canRollback) &&
     !rollbackReasonError &&
     isRollbackConfirmValid
-  const bulkRequiresDoubleConfirm = (bulkDialog?.items.length ?? 0) >= 10
+  const bulkRequiresDoubleConfirm =
+    (bulkDialog?.items.length ?? 0) >= 10 || selectedBulkTemplate?.requiresDoubleConfirm === true
   const isBulkConfirmValid =
     !bulkRequiresDoubleConfirm || isDoubleConfirmTokenValid(bulkConfirmText, DOUBLE_CONFIRM_TOKEN)
   const bulkReasonError = bulkDialog
     ? getRequiredFieldError(bulkReason, 'Motivo obrigatorio para criar job em lote.')
     : null
+  const bulkNoteError =
+    bulkDialog && selectedBulkTemplate?.requiresNote
+      ? getRequiredFieldError(bulkNote, 'Este template exige nota operacional.')
+      : null
   const bulkConfirmError =
     bulkRequiresDoubleConfirm && bulkConfirmText.trim().length > 0 && !isBulkConfirmValid
       ? `Escreve "${DOUBLE_CONFIRM_TOKEN}" para confirmar este lote.`
@@ -590,6 +675,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     Boolean(bulkDialog) &&
     !bulkJobMutation.isPending &&
     !bulkReasonError &&
+    !bulkNoteError &&
     !bulkScheduledForError &&
     isBulkConfirmValid
   const rollbackJobApproval = rollbackJobApprovalDialog?.job.approval ?? null
@@ -689,6 +775,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
 
   const openActionDialog = (kind: ContentActionKind, content: AdminContentQueueItem) => {
     setActionDialog({ kind, content })
+    setActionTemplateCode(TEMPLATE_NONE_VALUE)
     setActionReason(DEFAULT_ACTION_REASON[kind])
     setActionNote('')
     setActionConfirmText('')
@@ -700,12 +787,37 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
   const closeActionDialog = (force = false) => {
     if (!force && isActionPending) return
     setActionDialog(null)
+    setActionTemplateCode(TEMPLATE_NONE_VALUE)
     setActionReason('')
     setActionNote('')
     setActionConfirmText('')
     setActionMarkFalsePositive(false)
     setActionUnhideMode('immediate')
     setActionScheduledFor(getDefaultScheduleInputValue())
+  }
+
+  const applyActionTemplate = (templateCode: string) => {
+    setActionTemplateCode(templateCode)
+
+    if (!actionDialog) return
+
+    if (templateCode === TEMPLATE_NONE_VALUE) {
+      setActionReason(DEFAULT_ACTION_REASON[actionDialog.kind])
+      return
+    }
+
+    const template = moderationTemplates.find((item) => item.code === templateCode)
+    if (!template) return
+
+    setActionReason(template.reason)
+    setActionNote(template.defaultNote ?? '')
+    trackFeature('admin_moderation_template_selected', {
+      surface: 'admin_content_action_dialog',
+      templateCode: template.code,
+      action: actionDialog.kind,
+      requiresNote: template.requiresNote,
+      requiresDoubleConfirm: template.requiresDoubleConfirm,
+    })
   }
 
   const closeHistoryDialog = () => {
@@ -754,6 +866,7 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     if (selectedItems.length === 0) return
     setBulkDialog({ items: selectedItems })
     setBulkAction('hide')
+    setBulkTemplateCode(TEMPLATE_NONE_VALUE)
     setBulkReason(DEFAULT_ACTION_REASON.hide)
     setBulkNote('')
     setBulkScheduledFor('')
@@ -764,10 +877,33 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     if (!force && bulkJobMutation.isPending) return
     setBulkDialog(null)
     setBulkAction('hide')
+    setBulkTemplateCode(TEMPLATE_NONE_VALUE)
     setBulkReason(DEFAULT_ACTION_REASON.hide)
     setBulkNote('')
     setBulkScheduledFor('')
     setBulkConfirmText('')
+  }
+
+  const applyBulkTemplate = (templateCode: string) => {
+    setBulkTemplateCode(templateCode)
+
+    if (templateCode === TEMPLATE_NONE_VALUE) {
+      setBulkReason(DEFAULT_ACTION_REASON[bulkAction])
+      return
+    }
+
+    const template = moderationTemplates.find((item) => item.code === templateCode)
+    if (!template) return
+
+    setBulkReason(template.reason)
+    setBulkNote(template.defaultNote ?? '')
+    trackFeature('admin_moderation_template_selected', {
+      surface: 'admin_content_bulk_dialog',
+      templateCode: template.code,
+      action: bulkAction,
+      requiresNote: template.requiresNote,
+      requiresDoubleConfirm: template.requiresDoubleConfirm,
+    })
   }
 
   const openRollbackJobReviewDialog = (job: AdminContentJob) => {
@@ -816,6 +952,11 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
       return
     }
 
+    if (actionNoteError) {
+      toast.error(actionNoteError)
+      return
+    }
+
     if (actionScheduledForError) {
       toast.error(actionScheduledForError)
       return
@@ -828,6 +969,20 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     }
 
     try {
+      if (selectedActionTemplate) {
+        trackFeature('admin_moderation_template_applied', {
+          surface: 'admin_content_action_dialog',
+          templateCode: selectedActionTemplate.code,
+          action: actionDialog.kind,
+          mode:
+            actionDialog.kind === 'unhide' && actionUnhideMode === 'scheduled'
+              ? 'scheduled'
+              : 'immediate',
+          requiresNote: selectedActionTemplate.requiresNote,
+          requiresDoubleConfirm: selectedActionTemplate.requiresDoubleConfirm,
+        })
+      }
+
       const payload = {
         reason,
         note: actionNote.trim() || undefined,
@@ -932,6 +1087,11 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
       return
     }
 
+    if (bulkNoteError) {
+      toast.error(bulkNoteError)
+      return
+    }
+
     if (bulkScheduledForError) {
       toast.error(bulkScheduledForError)
       return
@@ -953,6 +1113,18 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
       if (parsedScheduledFor && (!parsedScheduledFor.valid || !parsedScheduledFor.iso)) {
         toast.error('Data/hora de agendamento invalida ou nao futura.')
         return
+      }
+
+      if (selectedBulkTemplate) {
+        trackFeature('admin_moderation_template_applied', {
+          surface: 'admin_content_bulk_dialog',
+          templateCode: selectedBulkTemplate.code,
+          action: bulkAction,
+          mode: parsedScheduledFor?.iso ? 'scheduled' : 'immediate',
+          requiresNote: selectedBulkTemplate.requiresNote,
+          requiresDoubleConfirm: selectedBulkTemplate.requiresDoubleConfirm,
+          itemCount: bulkDialog.items.length,
+        })
       }
 
       const result = await bulkJobMutation.mutateAsync({
@@ -2199,6 +2371,39 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
               </div>
 
               <div className="space-y-2">
+                <Label>Template de moderacao</Label>
+                <Select value={actionTemplateCode} onValueChange={applyActionTemplate}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleciona template (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={TEMPLATE_NONE_VALUE}>Manual (sem template)</SelectItem>
+                    {actionTemplates.map((template) => (
+                      <SelectItem key={template.code} value={template.code}>
+                        {template.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {moderationTemplatesQuery.isLoading ? (
+                  <p className="text-xs text-muted-foreground">A carregar templates...</p>
+                ) : moderationTemplatesQuery.isError ? (
+                  <p className="text-xs text-destructive">
+                    {getErrorMessage(moderationTemplatesQuery.error)}
+                  </p>
+                ) : selectedActionTemplate ? (
+                  <p className="text-xs text-muted-foreground">
+                    Template <span className="font-medium">{selectedActionTemplate.code}</span>:{' '}
+                    reason e nota foram preenchidos automaticamente.
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Seleciona um template para auto-fill de motivo/nota.
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="admin-content-action-reason">Motivo</Label>
                 <Input
                   id="admin-content-action-reason"
@@ -2224,7 +2429,17 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                   onChange={(event) => setActionNote(event.target.value)}
                   rows={4}
                   placeholder="Detalhes operacionais para auditoria interna."
+                  className={
+                    actionNoteError ? 'border-destructive focus-visible:ring-destructive' : undefined
+                  }
                 />
+                {actionNoteError ? (
+                  <p className="text-xs text-destructive">{actionNoteError}</p>
+                ) : selectedActionTemplate?.requiresNote ? (
+                  <p className="text-xs text-muted-foreground">
+                    Este template exige nota antes de confirmar a acao.
+                  </p>
+                ) : null}
               </div>
 
               {actionDialog.kind === 'unhide' ? (
@@ -2920,7 +3135,9 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                   onValueChange={(value) => {
                     const nextAction = value as ContentActionKind
                     setBulkAction(nextAction)
+                    setBulkTemplateCode(TEMPLATE_NONE_VALUE)
                     setBulkReason(DEFAULT_ACTION_REASON[nextAction])
+                    setBulkNote('')
                   }}
                 >
                   <SelectTrigger>
@@ -2932,6 +3149,39 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                     <SelectItem value="unhide">Reativar</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Template de moderacao</Label>
+                <Select value={bulkTemplateCode} onValueChange={applyBulkTemplate}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleciona template (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={TEMPLATE_NONE_VALUE}>Manual (sem template)</SelectItem>
+                    {bulkTemplates.map((template) => (
+                      <SelectItem key={template.code} value={template.code}>
+                        {template.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {moderationTemplatesQuery.isLoading ? (
+                  <p className="text-xs text-muted-foreground">A carregar templates...</p>
+                ) : moderationTemplatesQuery.isError ? (
+                  <p className="text-xs text-destructive">
+                    {getErrorMessage(moderationTemplatesQuery.error)}
+                  </p>
+                ) : selectedBulkTemplate ? (
+                  <p className="text-xs text-muted-foreground">
+                    Template <span className="font-medium">{selectedBulkTemplate.code}</span>:
+                    motivo/nota auto-preenchidos.
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Opcional: aplicar template para padronizar o lote.
+                  </p>
+                )}
               </div>
 
               {bulkAction === 'unhide' ? (
@@ -2987,7 +3237,17 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                   value={bulkNote}
                   onChange={(event) => setBulkNote(event.target.value)}
                   placeholder="Contexto do lote, referencia de incidente ou janela operacional."
+                  className={
+                    bulkNoteError ? 'border-destructive focus-visible:ring-destructive' : undefined
+                  }
                 />
+                {bulkNoteError ? (
+                  <p className="text-xs text-destructive">{bulkNoteError}</p>
+                ) : selectedBulkTemplate?.requiresNote ? (
+                  <p className="text-xs text-muted-foreground">
+                    Este template exige nota antes de criar o job.
+                  </p>
+                ) : null}
               </div>
 
               {bulkRequiresDoubleConfirm ? (

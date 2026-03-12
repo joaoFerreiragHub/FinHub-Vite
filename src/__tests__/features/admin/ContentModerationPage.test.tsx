@@ -1,11 +1,15 @@
 import { fireEvent, screen, within } from '@testing-library/react'
 import ContentModerationPage from '@/features/admin/pages/ContentModerationPage'
 import * as adminContentHooks from '@/features/admin/hooks/useAdminContent'
+import * as adminModerationTemplateHooks from '@/features/admin/hooks/useAdminModerationTemplates'
 import { renderWithProviders } from '@/__tests__/utils/renderWithProviders'
 
 jest.mock('@/features/admin/hooks/useAdminContent')
+jest.mock('@/features/admin/hooks/useAdminModerationTemplates')
 
 const mockedHooks = adminContentHooks as jest.Mocked<typeof adminContentHooks>
+const mockedTemplateHooks =
+  adminModerationTemplateHooks as jest.Mocked<typeof adminModerationTemplateHooks>
 
 const baseWorkerStatus = {
   generatedAt: '2026-03-04T10:00:00.000Z',
@@ -224,6 +228,20 @@ describe('ContentModerationPage', () => {
     mockedHooks.useCreateBulkModerationJob.mockReturnValue(buildIdleMutation() as never)
     mockedHooks.useRequestBulkRollbackJobReview.mockReturnValue(buildIdleMutation() as never)
     mockedHooks.useApproveBulkRollbackJob.mockReturnValue(buildIdleMutation() as never)
+    mockedTemplateHooks.useAdminModerationTemplates.mockReturnValue({
+      data: {
+        items: [],
+        pagination: {
+          page: 1,
+          limit: 100,
+          total: 0,
+          pages: 1,
+        },
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as never)
   })
 
   it('reads deep-link context from the URL and applies it to queue/jobs queries', () => {

@@ -1721,3 +1721,25 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - `cmd /c yarn.cmd typecheck:p1` -> PASS.
   - `cmd /c yarn.cmd lint` -> PASS.
   - `cmd /c yarn.cmd test --runInBand` -> PASS (36 suites, 192 testes).
+
+## 87) P4.3-04 templates de moderacao - frontend FECHADO (2026-03-12)
+- Camada de dominio frontend para templates de moderacao:
+  - tipos: `src/features/admin/types/adminModerationTemplates.ts`;
+  - service: `src/features/admin/services/adminModerationTemplatesService.ts`;
+  - hooks React Query: `src/features/admin/hooks/useAdminModerationTemplates.ts`.
+- Integracao no fluxo de moderacao de conteudo:
+  - `src/features/admin/pages/ContentModerationPage.tsx` passou a ter selector de template em:
+    - dialog de acao individual (`hide`, `restrict`, `unhide`);
+    - dialog de job em lote.
+  - auto-fill de `reason` e `note` ao selecionar template, mantendo override manual.
+- Guardrails operacionais alinhados ao contrato backend:
+  - `requiresNote` bloqueia submissao sem nota;
+  - `requiresDoubleConfirm` eleva confirmacao forte no cliente.
+- Telemetria de uso/aplicacao:
+  - eventos `feature_used` via `trackFeature` para `template_selected` e `template_applied` no contexto admin.
+- Cobertura de testes:
+  - novo teste `src/__tests__/features/admin/adminModerationTemplatesService.test.ts`;
+  - `src/__tests__/features/admin/ContentModerationPage.test.tsx` atualizado para mock do novo hook.
+- Validacao tecnica desta ronda:
+  - `cmd /c yarn.cmd typecheck:p1` -> PASS.
+  - `npx jest --runInBand src/__tests__/features/admin/adminModerationTemplatesService.test.ts src/__tests__/features/admin/ContentModerationPage.test.tsx` -> PASS.
