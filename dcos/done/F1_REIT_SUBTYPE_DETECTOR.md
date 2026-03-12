@@ -1,7 +1,18 @@
 # F1 - REIT Subtype Detector
 
 Data: 2026-03-12
-Estado: Especificacao tecnica — pronto para implementar
+Estado: **IMPLEMENTADO E CONCLUIDO**
+Commits: backend `e441e17` (API_finhub/main) + frontend `9569b16` (FinHub-Vite/master)
+
+## Desvios e descobertas pos-implementacao (dados FMP reais)
+
+- VICI industry = "REIT - Diversified" (spec assumia "REIT - Specialty") — coberto por `gamingNetLease` name-check ✓
+- O e NNN tem EBITDA real no FMP (nao sentinel zero) — `netLeaseNames` desacoplado de `ebitdaIsSentinel` ✓
+- VICI `totalDebt = 0` e sentinel estrutural (FMP nao suporta lessor ASC 842 em nenhum plano, incluindo as-reported) ✓
+- `interestCoverage = EBITDA / interestExpense` adicionado como proxy quando `totalDebt` e sentinel:
+  VICI 4.45x, NNN 4.25x, GLPI 4.04x — confirmados via FMP.
+- Scoring usa coverage quando `debtToEbitda = null`; thresholds: >6x→90, >4x→75, >2x→50, >1.5x→25.
+- Frontend adapta label ("Cob. de Juros"), cor (verde >4x) e tooltip automaticamente.
 
 ---
 
