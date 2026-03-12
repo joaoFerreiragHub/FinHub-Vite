@@ -106,12 +106,21 @@ export default function AdminMonetizationPaywallPage({
     <div className={cn('space-y-6', embedded ? 'pt-2' : '')}>
       {!embedded ? (
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Monetizacao · Paywall</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Monetizacao - Paywall</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Gestao de policies de acesso premium por tipo de conteudo.
           </p>
         </div>
       ) : null}
+
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" size="sm" asChild>
+          <a href="/admin/monetizacao">Paywall</a>
+        </Button>
+        <Button type="button" variant="outline" size="sm" asChild>
+          <a href="/admin/monetizacao/subscricoes">Subscricoes</a>
+        </Button>
+      </div>
 
       {!canRead ? (
         <Card className="border-amber-500/40 bg-amber-500/5">
@@ -314,4 +323,3 @@ export default function AdminMonetizationPaywallPage({
     </div>
   )
 }
-

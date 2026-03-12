@@ -1675,3 +1675,22 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
 - Validacao tecnica desta ronda:
   - `cmd /c yarn.cmd typecheck:p1` -> PASS.
   - `cmd /c yarn.cmd lint` -> PASS.
+
+## 85) P4.3-02 monetizacao/subscricoes - frontend MVP inicial (2026-03-12)
+- Nova rota Vike para subscricoes:
+  - `src/pages/admin/monetizacao/subscricoes/+Page.tsx` protegida por `requiredAdminModule="monetization"`.
+- Camada de dominio de subscricoes admin adicionada:
+  - tipos: `src/features/admin/types/adminSubscriptions.ts`;
+  - service: `src/features/admin/services/adminSubscriptionsService.ts`;
+  - hooks: `src/features/admin/hooks/useAdminSubscriptions.ts`.
+- UI operacional inicial em `src/features/admin/pages/AdminMonetizationSubscriptionsPage.tsx`:
+  - listagem com filtros (`status`, `planCode`, `search`) e resumo agregado;
+  - detalhe por utilizador com acao de `extend-trial`, `revoke-entitlement` e `reactivate`;
+  - motivo administrativo obrigatorio no frontend antes de enviar mutacoes.
+- Navegacao de modulo alinhada:
+  - Paywall e Subscricoes com links cruzados entre `/admin/monetizacao` e `/admin/monetizacao/subscricoes`;
+  - rota adicionada no registry admin (`src/routes/admin.ts`).
+- Validacao tecnica desta ronda:
+  - `cmd /c yarn.cmd typecheck:p1` -> PASS.
+  - `cmd /c yarn.cmd lint` -> PASS.
+  - `cmd /c yarn.cmd test --runInBand` -> PASS (35 suites, 189 testes).

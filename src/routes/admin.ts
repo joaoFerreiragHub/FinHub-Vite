@@ -63,6 +63,12 @@ export const adminRoutes = [
     allowedRoles: ['admin'] as UserRole[],
   },
   {
+    path: '/admin/monetizacao/subscricoes',
+    label: 'Monetizacao Subscricoes',
+    icon: Wallet,
+    allowedRoles: ['admin'] as UserRole[],
+  },
+  {
     path: '/admin/operacoes',
     label: 'Operacoes',
     icon: FileSpreadsheet,
