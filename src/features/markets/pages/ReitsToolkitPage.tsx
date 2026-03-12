@@ -224,7 +224,13 @@ const SUBTYPE_LABELS: Record<ReitSubtype, string> = {
   'specialty-tech': 'Tech/Torres',
   healthcare: 'Saude',
   hotel: 'Hotelaria',
-  standard: '',
+  standard: 'Standard',
+}
+
+const CONFIDENCE_LABELS: Record<'high' | 'medium' | 'low', string> = {
+  high: 'alta',
+  medium: 'media',
+  low: 'baixa',
 }
 
 // ── Componente principal ─────────────────────────────────────────────────────
@@ -273,6 +279,7 @@ export default function ReitsToolkitPage() {
   const debtEbitda = toNum(data?.ffo?.debtToEbitda)
   const reitSubtype = data?.ffo?.reitSubtype
   const subtypeConfidence = data?.ffo?.reitSubtypeConfidence
+  const subtypeReason = data?.ffo?.reitSubtypeReasons?.[0] ?? null
 
   // FFO toggle — resolve os valores a apresentar consoante a vista selecionada
   const ffoSource = data?.ffo?.ffoSource
@@ -302,12 +309,18 @@ export default function ReitsToolkitPage() {
   const ddmLowConfidence = data?.ddm?.ddmConfidence === 'low'
 
   // Prioridade: subtipo (confidence >= medium) > perfil (confidence high) > mixed
-  const weights =
-    reitSubtype && subtypeConfidence !== 'low'
-      ? SUBTYPE_WEIGHTS[reitSubtype]
-      : ENABLE_DYNAMIC_WEIGHTS && data?.ddm?.profileConfidence === 'high'
-        ? WEIGHT_PROFILES[activeProfile]
-        : WEIGHT_PROFILES.mixed
+  const useSubtypeWeights = Boolean(reitSubtype && subtypeConfidence !== 'low')
+  const useProfileWeights = Boolean(ENABLE_DYNAMIC_WEIGHTS && data?.ddm?.profileConfidence === 'high')
+  const weights = useSubtypeWeights
+    ? SUBTYPE_WEIGHTS[reitSubtype as ReitSubtype]
+    : useProfileWeights
+      ? WEIGHT_PROFILES[activeProfile]
+      : WEIGHT_PROFILES.mixed
+  const weightModeLabel = useSubtypeWeights
+    ? `Pesos por subtipo (${SUBTYPE_LABELS[reitSubtype as ReitSubtype]})`
+    : useProfileWeights
+      ? `Pesos por perfil (${activeProfile})`
+      : 'Pesos baseline (misto)'
 
   const debtMetricLabel =
     reitSubtype === 'net-lease' && debtEbitda !== null ? 'Div./EBITDA (proxy)' : 'Div./EBITDA'
@@ -545,15 +558,22 @@ export default function ReitsToolkitPage() {
                                 : 'Misto'}
                             </Badge>
                           )}
-                          {reitSubtype && reitSubtype !== 'standard' && (
+                          {reitSubtype && (
                             <span className="rounded border border-border/40 bg-muted/30 px-1.5 py-0.5 text-[10px] text-muted-foreground/70">
                               {SUBTYPE_LABELS[reitSubtype]}
+                              {subtypeConfidence ? ` (${CONFIDENCE_LABELS[subtypeConfidence]})` : ''}
                             </span>
                           )}
                         </div>
                         <p className="mt-0.5 text-sm font-semibold leading-tight">
                           {data.ddm.companyName ?? data.ddm.symbol}
                         </p>
+                        {reitSubtype && (
+                          <p className="mt-0.5 text-[11px] text-muted-foreground/60">
+                            Subtipo detetado: {SUBTYPE_LABELS[reitSubtype]}
+                            {subtypeReason ? ` - ${subtypeReason}` : ''}
+                          </p>
+                        )}
                         {/* Profile override */}
                         {data.ddm.reitProfile && (
                           <div className="mt-1 flex gap-0.5">
@@ -1171,6 +1191,7 @@ export default function ReitsToolkitPage() {
                           {(weights.debt * 100).toFixed(0)}% · vs. ECO NAV{' '}
                           {(weights.nav * 100).toFixed(0)}%
                         </p>
+                        <p className="mt-0.5 text-xs text-muted-foreground/70">{weightModeLabel}</p>
                       </div>
                       <div className="flex items-end gap-2">
                         <span
