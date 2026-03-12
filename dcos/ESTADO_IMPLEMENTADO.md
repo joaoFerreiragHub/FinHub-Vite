@@ -2,6 +2,27 @@
 
 Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS e Moderation Control Plane).
 
+## Atualizacao 2026-03-12 (P4.3-05 FECHADO)
+- Nova area admin `Operacoes > Comunicacoes` em `/admin/operacoes/comunicacoes`.
+- Composer de broadcasts com segmentacao por:
+  - `roles`, `accountStatuses`, `includeUsers`, `excludeUsers`, `lastActiveWithinDays`.
+- Preview de audiencia integrado com:
+  - estimativa de destinatarios;
+  - exigencia de aprovacao massiva;
+  - amostra de utilizadores alvo.
+- Historico operacional integrado:
+  - listagem paginada e filtros por `status/channel/search`;
+  - detalhe de aprovacao, entrega e timeline por broadcast.
+- Acoes administrativas com motivo obrigatorio:
+  - `approve` e `send` no frontend com payload auditavel.
+- Camada tecnica nova:
+  - `src/features/admin/types/adminBroadcasts.ts`
+  - `src/features/admin/services/adminBroadcastsService.ts`
+  - `src/features/admin/hooks/useAdminBroadcasts.ts`
+  - `src/features/admin/pages/AdminCommunicationsBroadcastsPage.tsx`
+  - `src/pages/admin/operacoes/comunicacoes/+Page.tsx`
+  - teste `src/__tests__/features/admin/adminBroadcastsService.test.ts`
+
 ## 1) Foundation e arquitetura
 - Estrutura feature-based e separacao por modulos.
 - Sistema de autenticacao com guards/roles.

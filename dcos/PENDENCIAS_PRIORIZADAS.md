@@ -13,6 +13,7 @@ Data da consolidacao: 2026-03-01 (revisto apos consolidacao do P4 Editorial CMS 
   - P4.3-02 frontend FECHADO em `/admin/monetizacao/subscricoes` (listagem + acoes trial/revoke/reactivate + timeline detalhada por subscricao).
   - P4.3-03 frontend FECHADO em `/admin/conteudo/apelacoes` (alias `/admin/apelacoes`) com inbox filtravel, timeline e decisao por estado.
   - P4.3-04 frontend FECHADO em `/admin/conteudo` com selector de templates nos dialogs criticos, auto-fill e telemetria de uso.
+  - P4.3-05 frontend FECHADO em `/admin/operacoes/comunicacoes` com composer segmentado, preview de audiencia, historico paginado e acoes `approve/send` com motivo obrigatorio.
 - Arquivo de evidencias (movido para `dcos/done/`):
   - `dcos/done/MUST_READ_VIKE_V1_AGENTE.md`
   - `dcos/done/VIKE_V1_FASE0_INVENTARIO.md`
@@ -20,7 +21,7 @@ Data da consolidacao: 2026-03-01 (revisto apos consolidacao do P4 Editorial CMS 
   - `dcos/done/F1_REIT_SUBTYPE_DETECTOR.md`
 - Foco imediato:
   - seguir a sequencia pragmatica ja definida neste documento (P3 -> P4 -> P5 incremental).
-  - avancar para P4.3-05 no frontend com area de comunicacoes segmentadas (composer, preview de audiencia e historico de envios).
+  - avancar para P4.4-01 no frontend com painel de analytics positivos de creators (scorecards, filtros e export operacional).
 
 ## Prioridade 0 - Fechada (2026-02-18)
 1. P0.1 contratos social frontend x backend fechados.

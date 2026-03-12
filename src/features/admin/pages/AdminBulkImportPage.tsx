@@ -205,6 +205,15 @@ export default function AdminBulkImportPage({ embedded = false }: AdminBulkImpor
         </div>
       ) : null}
 
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" size="sm" asChild>
+          <a href="/admin/operacoes">Bulk import</a>
+        </Button>
+        <Button type="button" variant="outline" size="sm" asChild>
+          <a href="/admin/operacoes/comunicacoes">Comunicacoes</a>
+        </Button>
+      </div>
+
       {!canRead ? (
         <Card className="border-amber-500/40 bg-amber-500/5">
           <CardContent className="pt-6 text-sm text-muted-foreground">
