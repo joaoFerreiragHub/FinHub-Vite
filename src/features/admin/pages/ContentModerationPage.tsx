@@ -1058,6 +1058,17 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
         </div>
       )}
 
+      {!embedded ? (
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" size="sm" asChild>
+            <a href="/admin/conteudo">Fila de moderacao</a>
+          </Button>
+          <Button type="button" size="sm" variant="outline" asChild>
+            <a href="/admin/conteudo/apelacoes">Apelacoes</a>
+          </Button>
+        </div>
+      ) : null}
+
       {!canReadContent && (
         <Card className="border-destructive/40 bg-destructive/5">
           <CardContent className="flex items-start gap-3 pt-6">

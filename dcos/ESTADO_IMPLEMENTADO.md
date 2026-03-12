@@ -1680,17 +1680,18 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - `cmd /c yarn.cmd lint` -> PASS.
   - `cmd /c yarn.cmd test` -> PASS (35 suites, 189 testes).
 
-## 85) P4.3-02 monetizacao/subscricoes - frontend MVP inicial (2026-03-12)
+## 85) P4.3-02 monetizacao/subscricoes - frontend FECHADO (2026-03-12)
 - Nova rota Vike para subscricoes:
   - `src/pages/admin/monetizacao/subscricoes/+Page.tsx` protegida por `requiredAdminModule="monetization"`.
 - Camada de dominio de subscricoes admin adicionada:
   - tipos: `src/features/admin/types/adminSubscriptions.ts`;
   - service: `src/features/admin/services/adminSubscriptionsService.ts`;
   - hooks: `src/features/admin/hooks/useAdminSubscriptions.ts`.
-- UI operacional inicial em `src/features/admin/pages/AdminMonetizationSubscriptionsPage.tsx`:
+- UI operacional em `src/features/admin/pages/AdminMonetizationSubscriptionsPage.tsx`:
   - listagem com filtros (`status`, `planCode`, `search`) e resumo agregado;
   - detalhe por utilizador com acao de `extend-trial`, `revoke-entitlement` e `reactivate`;
-  - motivo administrativo obrigatorio no frontend antes de enviar mutacoes.
+  - motivo administrativo obrigatorio no frontend antes de enviar mutacoes;
+  - timeline detalhada por subscricao com historico ordenado, ator, motivo/nota e snapshot resumido.
 - Navegacao de modulo alinhada:
   - Paywall e Subscricoes com links cruzados entre `/admin/monetizacao` e `/admin/monetizacao/subscricoes`;
   - rota adicionada no registry admin (`src/routes/admin.ts`).
@@ -1698,3 +1699,25 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - `cmd /c yarn.cmd typecheck:p1` -> PASS.
   - `cmd /c yarn.cmd lint` -> PASS.
   - `cmd /c yarn.cmd test --runInBand` -> PASS (35 suites, 189 testes).
+
+## 86) P4.3-03 workflow de apelacao - frontend FECHADO (2026-03-12)
+- Novas rotas admin para inbox de apelacoes:
+  - `src/pages/admin/conteudo/apelacoes/+Page.tsx` (rota operacional principal);
+  - `src/pages/admin/apelacoes/+Page.tsx` (alias de compatibilidade).
+- Camada de dominio frontend para apelacoes:
+  - tipos: `src/features/admin/types/adminModerationAppeals.ts`;
+  - service: `src/features/admin/services/adminModerationAppealsService.ts`;
+  - hooks React Query: `src/features/admin/hooks/useAdminModerationAppeals.ts`.
+- UI operacional em `src/features/admin/pages/AdminModerationAppealsPage.tsx`:
+  - inbox com filtros por `status`, `severity`, `contentType`, `breachedSla` e `search`;
+  - resumo agregado de estados + SLA vencido;
+  - detalhe por apelacao com timeline historica (`fromStatus`, `toStatus`, ator, motivo/nota, data);
+  - decisao admin com transicao de estado (`PATCH /api/admin/content/appeals/:appealId/status`), motivo padronizado por presets e nota interna opcional.
+- Navegacao de moderacao alinhada:
+  - `src/features/admin/pages/ContentModerationPage.tsx` passou a expor links diretos para `Fila de moderacao` e `Apelacoes`.
+- Qualidade automatizada:
+  - novo teste unitario: `src/__tests__/features/admin/adminModerationAppealsService.test.ts`.
+- Validacao tecnica desta ronda:
+  - `cmd /c yarn.cmd typecheck:p1` -> PASS.
+  - `cmd /c yarn.cmd lint` -> PASS.
+  - `cmd /c yarn.cmd test --runInBand` -> PASS (36 suites, 192 testes).

@@ -30,6 +30,7 @@ import {
 } from '../hooks/useAdminSubscriptions'
 import type {
   AdminSubscriptionBillingCycle,
+  AdminSubscriptionHistoryEntry,
   AdminSubscriptionStatus,
 } from '../types/adminSubscriptions'
 
@@ -58,6 +59,39 @@ const statusLabel: Record<AdminSubscriptionStatus, string> = {
   trialing: 'Trial',
   past_due: 'Past due',
   canceled: 'Cancelada',
+}
+
+const historyActionLabel: Record<string, string> = {
+  created: 'Criada',
+  extend_trial: 'Trial estendido',
+  revoke_entitlement: 'Entitlement revogado',
+  reactivate: 'Subscricao reativada',
+  status_change: 'Mudanca de estado',
+  bootstrap_read: 'Bootstrap leitura',
+  bootstrap_action: 'Bootstrap acao',
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  Boolean(value && typeof value === 'object' && !Array.isArray(value))
+
+const summarizeSnapshot = (snapshot: Record<string, unknown> | null): string => {
+  if (!snapshot) return '-'
+  const status = typeof snapshot.status === 'string' ? snapshot.status : '-'
+  const planCode = typeof snapshot.planCode === 'string' ? snapshot.planCode : '-'
+  const entitlement = snapshot.entitlementActive === true ? 'ON' : 'OFF'
+  const currentPeriodEnd =
+    typeof snapshot.currentPeriodEnd === 'string'
+      ? formatDateTime(snapshot.currentPeriodEnd)
+      : '-'
+  return `status=${status} | plan=${planCode} | entitlement=${entitlement} | periodEnd=${currentPeriodEnd}`
+}
+
+const mapHistoryActor = (entry: AdminSubscriptionHistoryEntry): string => {
+  if (entry.changedBy?.name) return entry.changedBy.name
+  if (entry.changedBy?.username) return entry.changedBy.username
+  if (entry.changedBy?.email) return entry.changedBy.email
+  if (entry.changedBy?.id) return entry.changedBy.id
+  return 'sistema'
 }
 
 export default function AdminMonetizationSubscriptionsPage({
@@ -111,6 +145,14 @@ export default function AdminMonetizationSubscriptionsPage({
       ? listQuery.data.items.find((item) => item.user?.id === selectedUserId) ?? null
       : null
   const selectedSubscription = selectedSubscriptionQuery.data ?? selectedFromList ?? null
+  const selectedSubscriptionHistory = useMemo(() => {
+    const rows = selectedSubscription?.history ?? []
+    return [...rows].sort((left, right) => {
+      const leftTime = left.changedAt ? new Date(left.changedAt).getTime() : 0
+      const rightTime = right.changedAt ? new Date(right.changedAt).getTime() : 0
+      return rightTime - leftTime
+    })
+  }, [selectedSubscription?.history])
 
   const ensureActionContext = (): string | null => {
     if (!selectedUserId) {
@@ -333,7 +375,7 @@ export default function AdminMonetizationSubscriptionsPage({
                         {item.user?.name || item.user?.username || item.user?.email || item.id}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {item.user?.email ?? '-'} · {item.planLabel} ({item.planCode})
+                        {item.user?.email ?? '-'} | {item.planLabel} ({item.planCode})
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -353,7 +395,7 @@ export default function AdminMonetizationSubscriptionsPage({
                     </div>
                   </div>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    Atualizada: {formatDateTime(item.updatedAt)} · Ciclo: {item.billingCycle}
+                    Atualizada: {formatDateTime(item.updatedAt)} | Ciclo: {item.billingCycle}
                   </p>
                 </div>
               ))}
@@ -405,7 +447,7 @@ export default function AdminMonetizationSubscriptionsPage({
                   selectedUserId}
               </p>
               <p className="text-xs text-muted-foreground">
-                Estado atual: {selectedSubscription ? statusLabel[selectedSubscription.status] : '-'} ·
+                Estado atual: {selectedSubscription ? statusLabel[selectedSubscription.status] : '-'} |
                 trial ate {formatDateTime(selectedSubscription?.trialEndsAt ?? null)}
               </p>
             </div>
@@ -513,8 +555,58 @@ export default function AdminMonetizationSubscriptionsPage({
             <ShieldCheck className="h-4 w-4" />
             Reativar subscricao
           </Button>
+
+          <div className="space-y-2 rounded-md border border-border/70 p-3">
+            <p className="text-sm font-semibold">Timeline da subscricao</p>
+            {selectedSubscriptionQuery.isFetching ? (
+              <div className="space-y-2">
+                <div className="h-16 animate-pulse rounded-md bg-muted" />
+                <div className="h-16 animate-pulse rounded-md bg-muted" />
+              </div>
+            ) : selectedSubscriptionHistory.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                Sem historico detalhado para esta subscricao.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {selectedSubscriptionHistory.map((entry, index) => (
+                  <div
+                    key={`${entry.version}-${entry.changedAt ?? index}`}
+                    className="rounded-md border border-border/60 p-2 text-xs"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="outline">
+                          {historyActionLabel[entry.action] ?? entry.action}
+                        </Badge>
+                        <span className="text-muted-foreground">v{entry.version}</span>
+                      </div>
+                      <span className="text-muted-foreground">
+                        {formatDateTime(entry.changedAt)}
+                      </span>
+                    </div>
+                    <p className="mt-1">
+                      <span className="text-muted-foreground">Motivo:</span> {entry.reason || '-'}
+                    </p>
+                    {entry.note ? (
+                      <p className="mt-0.5">
+                        <span className="text-muted-foreground">Nota:</span> {entry.note}
+                      </p>
+                    ) : null}
+                    <p className="mt-0.5">
+                      <span className="text-muted-foreground">Ator:</span> {mapHistoryActor(entry)}
+                    </p>
+                    <p className="mt-0.5 text-muted-foreground">
+                      Snapshot: {summarizeSnapshot(isRecord(entry.snapshot) ? entry.snapshot : null)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
   )
 }
+

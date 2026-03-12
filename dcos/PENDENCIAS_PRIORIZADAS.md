@@ -10,7 +10,8 @@ Data da consolidacao: 2026-03-01 (revisto apos consolidacao do P4 Editorial CMS 
   - `master` estabilizado sem bloqueadores tecnicos de migracao;
   - F1 REIT Subtype Detector concluido e integrado no toolkit.
   - P4.3-01 frontend FECHADO em `/admin/monetizacao` (listagem/filtros/ativar/desativar + create/edit + preview de impacto).
-  - P4.3-02 frontend MVP inicial de monetizacao/subscricoes entregue em `/admin/monetizacao/subscricoes` (listagem + acoes trial/revoke/reactivate).
+  - P4.3-02 frontend FECHADO em `/admin/monetizacao/subscricoes` (listagem + acoes trial/revoke/reactivate + timeline detalhada por subscricao).
+  - P4.3-03 frontend FECHADO em `/admin/conteudo/apelacoes` (alias `/admin/apelacoes`) com inbox filtravel, timeline e decisao por estado.
 - Arquivo de evidencias (movido para `dcos/done/`):
   - `dcos/done/MUST_READ_VIKE_V1_AGENTE.md`
   - `dcos/done/VIKE_V1_FASE0_INVENTARIO.md`
@@ -18,7 +19,7 @@ Data da consolidacao: 2026-03-01 (revisto apos consolidacao do P4 Editorial CMS 
   - `dcos/done/F1_REIT_SUBTYPE_DETECTOR.md`
 - Foco imediato:
   - seguir a sequencia pragmatica ja definida neste documento (P3 -> P4 -> P5 incremental).
-  - fechar P4.3-02 com timeline detalhada de subscricoes no frontend.
+  - avancar para P4.3-04 no frontend com selector de templates nas acoes criticas de moderacao.
 
 ## Prioridade 0 - Fechada (2026-02-18)
 1. P0.1 contratos social frontend x backend fechados.
