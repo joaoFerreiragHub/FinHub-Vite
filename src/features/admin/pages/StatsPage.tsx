@@ -175,12 +175,15 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
             Visao consolidada de utilizacao, moderacao e operacao admin.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {metrics && (
             <p className="text-xs text-muted-foreground">
               Atualizado: {formatDateTime(metrics.generatedAt)}
             </p>
           )}
+          <Button type="button" variant="outline" asChild>
+            <Link to="/admin/stats/ferramentas-financeiras">Financial tools</Link>
+          </Button>
           <Button
             type="button"
             variant="outline"

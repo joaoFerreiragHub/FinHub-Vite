@@ -2,6 +2,31 @@
 
 Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS e Moderation Control Plane).
 
+## Atualizacao 2026-03-12 (P4.4-02 FECHADO)
+- Nova area admin `Stats > Financial tools` em `/admin/stats/ferramentas-financeiras`.
+- Painel operacional entregue com:
+  - filtros por `environment`, `tool` e janela de `days`;
+  - KPI de requests/success rate/error rate;
+  - tabela de control plane por ferramenta (base config vs effective config, version e update timestamp).
+- Edicao administrativa integrada:
+  - dialog de update com `baseConfig`, `envOverrides` por ambiente e motivo obrigatorio;
+  - mutacao ligada a `PATCH /api/admin/tools/financial/:toolKey`;
+  - suporte a override JSON por ambiente (`object` ou `null` para limpar).
+- Navegacao admin alinhada:
+  - rota Vike nova em `src/pages/admin/stats/ferramentas-financeiras/+Page.tsx`;
+  - atalho direto para financial tools adicionado em `src/features/admin/pages/StatsPage.tsx`.
+- Camada tecnica nova:
+  - `src/features/admin/types/adminFinancialTools.ts`
+  - `src/features/admin/services/adminFinancialToolsService.ts`
+  - `src/features/admin/hooks/useAdminFinancialTools.ts`
+  - `src/features/admin/pages/AdminFinancialToolsPage.tsx`
+  - `src/pages/admin/stats/ferramentas-financeiras/+Page.tsx`
+  - teste `src/__tests__/features/admin/adminFinancialToolsService.test.ts`
+- Validacao executada:
+  - `yarn lint` (PASS com warnings legacy nao bloqueantes em `ContentModerationPage.tsx`);
+  - `yarn test --runInBand src/__tests__/features/admin/adminFinancialToolsService.test.ts` (PASS);
+  - `yarn typecheck:p1` (PASS).
+
 ## Atualizacao 2026-03-12 (P4.4-01 FECHADO)
 - Nova area admin `Creators > Analytics positivos` em `/admin/creators/analytics`.
 - Painel operacional entregue com:
