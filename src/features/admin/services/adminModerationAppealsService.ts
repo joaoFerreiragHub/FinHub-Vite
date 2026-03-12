@@ -183,9 +183,7 @@ const mapActor = (value: BackendActorSummary | null | undefined): AdminActorSumm
   }
 }
 
-const mapHistoryEntry = (
-  entry: BackendAppealHistoryEntry,
-): AdminModerationAppealHistoryEntry => ({
+const mapHistoryEntry = (entry: BackendAppealHistoryEntry): AdminModerationAppealHistoryEntry => ({
   fromStatus: toStatus(entry.fromStatus),
   toStatus: toStatus(entry.toStatus),
   reason: toString(entry.reason),
@@ -287,7 +285,8 @@ const toListQueryParams = (query: AdminModerationAppealListQuery) => {
   if (query.status) params.status = query.status
   if (query.severity) params.severity = query.severity
   if (query.contentType) params.contentType = query.contentType
-  if (typeof query.breachedSla === 'boolean') params.breachedSla = query.breachedSla ? 'true' : 'false'
+  if (typeof query.breachedSla === 'boolean')
+    params.breachedSla = query.breachedSla ? 'true' : 'false'
   if (query.search?.trim()) params.search = query.search.trim()
   if (typeof query.page === 'number' && query.page > 0) params.page = query.page
   if (typeof query.limit === 'number' && query.limit > 0) params.limit = query.limit
@@ -295,7 +294,9 @@ const toListQueryParams = (query: AdminModerationAppealListQuery) => {
 }
 
 export const adminModerationAppealsService = {
-  list: async (query: AdminModerationAppealListQuery): Promise<AdminModerationAppealListResponse> => {
+  list: async (
+    query: AdminModerationAppealListQuery,
+  ): Promise<AdminModerationAppealListResponse> => {
     const response = await apiClient.get<BackendAppealListResponse>('/admin/content/appeals', {
       params: toListQueryParams(query),
     })

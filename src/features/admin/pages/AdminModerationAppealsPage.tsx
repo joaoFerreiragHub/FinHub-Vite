@@ -179,7 +179,9 @@ const statusBadgeVariant = (
   return 'outline'
 }
 
-const getDefaultNextStatus = (currentStatus: AdminModerationAppealStatus): AdminModerationAppealStatus => {
+const getDefaultNextStatus = (
+  currentStatus: AdminModerationAppealStatus,
+): AdminModerationAppealStatus => {
   if (currentStatus === 'open') return 'under_review'
   if (currentStatus === 'under_review') return 'accepted'
   if (currentStatus === 'accepted' || currentStatus === 'rejected') return 'closed'
@@ -219,11 +221,7 @@ export default function AdminModerationAppealsPage({
       severity: severityFilter === 'all' ? undefined : severityFilter,
       contentType: contentTypeFilter === 'all' ? undefined : contentTypeFilter,
       breachedSla:
-        breachedSlaFilter === 'all'
-          ? undefined
-          : breachedSlaFilter === 'breached'
-            ? true
-            : false,
+        breachedSlaFilter === 'all' ? undefined : breachedSlaFilter === 'breached' ? true : false,
       search: searchFilter.trim() || undefined,
     }),
     [breachedSlaFilter, contentTypeFilter, page, searchFilter, severityFilter, statusFilter],
@@ -237,7 +235,7 @@ export default function AdminModerationAppealsPage({
 
   const selectedFromList =
     selectedAppealId && appealsQuery.data
-      ? appealsQuery.data.items.find((item) => item.id === selectedAppealId) ?? null
+      ? (appealsQuery.data.items.find((item) => item.id === selectedAppealId) ?? null)
       : null
   const selectedAppeal = selectedAppealQuery.data ?? selectedFromList ?? null
   const selectedHistory = useMemo(() => {
@@ -383,7 +381,9 @@ export default function AdminModerationAppealsPage({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <CardTitle className="text-base">Inbox de apelacoes</CardTitle>
-              <CardDescription>Seleciona uma apelacao para consultar detalhe e decidir.</CardDescription>
+              <CardDescription>
+                Seleciona uma apelacao para consultar detalhe e decidir.
+              </CardDescription>
             </div>
             <Button
               type="button"
@@ -516,8 +516,8 @@ export default function AdminModerationAppealsPage({
                           item.id}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {item.contentType ? CONTENT_TYPE_LABEL[item.contentType] : 'N/A'} |{' '}
-                        target {item.contentId ?? '-'}
+                        {item.contentType ? CONTENT_TYPE_LABEL[item.contentType] : 'N/A'} | target{' '}
+                        {item.contentId ?? '-'}
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -627,9 +627,7 @@ export default function AdminModerationAppealsPage({
               <Label>Proximo estado</Label>
               <Select
                 value={nextStatus}
-                onValueChange={(value) =>
-                  onNextStatusChange(value as AdminModerationAppealStatus)
-                }
+                onValueChange={(value) => onNextStatusChange(value as AdminModerationAppealStatus)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleciona estado" />
@@ -688,9 +686,7 @@ export default function AdminModerationAppealsPage({
               !canWrite || !selectedAppeal || updateStatusMutation.isPending || !reason.trim()
             }
           >
-            {updateStatusMutation.isPending ? (
-              <RefreshCw className="h-4 w-4 animate-spin" />
-            ) : null}
+            {updateStatusMutation.isPending ? <RefreshCw className="h-4 w-4 animate-spin" /> : null}
             Atualizar estado
           </Button>
 
@@ -724,7 +720,9 @@ export default function AdminModerationAppealsPage({
                           {`${STATUS_LABEL[entry.fromStatus]} -> ${STATUS_LABEL[entry.toStatus]}`}
                         </Badge>
                       </div>
-                      <span className="text-muted-foreground">{formatDateTime(entry.changedAt)}</span>
+                      <span className="text-muted-foreground">
+                        {formatDateTime(entry.changedAt)}
+                      </span>
                     </div>
                     <p className="mt-1">
                       <span className="text-muted-foreground">Motivo:</span> {entry.reason || '-'}

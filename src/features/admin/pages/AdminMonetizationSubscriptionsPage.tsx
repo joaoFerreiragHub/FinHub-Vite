@@ -80,9 +80,7 @@ const summarizeSnapshot = (snapshot: Record<string, unknown> | null): string => 
   const planCode = typeof snapshot.planCode === 'string' ? snapshot.planCode : '-'
   const entitlement = snapshot.entitlementActive === true ? 'ON' : 'OFF'
   const currentPeriodEnd =
-    typeof snapshot.currentPeriodEnd === 'string'
-      ? formatDateTime(snapshot.currentPeriodEnd)
-      : '-'
+    typeof snapshot.currentPeriodEnd === 'string' ? formatDateTime(snapshot.currentPeriodEnd) : '-'
   return `status=${status} | plan=${planCode} | entitlement=${entitlement} | periodEnd=${currentPeriodEnd}`
 }
 
@@ -138,11 +136,13 @@ export default function AdminMonetizationSubscriptionsPage({
   const reactivateMutation = useReactivateAdminSubscription()
 
   const isMutationPending =
-    extendTrialMutation.isPending || revokeEntitlementMutation.isPending || reactivateMutation.isPending
+    extendTrialMutation.isPending ||
+    revokeEntitlementMutation.isPending ||
+    reactivateMutation.isPending
 
   const selectedFromList =
     selectedUserId && listQuery.data
-      ? listQuery.data.items.find((item) => item.user?.id === selectedUserId) ?? null
+      ? (listQuery.data.items.find((item) => item.user?.id === selectedUserId) ?? null)
       : null
   const selectedSubscription = selectedSubscriptionQuery.data ?? selectedFromList ?? null
   const selectedSubscriptionHistory = useMemo(() => {
@@ -295,7 +295,9 @@ export default function AdminMonetizationSubscriptionsPage({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <CardTitle className="text-base">Subscricoes</CardTitle>
-              <CardDescription>Seleciona uma subscricao para gerir a partir do detalhe.</CardDescription>
+              <CardDescription>
+                Seleciona uma subscricao para gerir a partir do detalhe.
+              </CardDescription>
             </div>
             <Button
               type="button"
@@ -404,7 +406,8 @@ export default function AdminMonetizationSubscriptionsPage({
 
           <div className="flex items-center justify-between gap-2">
             <p className="text-xs text-muted-foreground">
-              Pagina {listQuery.data?.pagination.page ?? 1} de {listQuery.data?.pagination.pages ?? 1}
+              Pagina {listQuery.data?.pagination.page ?? 1} de{' '}
+              {listQuery.data?.pagination.pages ?? 1}
             </p>
             <div className="flex gap-2">
               <Button
@@ -447,8 +450,9 @@ export default function AdminMonetizationSubscriptionsPage({
                   selectedUserId}
               </p>
               <p className="text-xs text-muted-foreground">
-                Estado atual: {selectedSubscription ? statusLabel[selectedSubscription.status] : '-'} |
-                trial ate {formatDateTime(selectedSubscription?.trialEndsAt ?? null)}
+                Estado atual:{' '}
+                {selectedSubscription ? statusLabel[selectedSubscription.status] : '-'} | trial ate{' '}
+                {formatDateTime(selectedSubscription?.trialEndsAt ?? null)}
               </p>
             </div>
           ) : (
@@ -492,7 +496,10 @@ export default function AdminMonetizationSubscriptionsPage({
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
-            <Select value={revokeNextStatus} onValueChange={(value) => setRevokeNextStatus(value as 'past_due' | 'canceled')}>
+            <Select
+              value={revokeNextStatus}
+              onValueChange={(value) => setRevokeNextStatus(value as 'past_due' | 'canceled')}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="nextStatus" />
               </SelectTrigger>
@@ -533,7 +540,9 @@ export default function AdminMonetizationSubscriptionsPage({
             />
             <Select
               value={reactivateBillingCycle}
-              onValueChange={(value) => setReactivateBillingCycle(value as AdminSubscriptionBillingCycle)}
+              onValueChange={(value) =>
+                setReactivateBillingCycle(value as AdminSubscriptionBillingCycle)
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="billingCycle" />
@@ -597,7 +606,8 @@ export default function AdminMonetizationSubscriptionsPage({
                       <span className="text-muted-foreground">Ator:</span> {mapHistoryActor(entry)}
                     </p>
                     <p className="mt-0.5 text-muted-foreground">
-                      Snapshot: {summarizeSnapshot(isRecord(entry.snapshot) ? entry.snapshot : null)}
+                      Snapshot:{' '}
+                      {summarizeSnapshot(isRecord(entry.snapshot) ? entry.snapshot : null)}
                     </p>
                   </div>
                 ))}
@@ -609,4 +619,3 @@ export default function AdminMonetizationSubscriptionsPage({
     </div>
   )
 }
-

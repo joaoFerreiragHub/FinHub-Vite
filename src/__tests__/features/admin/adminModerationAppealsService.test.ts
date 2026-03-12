@@ -221,14 +221,11 @@ describe('adminModerationAppealsService', () => {
       note: 'Reversao autorizada',
     })
 
-    expect(mockedApiClient.patch).toHaveBeenCalledWith(
-      '/admin/content/appeals/appeal-3/status',
-      {
-        status: 'accepted',
-        reason: 'Contexto validado',
-        note: 'Reversao autorizada',
-      },
-    )
+    expect(mockedApiClient.patch).toHaveBeenCalledWith('/admin/content/appeals/appeal-3/status', {
+      status: 'accepted',
+      reason: 'Contexto validado',
+      note: 'Reversao autorizada',
+    })
     expect(result).toMatchObject({
       message: 'Estado da apelacao atualizado com sucesso.',
       item: {
