@@ -203,7 +203,7 @@ const WEIGHT_PROFILES: Record<
 }
 
 // Flag de dynamic weights — espelha REIT_FLAGS.enableDynamicWeights do backend
-const ENABLE_DYNAMIC_WEIGHTS = false
+const ENABLE_DYNAMIC_WEIGHTS = true
 
 // ── Componente principal ─────────────────────────────────────────────────────
 
@@ -277,8 +277,11 @@ export default function ReitsToolkitPage() {
   const activeProfile = profileOverride ?? detectedProfile
   const ddmLowConfidence = data?.ddm?.ddmConfidence === 'low'
 
-  // Phase 8: Dynamic weights
-  const weights = ENABLE_DYNAMIC_WEIGHTS ? WEIGHT_PROFILES[activeProfile] : WEIGHT_PROFILES.mixed
+  // Phase 8: Dynamic weights — usa pesos do perfil só quando a deteção tem alta confiança
+  const weights =
+    ENABLE_DYNAMIC_WEIGHTS && data?.ddm?.profileConfidence === 'high'
+      ? WEIGHT_PROFILES[activeProfile]
+      : WEIGHT_PROFILES.mixed
 
   // ── Valuation Score (combinação ponderada dos sinais disponíveis) ───────────
   // Calcula um score 0-100 com base nos dados já carregados, sem nova chamada à API.
@@ -332,24 +335,20 @@ export default function ReitsToolkitPage() {
       missing.push('Div./EBITDA')
     }
 
-    // NAV premium/discount: desconto = mais atrativo
-    const navPremium = toNum(data?.nav?.premiumPercent)
-    if (navPremium !== null) {
+    // Economic NAV base scenario — sempre 'base' para o score não oscilar com o toggle do utilizador
+    // Excluído quando navConfidence === 'low' (NOI proxy em falta ou cap rate default desconhecido)
+    const ecoNavBase: number | null =
+      data?.nav?.navConfidence === 'low'
+        ? null
+        : toNum(data?.nav?.economicNAV?.scenarios?.base?.priceVsNav)
+    if (ecoNavBase !== null) {
       const ns =
-        navPremium < -15
-          ? 95
-          : navPremium < 0
-            ? 80
-            : navPremium < 15
-              ? 60
-              : navPremium < 30
-                ? 32
-                : 10
+        ecoNavBase < -15 ? 95 : ecoNavBase < 0 ? 80 : ecoNavBase < 15 ? 60 : ecoNavBase < 30 ? 32 : 10
       weighted += ns * weights.nav
       total += weights.nav
-      metrics.push('NAV premium')
+      metrics.push('vs. ECO NAV')
     } else {
-      missing.push('NAV premium')
+      missing.push('vs. ECO NAV')
     }
 
     if (total === 0) return null
@@ -1131,7 +1130,7 @@ export default function ReitsToolkitPage() {
                         <p className="mt-0.5 text-sm text-muted-foreground">
                           Combinacao ponderada: P/FFO {(weights.pFFO * 100).toFixed(0)}% · Payout{' '}
                           {(weights.payout * 100).toFixed(0)}% · Div./EBITDA{' '}
-                          {(weights.debt * 100).toFixed(0)}% · vs. NAV{' '}
+                          {(weights.debt * 100).toFixed(0)}% · vs. ECO NAV{' '}
                           {(weights.nav * 100).toFixed(0)}%
                         </p>
                       </div>
@@ -1221,22 +1220,28 @@ export default function ReitsToolkitPage() {
                           </p>
                         </div>
                       )}
-                      {premiumNum !== null && (
-                        <div className="rounded-lg border border-border/40 bg-muted/20 px-3 py-2.5">
-                          <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/60">
-                            vs. Book NAV
-                          </p>
-                          <p
-                            className={`mt-1 text-lg font-bold tabular-nums leading-none ${premiumNum <= 0 ? 'text-emerald-400' : premiumNum > 20 ? 'text-red-400' : 'text-foreground'}`}
-                          >
-                            {premiumNum > 0 ? '+' : ''}
-                            {premiumNum.toFixed(1)}%
-                          </p>
-                          <p className="mt-1 text-[10px] text-muted-foreground/50">
-                            peso {(weights.nav * 100).toFixed(0)}%
-                          </p>
-                        </div>
-                      )}
+                      {(() => {
+                        const ecoNavBaseDisplay =
+                          data?.nav?.navConfidence === 'low'
+                            ? null
+                            : toNum(data?.nav?.economicNAV?.scenarios?.base?.priceVsNav)
+                        return ecoNavBaseDisplay !== null ? (
+                          <div className="rounded-lg border border-border/40 bg-muted/20 px-3 py-2.5">
+                            <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/60">
+                              vs. ECO NAV
+                            </p>
+                            <p
+                              className={`mt-1 text-lg font-bold tabular-nums leading-none ${ecoNavBaseDisplay < 0 ? 'text-emerald-400' : ecoNavBaseDisplay > 20 ? 'text-red-400' : 'text-foreground'}`}
+                            >
+                              {ecoNavBaseDisplay > 0 ? '+' : ''}
+                              {ecoNavBaseDisplay.toFixed(1)}%
+                            </p>
+                            <p className="mt-1 text-[10px] text-muted-foreground/50">
+                              peso {(weights.nav * 100).toFixed(0)}%
+                            </p>
+                          </div>
+                        ) : null
+                      })()}
                     </div>
 
                     {/* métricas em falta */}

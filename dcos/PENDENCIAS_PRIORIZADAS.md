@@ -3,17 +3,17 @@
 Data da consolidacao: 2026-03-01 (revisto apos consolidacao do P4 Editorial CMS e Moderation Control Plane).
 
 ## Prioridade ativa (2026-03-11)
-1. Migracao Vike V0.4 -> V1 sem perda de progresso funcional.
-- Branch de trabalho: `chore/vike-v1-migration-plan`.
-- Documento MUST READ: `dcos/MUST_READ_VIKE_V1_AGENTE.md`.
-- Plano executavel com checkpoints: `dcos/VIKE_V1_PLANO_EXECUCAO.md`.
+1. Retoma do backlog funcional apos fecho da migracao Vike V1.
 - Estado atual:
-  - CP1..CP7 concluido;
-  - warning `deprecated design` removido no arranque SSR;
-  - merge para `master` concluido;
-  - hotfix pos-merge aplicado para erro `+Page.tsx is ambiguous` (navegacao 500).
-- Gate final restante:
-  - nenhum bloqueador tecnico aberto para Vike V1 neste momento.
+  - migracao Vike V1 concluida (CP1..CP7 + hotfix pos-merge);
+  - warning `deprecated design` removido;
+  - `master` estabilizado sem bloqueadores tecnicos de migracao.
+- Arquivo de evidencias (movido para `dcos/done/`):
+  - `dcos/done/MUST_READ_VIKE_V1_AGENTE.md`
+  - `dcos/done/VIKE_V1_FASE0_INVENTARIO.md`
+  - `dcos/done/VIKE_V1_PLANO_EXECUCAO.md`
+- Foco imediato:
+  - seguir a sequencia pragmatica ja definida neste documento (P3 -> P4 -> P5 incremental).
 
 ## Prioridade 0 - Fechada (2026-02-18)
 1. P0.1 contratos social frontend x backend fechados.

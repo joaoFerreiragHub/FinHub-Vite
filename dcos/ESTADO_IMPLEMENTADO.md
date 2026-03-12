@@ -1557,13 +1557,13 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - `master` atualizado e alinhado com `chore/security-vike-migration` (fast-forward).
   - warning atual de runtime identificado: `You are using Vike's deprecated design`.
 - Documento obrigatorio para agentes adicionado:
-  - `dcos/MUST_READ_VIKE_V1_AGENTE.md`
+  - `dcos/done/MUST_READ_VIKE_V1_AGENTE.md` (arquivado apos fecho da migracao)
 - Regra operacional fixada:
   - checkpoints de sessao obrigatorios em `ESTADO_IMPLEMENTADO.md` durante toda a migracao V1.
 
 ## 77) Vike V1 - Fase 0 (inventario concluido) (2026-03-11)
 - Inventario base do legado V0.4 documentado em:
-  - `dcos/VIKE_V1_FASE0_INVENTARIO.md`
+  - `dcos/done/VIKE_V1_FASE0_INVENTARIO.md` (arquivado apos fecho da migracao)
 - Contagens consolidadas:
   - 97 ficheiros `*.page.tsx`;
   - 1 ficheiro `*.page.config.ts`;
@@ -1577,7 +1577,7 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
 
 ## 78) Vike V1 - Plano de execucao com gates de qualidade (2026-03-11)
 - Plano detalhado consolidado em:
-  - `dcos/VIKE_V1_PLANO_EXECUCAO.md`
+  - `dcos/done/VIKE_V1_PLANO_EXECUCAO.md` (arquivado apos fecho da migracao)
 - Estrutura definida:
   - 7 checkpoints (CP1..CP7) com escopo, gate tecnico e estrategia de commit/push.
 - Gates obrigatorios por checkpoint:
@@ -1636,3 +1636,12 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - request SSR para `/mercados/reits` devolve HTML da pagina (sem erro de fallback);
   - `yarn lint` -> PASS;
   - `yarn build` -> PASS.
+
+## 82) Arquivo documental Vike V1 concluido (2026-03-11)
+- Para cumprir a regra de manter na raiz de `dcos/` apenas itens ativos, os docs da migracao concluida foram movidos para `dcos/done/`:
+  - `dcos/done/MUST_READ_VIKE_V1_AGENTE.md`
+  - `dcos/done/VIKE_V1_FASE0_INVENTARIO.md`
+  - `dcos/done/VIKE_V1_PLANO_EXECUCAO.md`
+- Estado final do bloco Vike:
+  - concluido;
+  - sem pendencias tecnicas abertas no frontend por causa da migracao.

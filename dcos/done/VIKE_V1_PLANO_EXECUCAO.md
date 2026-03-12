@@ -154,6 +154,6 @@ Estado inicial: Fase 0 (inventario) concluida
 
 ## 6) Checklist de arranque da proxima sessao
 1. Confirmar branch: `chore/vike-v1-migration-plan`.
-2. Ler `dcos/MUST_READ_VIKE_V1_AGENTE.md`.
+2. Ler `dcos/done/MUST_READ_VIKE_V1_AGENTE.md`.
 3. Ler ultimo checkpoint em `dcos/ESTADO_IMPLEMENTADO.md`.
 4. Executar CP seguinte sem saltar fases.
