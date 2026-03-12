@@ -1660,7 +1660,7 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
 - Validacao tecnica:
   - `npm run typecheck:p1` -> PASS.
 
-## 84) P4.3-01 monetizacao/paywall - frontend MVP inicial (2026-03-12)
+## 84) P4.3-01 monetizacao/paywall - frontend FECHADO (2026-03-12)
 - Nova area admin de monetizacao:
   - rota Vike `src/pages/admin/monetizacao/+Page.tsx` protegida por `requiredAdminModule="monetization"`;
   - entrada no menu admin e no registry de rotas (`/admin/monetizacao`).
@@ -1668,13 +1668,17 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - tipos: `src/features/admin/types/adminContentAccessPolicy.ts`;
   - service: `src/features/admin/services/adminContentAccessPolicyService.ts`;
   - hooks React Query: `src/features/admin/hooks/useAdminContentAccessPolicies.ts`.
-- UI operacional inicial em `src/features/admin/pages/AdminMonetizationPaywallPage.tsx`:
+- UI operacional em `src/features/admin/pages/AdminMonetizationPaywallPage.tsx`:
   - listagem paginada com filtros (`active`, `requiredRole`, `contentType`, `search`);
   - acao de ativar/desativar policy com motivo tecnico e feedback por toast;
+  - fluxo de create/edit com formulario de policy (`code`, `label`, `priority`, janela temporal, match/access);
+  - preview de impacto (`total`, `byContentType`, amostra de conteudos afetados) antes de gravar alteracoes;
+  - alternancia explicita entre modo `nova policy` e `editar policy`.
   - respeito a modo read-only e scopes (`admin.content.read` / `admin.content.moderate`).
 - Validacao tecnica desta ronda:
   - `cmd /c yarn.cmd typecheck:p1` -> PASS.
   - `cmd /c yarn.cmd lint` -> PASS.
+  - `cmd /c yarn.cmd test` -> PASS (35 suites, 189 testes).
 
 ## 85) P4.3-02 monetizacao/subscricoes - frontend MVP inicial (2026-03-12)
 - Nova rota Vike para subscricoes:

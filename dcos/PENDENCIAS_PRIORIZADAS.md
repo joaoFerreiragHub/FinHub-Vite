@@ -9,7 +9,7 @@ Data da consolidacao: 2026-03-01 (revisto apos consolidacao do P4 Editorial CMS 
   - warning `deprecated design` removido;
   - `master` estabilizado sem bloqueadores tecnicos de migracao;
   - F1 REIT Subtype Detector concluido e integrado no toolkit.
-  - P4.3-01 frontend MVP inicial de monetizacao/paywall entregue em `/admin/monetizacao` (listagem/filtros/ativar/desativar de access-policies).
+  - P4.3-01 frontend FECHADO em `/admin/monetizacao` (listagem/filtros/ativar/desativar + create/edit + preview de impacto).
   - P4.3-02 frontend MVP inicial de monetizacao/subscricoes entregue em `/admin/monetizacao/subscricoes` (listagem + acoes trial/revoke/reactivate).
 - Arquivo de evidencias (movido para `dcos/done/`):
   - `dcos/done/MUST_READ_VIKE_V1_AGENTE.md`
@@ -18,7 +18,7 @@ Data da consolidacao: 2026-03-01 (revisto apos consolidacao do P4 Editorial CMS 
   - `dcos/done/F1_REIT_SUBTYPE_DETECTOR.md`
 - Foco imediato:
   - seguir a sequencia pragmatica ja definida neste documento (P3 -> P4 -> P5 incremental).
-  - completar P4.3 com preview/create/edit de policies no paywall e timeline detalhada de subscricoes no frontend.
+  - fechar P4.3-02 com timeline detalhada de subscricoes no frontend.
 
 ## Prioridade 0 - Fechada (2026-02-18)
 1. P0.1 contratos social frontend x backend fechados.

@@ -8,10 +8,23 @@ export type AdminContentAccessPolicyContentType =
   | 'live'
   | 'podcast'
   | 'book'
+export type AdminContentAccessPolicyCategory =
+  | 'finance'
+  | 'investing'
+  | 'trading'
+  | 'crypto'
+  | 'economics'
+  | 'personal-finance'
+  | 'business'
+  | 'technology'
+  | 'education'
+  | 'news'
+  | 'analysis'
+  | 'other'
 
 export interface AdminContentAccessPolicyMatch {
   contentTypes: AdminContentAccessPolicyContentType[]
-  categories: string[]
+  categories: AdminContentAccessPolicyCategory[]
   tags: string[]
   featuredOnly: boolean
 }
@@ -67,3 +80,54 @@ export interface AdminContentAccessPolicyMutationResponse {
   item: AdminContentAccessPolicyItem
 }
 
+export interface AdminContentAccessPolicyPayload {
+  code?: string
+  label?: string
+  description?: string | null
+  active?: boolean
+  priority?: number
+  effectiveFrom?: string | null
+  effectiveTo?: string | null
+  changeReason?: string
+  match?: {
+    contentTypes?: AdminContentAccessPolicyContentType[]
+    categories?: AdminContentAccessPolicyCategory[]
+    tags?: string[]
+    featuredOnly?: boolean
+  }
+  access?: {
+    requiredRole?: AdminContentAccessPolicyRequiredRole
+    teaserAllowed?: boolean
+    blockedMessage?: string | null
+  }
+}
+
+export interface AdminContentAccessPolicyPreviewCounts {
+  total: number
+  currentlyPremium: number
+  currentlyFree: number
+}
+
+export interface AdminContentAccessPolicyPreviewSample {
+  id: string
+  contentType: AdminContentAccessPolicyContentType
+  title: string
+  isPremium: boolean
+  category?: AdminContentAccessPolicyCategory
+  publishedAt: string | null
+}
+
+export interface AdminContentAccessPolicyPreviewResponse {
+  input: {
+    match: AdminContentAccessPolicyMatch
+    access: AdminContentAccessPolicyAccess
+  }
+  impact: {
+    totalMatches: number
+    currentlyPremium: number
+    currentlyFree: number
+    byContentType: Record<AdminContentAccessPolicyContentType, AdminContentAccessPolicyPreviewCounts>
+  }
+  sample: AdminContentAccessPolicyPreviewSample[]
+  generatedAt: string | null
+}
