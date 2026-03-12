@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Loader2, RefreshCcw, Search, ShieldAlert, Sparkles, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -576,6 +576,12 @@ export default function CreatorsRiskBoardPage() {
         </div>
 
         <div className="flex flex-wrap gap-2">
+          <Button type="button" variant="outline" asChild>
+            <Link to="/admin/creators">Risk board</Link>
+          </Button>
+          <Button type="button" variant="outline" asChild>
+            <Link to="/admin/creators/analytics">Analytics positivos</Link>
+          </Button>
           <Button type="button" variant="outline" onClick={() => creatorsQuery.refetch()}>
             <RefreshCcw className="h-4 w-4" />
             Atualizar
@@ -1421,3 +1427,4 @@ export default function CreatorsRiskBoardPage() {
     </div>
   )
 }
+
