@@ -1645,3 +1645,17 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
 - Estado final do bloco Vike:
   - concluido;
   - sem pendencias tecnicas abertas no frontend por causa da migracao.
+
+## 83) F1 REIT Subtype Detector concluido (2026-03-12)
+- Integracao frontend do novo contrato de subtipo REIT:
+  - `ReitFfoResponse` expandido com `reitSubtype`, `reitSubtypeConfidence` e `reitSubtypeReasons`.
+- Scoring do REIT Toolkit alinhado por subtipo:
+  - prioridade de pesos: `reitSubtype` (confidence >= medium) -> `reitProfile` -> `mixed`;
+  - novos `SUBTYPE_WEIGHTS` para `net-lease`, `mortgage`, `specialty-tech`, `healthcare`, `hotel`, `standard`.
+- UX operacional ajustada:
+  - badge de subtipo junto ao perfil no header;
+  - metrica de divida passa para `Div./EBITDA (proxy)` em `net-lease` quando aplicavel, com nota contextual.
+- Organizacao documental:
+  - especificacao movida para `dcos/done/F1_REIT_SUBTYPE_DETECTOR.md`.
+- Validacao tecnica:
+  - `npm run typecheck:p1` -> PASS.

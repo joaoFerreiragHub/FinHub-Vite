@@ -2,16 +2,18 @@
 
 Data da consolidacao: 2026-03-01 (revisto apos consolidacao do P4 Editorial CMS e Moderation Control Plane).
 
-## Prioridade ativa (2026-03-11)
+## Prioridade ativa (2026-03-12)
 1. Retoma do backlog funcional apos fecho da migracao Vike V1.
 - Estado atual:
   - migracao Vike V1 concluida (CP1..CP7 + hotfix pos-merge);
   - warning `deprecated design` removido;
-  - `master` estabilizado sem bloqueadores tecnicos de migracao.
+  - `master` estabilizado sem bloqueadores tecnicos de migracao;
+  - F1 REIT Subtype Detector concluido e integrado no toolkit.
 - Arquivo de evidencias (movido para `dcos/done/`):
   - `dcos/done/MUST_READ_VIKE_V1_AGENTE.md`
   - `dcos/done/VIKE_V1_FASE0_INVENTARIO.md`
   - `dcos/done/VIKE_V1_PLANO_EXECUCAO.md`
+  - `dcos/done/F1_REIT_SUBTYPE_DETECTOR.md`
 - Foco imediato:
   - seguir a sequencia pragmatica ja definida neste documento (P3 -> P4 -> P5 incremental).
 

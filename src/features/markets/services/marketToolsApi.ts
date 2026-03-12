@@ -88,6 +88,9 @@ export interface ReitFfoResponse {
   // Phase 4: Confidence
   ffoConfidence?: 'high' | 'medium' | 'low'
   ffoConfidenceReasons?: string[]
+  reitSubtype?: 'net-lease' | 'mortgage' | 'specialty-tech' | 'healthcare' | 'hotel' | 'standard'
+  reitSubtypeConfidence?: 'high' | 'medium' | 'low'
+  reitSubtypeReasons?: string[]
 }
 
 export interface EconomicNAVScenario {

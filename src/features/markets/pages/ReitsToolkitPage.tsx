@@ -21,6 +21,7 @@ import { getErrorMessage, isNetworkError } from '@/lib/api/client'
 type Frequency = 'Mensal' | 'Trimestral' | 'Semestral' | 'Anual'
 type NavScenario = 'optimistic' | 'base' | 'conservative'
 type FfoView = 'narait' | 'simplified' | 'cfop' | 'affo'
+type ReitSubtype = 'net-lease' | 'mortgage' | 'specialty-tech' | 'healthcare' | 'hotel' | 'standard'
 
 function toNum(value: number | string | null | undefined): number | null {
   if (value === null || value === undefined || value === '') return null
@@ -205,6 +206,27 @@ const WEIGHT_PROFILES: Record<
 // Flag de dynamic weights — espelha REIT_FLAGS.enableDynamicWeights do backend
 const ENABLE_DYNAMIC_WEIGHTS = true
 
+const SUBTYPE_WEIGHTS: Record<
+  ReitSubtype,
+  { pFFO: number; payout: number; debt: number; nav: number }
+> = {
+  'net-lease': { pFFO: 0.25, payout: 0.3, debt: 0.1, nav: 0.35 },
+  mortgage: { pFFO: 0, payout: 0, debt: 0, nav: 0 },
+  'specialty-tech': { pFFO: 0.4, payout: 0.15, debt: 0.3, nav: 0.15 },
+  healthcare: { pFFO: 0.3, payout: 0.25, debt: 0.2, nav: 0.25 },
+  hotel: { pFFO: 0.35, payout: 0.15, debt: 0.3, nav: 0.2 },
+  standard: { pFFO: 0.35, payout: 0.2, debt: 0.25, nav: 0.2 },
+}
+
+const SUBTYPE_LABELS: Record<ReitSubtype, string> = {
+  'net-lease': 'Net-lease',
+  mortgage: 'mREIT',
+  'specialty-tech': 'Tech/Torres',
+  healthcare: 'Saude',
+  hotel: 'Hotelaria',
+  standard: '',
+}
+
 // ── Componente principal ─────────────────────────────────────────────────────
 
 export default function ReitsToolkitPage() {
@@ -249,6 +271,8 @@ export default function ReitsToolkitPage() {
   const priceToNAV = toNum(data?.nav?.priceToNAV)
   const payoutRatio = toNum(data?.ffo?.ffoPayoutRatio)
   const debtEbitda = toNum(data?.ffo?.debtToEbitda)
+  const reitSubtype = data?.ffo?.reitSubtype
+  const subtypeConfidence = data?.ffo?.reitSubtypeConfidence
 
   // FFO toggle — resolve os valores a apresentar consoante a vista selecionada
   const ffoSource = data?.ffo?.ffoSource
@@ -277,11 +301,20 @@ export default function ReitsToolkitPage() {
   const activeProfile = profileOverride ?? detectedProfile
   const ddmLowConfidence = data?.ddm?.ddmConfidence === 'low'
 
-  // Phase 8: Dynamic weights — usa pesos do perfil só quando a deteção tem alta confiança
+  // Prioridade: subtipo (confidence >= medium) > perfil (confidence high) > mixed
   const weights =
-    ENABLE_DYNAMIC_WEIGHTS && data?.ddm?.profileConfidence === 'high'
-      ? WEIGHT_PROFILES[activeProfile]
-      : WEIGHT_PROFILES.mixed
+    reitSubtype && subtypeConfidence !== 'low'
+      ? SUBTYPE_WEIGHTS[reitSubtype]
+      : ENABLE_DYNAMIC_WEIGHTS && data?.ddm?.profileConfidence === 'high'
+        ? WEIGHT_PROFILES[activeProfile]
+        : WEIGHT_PROFILES.mixed
+
+  const debtMetricLabel =
+    reitSubtype === 'net-lease' && debtEbitda !== null ? 'Div./EBITDA (proxy)' : 'Div./EBITDA'
+  const debtMetricInfo =
+    reitSubtype === 'net-lease'
+      ? 'Para net-lease REITs o EBITDA e frequentemente estimado por proxy (Operating Income + D&A), pois o FMP pode nao reportar EBITDA direto.'
+      : INFO.debtEbitda
 
   // ── Valuation Score (combinação ponderada dos sinais disponíveis) ───────────
   // Calcula um score 0-100 com base nos dados já carregados, sem nova chamada à API.
@@ -330,9 +363,9 @@ export default function ReitsToolkitPage() {
         debtEbitda < 4 ? 95 : debtEbitda < 6 ? 80 : debtEbitda < 7.5 ? 52 : debtEbitda < 9 ? 28 : 8
       weighted += ds * weights.debt
       total += weights.debt
-      metrics.push('Div./EBITDA')
+      metrics.push(debtMetricLabel)
     } else {
-      missing.push('Div./EBITDA')
+      missing.push(debtMetricLabel)
     }
 
     // Economic NAV base scenario — sempre 'base' para o score não oscilar com o toggle do utilizador
@@ -509,8 +542,13 @@ export default function ReitsToolkitPage() {
                                 ? 'Crescimento'
                                 : activeProfile === 'income'
                                   ? 'Rendimento'
-                                  : 'Misto'}
+                                : 'Misto'}
                             </Badge>
+                          )}
+                          {reitSubtype && reitSubtype !== 'standard' && (
+                            <span className="rounded border border-border/40 bg-muted/30 px-1.5 py-0.5 text-[10px] text-muted-foreground/70">
+                              {SUBTYPE_LABELS[reitSubtype]}
+                            </span>
                           )}
                         </div>
                         <p className="mt-0.5 text-sm font-semibold leading-tight">
@@ -802,13 +840,13 @@ export default function ReitsToolkitPage() {
                         barValue={payoutRatio !== null ? payoutRatio : undefined}
                       />
                       <MetricRow
-                        label="Divida/EBITDA"
+                        label={debtMetricLabel}
                         value={
                           data.ffo.debtToEbitda
                             ? `${Number(data.ffo.debtToEbitda).toFixed(1)}x`
                             : 'N/A'
                         }
-                        info={INFO.debtEbitda}
+                        info={debtMetricInfo}
                         highlight={
                           debtEbitda !== null
                             ? debtEbitda < 6
@@ -1129,7 +1167,7 @@ export default function ReitsToolkitPage() {
                         </p>
                         <p className="mt-0.5 text-sm text-muted-foreground">
                           Combinacao ponderada: P/FFO {(weights.pFFO * 100).toFixed(0)}% · Payout{' '}
-                          {(weights.payout * 100).toFixed(0)}% · Div./EBITDA{' '}
+                          {(weights.payout * 100).toFixed(0)}% · {debtMetricLabel}{' '}
                           {(weights.debt * 100).toFixed(0)}% · vs. ECO NAV{' '}
                           {(weights.nav * 100).toFixed(0)}%
                         </p>
@@ -1208,7 +1246,7 @@ export default function ReitsToolkitPage() {
                       {debtEbitda !== null && (
                         <div className="rounded-lg border border-border/40 bg-muted/20 px-3 py-2.5">
                           <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/60">
-                            Div./EBITDA
+                            {debtMetricLabel}
                           </p>
                           <p
                             className={`mt-1 text-lg font-bold tabular-nums leading-none ${debtEbitda < 6 ? 'text-emerald-400' : debtEbitda > 8 ? 'text-red-400' : 'text-foreground'}`}
