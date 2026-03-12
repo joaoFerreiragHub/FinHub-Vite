@@ -10,6 +10,7 @@ import {
   Newspaper,
   ClipboardList,
   FileSpreadsheet,
+  Wallet,
 } from 'lucide-react'
 
 export const adminRoutes = [
@@ -53,6 +54,12 @@ export const adminRoutes = [
     path: '/admin/recursos',
     label: 'Recursos',
     icon: Layers,
+    allowedRoles: ['admin'] as UserRole[],
+  },
+  {
+    path: '/admin/monetizacao',
+    label: 'Monetizacao',
+    icon: Wallet,
     allowedRoles: ['admin'] as UserRole[],
   },
   {

@@ -32,6 +32,7 @@ export type AdminModuleKey =
   | 'editorial'
   | 'support'
   | 'brands'
+  | 'monetization'
   | 'operations'
   | 'audit'
   | 'stats'
@@ -119,6 +120,14 @@ export const ADMIN_MODULES: AdminModuleConfig[] = [
     path: '/admin/recursos',
     readScopes: ['admin.directory.manage'],
     writeScopes: ['admin.directory.manage'],
+    operational: true,
+  },
+  {
+    key: 'monetization',
+    label: 'Monetizacao',
+    path: '/admin/monetizacao',
+    readScopes: ['admin.content.read'],
+    writeScopes: ['admin.content.moderate'],
     operational: true,
   },
   {

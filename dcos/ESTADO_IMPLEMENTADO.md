@@ -1659,3 +1659,19 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
   - especificacao movida para `dcos/done/F1_REIT_SUBTYPE_DETECTOR.md`.
 - Validacao tecnica:
   - `npm run typecheck:p1` -> PASS.
+
+## 84) P4.3-01 monetizacao/paywall - frontend MVP inicial (2026-03-12)
+- Nova area admin de monetizacao:
+  - rota Vike `src/pages/admin/monetizacao/+Page.tsx` protegida por `requiredAdminModule="monetization"`;
+  - entrada no menu admin e no registry de rotas (`/admin/monetizacao`).
+- Camada de dominio frontend para policies de acesso premium:
+  - tipos: `src/features/admin/types/adminContentAccessPolicy.ts`;
+  - service: `src/features/admin/services/adminContentAccessPolicyService.ts`;
+  - hooks React Query: `src/features/admin/hooks/useAdminContentAccessPolicies.ts`.
+- UI operacional inicial em `src/features/admin/pages/AdminMonetizationPaywallPage.tsx`:
+  - listagem paginada com filtros (`active`, `requiredRole`, `contentType`, `search`);
+  - acao de ativar/desativar policy com motivo tecnico e feedback por toast;
+  - respeito a modo read-only e scopes (`admin.content.read` / `admin.content.moderate`).
+- Validacao tecnica desta ronda:
+  - `cmd /c yarn.cmd typecheck:p1` -> PASS.
+  - `cmd /c yarn.cmd lint` -> PASS.
