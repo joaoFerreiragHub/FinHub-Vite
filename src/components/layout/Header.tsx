@@ -4,6 +4,7 @@ import { Menu, X, LayoutDashboard, PanelLeft, User, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui'
 import { ToggleTheme } from '@/components/ui/toggle-theme'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import { GlobalSearchBar } from '@/features/social/components/GlobalSearchBar'
 import { NotificationBell } from '@/features/social/components/NotificationBell'
 import { cn } from '@/lib/utils'
 
@@ -123,11 +124,19 @@ export default function Header({
           </Link>
         </div>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden items-center gap-1 lg:flex">
           {navItems.map((item) => (
             <NavItem key={item.to} item={item} currentPath={location.pathname} />
           ))}
         </nav>
+
+        <div className="hidden w-full max-w-sm flex-1 px-4 md:block">
+          <GlobalSearchBar
+            onNavigate={(url) => {
+              navigate(url)
+            }}
+          />
+        </div>
 
         <div className="hidden items-center gap-2 md:flex">
           <ToggleTheme />
