@@ -9,7 +9,7 @@
     "start:ssr": "yarn validate && vite",
     "dev": "vite",
     "ssr:dev": "vite",
-    "build": "yarn typecheck:p1 && vite build",
+    "build": "yarn typecheck:p1 && yarn seo:generate && vite build",
     "preview": "vite preview",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -30,6 +30,7 @@
     "postinstall": "npm run prepare",
     "validate": "yarn format:check && yarn lint && yarn test",
     "typecheck:p1": "tsc --noEmit --pretty false -p tsconfig.p1.json",
+    "seo:generate": "node scripts/generate-seo-assets.mjs",
     "typecheck:full": "tsc --noEmit --pretty false -p tsconfig.app.json",
     "checking": "yarn typecheck:p1 && yarn lint"
   },

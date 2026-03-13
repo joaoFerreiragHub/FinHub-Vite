@@ -1,13 +1,18 @@
 User-agent: *
 Allow: /
 
-# Areas privadas
+# Areas privadas e utilitarias
 Disallow: /admin/
 Disallow: /dashboard/
 Disallow: /conta
 Disallow: /meus-favoritos
 Disallow: /a-seguir
 Disallow: /notificacoes
+Disallow: /login
+Disallow: /registar
+Disallow: /esqueci-password
+Disallow: /reset-password
+Disallow: /oauth/
+Disallow: /verificar-email
 
 Sitemap: https://finhub.pt/sitemap.xml
-

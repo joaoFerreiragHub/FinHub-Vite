@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom'
 import Header from '@/components/layout/Header'
+import { PublicRouteSeo } from '@/components/seo/PublicRouteSeo'
 import { CookieConsentBanner } from '@/features/auth/components/CookieConsentBanner'
 import { EmailVerificationBanner } from '@/features/auth/components/EmailVerificationBanner'
 import { PageTracker } from '@/shared/providers'
@@ -10,6 +11,7 @@ import { PageTracker } from '@/shared/providers'
 export default function AuthLayout() {
   return (
     <div className="relative flex min-h-screen flex-col bg-background text-foreground">
+      <PublicRouteSeo />
       <PageTracker />
       <div
         aria-hidden="true"

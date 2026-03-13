@@ -11,8 +11,27 @@ const DEFAULT_DESCRIPTION =
   'Plataforma de literacia financeira com conteudo, criadores e ferramentas para melhorar decisoes de investimento.'
 const SITE_URL = (import.meta.env.VITE_SITE_URL || 'https://finhub.pt').replace(/\/$/, '')
 const DEFAULT_IMAGE = `${SITE_URL}/vite.svg`
+const NO_INDEX_EXACT_PATHS = new Set([
+  '/login',
+  '/registar',
+  '/esqueci-password',
+  '/reset-password',
+  '/verificar-email',
+  '/conta',
+  '/meus-favoritos',
+  '/a-seguir',
+  '/notificacoes',
+])
+const NO_INDEX_PREFIXES = ['/admin', '/dashboard', '/oauth']
 
 const withBrand = (title: string) => `${title} | ${SITE_NAME}`
+
+const shouldIndexPath = (pathname: string): boolean => {
+  if (NO_INDEX_EXACT_PATHS.has(pathname)) return false
+  return !NO_INDEX_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  )
+}
 
 const resolveSeoMeta = (pathname: string): SeoMeta => {
   if (pathname === '/') {
@@ -147,6 +166,41 @@ const resolveSeoMeta = (pathname: string): SeoMeta => {
     }
   }
 
+  if (pathname === '/login') {
+    return {
+      title: withBrand('Entrar'),
+      description: 'Inicia sessao na tua conta FinHub.',
+    }
+  }
+
+  if (pathname === '/registar') {
+    return {
+      title: withBrand('Criar Conta'),
+      description: 'Cria a tua conta FinHub e comeca a aprender e explorar ferramentas.',
+    }
+  }
+
+  if (pathname === '/esqueci-password') {
+    return {
+      title: withBrand('Recuperar Password'),
+      description: 'Recupera o acesso a tua conta FinHub com seguranca.',
+    }
+  }
+
+  if (pathname === '/reset-password') {
+    return {
+      title: withBrand('Redefinir Password'),
+      description: 'Define uma nova password para a tua conta FinHub.',
+    }
+  }
+
+  if (pathname === '/verificar-email') {
+    return {
+      title: withBrand('Verificar Email'),
+      description: 'Conclui a verificacao de email da tua conta FinHub.',
+    }
+  }
+
   return {
     title: withBrand('Plataforma Financeira'),
     description: DEFAULT_DESCRIPTION,
@@ -158,12 +212,13 @@ export function PublicRouteSeo() {
   const pathname = location.pathname || '/'
   const meta = resolveSeoMeta(pathname)
   const canonical = `${SITE_URL}${pathname}`
+  const robotsContent = shouldIndexPath(pathname) ? 'index,follow' : 'noindex,nofollow'
 
   return (
     <Helmet>
       <title>{meta.title}</title>
       <meta name="description" content={meta.description} />
-      <meta name="robots" content="index,follow" />
+      <meta name="robots" content={robotsContent} />
       <link rel="canonical" href={canonical} />
 
       <meta property="og:type" content="website" />
