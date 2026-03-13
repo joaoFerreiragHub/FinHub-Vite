@@ -7,6 +7,10 @@ interface ImportMetaEnv {
   readonly VITE_FB_PIXEL_ID?: string
   readonly VITE_POSTHOG_KEY?: string
   readonly VITE_POSTHOG_HOST?: string
+  readonly VITE_SENTRY_DSN?: string
+  readonly VITE_SENTRY_ENVIRONMENT?: string
+  readonly VITE_SENTRY_RELEASE?: string
+  readonly VITE_SENTRY_TRACES_SAMPLE_RATE?: string
   readonly VITE_CAPTCHA_PROVIDER?: 'disabled' | 'turnstile' | 'hcaptcha'
   readonly VITE_CAPTCHA_SITE_KEY?: string
 }
