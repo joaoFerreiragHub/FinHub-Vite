@@ -5,6 +5,7 @@ import AdminCommandPalette from '../components/AdminCommandPalette'
 import Header from '@/components/layout/Header'
 import AssistedSessionBanner from '../components/AssistedSessionBanner'
 import { CookieConsentBanner } from '@/features/auth/components/CookieConsentBanner'
+import { EmailVerificationBanner } from '@/features/auth/components/EmailVerificationBanner'
 import { cn } from '@/lib/utils'
 import { PageTracker } from '@/shared/providers'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
@@ -79,6 +80,7 @@ export default function AdminLayout() {
         containerClassName={ultrawideContainerClass}
       />
       <AssistedSessionBanner containerClassName={ultrawideContainerClass} />
+      <EmailVerificationBanner />
       <CookieConsentBanner />
 
       <div className={cn('mx-auto flex w-full', ultrawideContainerClass)}>

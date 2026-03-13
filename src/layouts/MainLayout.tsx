@@ -3,6 +3,7 @@ import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import AssistedSessionBanner from '@/features/admin/components/AssistedSessionBanner'
 import { CookieConsentBanner } from '@/features/auth/components/CookieConsentBanner'
+import { EmailVerificationBanner } from '@/features/auth/components/EmailVerificationBanner'
 import { PublicRouteSeo } from '@/components/seo/PublicRouteSeo'
 import { PageTracker } from '@/shared/providers'
 
@@ -17,6 +18,7 @@ export default function MainLayout() {
       <PageTracker />
       <Header />
       <AssistedSessionBanner />
+      <EmailVerificationBanner />
       <CookieConsentBanner />
 
       <main className="relative z-0 flex-1 pt-2">

@@ -92,8 +92,8 @@ export function LoginForm() {
           <span>Lembrar-me</span>
         </label>
 
-        <Link to="/contacto" className="text-sm text-primary hover:underline">
-          Precisa de ajuda?
+        <Link to="/esqueci-password" className="text-sm text-primary hover:underline">
+          Esqueci-me da password
         </Link>
       </div>
 

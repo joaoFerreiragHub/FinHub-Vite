@@ -21,6 +21,9 @@ import HomePage from '@/features/home/HomePage'
 import LoginPage from '@/features/auth/pages/LoginPage'
 import RegisterPage from '@/features/auth/pages/RegisterPage'
 import GoogleOAuthCallbackPage from '@/features/auth/pages/GoogleOAuthCallbackPage'
+import ForgotPasswordPage from '@/features/auth/pages/ForgotPasswordPage'
+import ResetPasswordPage from '@/features/auth/pages/ResetPasswordPage'
+import VerifyEmailPage from '@/features/auth/pages/VerifyEmailPage'
 
 // Pages - Explore
 import ExplorePage from '@/features/explore/pages/ExplorePage'
@@ -424,6 +427,18 @@ const router = createBrowserRouter([
       {
         path: 'oauth/google/callback',
         element: <GoogleOAuthCallbackPage />,
+      },
+      {
+        path: 'esqueci-password',
+        element: <ForgotPasswordPage />,
+      },
+      {
+        path: 'reset-password',
+        element: <ResetPasswordPage />,
+      },
+      {
+        path: 'verificar-email',
+        element: <VerifyEmailPage />,
       },
     ],
   },

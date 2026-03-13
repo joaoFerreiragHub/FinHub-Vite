@@ -5,6 +5,7 @@ import DashboardSidebar from '../components/DashboardSidebar'
 import Header from '@/components/layout/Header'
 import AssistedSessionBanner from '@/features/admin/components/AssistedSessionBanner'
 import { CookieConsentBanner } from '@/features/auth/components/CookieConsentBanner'
+import { EmailVerificationBanner } from '@/features/auth/components/EmailVerificationBanner'
 import { cn } from '@/lib/utils'
 import { PageTracker } from '@/shared/providers'
 
@@ -27,6 +28,7 @@ export default function DashboardLayout() {
         sidebarToggleLabel="Abrir menu do dashboard"
       />
       <AssistedSessionBanner />
+      <EmailVerificationBanner />
       <CookieConsentBanner />
 
       <div className="mx-auto flex w-full max-w-[1600px]">

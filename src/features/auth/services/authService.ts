@@ -22,6 +22,10 @@ interface UpdateCookieConsentResponse {
   cookieConsent: UserCookieConsent
 }
 
+interface ResendVerificationResponse {
+  message: string
+}
+
 /**
  * Authentication Service
  *
@@ -63,7 +67,11 @@ export const authService = {
    * Verificar email do usuário
    */
   verifyEmail: async (token: string): Promise<void> => {
-    await apiClient.post('/auth/verify-email', { token })
+    await apiClient.get('/auth/verify-email', {
+      params: {
+        token,
+      },
+    })
   },
 
   /**
@@ -78,6 +86,14 @@ export const authService = {
    */
   resetPassword: async (token: string, newPassword: string): Promise<void> => {
     await apiClient.post('/auth/reset-password', { token, newPassword })
+  },
+
+  /**
+   * Reenviar email de verificacao para utilizador autenticado
+   */
+  resendVerification: async (): Promise<ResendVerificationResponse> => {
+    const response = await apiClient.post<ResendVerificationResponse>('/auth/resend-verification')
+    return response.data
   },
 
   /**
