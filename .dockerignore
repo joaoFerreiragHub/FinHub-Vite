@@ -1,0 +1,12 @@
+.git
+.github
+.husky
+.storybook
+node_modules
+dist
+playwright-report
+test-results
+tmp_*
+*.log
+dcos
+coverage
