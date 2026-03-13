@@ -6,6 +6,7 @@ import { useAuthStore } from '../stores/useAuthStore'
 import { loginSchema, type LoginFormData } from '../schemas/authSchemas'
 import { Button, Input, Label } from '@/components/ui'
 import { getErrorMessage } from '@/lib/api/client'
+import { trackLoginSuccess } from '@/lib/analytics'
 import { authService } from '../services/authService'
 import { CaptchaField } from './CaptchaField'
 
@@ -38,6 +39,7 @@ export function LoginForm() {
 
     try {
       await login(data)
+      trackLoginSuccess('password', fromPath)
       navigate(fromPath, { replace: true })
     } catch (error) {
       setServerError(getErrorMessage(error))

@@ -8,6 +8,7 @@ import { Button, Checkbox, Input, Label } from '@/components/ui'
 import { getErrorMessage } from '@/lib/api/client'
 import { CaptchaField } from './CaptchaField'
 import { DEFAULT_COOKIE_CONSENT_VERSION } from '@/features/auth/services/cookieConsentStorage'
+import { trackSignUpSuccess } from '@/lib/analytics'
 import { authService } from '../services/authService'
 
 const legalVersion = import.meta.env.VITE_LEGAL_VERSION || DEFAULT_COOKIE_CONSENT_VERSION
@@ -67,6 +68,7 @@ export function RegisterForm() {
           version: legalVersion,
         },
       })
+      trackSignUpSuccess('password', '/dashboard')
       navigate('/dashboard', { replace: true })
     } catch (error) {
       setServerError(getErrorMessage(error))
@@ -275,7 +277,13 @@ export function RegisterForm() {
         Criar Conta
       </Button>
 
-      <Button type="button" variant="outline" size="lg" className="w-full" onClick={handleGoogleRegister}>
+      <Button
+        type="button"
+        variant="outline"
+        size="lg"
+        className="w-full"
+        onClick={handleGoogleRegister}
+      >
         Continuar com Google
       </Button>
 

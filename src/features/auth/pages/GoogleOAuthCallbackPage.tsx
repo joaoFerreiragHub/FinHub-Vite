@@ -4,6 +4,7 @@ import { Button } from '@/components/ui'
 import { authService } from '../services/authService'
 import { useAuthStore } from '../stores/useAuthStore'
 import { getErrorMessage } from '@/lib/api/client'
+import { trackLoginSuccess } from '@/lib/analytics'
 
 const parseOAuthCallbackParams = () => {
   const hash = window.location.hash.startsWith('#')
@@ -57,6 +58,7 @@ export default function GoogleOAuthCallbackPage() {
         if (cancelled) return
 
         setUser(meResponse.user, params.accessToken, params.refreshToken)
+        trackLoginSuccess('google', normalizeRedirectPath(params.redirectPath))
 
         if (typeof window !== 'undefined') {
           window.history.replaceState({}, document.title, window.location.pathname)
@@ -99,4 +101,3 @@ export default function GoogleOAuthCallbackPage() {
     </div>
   )
 }
-

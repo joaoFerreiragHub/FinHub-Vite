@@ -1,12 +1,18 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
-import { trackPageView } from '../../lib/analytics'
+import { trackContentView, trackPageView } from '../../lib/analytics'
 
 export function PageTracker() {
   const location = useLocation()
+  const lastContentTrackedPathnameRef = useRef<string | null>(null)
 
   useEffect(() => {
     trackPageView(`${location.pathname}${location.search}`)
+
+    if (lastContentTrackedPathnameRef.current !== location.pathname) {
+      trackContentView(location.pathname)
+      lastContentTrackedPathnameRef.current = location.pathname
+    }
   }, [location.pathname, location.search])
 
   return null
