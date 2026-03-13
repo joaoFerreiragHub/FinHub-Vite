@@ -92,3 +92,26 @@ export function usePublicDirectoryRelatedContent(
       normalizedSlug.length >= PUBLIC_DIRECTORY_SEARCH_MIN_LENGTH,
   })
 }
+
+export function useComparePublicDirectories(
+  slugs: string[],
+  options?: PublicDirectoriesQueryOptions,
+) {
+  const normalizedSlugs = Array.from(
+    new Set(
+      slugs
+        .filter((item): item is string => typeof item === 'string')
+        .map((item) => item.trim().toLowerCase())
+        .filter((item) => item.length >= PUBLIC_DIRECTORY_SEARCH_MIN_LENGTH),
+    ),
+  )
+
+  return useQuery({
+    queryKey: ['directories', 'compare', normalizedSlugs.join(',')],
+    queryFn: () => publicDirectoriesService.compare(normalizedSlugs),
+    enabled:
+      (options?.enabled ?? true) &&
+      normalizedSlugs.length >= 2 &&
+      normalizedSlugs.length <= 3,
+  })
+}

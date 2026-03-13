@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, ExternalLink, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ExternalLink, Scale, ShieldCheck } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { CommentSection, RatingsSection } from '@/features/hub/components'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
@@ -182,6 +182,12 @@ export default function BrandDetailPage() {
                 <CardDescription className="text-sm">{entry.shortDescription}</CardDescription>
               </div>
               <div className="flex flex-wrap gap-2">
+                <Button asChild size="sm" variant="outline">
+                  <Link to={`/recursos/comparar?slugs=${encodeURIComponent(entry.slug)}`}>
+                    Comparar
+                    <Scale className="h-4 w-4" />
+                  </Link>
+                </Button>
                 {entry.website ? (
                   <Button asChild size="sm">
                     <a href={entry.website} target="_blank" rel="noreferrer noopener">

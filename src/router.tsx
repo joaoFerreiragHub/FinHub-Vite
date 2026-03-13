@@ -57,6 +57,7 @@ import BrandsAppsPage from '@/features/brands/pages/BrandsAppsPage'
 import BrandsSitesPage from '@/features/brands/pages/BrandsSitesPage'
 import BrandsPodcastsPage from '@/features/brands/pages/BrandsPodcastsPage'
 import BrandsLivrosPage from '@/features/brands/pages/BrandsLivrosPage'
+import BrandsComparePage from '@/features/brands/pages/BrandsComparePage'
 
 // Pages - Learn
 import LearnHubPage from '@/features/learn/pages/LearnHubPage'
@@ -285,6 +286,10 @@ const router = createBrowserRouter([
           {
             path: 'livros',
             element: <BrandsLivrosPage />,
+          },
+          {
+            path: 'comparar',
+            element: <BrandsComparePage />,
           },
           {
             path: ':slug',

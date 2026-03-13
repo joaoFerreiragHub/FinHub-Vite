@@ -48,5 +48,8 @@ describe('resolveContentViewMatch', () => {
     expect(resolveContentViewMatch('/explorar/tudo')).toBeNull()
     expect(resolveContentViewMatch('/dashboard')).toBeNull()
     expect(resolveContentViewMatch('/')).toBeNull()
+    expect(resolveContentViewMatch('/recursos/corretoras')).toBeNull()
+    expect(resolveContentViewMatch('/recursos/plataformas')).toBeNull()
+    expect(resolveContentViewMatch('/recursos/comparar')).toBeNull()
   })
 })

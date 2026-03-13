@@ -8,6 +8,7 @@ import {
   Globe,
   Mic2,
   Newspaper,
+  Scale,
   Search,
   Smartphone,
   Sparkles,
@@ -259,12 +260,18 @@ export default function BrandsListPage() {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Badge variant="secondary">
               {formatCount(summary?.total ?? 0)} recursos publicados
             </Badge>
             <Badge variant="outline">{formatCount(summary?.totalFeatured ?? 0)} featured</Badge>
             <Badge variant="outline">{formatCount(summary?.totalVerified ?? 0)} verificados</Badge>
+            <Button asChild size="sm" variant="outline">
+              <Link to="/recursos/comparar">
+                Abrir comparador
+                <Scale className="h-4 w-4" />
+              </Link>
+            </Button>
           </div>
         </header>
 

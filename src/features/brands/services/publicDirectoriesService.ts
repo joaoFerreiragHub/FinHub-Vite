@@ -193,6 +193,39 @@ export interface PublicDirectorySearchResponse {
   pagination: PublicDirectoryListPagination
 }
 
+export interface PublicDirectoryComparisonMetricSummary {
+  min: number
+  max: number
+  spread: number
+  leaderIds: string[]
+}
+
+export interface PublicDirectoryCompareMetrics {
+  views: PublicDirectoryComparisonMetricSummary
+  averageRating: PublicDirectoryComparisonMetricSummary
+  ratingsCount: PublicDirectoryComparisonMetricSummary
+  commentsCount: PublicDirectoryComparisonMetricSummary
+}
+
+export interface PublicDirectoryCompareShared {
+  tags: string[]
+  categories: string[]
+  regulatedBy: string[]
+}
+
+export interface PublicDirectoryCompareSummary {
+  count: number
+  requestedSlugs: string[]
+  verticalTypes: PublicDirectoryVertical[]
+  metrics: PublicDirectoryCompareMetrics
+  shared: PublicDirectoryCompareShared
+}
+
+export interface PublicDirectoryCompareResponse {
+  items: PublicDirectoryDetailEntry[]
+  comparison: PublicDirectoryCompareSummary
+}
+
 interface BackendDirectorySummaryEntry {
   id?: string
   _id?: string
@@ -348,6 +381,39 @@ interface BackendDirectoryRelatedContentResponse {
   items?: BackendDirectoryRelatedContentItem[]
   total?: number
   limit?: number
+}
+
+interface BackendDirectoryComparisonMetricSummary {
+  min?: number
+  max?: number
+  spread?: number
+  leaderIds?: string[]
+}
+
+interface BackendDirectoryCompareMetrics {
+  views?: BackendDirectoryComparisonMetricSummary
+  averageRating?: BackendDirectoryComparisonMetricSummary
+  ratingsCount?: BackendDirectoryComparisonMetricSummary
+  commentsCount?: BackendDirectoryComparisonMetricSummary
+}
+
+interface BackendDirectoryCompareShared {
+  tags?: string[]
+  categories?: string[]
+  regulatedBy?: string[]
+}
+
+interface BackendDirectoryCompareSummary {
+  count?: number
+  requestedSlugs?: string[]
+  verticalTypes?: string[]
+  metrics?: BackendDirectoryCompareMetrics
+  shared?: BackendDirectoryCompareShared
+}
+
+interface BackendDirectoryCompareResponse {
+  items?: BackendDirectoryDetailEntry[]
+  comparison?: BackendDirectoryCompareSummary
 }
 
 const DEFAULT_FEATURED_LIMIT = 6
@@ -578,6 +644,15 @@ const mapRelatedContentItem = (
     score: toNumber(item.score),
   }
 }
+
+const mapComparisonMetricSummary = (
+  value: BackendDirectoryComparisonMetricSummary | undefined,
+): PublicDirectoryComparisonMetricSummary => ({
+  min: toNumber(value?.min),
+  max: toNumber(value?.max),
+  spread: toNumber(value?.spread),
+  leaderIds: cleanOptionalStringArray(value?.leaderIds),
+})
 
 const buildCategoryParams = (
   query: PublicDirectoryCategoryQuery,
@@ -817,6 +892,54 @@ export const publicDirectoriesService = {
         typeof response.data?.limit === 'number' && response.data.limit > 0
           ? Math.floor(response.data.limit)
           : normalizedLimit,
+    }
+  },
+
+  compare: async (slugs: string[]): Promise<PublicDirectoryCompareResponse> => {
+    const normalizedSlugs = Array.from(
+      new Set(
+        slugs
+          .filter((item): item is string => typeof item === 'string')
+          .map((item) => item.trim().toLowerCase())
+          .filter((item) => item.length >= PUBLIC_DIRECTORY_SEARCH_MIN_LENGTH),
+      ),
+    )
+
+    if (normalizedSlugs.length < 2 || normalizedSlugs.length > 3) {
+      throw new Error('Seleciona entre 2 e 3 recursos para comparar.')
+    }
+
+    const response = await apiClient.get<BackendDirectoryCompareResponse>('/directories/compare', {
+      params: {
+        slugs: normalizedSlugs.join(','),
+      },
+    })
+
+    const items = Array.isArray(response.data?.items) ? response.data.items : []
+    const mappedItems = items
+      .map((item) => mapDirectoryDetail(item))
+      .filter((item): item is PublicDirectoryDetailEntry => item !== null)
+
+    const comparison = response.data?.comparison
+
+    return {
+      items: mappedItems,
+      comparison: {
+        count: toNumber(comparison?.count),
+        requestedSlugs: cleanOptionalStringArray(comparison?.requestedSlugs),
+        verticalTypes: cleanOptionalStringArray(comparison?.verticalTypes).map(normalizeVertical),
+        metrics: {
+          views: mapComparisonMetricSummary(comparison?.metrics?.views),
+          averageRating: mapComparisonMetricSummary(comparison?.metrics?.averageRating),
+          ratingsCount: mapComparisonMetricSummary(comparison?.metrics?.ratingsCount),
+          commentsCount: mapComparisonMetricSummary(comparison?.metrics?.commentsCount),
+        },
+        shared: {
+          tags: cleanOptionalStringArray(comparison?.shared?.tags),
+          categories: cleanOptionalStringArray(comparison?.shared?.categories),
+          regulatedBy: cleanOptionalStringArray(comparison?.shared?.regulatedBy),
+        },
+      },
     }
   },
 

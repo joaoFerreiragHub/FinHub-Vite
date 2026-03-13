@@ -28,6 +28,7 @@ const publicRoutes = [
   { path: '/recursos/sites', changefreq: 'weekly', priority: '0.7' },
   { path: '/recursos/podcasts', changefreq: 'weekly', priority: '0.7' },
   { path: '/recursos/livros', changefreq: 'weekly', priority: '0.7' },
+  { path: '/recursos/comparar', changefreq: 'weekly', priority: '0.7' },
   { path: '/aprender', changefreq: 'weekly', priority: '0.7' },
   { path: '/aprender/noticias', changefreq: 'daily', priority: '0.7' },
   { path: '/aprender/glossario', changefreq: 'weekly', priority: '0.6' },

@@ -49,6 +49,17 @@ const CONTENT_ROUTE_MATCHERS: Array<{
   { pattern: /^\/recursos\/([^/]+)$/, contentType: 'resource' },
 ]
 
+const RESOURCE_STATIC_SLUGS = new Set([
+  'corretoras',
+  'plataformas',
+  'exchanges',
+  'apps',
+  'sites',
+  'podcasts',
+  'livros',
+  'comparar',
+])
+
 const normalizePathname = (pathname: string): string => {
   if (!pathname) return '/'
   if (pathname !== '/' && pathname.endsWith('/')) {
@@ -66,6 +77,10 @@ export const resolveContentViewMatch = (pathname: string): ContentViewMatch | nu
 
     const slug = matched[1]?.trim()
     if (!slug) return null
+
+    if (matcher.contentType === 'resource' && RESOURCE_STATIC_SLUGS.has(slug.toLowerCase())) {
+      continue
+    }
 
     return {
       contentType: matcher.contentType,
