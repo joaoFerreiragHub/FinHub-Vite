@@ -212,6 +212,12 @@ export default function AdminBulkImportPage({ embedded = false }: AdminBulkImpor
         <Button type="button" variant="outline" size="sm" asChild>
           <a href="/admin/operacoes/comunicacoes">Comunicacoes</a>
         </Button>
+        <Button type="button" variant="outline" size="sm" asChild>
+          <a href="/admin/operacoes/anuncios">Anuncios</a>
+        </Button>
+        <Button type="button" variant="outline" size="sm" asChild>
+          <a href="/admin/operacoes/delegacoes">Delegacoes</a>
+        </Button>
       </div>
 
       {!canRead ? (

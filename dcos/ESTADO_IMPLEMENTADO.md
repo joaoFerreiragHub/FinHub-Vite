@@ -1811,3 +1811,55 @@ Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS
 - Validacao tecnica desta ronda:
   - `cmd /c yarn.cmd typecheck:p1` -> PASS.
   - `npx jest --runInBand src/__tests__/features/admin/adminModerationTemplatesService.test.ts src/__tests__/features/admin/ContentModerationPage.test.tsx` -> PASS.
+
+## 88) P4.4-03 anuncios/partnerships - frontend FECHADO (2026-03-13)
+- Nova area admin operacional para ads:
+  - rota Vike `src/pages/admin/operacoes/anuncios/+Page.tsx` protegida por `requiredAdminModule="operations"`;
+  - UI em `src/features/admin/pages/AdminAdPartnershipsPage.tsx` com:
+    - inventory overview (`slotsBySurface`, `campaignsByType`, `activeCampaignsBySurface`);
+    - listagem/filtros de slots e campanhas;
+    - mutacoes com motivo obrigatorio para criar/editar slot e campanha;
+    - workflow de governanca de campanha (`submit-approval`, `approve`, `reject`, `activate`, `pause`);
+    - leitura de metricas por campanha (`/api/admin/ads/campaigns/:campaignId/metrics`).
+- Camada de dominio frontend adicionada:
+  - tipos: `src/features/admin/types/adminAdPartnership.ts`;
+  - service: `src/features/admin/services/adminAdPartnershipService.ts`;
+  - hooks React Query: `src/features/admin/hooks/useAdminAdPartnership.ts`.
+- Navegacao operacional sincronizada:
+  - links cruzados entre `Bulk import`, `Comunicacoes` e `Anuncios`;
+  - registry admin atualizado em `src/routes/admin.ts` com `/admin/operacoes/anuncios`.
+- Hardening tecnico nesta ronda:
+  - correcao de runtime no service de ads (constantes `ADMIN_AD_*` deixaram de usar `import type`).
+- Cobertura de testes:
+  - novo teste `src/__tests__/features/admin/adminAdPartnershipService.test.ts`.
+
+## 89) P4.5-04 delegacao temporaria de scopes - frontend FECHADO (2026-03-13)
+- Nova area admin de delegacoes:
+  - rota Vike `src/pages/admin/operacoes/delegacoes/+Page.tsx` protegida por `requiredAdminModule="operations"`;
+  - UI em `src/features/admin/pages/AdminScopeDelegationsPage.tsx` com:
+    - selecao de admin alvo;
+    - criacao de delegacoes por multiplos scopes com `expiresAt`;
+    - listagem por status (`active|expired|revoked`) e filtro por scope;
+    - revogacao com motivo obrigatorio.
+- Camada de dominio frontend adicionada:
+  - tipos: `src/features/admin/types/adminScopeDelegation.ts`;
+  - service: `src/features/admin/services/adminScopeDelegationService.ts`;
+  - hooks React Query: `src/features/admin/hooks/useAdminScopeDelegation.ts`.
+- Navegacao operacional sincronizada:
+  - links cruzados entre `Bulk import`, `Comunicacoes`, `Anuncios` e `Delegacoes`;
+  - registry admin atualizado em `src/routes/admin.ts` com `/admin/operacoes/delegacoes`.
+- Cobertura de testes:
+  - novo teste `src/__tests__/features/admin/adminScopeDelegationService.test.ts`.
+
+## 90) P4.5-05 dark mode admin - frontend FECHADO (2026-03-13)
+- Aplicacao real do tema admin no layout:
+  - `src/features/admin/layouts/AdminLayout.tsx` passou a ler `theme` de `dashboard personalization`;
+  - suporte a `system|light|dark` com resolucao por `prefers-color-scheme`;
+  - override de classe `dark` no `documentElement` apenas durante contexto admin, com restore ao sair.
+- Resultado operacional:
+  - o tema configurado no painel de personalizacao deixa de ser apenas valor persistido e passa a refletir-se visualmente no `/admin/*`.
+
+- Validacao tecnica desta ronda (P4.4-03 + P4.5-04 + P4.5-05):
+  - `npm run typecheck:p1` -> PASS.
+  - `npm run lint` -> PASS com warnings legacy nao bloqueantes em `ContentModerationPage.tsx`.
+  - `npx jest --runInBand src/__tests__/features/admin/adminAdPartnershipService.test.ts src/__tests__/features/admin/adminScopeDelegationService.test.ts` -> PASS.

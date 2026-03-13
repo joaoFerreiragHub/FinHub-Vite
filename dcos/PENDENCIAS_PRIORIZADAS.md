@@ -16,6 +16,9 @@ Data da consolidacao: 2026-03-01 (revisto apos consolidacao do P4 Editorial CMS 
   - P4.3-05 frontend FECHADO em `/admin/operacoes/comunicacoes` com composer segmentado, preview de audiencia, historico paginado e acoes `approve/send` com motivo obrigatorio.
   - P4.4-01 frontend FECHADO em `/admin/creators/analytics` com scorecards, filtros por risco/estado/sort, leaderboard growth/engagement/trust e export CSV operacional.
   - P4.4-02 frontend FECHADO em `/admin/stats/ferramentas-financeiras` com control plane por ferramenta, overrides por ambiente e dashboard de uso (tool/vertical).
+  - P4.4-03 frontend FECHADO em `/admin/operacoes/anuncios` com inventory overview, gestao de slots/campanhas e workflow de governanca (`submit/approve/reject/activate/pause`) com motivo obrigatorio.
+  - P4.5-04 frontend FECHADO em `/admin/operacoes/delegacoes` com selecao de admin alvo, criacao de delegacoes por scope com expiracao e revogacao com motivo obrigatorio.
+  - P4.5-05 frontend FECHADO com aplicacao real de tema admin (`system|light|dark`) no `AdminLayout` a partir de `dashboard personalization`.
 - Arquivo de evidencias (movido para `dcos/done/`):
   - `dcos/done/MUST_READ_VIKE_V1_AGENTE.md`
   - `dcos/done/VIKE_V1_FASE0_INVENTARIO.md`
@@ -23,7 +26,7 @@ Data da consolidacao: 2026-03-01 (revisto apos consolidacao do P4 Editorial CMS 
   - `dcos/done/F1_REIT_SUBTYPE_DETECTOR.md`
 - Foco imediato:
   - seguir a sequencia pragmatica ja definida neste documento (P3 -> P4 -> P5 incremental).
-  - avancar para P4.4-03 no frontend com UI operacional de anuncios/partnerships (inventory map, campanhas e governanca de serving).
+  - avancar para P5 pre-beta no frontend apos fecho do bloco P4.3/P4.4/P4.5.
 
 ## Prioridade 0 - Fechada (2026-02-18)
 1. P0.1 contratos social frontend x backend fechados.

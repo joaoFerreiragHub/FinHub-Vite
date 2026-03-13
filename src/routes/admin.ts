@@ -82,6 +82,18 @@ export const adminRoutes = [
     allowedRoles: ['admin'] as UserRole[],
   },
   {
+    path: '/admin/operacoes/anuncios',
+    label: 'Operacoes Anuncios',
+    icon: Megaphone,
+    allowedRoles: ['admin'] as UserRole[],
+  },
+  {
+    path: '/admin/operacoes/delegacoes',
+    label: 'Operacoes Delegacoes',
+    icon: ShieldCheck,
+    allowedRoles: ['admin'] as UserRole[],
+  },
+  {
     path: '/admin/stats',
     label: 'Estatisticas',
     icon: BarChart3,
