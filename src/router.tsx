@@ -198,6 +198,24 @@ const router = createBrowserRouter([
         ],
       },
 
+      {
+        path: 'creators',
+        children: [
+          {
+            index: true,
+            element: <Navigate to="/criadores" replace />,
+          },
+          {
+            path: 'top',
+            element: <Navigate to="/criadores/top" replace />,
+          },
+          {
+            path: ':username',
+            element: <CreatorProfilePage />,
+          },
+        ],
+      },
+
       // ========================================
       // CONTEÚDO (Content detail pages by type)
       // ========================================
