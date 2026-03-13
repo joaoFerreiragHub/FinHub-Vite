@@ -49,6 +49,30 @@ interface UpdateMyProfileResponse {
   user: MeResponse['user']
 }
 
+interface DeleteMyAccountRequest {
+  currentPassword: string
+  confirmation: string
+  reason: string
+}
+
+interface DeleteMyAccountResponse {
+  message: string
+}
+
+interface ExportMyDataResponse {
+  exportedAt: string
+  formatVersion: string
+  user: MeResponse['user']
+  data: Record<string, unknown>
+  summary?: {
+    favoritesCount?: number
+    followingCount?: number
+    followersCount?: number
+    claimRequestsCount?: number
+    creatorSubscriptionsCount?: number
+  }
+}
+
 /**
  * Authentication Service
  *
@@ -130,6 +154,24 @@ export const authService = {
    */
   updateMyProfile: async (payload: UpdateMyProfileRequest): Promise<UpdateMyProfileResponse> => {
     const response = await apiClient.patch<UpdateMyProfileResponse>('/users/me', payload)
+    return response.data
+  },
+
+  /**
+   * Exportar dados da conta autenticada (RGPD)
+   */
+  exportMyData: async (): Promise<ExportMyDataResponse> => {
+    const response = await apiClient.get<ExportMyDataResponse>('/users/me/export')
+    return response.data
+  },
+
+  /**
+   * Eliminar conta autenticada (anonimizacao + desativacao)
+   */
+  deleteMyAccount: async (payload: DeleteMyAccountRequest): Promise<DeleteMyAccountResponse> => {
+    const response = await apiClient.delete<DeleteMyAccountResponse>('/users/me', {
+      data: payload,
+    })
     return response.data
   },
 

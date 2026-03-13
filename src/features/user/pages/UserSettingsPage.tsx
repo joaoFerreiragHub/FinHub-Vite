@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { Loader2, RefreshCcw, ShieldCheck, ShieldX } from 'lucide-react'
+import { AlertTriangle, Download, Loader2, RefreshCcw, ShieldCheck, ShieldX } from 'lucide-react'
 import { toast } from 'react-toastify'
 import {
   Badge,
@@ -82,6 +82,8 @@ const parseEvidenceLinks = (value: string): string[] =>
     .map((item) => item.trim())
     .filter((item) => item.length > 0)
 
+const DELETE_CONFIRMATION_TEXT = 'ELIMINAR'
+
 export default function UserSettingsPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -103,6 +105,9 @@ export default function UserSettingsPage() {
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmNewPassword, setConfirmNewPassword] = useState('')
+  const [deleteReason, setDeleteReason] = useState('')
+  const [deleteConfirmation, setDeleteConfirmation] = useState('')
+  const [deleteCurrentPassword, setDeleteCurrentPassword] = useState('')
 
   useEffect(() => {
     setProfileName(authUser?.name ?? '')
@@ -216,6 +221,39 @@ export default function UserSettingsPage() {
     },
   })
 
+  const exportMyDataMutation = useMutation({
+    mutationFn: () => authService.exportMyData(),
+    onSuccess: (result) => {
+      const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      const day = new Date().toISOString().split('T')[0]
+      anchor.href = url
+      anchor.download = `finhub-account-export-${authUser?.username ?? 'user'}-${day}.json`
+      document.body.appendChild(anchor)
+      anchor.click()
+      document.body.removeChild(anchor)
+      URL.revokeObjectURL(url)
+      toast.success('Export concluido. O ficheiro JSON foi descarregado.')
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error))
+    },
+  })
+
+  const deleteAccountMutation = useMutation({
+    mutationFn: (payload: { currentPassword: string; confirmation: string; reason: string }) =>
+      authService.deleteMyAccount(payload),
+    onSuccess: (result) => {
+      toast.success(result.message || 'Conta eliminada com sucesso.')
+      logout()
+      navigate('/login', { replace: true })
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error))
+    },
+  })
+
   const isLoading = pendingQuery.isLoading || activeQuery.isLoading
 
   const submitClaim = async () => {
@@ -304,6 +342,37 @@ export default function UserSettingsPage() {
         linkedin: linkedin || null,
         instagram: instagram || null,
       },
+    })
+  }
+
+  const submitExportMyData = async () => {
+    await exportMyDataMutation.mutateAsync()
+  }
+
+  const submitDeleteMyAccount = async () => {
+    const reason = deleteReason.trim()
+    const confirmation = deleteConfirmation.trim()
+    const current = deleteCurrentPassword.trim()
+
+    if (!reason || reason.length < 5) {
+      toast.error('Indica um motivo com pelo menos 5 caracteres.')
+      return
+    }
+
+    if (!current) {
+      toast.error('Indica a password atual para confirmar.')
+      return
+    }
+
+    if (confirmation !== DELETE_CONFIRMATION_TEXT) {
+      toast.error(`Escreve "${DELETE_CONFIRMATION_TEXT}" para confirmar a eliminacao.`)
+      return
+    }
+
+    await deleteAccountMutation.mutateAsync({
+      currentPassword: current,
+      confirmation,
+      reason,
     })
   }
 
@@ -462,6 +531,96 @@ export default function UserSettingsPage() {
               )}
               Alterar password
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>RGPD e dados da conta</CardTitle>
+          <CardDescription>
+            Exporta os teus dados em JSON ou elimina a conta com confirmacao dupla.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="rounded-md border border-border/70 p-4">
+            <p className="text-sm font-medium">Exportar dados</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Gera um ficheiro JSON com os dados essenciais da tua conta.
+            </p>
+            <div className="mt-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={submitExportMyData}
+                disabled={exportMyDataMutation.isPending}
+              >
+                {exportMyDataMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                Exportar JSON
+              </Button>
+            </div>
+          </div>
+
+          <div className="rounded-md border border-destructive/30 bg-destructive/5 p-4">
+            <div className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <p className="text-sm font-medium">Zona de perigo: eliminar conta</p>
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Esta acao desativa a conta e remove/anonimiza os dados pessoais. Nao e reversivel.
+            </p>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              <div className="md:col-span-2">
+                <Label htmlFor="delete-reason">Motivo</Label>
+                <Textarea
+                  id="delete-reason"
+                  rows={2}
+                  value={deleteReason}
+                  onChange={(event) => setDeleteReason(event.target.value)}
+                  placeholder="Explica o motivo da eliminacao da conta"
+                />
+              </div>
+              <div>
+                <Label htmlFor="delete-confirmation">{`Escreve ${DELETE_CONFIRMATION_TEXT}`}</Label>
+                <Input
+                  id="delete-confirmation"
+                  value={deleteConfirmation}
+                  onChange={(event) => setDeleteConfirmation(event.target.value)}
+                  placeholder={DELETE_CONFIRMATION_TEXT}
+                />
+              </div>
+              <div className="md:col-span-3">
+                <Label htmlFor="delete-current-password">Password atual</Label>
+                <Input
+                  id="delete-current-password"
+                  type="password"
+                  autoComplete="current-password"
+                  value={deleteCurrentPassword}
+                  onChange={(event) => setDeleteCurrentPassword(event.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={submitDeleteMyAccount}
+                disabled={deleteAccountMutation.isPending}
+              >
+                {deleteAccountMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ShieldX className="h-4 w-4" />
+                )}
+                Eliminar conta
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
