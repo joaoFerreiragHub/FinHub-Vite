@@ -5,6 +5,8 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../stores/useAuthStore'
 import { loginSchema, type LoginFormData } from '../schemas/authSchemas'
 import { Button, Input, Label } from '@/components/ui'
+import { usePlatformRuntimeConfig } from '@/features/platform/hooks/usePlatformRuntimeConfig'
+import { platformRuntimeConfigService } from '@/features/platform/services/platformRuntimeConfigService'
 import { getErrorMessage } from '@/lib/api/client'
 import { trackLoginSuccess } from '@/lib/analytics'
 import { authService } from '../services/authService'
@@ -17,12 +19,17 @@ export function LoginForm() {
   const [serverError, setServerError] = useState<string | null>(null)
   const fromPath =
     (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard'
+  const runtimeConfigQuery = usePlatformRuntimeConfig()
+  const runtimeConfig = runtimeConfigQuery.data ?? platformRuntimeConfigService.getFallback()
+  const captchaConfig = runtimeConfig.captcha
 
   const {
     register,
     handleSubmit,
     watch,
     setValue,
+    setError,
+    clearErrors,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -36,6 +43,14 @@ export function LoginForm() {
 
   const onSubmit = async (data: LoginFormData) => {
     setServerError(null)
+
+    if (captchaConfig.enabled && !data.captchaToken?.trim()) {
+      setError('captchaToken', {
+        type: 'manual',
+        message: 'Confirma o CAPTCHA para continuar',
+      })
+      return
+    }
 
     try {
       await login(data)
@@ -79,9 +94,15 @@ export function LoginForm() {
       <CaptchaField
         value={watch('captchaToken')}
         error={errors.captchaToken?.message}
-        onChange={(token) =>
+        enabled={captchaConfig.enabled}
+        provider={captchaConfig.provider}
+        siteKey={captchaConfig.siteKey ?? ''}
+        onChange={(token) => {
           setValue('captchaToken', token, { shouldDirty: true, shouldValidate: true })
-        }
+          if (token.trim()) {
+            clearErrors('captchaToken')
+          }
+        }}
       />
 
       <div className="flex items-center justify-between">

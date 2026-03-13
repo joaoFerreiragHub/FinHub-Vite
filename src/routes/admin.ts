@@ -12,6 +12,7 @@ import {
   FileSpreadsheet,
   Wallet,
   Megaphone,
+  Settings2,
 } from 'lucide-react'
 
 export const adminRoutes = [
@@ -91,6 +92,12 @@ export const adminRoutes = [
     path: '/admin/operacoes/delegacoes',
     label: 'Operacoes Delegacoes',
     icon: ShieldCheck,
+    allowedRoles: ['admin'] as UserRole[],
+  },
+  {
+    path: '/admin/operacoes/integracoes',
+    label: 'Operacoes Integracoes',
+    icon: Settings2,
     allowedRoles: ['admin'] as UserRole[],
   },
   {

@@ -103,6 +103,10 @@ import ContentModerationPage from '@/features/admin/pages/ContentModerationPage'
 import EditorialCmsPage from '@/features/admin/pages/EditorialCmsPage'
 import BrandsManagementPage from '@/features/admin/pages/BrandsManagementPage'
 import AdminBulkImportPage from '@/features/admin/pages/AdminBulkImportPage'
+import AdminCommunicationsBroadcastsPage from '@/features/admin/pages/AdminCommunicationsBroadcastsPage'
+import AdminAdPartnershipsPage from '@/features/admin/pages/AdminAdPartnershipsPage'
+import AdminScopeDelegationsPage from '@/features/admin/pages/AdminScopeDelegationsPage'
+import AdminPlatformIntegrationsPage from '@/features/admin/pages/AdminPlatformIntegrationsPage'
 import StatsPage from '@/features/admin/pages/StatsPage'
 import AssistedSessionsPage from '@/features/admin/pages/AssistedSessionsPage'
 import AdminAuditLogsPage from '@/features/admin/pages/AdminAuditLogsPage'
@@ -555,6 +559,22 @@ const router = createBrowserRouter([
       {
         path: 'operacoes',
         element: <AdminBulkImportPage />,
+      },
+      {
+        path: 'operacoes/comunicacoes',
+        element: <AdminCommunicationsBroadcastsPage />,
+      },
+      {
+        path: 'operacoes/anuncios',
+        element: <AdminAdPartnershipsPage />,
+      },
+      {
+        path: 'operacoes/delegacoes',
+        element: <AdminScopeDelegationsPage />,
+      },
+      {
+        path: 'operacoes/integracoes',
+        element: <AdminPlatformIntegrationsPage />,
       },
       {
         path: 'stats',

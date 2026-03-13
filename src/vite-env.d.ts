@@ -3,7 +3,9 @@
 interface ImportMetaEnv {
   readonly VITE_API_URL?: string
   readonly VITE_ADMIN_SCOPES_FAIL_CLOSED?: string
+  readonly VITE_SITE_URL?: string
   readonly VITE_GA_ID?: string
+  readonly VITE_GTM_ID?: string
   readonly VITE_FB_PIXEL_ID?: string
   readonly VITE_POSTHOG_KEY?: string
   readonly VITE_POSTHOG_HOST?: string

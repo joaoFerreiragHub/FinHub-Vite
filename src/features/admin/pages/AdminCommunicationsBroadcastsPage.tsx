@@ -22,6 +22,7 @@ import {
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { getErrorMessage } from '@/lib/api/client'
 import { cn } from '@/lib/utils'
+import { AdminOperationsNav } from '../components/AdminOperationsNav'
 import {
   useAdminBroadcast,
   useAdminBroadcasts,
@@ -322,20 +323,7 @@ export default function AdminCommunicationsBroadcastsPage({
         </div>
       ) : null}
 
-      <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="outline" size="sm" asChild>
-          <a href="/admin/operacoes">Bulk import</a>
-        </Button>
-        <Button type="button" size="sm" asChild>
-          <a href="/admin/operacoes/comunicacoes">Comunicacoes</a>
-        </Button>
-        <Button type="button" variant="outline" size="sm" asChild>
-          <a href="/admin/operacoes/anuncios">Anuncios</a>
-        </Button>
-        <Button type="button" variant="outline" size="sm" asChild>
-          <a href="/admin/operacoes/delegacoes">Delegacoes</a>
-        </Button>
-      </div>
+      <AdminOperationsNav active="communications" />
 
       {!canRead ? (
         <Card className="border-amber-500/40 bg-amber-500/5">

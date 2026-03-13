@@ -1,6 +1,12 @@
 import type { PostHog } from 'posthog-js'
 import type { AnalyticsProps } from './types/analytics'
 
+interface AnalyticsRuntimeConfigInput {
+  enabled?: boolean
+  posthogKey?: string | null
+  posthogHost?: string | null
+}
+
 let posthogInstance: PostHog | null = null
 let posthogInitPromise: Promise<PostHog | null> | null = null
 let posthogConsentGranted = false
@@ -9,8 +15,19 @@ let pendingIdentify: { userId: string; props?: AnalyticsProps } | null = null
 const pendingEvents: Array<{ name: string; properties?: AnalyticsProps }> = []
 const MAX_PENDING_EVENTS = 100
 
-const POSTHOG_KEY = import.meta.env.VITE_POSTHOG_KEY
-const POSTHOG_HOST = import.meta.env.VITE_POSTHOG_HOST || 'https://app.posthog.com'
+const ENV_POSTHOG_KEY =
+  typeof import.meta.env.VITE_POSTHOG_KEY === 'string' ? import.meta.env.VITE_POSTHOG_KEY.trim() : ''
+const ENV_POSTHOG_HOST =
+  typeof import.meta.env.VITE_POSTHOG_HOST === 'string' && import.meta.env.VITE_POSTHOG_HOST.trim().length > 0
+    ? import.meta.env.VITE_POSTHOG_HOST.trim()
+    : 'https://app.posthog.com'
+
+let runtimeAnalyticsEnabled = true
+let runtimePosthogKey = ENV_POSTHOG_KEY
+let runtimePosthogHost = ENV_POSTHOG_HOST
+
+const resolvePosthogKey = (): string => (runtimeAnalyticsEnabled ? runtimePosthogKey : '')
+const resolvePosthogHost = (): string => runtimePosthogHost || ENV_POSTHOG_HOST
 
 const queueEvent = (name: string, properties?: AnalyticsProps) => {
   if (pendingEvents.length >= MAX_PENDING_EVENTS) {
@@ -37,8 +54,14 @@ const flushPendingQueue = (instance: PostHog) => {
   }
 }
 
+const dropPendingQueue = () => {
+  pendingEvents.length = 0
+  pendingIdentify = null
+}
+
 const ensurePostHogInstance = async (): Promise<PostHog | null> => {
-  if (!POSTHOG_KEY) return null
+  const posthogKey = resolvePosthogKey()
+  if (!posthogKey) return null
   if (posthogInstance) return posthogInstance
   if (posthogInitPromise) return posthogInitPromise
 
@@ -46,8 +69,8 @@ const ensurePostHogInstance = async (): Promise<PostHog | null> => {
     .then((module) => {
       const instance = module.default as PostHog
 
-      instance.init(POSTHOG_KEY, {
-        api_host: POSTHOG_HOST,
+      instance.init(posthogKey, {
+        api_host: resolvePosthogHost(),
         autocapture: true,
         capture_pageview: false,
         disable_session_recording: false,
@@ -67,17 +90,63 @@ const ensurePostHogInstance = async (): Promise<PostHog | null> => {
   return posthogInitPromise
 }
 
+export function configureAnalyticsRuntime(input: AnalyticsRuntimeConfigInput) {
+  const nextEnabled = input.enabled !== false
+  const nextKey =
+    typeof input.posthogKey === 'string'
+      ? input.posthogKey.trim()
+      : input.posthogKey === null
+        ? ''
+        : ENV_POSTHOG_KEY
+  const nextHost =
+    typeof input.posthogHost === 'string' && input.posthogHost.trim().length > 0
+      ? input.posthogHost.trim()
+      : ENV_POSTHOG_HOST
+
+  const changed =
+    runtimeAnalyticsEnabled !== nextEnabled ||
+    runtimePosthogKey !== nextKey ||
+    runtimePosthogHost !== nextHost
+
+  runtimeAnalyticsEnabled = nextEnabled
+  runtimePosthogKey = nextKey
+  runtimePosthogHost = nextHost
+
+  if (!changed) return
+
+  posthogInitPromise = null
+  if (posthogInstance) {
+    posthogInstance.reset?.()
+    posthogInstance.opt_out_capturing?.()
+    posthogInstance = null
+  }
+
+  if (!runtimeAnalyticsEnabled) {
+    dropPendingQueue()
+    return
+  }
+
+  if (posthogConsentGranted && resolvePosthogKey()) {
+    void ensurePostHogInstance().then((instance) => {
+      if (!instance || !posthogConsentGranted) return
+      instance.opt_in_capturing?.()
+      flushPendingQueue(instance)
+    })
+  }
+}
+
 export function isAnalyticsEnabled(): boolean {
-  return posthogConsentResolved && posthogConsentGranted && Boolean(posthogInstance)
+  return (
+    runtimeAnalyticsEnabled && posthogConsentResolved && posthogConsentGranted && Boolean(posthogInstance)
+  )
 }
 
 export function setAnalyticsConsent(enabled: boolean) {
   posthogConsentResolved = true
-  posthogConsentGranted = enabled
+  posthogConsentGranted = enabled && runtimeAnalyticsEnabled
 
-  if (!enabled) {
-    pendingEvents.length = 0
-    pendingIdentify = null
+  if (!posthogConsentGranted) {
+    dropPendingQueue()
 
     if (posthogInstance) {
       posthogInstance.opt_out_capturing?.()
@@ -86,7 +155,7 @@ export function setAnalyticsConsent(enabled: boolean) {
     return
   }
 
-  if (!POSTHOG_KEY) return
+  if (!resolvePosthogKey()) return
 
   void ensurePostHogInstance().then((instance) => {
     if (!instance) return
@@ -101,6 +170,8 @@ export function resetAnalyticsIdentity() {
 }
 
 export function captureEvent(name: string, properties?: AnalyticsProps) {
+  if (!runtimeAnalyticsEnabled) return
+
   if (!posthogConsentResolved) {
     queueEvent(name, properties)
     return
@@ -121,6 +192,8 @@ export function captureEvent(name: string, properties?: AnalyticsProps) {
 }
 
 export function identifyUser(userId: string, props?: AnalyticsProps) {
+  if (!runtimeAnalyticsEnabled) return
+
   if (!posthogConsentResolved) {
     pendingIdentify = { userId, props }
     return
@@ -142,7 +215,12 @@ export function identifyUser(userId: string, props?: AnalyticsProps) {
 
 export function initAnalytics() {
   // Consent-gated bootstrap. Real init is driven by setAnalyticsConsent().
-  if (!POSTHOG_KEY) {
+  if (!runtimeAnalyticsEnabled) {
+    console.info('[analytics] PostHog disabled by runtime config')
+    return
+  }
+
+  if (!resolvePosthogKey()) {
     console.info('[analytics] PostHog disabled: missing VITE_POSTHOG_KEY')
   }
 }

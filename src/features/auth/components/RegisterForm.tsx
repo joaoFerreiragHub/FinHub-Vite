@@ -10,6 +10,8 @@ import { CaptchaField } from './CaptchaField'
 import { DEFAULT_COOKIE_CONSENT_VERSION } from '@/features/auth/services/cookieConsentStorage'
 import { trackSignUpSuccess } from '@/lib/analytics'
 import { authService } from '../services/authService'
+import { usePlatformRuntimeConfig } from '@/features/platform/hooks/usePlatformRuntimeConfig'
+import { platformRuntimeConfigService } from '@/features/platform/services/platformRuntimeConfigService'
 
 const legalVersion = import.meta.env.VITE_LEGAL_VERSION || DEFAULT_COOKIE_CONSENT_VERSION
 
@@ -17,12 +19,17 @@ export function RegisterForm() {
   const navigate = useNavigate()
   const registerAction = useAuthStore((state) => state.register)
   const [serverError, setServerError] = useState<string | null>(null)
+  const runtimeConfigQuery = usePlatformRuntimeConfig()
+  const runtimeConfig = runtimeConfigQuery.data ?? platformRuntimeConfigService.getFallback()
+  const captchaConfig = runtimeConfig.captcha
 
   const {
     register,
     handleSubmit,
     watch,
     setValue,
+    setError,
+    clearErrors,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -45,6 +52,14 @@ export function RegisterForm() {
 
   const onSubmit = async (data: RegisterFormData) => {
     setServerError(null)
+
+    if (captchaConfig.enabled && !data.captchaToken?.trim()) {
+      setError('captchaToken', {
+        type: 'manual',
+        message: 'Confirma o CAPTCHA para continuar',
+      })
+      return
+    }
 
     try {
       await registerAction({
@@ -148,9 +163,15 @@ export function RegisterForm() {
       <CaptchaField
         value={watch('captchaToken')}
         error={errors.captchaToken?.message}
-        onChange={(token) =>
+        enabled={captchaConfig.enabled}
+        provider={captchaConfig.provider}
+        siteKey={captchaConfig.siteKey ?? ''}
+        onChange={(token) => {
           setValue('captchaToken', token, { shouldDirty: true, shouldValidate: true })
-        }
+          if (token.trim()) {
+            clearErrors('captchaToken')
+          }
+        }}
       />
 
       <div className="space-y-3 rounded-lg border border-border p-3">

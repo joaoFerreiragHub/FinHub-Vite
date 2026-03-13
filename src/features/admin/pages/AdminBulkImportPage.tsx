@@ -21,6 +21,7 @@ import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { getErrorMessage } from '@/lib/api/client'
 import { cn } from '@/lib/utils'
 import { hasAdminScope } from '../lib/access'
+import { AdminOperationsNav } from '../components/AdminOperationsNav'
 import {
   useAdminBulkImportJob,
   useAdminBulkImportJobs,
@@ -205,20 +206,7 @@ export default function AdminBulkImportPage({ embedded = false }: AdminBulkImpor
         </div>
       ) : null}
 
-      <div className="flex flex-wrap gap-2">
-        <Button type="button" size="sm" asChild>
-          <a href="/admin/operacoes">Bulk import</a>
-        </Button>
-        <Button type="button" variant="outline" size="sm" asChild>
-          <a href="/admin/operacoes/comunicacoes">Comunicacoes</a>
-        </Button>
-        <Button type="button" variant="outline" size="sm" asChild>
-          <a href="/admin/operacoes/anuncios">Anuncios</a>
-        </Button>
-        <Button type="button" variant="outline" size="sm" asChild>
-          <a href="/admin/operacoes/delegacoes">Delegacoes</a>
-        </Button>
-      </div>
+      <AdminOperationsNav active="bulk_import" />
 
       {!canRead ? (
         <Card className="border-amber-500/40 bg-amber-500/5">

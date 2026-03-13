@@ -1,58 +1,51 @@
 import { z } from 'zod'
 
-const CAPTCHA_ENABLED = (import.meta.env.VITE_CAPTCHA_PROVIDER ?? 'disabled') !== 'disabled'
-
 /**
- * Schema de validação para Login
+ * Schema de validacao para Login
  */
-export const loginSchema = z
-  .object({
-    email: z.string().min(1, 'Email é obrigatório').email('Email inválido'),
-    password: z
-      .string()
-      .min(1, 'Password é obrigatória')
-      .min(6, 'Password deve ter pelo menos 6 caracteres'),
-    rememberMe: z.boolean().optional(),
-    captchaToken: z.string().optional(),
-  })
-  .refine((data) => !CAPTCHA_ENABLED || Boolean(data.captchaToken?.trim()), {
-    message: 'Confirma o CAPTCHA para continuar',
-    path: ['captchaToken'],
-  })
+export const loginSchema = z.object({
+  email: z.string().min(1, 'Email e obrigatorio').email('Email invalido'),
+  password: z
+    .string()
+    .min(1, 'Password e obrigatoria')
+    .min(6, 'Password deve ter pelo menos 6 caracteres'),
+  rememberMe: z.boolean().optional(),
+  captchaToken: z.string().optional(),
+})
 
 export type LoginFormData = z.infer<typeof loginSchema>
 
 /**
- * Schema de validação para Register
+ * Schema de validacao para Register
  */
 export const registerSchema = z
   .object({
     name: z
       .string()
-      .min(1, 'Nome é obrigatório')
+      .min(1, 'Nome e obrigatorio')
       .min(2, 'Nome deve ter pelo menos 2 caracteres')
-      .max(50, 'Nome não pode ter mais de 50 caracteres'),
+      .max(50, 'Nome nao pode ter mais de 50 caracteres'),
     lastName: z
       .string()
       .min(2, 'Apelido deve ter pelo menos 2 caracteres')
-      .max(50, 'Apelido não pode ter mais de 50 caracteres')
+      .max(50, 'Apelido nao pode ter mais de 50 caracteres')
       .optional()
       .or(z.literal('')),
-    email: z.string().min(1, 'Email é obrigatório').email('Email inválido'),
+    email: z.string().min(1, 'Email e obrigatorio').email('Email invalido'),
     username: z
       .string()
-      .min(1, 'Username é obrigatório')
+      .min(1, 'Username e obrigatorio')
       .min(3, 'Username deve ter pelo menos 3 caracteres')
-      .max(30, 'Username não pode ter mais de 30 caracteres')
-      .regex(/^[a-zA-Z0-9_]+$/, 'Username só pode conter letras, números e underscore'),
+      .max(30, 'Username nao pode ter mais de 30 caracteres')
+      .regex(/^[a-zA-Z0-9_]+$/, 'Username so pode conter letras, numeros e underscore'),
     password: z
       .string()
-      .min(1, 'Password é obrigatória')
+      .min(1, 'Password e obrigatoria')
       .min(8, 'Password deve ter pelo menos 8 caracteres')
-      .regex(/[A-Z]/, 'Password deve conter pelo menos uma letra maiúscula')
-      .regex(/[a-z]/, 'Password deve conter pelo menos uma letra minúscula')
-      .regex(/[0-9]/, 'Password deve conter pelo menos um número'),
-    confirmPassword: z.string().min(1, 'Confirmação de password é obrigatória'),
+      .regex(/[A-Z]/, 'Password deve conter pelo menos uma letra maiuscula')
+      .regex(/[a-z]/, 'Password deve conter pelo menos uma letra minuscula')
+      .regex(/[0-9]/, 'Password deve conter pelo menos um numero'),
+    confirmPassword: z.string().min(1, 'Confirmacao de password e obrigatoria'),
     captchaToken: z.string().optional(),
     termsAccepted: z
       .boolean()
@@ -68,41 +61,37 @@ export const registerSchema = z
     cookiePreferences: z.boolean().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: 'As passwords não coincidem',
+    message: 'As passwords nao coincidem',
     path: ['confirmPassword'],
-  })
-  .refine((data) => !CAPTCHA_ENABLED || Boolean(data.captchaToken?.trim()), {
-    message: 'Confirma o CAPTCHA para continuar',
-    path: ['captchaToken'],
   })
 
 export type RegisterFormData = z.infer<typeof registerSchema>
 
 /**
- * Schema de validação para Forgot Password
+ * Schema de validacao para Forgot Password
  */
 export const forgotPasswordSchema = z.object({
-  email: z.string().min(1, 'Email é obrigatório').email('Email inválido'),
+  email: z.string().min(1, 'Email e obrigatorio').email('Email invalido'),
 })
 
 export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>
 
 /**
- * Schema de validação para Reset Password
+ * Schema de validacao para Reset Password
  */
 export const resetPasswordSchema = z
   .object({
     password: z
       .string()
-      .min(1, 'Password é obrigatória')
+      .min(1, 'Password e obrigatoria')
       .min(8, 'Password deve ter pelo menos 8 caracteres')
-      .regex(/[A-Z]/, 'Password deve conter pelo menos uma letra maiúscula')
-      .regex(/[a-z]/, 'Password deve conter pelo menos uma letra minúscula')
-      .regex(/[0-9]/, 'Password deve conter pelo menos um número'),
-    confirmPassword: z.string().min(1, 'Confirmação de password é obrigatória'),
+      .regex(/[A-Z]/, 'Password deve conter pelo menos uma letra maiuscula')
+      .regex(/[a-z]/, 'Password deve conter pelo menos uma letra minuscula')
+      .regex(/[0-9]/, 'Password deve conter pelo menos um numero'),
+    confirmPassword: z.string().min(1, 'Confirmacao de password e obrigatoria'),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: 'As passwords não coincidem',
+    message: 'As passwords nao coincidem',
     path: ['confirmPassword'],
   })
 

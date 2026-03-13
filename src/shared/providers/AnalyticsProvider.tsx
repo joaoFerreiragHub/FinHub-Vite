@@ -6,8 +6,11 @@ import {
   readStoredCookieConsent,
   writeStoredCookieConsent,
 } from '@/features/auth/services/cookieConsentStorage'
+import { usePlatformRuntimeConfig } from '@/features/platform/hooks/usePlatformRuntimeConfig'
+import { platformRuntimeConfigService } from '@/features/platform/services/platformRuntimeConfigService'
 import { syncAnalyticsUserIdentity } from '@/lib/analytics'
 import {
+  configureAnalyticsRuntime,
   initAnalytics,
   resetAnalyticsIdentity,
   setAnalyticsConsent,
@@ -17,13 +20,21 @@ export function AnalyticsProvider() {
   const user = useAuthStore((state) => state.user)
   const hydrated = useAuthStore((state) => state.hydrated)
   const userCookieConsent = user?.cookieConsent
+  const runtimeConfigQuery = usePlatformRuntimeConfig()
+  const runtimeConfig = runtimeConfigQuery.data ?? platformRuntimeConfigService.getFallback()
+  const runtimePosthog = runtimeConfig.analytics.posthog
   const [visitorConsentGranted, setVisitorConsentGranted] = useState<boolean>(() =>
     Boolean(readStoredCookieConsent()?.analytics),
   )
 
   useEffect(() => {
+    configureAnalyticsRuntime({
+      enabled: runtimePosthog.enabled,
+      posthogKey: runtimePosthog.key,
+      posthogHost: runtimePosthog.host,
+    })
     initAnalytics()
-  }, [])
+  }, [runtimePosthog.enabled, runtimePosthog.host, runtimePosthog.key])
 
   useEffect(() => {
     const syncVisitorConsent = () => {
@@ -58,6 +69,9 @@ export function AnalyticsProvider() {
     resetAnalyticsIdentity()
   }, [
     hydrated,
+    runtimePosthog.enabled,
+    runtimePosthog.host,
+    runtimePosthog.key,
     userCookieConsent,
     visitorConsentGranted,
     user?.id,

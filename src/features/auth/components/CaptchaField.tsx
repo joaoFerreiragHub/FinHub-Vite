@@ -7,10 +7,13 @@ interface CaptchaFieldProps {
   value?: string
   error?: string
   onChange: (token: string) => void
+  enabled?: boolean
+  provider?: CaptchaProvider
+  siteKey?: string
 }
 
-const provider = (import.meta.env.VITE_CAPTCHA_PROVIDER ?? 'disabled').toLowerCase() as CaptchaProvider
-const siteKey = import.meta.env.VITE_CAPTCHA_SITE_KEY ?? ''
+const envProvider = (import.meta.env.VITE_CAPTCHA_PROVIDER ?? 'disabled').toLowerCase() as CaptchaProvider
+const envSiteKey = import.meta.env.VITE_CAPTCHA_SITE_KEY ?? ''
 
 const scriptByProvider: Record<Exclude<CaptchaProvider, 'disabled'>, string> = {
   turnstile: 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit',
@@ -22,7 +25,13 @@ const scriptIdByProvider: Record<Exclude<CaptchaProvider, 'disabled'>, string> =
   hcaptcha: 'finhub-hcaptcha-script',
 }
 
-const isCaptchaEnabled = provider !== 'disabled'
+const parseProvider = (value: unknown, fallback: CaptchaProvider): CaptchaProvider => {
+  if (typeof value !== 'string') return fallback
+  const normalized = value.trim().toLowerCase()
+  return normalized === 'turnstile' || normalized === 'hcaptcha' || normalized === 'disabled'
+    ? normalized
+    : fallback
+}
 
 const ensureScript = (selectedProvider: Exclude<CaptchaProvider, 'disabled'>): Promise<void> => {
   if (typeof window === 'undefined') return Promise.resolve()
@@ -57,7 +66,18 @@ const ensureScript = (selectedProvider: Exclude<CaptchaProvider, 'disabled'>): P
   })
 }
 
-export function CaptchaField({ value, error, onChange }: CaptchaFieldProps) {
+export function CaptchaField({
+  value,
+  error,
+  onChange,
+  enabled,
+  provider,
+  siteKey,
+}: CaptchaFieldProps) {
+  const resolvedProvider = parseProvider(provider, parseProvider(envProvider, 'disabled'))
+  const resolvedSiteKey = typeof siteKey === 'string' ? siteKey.trim() : envSiteKey.trim()
+  const isCaptchaEnabled = Boolean(enabled ?? resolvedProvider !== 'disabled') && resolvedProvider !== 'disabled'
+
   const containerRef = useRef<HTMLDivElement | null>(null)
   const widgetIdRef = useRef<string | null>(null)
   const onChangeRef = useRef(onChange)
@@ -70,12 +90,14 @@ export function CaptchaField({ value, error, onChange }: CaptchaFieldProps) {
 
   useEffect(() => {
     if (!isCaptchaEnabled) return
-    if (!siteKey) {
-      setLoadError('CAPTCHA indisponivel: falta VITE_CAPTCHA_SITE_KEY.')
+    if (resolvedProvider !== 'turnstile' && resolvedProvider !== 'hcaptcha') return
+    if (!resolvedSiteKey) {
+      setLoadError('CAPTCHA indisponivel: falta site key configurada.')
       return
     }
     if (!containerRef.current) return
 
+    const selectedProvider = resolvedProvider
     let cancelled = false
     setIsLoading(true)
     setLoadError(null)
@@ -86,9 +108,9 @@ export function CaptchaField({ value, error, onChange }: CaptchaFieldProps) {
     const renderWidget = () => {
       if (cancelled || !containerRef.current) return
 
-      if (provider === 'turnstile' && window.turnstile) {
+      if (selectedProvider === 'turnstile' && window.turnstile) {
         const widgetId = window.turnstile.render(containerRef.current, {
-          sitekey: siteKey,
+          sitekey: resolvedSiteKey,
           callback: (token: string) => assignToken(token),
           'expired-callback': () => resetToken(),
           'error-callback': () => resetToken(),
@@ -97,9 +119,9 @@ export function CaptchaField({ value, error, onChange }: CaptchaFieldProps) {
         return
       }
 
-      if (provider === 'hcaptcha' && window.hcaptcha) {
+      if (selectedProvider === 'hcaptcha' && window.hcaptcha) {
         const widgetId = window.hcaptcha.render(containerRef.current, {
-          sitekey: siteKey,
+          sitekey: resolvedSiteKey,
           callback: (token: string) => assignToken(token),
           'expired-callback': () => resetToken(),
           'error-callback': () => resetToken(),
@@ -111,7 +133,7 @@ export function CaptchaField({ value, error, onChange }: CaptchaFieldProps) {
       setLoadError('Nao foi possivel inicializar CAPTCHA.')
     }
 
-    void ensureScript(provider)
+    void ensureScript(selectedProvider)
       .then(() => {
         if (cancelled) return
         renderWidget()
@@ -130,16 +152,16 @@ export function CaptchaField({ value, error, onChange }: CaptchaFieldProps) {
     return () => {
       cancelled = true
       const widgetId = widgetIdRef.current
-      if (provider === 'turnstile' && widgetId && window.turnstile?.remove) {
+      if (selectedProvider === 'turnstile' && widgetId && window.turnstile?.remove) {
         window.turnstile.remove(widgetId)
       }
-      if (provider === 'hcaptcha' && widgetId && window.hcaptcha?.remove) {
+      if (selectedProvider === 'hcaptcha' && widgetId && window.hcaptcha?.remove) {
         window.hcaptcha.remove(widgetId)
       }
       widgetIdRef.current = null
       resetToken()
     }
-  }, [])
+  }, [isCaptchaEnabled, resolvedProvider, resolvedSiteKey])
 
   if (!isCaptchaEnabled) return null
 
