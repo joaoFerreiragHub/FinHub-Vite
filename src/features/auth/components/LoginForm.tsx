@@ -101,7 +101,13 @@ export function LoginForm() {
         Entrar
       </Button>
 
-      <Button type="button" variant="outline" size="lg" className="w-full" onClick={handleGoogleLogin}>
+      <Button
+        type="button"
+        variant="outline"
+        size="lg"
+        className="w-full"
+        onClick={handleGoogleLogin}
+      >
         Continuar com Google
       </Button>
 

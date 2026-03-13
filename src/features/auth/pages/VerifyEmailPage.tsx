@@ -14,7 +14,7 @@ export default function VerifyEmailPage() {
   const [attempt, setAttempt] = useState(0)
   const [status, setStatus] = useState<VerificationStatus>(token ? 'loading' : 'error')
   const [errorMessage, setErrorMessage] = useState<string | null>(
-    token ? null : 'Link de verificacao invalido ou incompleto.'
+    token ? null : 'Link de verificacao invalido ou incompleto.',
   )
 
   useEffect(() => {
