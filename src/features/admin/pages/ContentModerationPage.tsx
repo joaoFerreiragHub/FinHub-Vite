@@ -149,6 +149,7 @@ interface OptionalRouterLinkProps {
 }
 
 const PAGE_SIZE = 20
+const EMPTY_MODERATION_TEMPLATES: AdminModerationTemplateItem[] = []
 
 const INITIAL_FILTERS: FilterState = { ...DEFAULT_ADMIN_CONTENT_DEEP_LINK_FILTERS }
 
@@ -556,7 +557,11 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
       enabled: canReadContent,
     },
   )
-  const moderationTemplates = moderationTemplatesQuery.data?.items ?? []
+  const moderationTemplateItems = moderationTemplatesQuery.data?.items
+  const moderationTemplates = useMemo(
+    () => moderationTemplateItems ?? EMPTY_MODERATION_TEMPLATES,
+    [moderationTemplateItems],
+  )
   const actionTemplates = useMemo(
     () =>
       actionDialog
@@ -572,14 +577,14 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
     () =>
       actionTemplateCode === TEMPLATE_NONE_VALUE
         ? null
-        : moderationTemplates.find((item) => item.code === actionTemplateCode) ?? null,
+        : (moderationTemplates.find((item) => item.code === actionTemplateCode) ?? null),
     [actionTemplateCode, moderationTemplates],
   )
   const selectedBulkTemplate = useMemo(
     () =>
       bulkTemplateCode === TEMPLATE_NONE_VALUE
         ? null
-        : moderationTemplates.find((item) => item.code === bulkTemplateCode) ?? null,
+        : (moderationTemplates.find((item) => item.code === bulkTemplateCode) ?? null),
     [bulkTemplateCode, moderationTemplates],
   )
 
@@ -2430,7 +2435,9 @@ export default function ContentModerationPage({ embedded = false }: ContentModer
                   rows={4}
                   placeholder="Detalhes operacionais para auditoria interna."
                   className={
-                    actionNoteError ? 'border-destructive focus-visible:ring-destructive' : undefined
+                    actionNoteError
+                      ? 'border-destructive focus-visible:ring-destructive'
+                      : undefined
                   }
                 />
                 {actionNoteError ? (
