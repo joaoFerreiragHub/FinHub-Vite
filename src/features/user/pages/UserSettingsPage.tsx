@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { Loader2, RefreshCcw, ShieldCheck, ShieldX } from 'lucide-react'
@@ -87,14 +87,40 @@ export default function UserSettingsPage() {
   const queryClient = useQueryClient()
   const authUser = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
+  const updateUser = useAuthStore((state) => state.updateUser)
   const canManageClaims = authUser?.role === UserRole.CREATOR || authUser?.role === UserRole.ADMIN
 
   const [claimStatus, setClaimStatus] = useState<EditorialClaimStatus | 'all'>('all')
   const [claimPage, setClaimPage] = useState(1)
   const [claimForm, setClaimForm] = useState(DEFAULT_CLAIM_FORM)
+  const [profileName, setProfileName] = useState(authUser?.name ?? '')
+  const [profileAvatar, setProfileAvatar] = useState(authUser?.avatar ?? '')
+  const [profileBio, setProfileBio] = useState(authUser?.bio ?? '')
+  const [profileWebsite, setProfileWebsite] = useState(authUser?.socialLinks?.website ?? '')
+  const [profileTwitter, setProfileTwitter] = useState(authUser?.socialLinks?.twitter ?? '')
+  const [profileLinkedin, setProfileLinkedin] = useState(authUser?.socialLinks?.linkedin ?? '')
+  const [profileInstagram, setProfileInstagram] = useState(authUser?.socialLinks?.instagram ?? '')
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmNewPassword, setConfirmNewPassword] = useState('')
+
+  useEffect(() => {
+    setProfileName(authUser?.name ?? '')
+    setProfileAvatar(authUser?.avatar ?? '')
+    setProfileBio(authUser?.bio ?? '')
+    setProfileWebsite(authUser?.socialLinks?.website ?? '')
+    setProfileTwitter(authUser?.socialLinks?.twitter ?? '')
+    setProfileLinkedin(authUser?.socialLinks?.linkedin ?? '')
+    setProfileInstagram(authUser?.socialLinks?.instagram ?? '')
+  }, [
+    authUser?.name,
+    authUser?.avatar,
+    authUser?.bio,
+    authUser?.socialLinks?.website,
+    authUser?.socialLinks?.twitter,
+    authUser?.socialLinks?.linkedin,
+    authUser?.socialLinks?.instagram,
+  ])
 
   const pendingQuery = useQuery({
     queryKey: ['auth', 'assisted-sessions', 'pending'],
@@ -158,6 +184,32 @@ export default function UserSettingsPage() {
       toast.success(result.message || 'Password alterada com sucesso.')
       logout()
       navigate('/login', { replace: true })
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error))
+    },
+  })
+
+  const updateProfileMutation = useMutation({
+    mutationFn: (payload: {
+      name: string
+      avatar: string | null
+      bio: string | null
+      socialLinks: {
+        website: string | null
+        twitter: string | null
+        linkedin: string | null
+        instagram: string | null
+      }
+    }) => authService.updateMyProfile(payload),
+    onSuccess: (result) => {
+      toast.success(result.message || 'Perfil atualizado com sucesso.')
+      updateUser({
+        name: result.user.name,
+        avatar: result.user.avatar ?? undefined,
+        bio: result.user.bio ?? undefined,
+        socialLinks: result.user.socialLinks ?? undefined,
+      })
     },
     onError: (error) => {
       toast.error(getErrorMessage(error))
@@ -228,6 +280,33 @@ export default function UserSettingsPage() {
     })
   }
 
+  const submitUpdateProfile = async () => {
+    const name = profileName.trim()
+    const avatar = profileAvatar.trim()
+    const bio = profileBio.trim()
+    const website = profileWebsite.trim()
+    const twitter = profileTwitter.trim()
+    const linkedin = profileLinkedin.trim()
+    const instagram = profileInstagram.trim()
+
+    if (!name) {
+      toast.error('O nome do perfil e obrigatorio.')
+      return
+    }
+
+    await updateProfileMutation.mutateAsync({
+      name,
+      avatar: avatar || null,
+      bio: bio || null,
+      socialLinks: {
+        website: website || null,
+        twitter: twitter || null,
+        linkedin: linkedin || null,
+        instagram: instagram || null,
+      },
+    })
+  }
+
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6">
       <div className="space-y-1">
@@ -236,6 +315,98 @@ export default function UserSettingsPage() {
           Centro de consentimento para sessoes assistidas de suporte.
         </p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Perfil publico</CardTitle>
+          <CardDescription>
+            Atualiza os dados base da tua conta para exibicao no perfil.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-3 md:grid-cols-2">
+            <div>
+              <Label htmlFor="profile-name">Nome</Label>
+              <Input
+                id="profile-name"
+                value={profileName}
+                onChange={(event) => setProfileName(event.target.value)}
+                placeholder="Nome visivel no perfil"
+              />
+            </div>
+            <div>
+              <Label htmlFor="profile-avatar">Avatar URL</Label>
+              <Input
+                id="profile-avatar"
+                value={profileAvatar}
+                onChange={(event) => setProfileAvatar(event.target.value)}
+                placeholder="https://..."
+              />
+            </div>
+            <div className="md:col-span-2">
+              <Label htmlFor="profile-bio">Bio</Label>
+              <Textarea
+                id="profile-bio"
+                rows={3}
+                value={profileBio}
+                onChange={(event) => setProfileBio(event.target.value)}
+                placeholder="Breve descricao para o teu perfil"
+              />
+            </div>
+            <div>
+              <Label htmlFor="profile-website">Website</Label>
+              <Input
+                id="profile-website"
+                value={profileWebsite}
+                onChange={(event) => setProfileWebsite(event.target.value)}
+                placeholder="https://meu-site.com"
+              />
+            </div>
+            <div>
+              <Label htmlFor="profile-twitter">Twitter/X</Label>
+              <Input
+                id="profile-twitter"
+                value={profileTwitter}
+                onChange={(event) => setProfileTwitter(event.target.value)}
+                placeholder="https://x.com/username"
+              />
+            </div>
+            <div>
+              <Label htmlFor="profile-linkedin">LinkedIn</Label>
+              <Input
+                id="profile-linkedin"
+                value={profileLinkedin}
+                onChange={(event) => setProfileLinkedin(event.target.value)}
+                placeholder="https://linkedin.com/in/username"
+              />
+            </div>
+            <div>
+              <Label htmlFor="profile-instagram">Instagram</Label>
+              <Input
+                id="profile-instagram"
+                value={profileInstagram}
+                onChange={(event) => setProfileInstagram(event.target.value)}
+                placeholder="https://instagram.com/username"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              onClick={submitUpdateProfile}
+              disabled={updateProfileMutation.isPending}
+            >
+              {updateProfileMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <ShieldCheck className="h-4 w-4" />
+              )}
+              Guardar perfil
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

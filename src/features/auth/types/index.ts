@@ -36,6 +36,13 @@ export interface UserLegalAcceptance {
   version?: string | null
 }
 
+export interface UserSocialLinks {
+  website?: string
+  twitter?: string
+  linkedin?: string
+  instagram?: string
+}
+
 export interface RegisterLegalAcceptanceInput {
   termsAccepted: boolean
   privacyAccepted: boolean
@@ -61,6 +68,7 @@ export interface User {
   username: string
   avatar?: string
   bio?: string
+  socialLinks?: UserSocialLinks
   role: UserRole
   accountStatus?: UserAccountStatus
   adminReadOnly?: boolean

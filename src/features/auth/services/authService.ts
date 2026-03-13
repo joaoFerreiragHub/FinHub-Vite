@@ -30,6 +30,25 @@ interface ChangePasswordResponse {
   message: string
 }
 
+interface UpdateMyProfileRequest {
+  name?: string
+  avatar?: string | null
+  bio?: string | null
+  socialLinks?:
+    | {
+        website?: string | null
+        twitter?: string | null
+        linkedin?: string | null
+        instagram?: string | null
+      }
+    | null
+}
+
+interface UpdateMyProfileResponse {
+  message: string
+  user: MeResponse['user']
+}
+
 /**
  * Authentication Service
  *
@@ -103,6 +122,14 @@ export const authService = {
       currentPassword,
       newPassword,
     })
+    return response.data
+  },
+
+  /**
+   * Atualizar perfil da conta autenticada
+   */
+  updateMyProfile: async (payload: UpdateMyProfileRequest): Promise<UpdateMyProfileResponse> => {
+    const response = await apiClient.patch<UpdateMyProfileResponse>('/users/me', payload)
     return response.data
   },
 
