@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import { Loader2, RefreshCcw, ShieldCheck, ShieldX } from 'lucide-react'
 import { toast } from 'react-toastify'
 import {
@@ -21,6 +22,7 @@ import {
 } from '@/components/ui'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { UserRole } from '@/features/auth/types'
+import { authService } from '@/features/auth/services/authService'
 import { assistedSessionService } from '@/features/auth/services/assistedSessionService'
 import {
   useCancelMyEditorialClaim,
@@ -81,13 +83,18 @@ const parseEvidenceLinks = (value: string): string[] =>
     .filter((item) => item.length > 0)
 
 export default function UserSettingsPage() {
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const authUser = useAuthStore((state) => state.user)
+  const logout = useAuthStore((state) => state.logout)
   const canManageClaims = authUser?.role === UserRole.CREATOR || authUser?.role === UserRole.ADMIN
 
   const [claimStatus, setClaimStatus] = useState<EditorialClaimStatus | 'all'>('all')
   const [claimPage, setClaimPage] = useState(1)
   const [claimForm, setClaimForm] = useState(DEFAULT_CLAIM_FORM)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmNewPassword, setConfirmNewPassword] = useState('')
 
   const pendingQuery = useQuery({
     queryKey: ['auth', 'assisted-sessions', 'pending'],
@@ -144,6 +151,19 @@ export default function UserSettingsPage() {
     },
   })
 
+  const changePasswordMutation = useMutation({
+    mutationFn: ({ currentPassword, newPassword }: { currentPassword: string; newPassword: string }) =>
+      authService.changePassword(currentPassword, newPassword),
+    onSuccess: (result) => {
+      toast.success(result.message || 'Password alterada com sucesso.')
+      logout()
+      navigate('/login', { replace: true })
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error))
+    },
+  })
+
   const isLoading = pendingQuery.isLoading || activeQuery.isLoading
 
   const submitClaim = async () => {
@@ -177,6 +197,37 @@ export default function UserSettingsPage() {
     }
   }
 
+  const submitChangePassword = async () => {
+    const current = currentPassword.trim()
+    const next = newPassword.trim()
+    const confirmation = confirmNewPassword.trim()
+
+    if (!current || !next || !confirmation) {
+      toast.error('Preenche password atual, nova password e confirmacao.')
+      return
+    }
+
+    if (next.length < 6) {
+      toast.error('A nova password deve ter pelo menos 6 caracteres.')
+      return
+    }
+
+    if (next !== confirmation) {
+      toast.error('A confirmacao da nova password nao coincide.')
+      return
+    }
+
+    if (current === next) {
+      toast.error('A nova password deve ser diferente da password atual.')
+      return
+    }
+
+    await changePasswordMutation.mutateAsync({
+      currentPassword: current,
+      newPassword: next,
+    })
+  }
+
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6">
       <div className="space-y-1">
@@ -185,6 +236,64 @@ export default function UserSettingsPage() {
           Centro de consentimento para sessoes assistidas de suporte.
         </p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Seguranca da conta</CardTitle>
+          <CardDescription>
+            Altera a password da tua conta. Por seguranca, a sessao atual e terminada apos sucesso.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-3 md:grid-cols-3">
+            <div>
+              <Label htmlFor="current-password">Password atual</Label>
+              <Input
+                id="current-password"
+                type="password"
+                autoComplete="current-password"
+                value={currentPassword}
+                onChange={(event) => setCurrentPassword(event.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="new-password">Nova password</Label>
+              <Input
+                id="new-password"
+                type="password"
+                autoComplete="new-password"
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="confirm-new-password">Confirmar nova password</Label>
+              <Input
+                id="confirm-new-password"
+                type="password"
+                autoComplete="new-password"
+                value={confirmNewPassword}
+                onChange={(event) => setConfirmNewPassword(event.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              onClick={submitChangePassword}
+              disabled={changePasswordMutation.isPending}
+            >
+              {changePasswordMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <ShieldCheck className="h-4 w-4" />
+              )}
+              Alterar password
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="flex gap-2">
         <Button

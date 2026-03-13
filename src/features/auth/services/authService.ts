@@ -26,6 +26,10 @@ interface ResendVerificationResponse {
   message: string
 }
 
+interface ChangePasswordResponse {
+  message: string
+}
+
 /**
  * Authentication Service
  *
@@ -86,6 +90,20 @@ export const authService = {
    */
   resetPassword: async (token: string, newPassword: string): Promise<void> => {
     await apiClient.post('/auth/reset-password', { token, newPassword })
+  },
+
+  /**
+   * Alterar password da conta autenticada
+   */
+  changePassword: async (
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<ChangePasswordResponse> => {
+    const response = await apiClient.post<ChangePasswordResponse>('/auth/change-password', {
+      currentPassword,
+      newPassword,
+    })
+    return response.data
   },
 
   /**
