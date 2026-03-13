@@ -2,6 +2,7 @@ import ReactDOMServer from 'react-dom/server'
 import { escapeInject, dangerouslySkipEscape } from 'vike/server'
 import type { PageContext } from '../lib/types/pageContext'
 import { PageShell } from '../renderer/PageShell'
+import { resolvePageComponent } from '../renderer/resolvePageComponent'
 
 type RenderResult = {
   documentHtml: ReturnType<typeof escapeInject>
@@ -10,11 +11,12 @@ type RenderResult = {
 async function onRenderHtml(pageContext: PageContext): Promise<RenderResult> {
   // console.log('Server-side PageContext:', pageContext)
   const { Page, pageProps } = pageContext
+  const ResolvedPage = resolvePageComponent(Page as unknown)
 
   // Pass pageContext both to PageShell and Page component
   const pageHtml = ReactDOMServer.renderToString(
     <PageShell pageContext={pageContext}>
-      <Page {...(pageProps || {})} pageContext={pageContext} />
+      <ResolvedPage {...(pageProps || {})} pageContext={pageContext} />
     </PageShell>,
   )
 

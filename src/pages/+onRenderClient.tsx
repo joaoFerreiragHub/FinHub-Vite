@@ -1,6 +1,7 @@
 import { hydrateRoot } from 'react-dom/client'
 import type { PageContext } from '../lib/types/pageContext'
 import { PageShell } from '../renderer/PageShell'
+import { resolvePageComponent } from '../renderer/resolvePageComponent'
 import '../index.css'
 
 function onRenderClient(pageContext: PageContext) {
@@ -9,6 +10,7 @@ function onRenderClient(pageContext: PageContext) {
   }
 
   const { Page, pageProps } = pageContext
+  const ResolvedPage = resolvePageComponent(Page as unknown)
   const appElement = document.getElementById('app')
   if (!appElement) {
     return
@@ -17,7 +19,7 @@ function onRenderClient(pageContext: PageContext) {
   hydrateRoot(
     appElement,
     <PageShell pageContext={pageContext}>
-      <Page {...(pageProps || {})} />
+      <ResolvedPage {...(pageProps || {})} />
     </PageShell>,
   )
 }
