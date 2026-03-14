@@ -18,102 +18,110 @@ import {
   BookOpenCheck,
 } from 'lucide-react'
 
+const REGULAR_ALLOWED_ROLES = [
+  'free',
+  'premium',
+  'creator',
+  'brand_manager',
+  'admin',
+] as UserRole[]
+
 export const regularRoutes = [
   {
     path: '/',
     label: 'Home',
     icon: Home,
-    allowedRoles: ['free', 'premium', 'creator', 'admin'] as UserRole[],
+    allowedRoles: REGULAR_ALLOWED_ROLES,
   },
   {
     path: '/creators',
     label: 'Educadores',
     icon: BookOpen,
-    allowedRoles: ['free', 'premium', 'creator', 'admin'] as UserRole[],
+    allowedRoles: REGULAR_ALLOWED_ROLES,
   },
   {
     path: '/noticias',
     label: 'Noticias',
     icon: Newspaper,
-    allowedRoles: ['free', 'premium', 'creator', 'admin'] as UserRole[],
+    allowedRoles: REGULAR_ALLOWED_ROLES,
   },
   {
     path: '/stocks',
     label: 'Acoes',
     icon: TrendingUp,
-    allowedRoles: ['free', 'premium', 'creator', 'admin'] as UserRole[],
+    allowedRoles: REGULAR_ALLOWED_ROLES,
   },
   {
     path: '/hub/conteudos',
     label: 'Conteudos',
     icon: FolderKanban,
-    allowedRoles: ['free', 'premium', 'creator', 'admin'] as UserRole[],
+    allowedRoles: REGULAR_ALLOWED_ROLES,
   },
   {
     path: '/hub/videos',
     label: 'Videos',
     icon: Video,
-    allowedRoles: ['free', 'premium', 'creator', 'admin'] as UserRole[],
+    allowedRoles: REGULAR_ALLOWED_ROLES,
   },
   {
     path: '/hub/courses',
     label: 'Cursos',
     icon: GraduationCap,
-    allowedRoles: ['free', 'premium', 'creator', 'admin'] as UserRole[],
+    allowedRoles: REGULAR_ALLOWED_ROLES,
   },
   {
     path: '/hub/lives',
     label: 'Eventos',
     icon: Calendar,
-    allowedRoles: ['free', 'premium', 'creator', 'admin'] as UserRole[],
+    allowedRoles: REGULAR_ALLOWED_ROLES,
   },
   {
     path: '/hub/podcasts',
     label: 'Podcasts',
     icon: Mic,
-    allowedRoles: ['free', 'premium', 'creator', 'admin'] as UserRole[],
+    allowedRoles: REGULAR_ALLOWED_ROLES,
   },
   {
     path: '/hub/books',
     label: 'Livros',
     icon: BookOpenCheck,
-    allowedRoles: ['free', 'premium', 'creator', 'admin'] as UserRole[],
+    allowedRoles: REGULAR_ALLOWED_ROLES,
   },
   {
     path: '/perfil',
     label: 'Perfil',
     icon: User,
-    allowedRoles: ['free', 'premium', 'creator', 'admin'] as UserRole[],
+    allowedRoles: REGULAR_ALLOWED_ROLES,
   },
   {
     path: '/feed',
     label: 'Feed',
     icon: Rss,
-    allowedRoles: ['free', 'premium', 'creator', 'admin'] as UserRole[],
+    allowedRoles: REGULAR_ALLOWED_ROLES,
   },
   {
     path: '/favoritos',
     label: 'Favoritos',
     icon: Bookmark,
-    allowedRoles: ['free', 'premium', 'creator', 'admin'] as UserRole[],
+    allowedRoles: REGULAR_ALLOWED_ROLES,
   },
   {
     path: '/seguindo',
     label: 'A Seguir',
     icon: Users,
-    allowedRoles: ['free', 'premium', 'creator', 'admin'] as UserRole[],
+    allowedRoles: REGULAR_ALLOWED_ROLES,
   },
   {
     path: '/notificacoes',
     label: 'Notificacoes',
     icon: Bell,
-    allowedRoles: ['free', 'premium', 'creator', 'admin'] as UserRole[],
+    allowedRoles: REGULAR_ALLOWED_ROLES,
   },
   {
     path: '/pesquisar',
     label: 'Pesquisar',
     icon: Search,
-    allowedRoles: ['free', 'premium', 'creator', 'admin'] as UserRole[],
+    allowedRoles: REGULAR_ALLOWED_ROLES,
   },
 ]
 

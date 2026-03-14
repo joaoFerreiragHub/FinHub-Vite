@@ -1,4 +1,5 @@
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import { UserRole } from '@/features/auth/types'
 import { ToggleThemeSimple as ToggleTheme } from '@/components/ui'
 import { NotificationBell } from '@/features/social/components/NotificationBell'
 import { GlobalSearchBar } from '@/features/social/components/GlobalSearchBar'
@@ -8,6 +9,7 @@ export function Header() {
   const role = useAuthStore((state) => state.getRole())
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const profileHref = role === 'admin' ? '/admin' : '/perfil'
+  const canAccessBrandPortal = role === UserRole.BRAND_MANAGER || role === UserRole.ADMIN
 
   return (
     <header className="w-full px-6 py-3 border-b bg-background flex items-center justify-between gap-4">
@@ -36,7 +38,7 @@ export function Header() {
           />
         )}
 
-        {isAuthenticated && (
+        {isAuthenticated && canAccessBrandPortal && (
           <a
             href="/marcas/portal"
             className="rounded-md border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"

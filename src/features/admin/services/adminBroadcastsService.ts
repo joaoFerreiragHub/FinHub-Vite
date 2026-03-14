@@ -125,6 +125,7 @@ const BROADCAST_ROLES: readonly AdminBroadcastRole[] = [
   'free',
   'premium',
   'creator',
+  'brand_manager',
   'admin',
 ]
 const BROADCAST_ACCOUNT_STATUSES: readonly AdminBroadcastAccountStatus[] = [
@@ -209,6 +210,7 @@ const mapActor = (actor?: BackendActorSummary | null): AdminActorSummary | null 
       actor.role === 'free' ||
       actor.role === 'premium' ||
       actor.role === 'creator' ||
+      actor.role === 'brand_manager' ||
       actor.role === 'admin'
         ? actor.role
         : undefined,

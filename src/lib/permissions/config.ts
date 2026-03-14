@@ -127,9 +127,15 @@ const CREATOR_PERMISSIONS: Permission[] = [
   Permission.MANAGE_CREATOR_PAGE,
 ]
 
+const BRAND_MANAGER_PERMISSIONS: Permission[] = [
+  // Herda base de FREE para navegacao e interacao normal da conta de marca
+  ...FREE_PERMISSIONS,
+]
+
 const ADMIN_PERMISSIONS: Permission[] = [
-  // Herda tudo de CREATOR +
+  // Herda tudo de CREATOR + BRAND_MANAGER
   ...CREATOR_PERMISSIONS,
+  ...BRAND_MANAGER_PERMISSIONS,
 
   // ADMIN - Acesso total
   Permission.ADMIN_PANEL,
@@ -143,6 +149,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   [UserRole.FREE]: FREE_PERMISSIONS,
   [UserRole.PREMIUM]: PREMIUM_PERMISSIONS,
   [UserRole.CREATOR]: CREATOR_PERMISSIONS,
+  [UserRole.BRAND_MANAGER]: BRAND_MANAGER_PERMISSIONS,
   [UserRole.ADMIN]: ADMIN_PERMISSIONS,
 }
 
@@ -177,6 +184,7 @@ export function isRoleAtLeast(currentRole: UserRole, requiredRole: UserRole): bo
     UserRole.FREE,
     UserRole.PREMIUM,
     UserRole.CREATOR,
+    UserRole.BRAND_MANAGER,
     UserRole.ADMIN,
   ]
 

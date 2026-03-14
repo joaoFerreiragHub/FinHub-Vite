@@ -1,6 +1,6 @@
 import { expect, test, type Page, type Route } from 'playwright/test'
 
-type SessionRole = 'visitor' | 'free' | 'creator' | 'admin'
+type SessionRole = 'visitor' | 'free' | 'creator' | 'brand_manager' | 'admin'
 
 const NOW = new Date().toISOString()
 
@@ -54,6 +54,12 @@ const fulfillJson = async (route: Route, data: unknown, status = 200) => {
     status,
     contentType: 'application/json',
     body: JSON.stringify(data),
+  })
+}
+
+const installBrandPortalMocks = async (page: Page) => {
+  await page.route('**/api/brand-portal/**', async (route) => {
+    await fulfillJson(route, {})
   })
 }
 
@@ -190,5 +196,29 @@ test.describe('O3-07 Release Flows', () => {
 
     await page.goto('/noticias')
     await expect(page.getByText('Noticias Financeiras')).toBeVisible()
+  })
+
+  test('free nao ve atalho do portal de marca no header', async ({ page }) => {
+    await installSession(page, 'free')
+
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByRole('link', { name: 'Portal de Marca' })).toHaveCount(0)
+  })
+
+  test('brand_manager navega para /marcas/portal no gate critico', async ({ page }) => {
+    await installSession(page, 'brand_manager')
+    await installBrandPortalMocks(page)
+
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+
+    const portalLink = page.getByRole('link', { name: 'Portal de Marca' })
+    await expect(portalLink).toBeVisible()
+    await expect(portalLink).toHaveAttribute('href', '/marcas/portal')
+
+    await page.goto('/marcas/portal')
+    await expect(page).toHaveURL(/\/marcas\/portal$/)
+    await expect(page.getByRole('heading', { name: 'Portal de Marca' })).toBeVisible()
   })
 })

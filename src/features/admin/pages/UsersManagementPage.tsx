@@ -187,6 +187,7 @@ const ROLE_LABEL: Record<AdminUserRole, string> = {
   free: 'Free',
   premium: 'Premium',
   creator: 'Creator',
+  brand_manager: 'Brand manager',
   admin: 'Admin',
 }
 

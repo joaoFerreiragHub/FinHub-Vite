@@ -16,6 +16,7 @@ const roleBadges: Record<
   [UserRole.FREE]: { label: 'Free', variant: 'secondary' },
   [UserRole.PREMIUM]: { label: 'Premium', variant: 'default' },
   [UserRole.CREATOR]: { label: 'Criador', variant: 'default' },
+  [UserRole.BRAND_MANAGER]: { label: 'Marca', variant: 'default' },
   [UserRole.ADMIN]: { label: 'Admin', variant: 'destructive' },
 }
 

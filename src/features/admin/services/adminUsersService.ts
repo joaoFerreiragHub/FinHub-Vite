@@ -242,6 +242,7 @@ const mapActor = (actor?: BackendAdminActorSummary | null): AdminActorSummary | 
       actor.role === 'free' ||
       actor.role === 'premium' ||
       actor.role === 'creator' ||
+      actor.role === 'brand_manager' ||
       actor.role === 'admin'
         ? actor.role
         : undefined,
@@ -402,6 +403,7 @@ const mapAdminUser = (item: BackendAdminUserRecord): AdminUserRecord | null => {
       item.role === 'free' ||
       item.role === 'premium' ||
       item.role === 'creator' ||
+      item.role === 'brand_manager' ||
       item.role === 'admin'
         ? item.role
         : 'free',

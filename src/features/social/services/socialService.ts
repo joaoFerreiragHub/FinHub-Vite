@@ -159,7 +159,7 @@ interface BackendFeedContent {
   reviewCount?: number
   commentCount?: number
   commentsEnabled?: boolean
-  requiredRole?: 'free' | 'premium' | 'creator' | 'admin'
+  requiredRole?: 'free' | 'premium' | 'creator' | 'brand_manager' | 'admin'
   isPremium?: boolean
   isFeatured?: boolean
   status?: 'draft' | 'published' | 'archived'
@@ -574,6 +574,7 @@ const mapBackendRequiredRoleToUserRole = (
 ): UserRole => {
   if (rawRole === 'premium') return UserRole.PREMIUM
   if (rawRole === 'creator') return UserRole.CREATOR
+  if (rawRole === 'brand_manager') return UserRole.BRAND_MANAGER
   if (rawRole === 'admin') return UserRole.ADMIN
   return UserRole.FREE
 }

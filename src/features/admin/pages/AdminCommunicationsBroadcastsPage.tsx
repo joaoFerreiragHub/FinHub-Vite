@@ -67,6 +67,7 @@ const ROLE_LABEL: Record<AdminBroadcastRole, string> = {
   free: 'Free',
   premium: 'Premium',
   creator: 'Creator',
+  brand_manager: 'Brand manager',
   admin: 'Admin',
 }
 
@@ -90,6 +91,7 @@ const ROLE_OPTIONS: readonly AdminBroadcastRole[] = [
   'free',
   'premium',
   'creator',
+  'brand_manager',
   'admin',
 ]
 const ACCOUNT_STATUS_OPTIONS: readonly AdminBroadcastAccountStatus[] = [

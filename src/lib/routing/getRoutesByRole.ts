@@ -13,6 +13,7 @@ export const getRoutesByRole = (role: UserRole | 'visitor') => {
       return [...creatorRoutes]
     case UserRole.PREMIUM:
       return [...regularRoutes, ...premiumRoutes]
+    case UserRole.BRAND_MANAGER:
     case UserRole.FREE:
       return [...regularRoutes]
     case UserRole.VISITOR:

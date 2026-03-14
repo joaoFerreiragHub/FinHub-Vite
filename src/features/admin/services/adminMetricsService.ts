@@ -38,7 +38,7 @@ const BASE_CONTENT_TYPES: AdminMetricBaseContentType[] = [
 ]
 
 const STATUS_CLASSES: AdminMetricStatusClass[] = ['2xx', '3xx', '4xx', '5xx']
-const ROLES: UserRole[] = ['visitor', 'free', 'premium', 'creator', 'admin']
+const ROLES: UserRole[] = ['visitor', 'free', 'premium', 'creator', 'brand_manager', 'admin']
 const CREATOR_RISK_LEVELS: CreatorRiskLevel[] = ['low', 'medium', 'high', 'critical']
 const AUTOMATED_MODERATION_RULES: AdminAutomatedModerationRule[] = [
   'spam',
@@ -113,6 +113,7 @@ const normalizeRoleDistribution = (raw: unknown): Record<UserRole, number> => {
     free: 0,
     premium: 0,
     creator: 0,
+    brand_manager: 0,
     admin: 0,
   }
 

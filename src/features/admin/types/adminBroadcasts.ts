@@ -2,7 +2,13 @@ import type { AdminActorSummary } from './adminUsers'
 
 export type AdminBroadcastStatus = 'draft' | 'approved' | 'sent' | 'failed' | 'canceled'
 export type AdminBroadcastChannel = 'in_app'
-export type AdminBroadcastRole = 'visitor' | 'free' | 'premium' | 'creator' | 'admin'
+export type AdminBroadcastRole =
+  | 'visitor'
+  | 'free'
+  | 'premium'
+  | 'creator'
+  | 'brand_manager'
+  | 'admin'
 export type AdminBroadcastAccountStatus = 'active' | 'suspended' | 'banned'
 export type AdminBroadcastHistoryAction =
   | 'created'

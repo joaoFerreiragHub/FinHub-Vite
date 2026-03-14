@@ -3,7 +3,7 @@ import { ProtectedRoute } from '@/shared/guards'
 
 function BrandsPortalRoutePage() {
   return (
-    <ProtectedRoute allowedRoles={['free', 'premium', 'creator', 'admin']}>
+    <ProtectedRoute allowedRoles={['brand_manager', 'admin']}>
       <BrandPortalPage />
     </ProtectedRoute>
   )

@@ -1,4 +1,4 @@
-export type AdminUserRole = 'visitor' | 'free' | 'premium' | 'creator' | 'admin'
+export type AdminUserRole = 'visitor' | 'free' | 'premium' | 'creator' | 'brand_manager' | 'admin'
 
 export type AdminUserAccountStatus = 'active' | 'suspended' | 'banned'
 

@@ -1,13 +1,14 @@
 /**
- * User Roles - Hierarquia de permissões
- * Cada nível herda permissões do anterior
+ * User Roles - Hierarquia de permissÃµes
+ * Cada nÃ­vel herda permissÃµes do anterior
  */
 export enum UserRole {
-  VISITOR = 'visitor', // Nível 0 - Sem conta
-  FREE = 'free', // Nível 1 - Com conta gratuita
-  PREMIUM = 'premium', // Nível 2 - Assinatura premium
-  CREATOR = 'creator', // Nível 3 - Criador de conteúdo
-  ADMIN = 'admin', // Nível 4 - Administrador
+  VISITOR = 'visitor', // NÃ­vel 0 - Sem conta
+  FREE = 'free', // NÃ­vel 1 - Com conta gratuita
+  PREMIUM = 'premium', // NÃ­vel 2 - Assinatura premium
+  CREATOR = 'creator', // NÃ­vel 3 - Criador de conteÃºdo
+  BRAND_MANAGER = 'brand_manager', // NÃ­vel 4 - Gestor de marca
+  ADMIN = 'admin', // NÃ­vel 5 - Administrador
 }
 
 export type UserAccountStatus = 'active' | 'suspended' | 'banned'
@@ -148,3 +149,4 @@ export interface RefreshResponse {
 export interface MeResponse {
   user: User
 }
+

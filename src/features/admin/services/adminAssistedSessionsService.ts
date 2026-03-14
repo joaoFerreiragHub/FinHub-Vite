@@ -118,6 +118,7 @@ const toUserRole = (value: unknown): UserRole => {
     value === UserRole.FREE ||
     value === UserRole.PREMIUM ||
     value === UserRole.CREATOR ||
+    value === UserRole.BRAND_MANAGER ||
     value === UserRole.ADMIN
   ) {
     return value
