@@ -9,6 +9,14 @@ export type AdminPlatformIntegrationKey =
   | 'seo_defaults'
 
 export type AdminPlatformIntegrationCategory = 'analytics' | 'security' | 'seo'
+export type AdminPlatformIntegrationHealthStatus = 'ok' | 'warning' | 'error'
+
+export interface AdminPlatformIntegrationHealth {
+  status: AdminPlatformIntegrationHealthStatus
+  summary: string
+  issues: string[]
+  checkedAt: string | null
+}
 
 export interface AdminPlatformIntegrationItem {
   key: AdminPlatformIntegrationKey
@@ -17,6 +25,8 @@ export interface AdminPlatformIntegrationItem {
   category: AdminPlatformIntegrationCategory
   enabled: boolean
   config: Record<string, unknown>
+  historyCount: number
+  health: AdminPlatformIntegrationHealth
   reason: string | null
   note: string | null
   updatedAt: string | null
@@ -36,6 +46,16 @@ export interface AdminPlatformIntegrationUpdatePayload {
 }
 
 export interface AdminPlatformIntegrationUpdateResponse {
+  message: string
+  item: AdminPlatformIntegrationItem
+}
+
+export interface AdminPlatformIntegrationRollbackPayload {
+  reason: string
+  note?: string
+}
+
+export interface AdminPlatformIntegrationRollbackResponse {
   message: string
   item: AdminPlatformIntegrationItem
 }

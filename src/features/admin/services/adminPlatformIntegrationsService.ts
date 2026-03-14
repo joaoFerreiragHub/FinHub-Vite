@@ -1,8 +1,11 @@
 import { apiClient } from '@/lib/api/client'
 import type {
   AdminPlatformIntegrationCategory,
+  AdminPlatformIntegrationHealth,
   AdminPlatformIntegrationItem,
   AdminPlatformIntegrationsResponse,
+  AdminPlatformIntegrationRollbackPayload,
+  AdminPlatformIntegrationRollbackResponse,
   AdminPlatformIntegrationUpdatePayload,
   AdminPlatformIntegrationUpdateResponse,
 } from '../types/adminPlatformIntegrations'
@@ -24,6 +27,13 @@ interface BackendPlatformIntegrationItem {
   category?: unknown
   enabled?: unknown
   config?: unknown
+  historyCount?: unknown
+  health?: {
+    status?: unknown
+    summary?: unknown
+    issues?: unknown
+    checkedAt?: unknown
+  }
   reason?: unknown
   note?: unknown
   updatedAt?: unknown
@@ -36,6 +46,11 @@ interface BackendPlatformIntegrationsResponse {
 }
 
 interface BackendPlatformIntegrationUpdateResponse {
+  message?: unknown
+  item?: BackendPlatformIntegrationItem
+}
+
+interface BackendPlatformIntegrationRollbackResponse {
   message?: unknown
   item?: BackendPlatformIntegrationItem
 }
@@ -60,6 +75,23 @@ const toIsoDate = (value: unknown): string | null => {
 const toRecord = (value: unknown): Record<string, unknown> =>
   value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : {}
 
+const toHealthStatus = (value: unknown): AdminPlatformIntegrationHealth['status'] =>
+  value === 'ok' || value === 'warning' || value === 'error' ? value : 'warning'
+
+const toHealth = (value: BackendPlatformIntegrationItem['health']): AdminPlatformIntegrationHealth => ({
+  status: toHealthStatus(value?.status),
+  summary:
+    typeof value?.summary === 'string' && value.summary.trim().length > 0
+      ? value.summary
+      : 'Health check indisponivel.',
+  issues: Array.isArray(value?.issues)
+    ? value.issues
+        .map((item) => (typeof item === 'string' ? item.trim() : ''))
+        .filter((item): item is string => item.length > 0)
+    : [],
+  checkedAt: toIsoDate(value?.checkedAt),
+})
+
 const mapActor = (actor?: BackendActorSummary | null): AdminActorSummary | null => {
   if (!actor) return null
 
@@ -76,6 +108,7 @@ const mapActor = (actor?: BackendActorSummary | null): AdminActorSummary | null 
       actor.role === 'free' ||
       actor.role === 'premium' ||
       actor.role === 'creator' ||
+      actor.role === 'brand_manager' ||
       actor.role === 'admin'
         ? actor.role
         : undefined,
@@ -92,6 +125,11 @@ const mapItem = (item: BackendPlatformIntegrationItem): AdminPlatformIntegration
     category: isKnownCategory(item.category) ? item.category : 'analytics',
     enabled: item.enabled !== false,
     config: toRecord(item.config),
+    historyCount:
+      typeof item.historyCount === 'number' && Number.isFinite(item.historyCount)
+        ? Math.max(0, Math.round(item.historyCount))
+        : 0,
+    health: toHealth(item.health),
     reason: typeof item.reason === 'string' ? item.reason : null,
     note: typeof item.note === 'string' ? item.note : null,
     updatedAt: toIsoDate(item.updatedAt),
@@ -131,6 +169,29 @@ export const adminPlatformIntegrationsService = {
         typeof response.data.message === 'string' && response.data.message.trim().length > 0
           ? response.data.message
           : 'Integracao atualizada com sucesso.',
+      item,
+    }
+  },
+
+  rollback: async (
+    key: AdminPlatformIntegrationItem['key'],
+    payload: AdminPlatformIntegrationRollbackPayload,
+  ): Promise<AdminPlatformIntegrationRollbackResponse> => {
+    const response = await apiClient.post<BackendPlatformIntegrationRollbackResponse>(
+      `/admin/platform/integrations/${key}/rollback`,
+      payload,
+    )
+
+    const item = response.data.item ? mapItem(response.data.item) : null
+    if (!item) {
+      throw new Error('Resposta admin invalida: rollback sem integracao.')
+    }
+
+    return {
+      message:
+        typeof response.data.message === 'string' && response.data.message.trim().length > 0
+          ? response.data.message
+          : 'Rollback executado com sucesso.',
       item,
     }
   },
