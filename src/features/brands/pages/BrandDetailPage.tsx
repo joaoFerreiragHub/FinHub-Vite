@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight, ExternalLink, Scale, ShieldCheck } from 'lucide-
 import { Link, useParams } from 'react-router-dom'
 import { CommentSection, RatingsSection } from '@/features/hub/components'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import { PublicAdSlot } from '@/features/ads/components/PublicAdSlot'
 import { getErrorMessage } from '@/lib/api/client'
 import {
   Badge,
@@ -376,6 +377,8 @@ export default function BrandDetailPage() {
             ) : null}
           </CardContent>
         </Card>
+
+        <PublicAdSlot slotId="DIRECTORY_DETAIL_INLINE_01" vertical={entry.verticalType} />
 
         <section className="space-y-4">
           <RatingsSection

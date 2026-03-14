@@ -19,6 +19,7 @@ import {
   SelectValue,
   Skeleton,
 } from '@/components/ui'
+import { PublicAdSlot } from '@/features/ads/components/PublicAdSlot'
 import { usePublicDirectories } from '../hooks/usePublicDirectories'
 import {
   PUBLIC_DIRECTORY_SEARCH_MIN_LENGTH,
@@ -285,6 +286,8 @@ export function BrandsVerticalPage({ vertical, title, description }: BrandsVerti
             </div>
           </CardContent>
         </Card>
+
+        <PublicAdSlot slotId="DIRECTORY_VERTICAL_INLINE_01" vertical={vertical} />
 
         {listQuery.isLoading ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

@@ -28,6 +28,7 @@ import {
   Input,
   Skeleton,
 } from '@/components/ui'
+import { PublicAdSlot } from '@/features/ads/components/PublicAdSlot'
 import {
   useFeaturedPublicDirectories,
   usePublicDirectoryCategories,
@@ -398,6 +399,8 @@ export default function BrandsListPage() {
             </div>
           ) : null}
         </section>
+
+        <PublicAdSlot slotId="DIRECTORY_HOME_INLINE_01" vertical="directory" />
 
         <section className="space-y-4">
           <div className="space-y-1">
