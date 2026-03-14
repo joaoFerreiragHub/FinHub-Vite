@@ -45,6 +45,7 @@ interface BackendOperationalAlertsResponse {
     reportMinOpenReports?: number
     automatedDetectionSeverityMin?: 'high'
     creatorControlRestrictiveActions?: string[]
+    integrationHealthDegradedStatuses?: Array<'warning' | 'error'>
   }
   summary?: {
     critical?: number
@@ -100,6 +101,7 @@ const toRole = (value: unknown): AdminActorSummary['role'] => {
     value === 'free' ||
     value === 'premium' ||
     value === 'creator' ||
+    value === 'brand_manager' ||
     value === 'admin'
   ) {
     return value
@@ -121,6 +123,7 @@ const toAlertType = (value: unknown): AdminOperationalAlertType | null => {
   if (value === 'automated_detection_auto_hide_failed')
     return 'automated_detection_auto_hide_failed'
   if (value === 'creator_control_applied') return 'creator_control_applied'
+  if (value === 'platform_integration_health_degraded') return 'platform_integration_health_degraded'
   return null
 }
 
@@ -206,6 +209,13 @@ export const adminOperationalAlertsService = {
               (item): item is string => typeof item === 'string',
             )
           : [],
+        integrationHealthDegradedStatuses: Array.isArray(
+          data.thresholds?.integrationHealthDegradedStatuses,
+        )
+          ? data.thresholds.integrationHealthDegradedStatuses.filter(
+              (item): item is 'warning' | 'error' => item === 'warning' || item === 'error',
+            )
+          : ['warning', 'error'],
       },
       summary: {
         critical: toNumber(data.summary?.critical, 0),

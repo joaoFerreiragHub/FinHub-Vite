@@ -12,6 +12,7 @@ export type AdminOperationalAlertType =
   | 'automated_detection_auto_hide_triggered'
   | 'automated_detection_auto_hide_failed'
   | 'creator_control_applied'
+  | 'platform_integration_health_degraded'
 
 export type AdminOperationalAlertSeverity = 'critical' | 'high' | 'medium'
 export type AdminOperationalAlertState = 'open' | 'acknowledged' | 'dismissed'
@@ -51,6 +52,7 @@ export interface AdminOperationalAlertsResponse {
     reportMinOpenReports: number
     automatedDetectionSeverityMin: 'high'
     creatorControlRestrictiveActions: string[]
+    integrationHealthDegradedStatuses?: Array<'warning' | 'error'>
   }
   summary: AdminOperationalAlertsSummary
   stateSummary: {

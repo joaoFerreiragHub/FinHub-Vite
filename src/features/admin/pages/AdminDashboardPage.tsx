@@ -192,6 +192,7 @@ const ALERT_TYPE_LABEL: Record<AdminOperationalAlertType, string> = {
   automated_detection_auto_hide_triggered: 'Auto-hide detecao',
   automated_detection_auto_hide_failed: 'Falha hide detecao',
   creator_control_applied: 'Controlo creator',
+  platform_integration_health_degraded: 'Health integracoes',
 }
 
 const ALERT_SEVERITY_LABEL: Record<AdminOperationalAlertSeverity, string> = {
