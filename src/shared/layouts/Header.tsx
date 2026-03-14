@@ -36,6 +36,15 @@ export function Header() {
           />
         )}
 
+        {isAuthenticated && (
+          <a
+            href="/marcas/portal"
+            className="rounded-md border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          >
+            Portal de Marca
+          </a>
+        )}
+
         {isAuthenticated && user && (
           <a
             href={profileHref}
