@@ -76,6 +76,12 @@ import {
   MarketWatchlistPage,
   ReitsToolkitPage,
 } from '@/features/markets'
+import {
+  FireDashboardPage,
+  FireLandingPage,
+  FirePortfolioPage,
+  FireSimulatorPage,
+} from '@/features/fire'
 
 // Pages - User
 import UserProfilePage from '@/features/user/pages/UserProfilePage'
@@ -369,7 +375,31 @@ const router = createBrowserRouter([
       // ========================================
       {
         path: 'ferramentas',
-        element: <ToolsHubPage />,
+        children: [
+          {
+            index: true,
+            element: <ToolsHubPage />,
+          },
+          {
+            path: 'fire',
+            element: <FireLandingPage />,
+          },
+          {
+            path: 'fire/portfolio',
+            element: <FirePortfolioPage />,
+            loader: requireAuth,
+          },
+          {
+            path: 'fire/simulador',
+            element: <FireSimulatorPage />,
+            loader: requireAuth,
+          },
+          {
+            path: 'fire/dashboard',
+            element: <FireDashboardPage />,
+            loader: requireAuth,
+          },
+        ],
       },
 
       // ========================================

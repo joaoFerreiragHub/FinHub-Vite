@@ -4,15 +4,15 @@ export default function ToolsHubPage() {
   return (
     <PlaceholderPage
       section="Ferramentas"
-      title="Ferramentas para analise, comparacao e decisao"
+      title="Ferramentas para analise, comparacao e simulacao"
       description="Nesta area vais encontrar calculadoras, comparadores e paineis para apoiar decisoes com mais clareza."
-      primaryAction={{ label: 'Ver mercados', to: '/recursos/exchanges' }}
-      secondaryAction={{ label: 'Explorar conteudos', to: '/explorar/tudo' }}
+      primaryAction={{ label: 'Abrir FIRE simulator', to: '/ferramentas/fire' }}
+      secondaryAction={{ label: 'Ver mercados', to: '/mercados' }}
       quickLinks={[
-        { label: 'Exchanges', to: '/recursos/exchanges' },
-        { label: 'Corretoras', to: '/recursos/corretoras' },
-        { label: 'Plataformas', to: '/recursos/plataformas' },
-        { label: 'Noticias', to: '/aprender/noticias' },
+        { label: 'FIRE overview', to: '/ferramentas/fire' },
+        { label: 'FIRE portfolio', to: '/ferramentas/fire/portfolio' },
+        { label: 'FIRE simulador', to: '/ferramentas/fire/simulador' },
+        { label: 'Mercados', to: '/mercados' },
       ]}
     />
   )
