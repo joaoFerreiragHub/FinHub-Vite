@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { UserRole } from '@/features/auth/types'
 import { PublicLayout, UserLayout } from '../shared/layouts'
@@ -29,6 +29,16 @@ interface Props {
 
 export function PageShell({ children, pageContext }: Props) {
   const { user, isAuthenticated } = useAuthStore()
+  // Defer layout switch until after hydration to prevent server/client mismatch.
+  // Server always renders PublicLayout (user=null). If we read zustand's persisted
+  // state immediately, the client would render UserLayout while the server HTML
+  // has PublicLayout, causing React hydration to fail silently and killing all
+  // interactivity (clicks, navigation, etc.).
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     if (pageContext.user) {
@@ -38,7 +48,8 @@ export function PageShell({ children, pageContext }: Props) {
   }, [pageContext.user])
 
   const role = user?.role ?? UserRole.VISITOR
-  const Layout = !isAuthenticated || role === UserRole.VISITOR ? PublicLayout : UserLayout
+  const useAuthLayout = mounted && isAuthenticated && role !== UserRole.VISITOR
+  const Layout = useAuthLayout ? UserLayout : PublicLayout
 
   return (
     <PageContextContext.Provider value={pageContext}>

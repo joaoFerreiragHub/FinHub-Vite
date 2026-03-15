@@ -62,8 +62,17 @@ export function HomepageLayout({ children }: HomepageLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [loginOpen, setLoginOpen] = useState(false)
   const [registerOpen, setRegisterOpen] = useState(false)
+  // Defer auth state reading until after mount to avoid hydration mismatch.
+  // Server renders with user=null but zustand rehydrates from localStorage
+  // before React hydrates, causing server HTML (Login/Register) to differ
+  // from client render (profile/Sair) which crashes React silently.
+  const [mounted, setMounted] = useState(false)
+  const { isAuthenticated: rawAuth, user, login, register, logout } = useAuthStore()
+  const isAuthenticated = mounted && rawAuth
 
-  const { isAuthenticated, user, login, register, logout } = useAuthStore()
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40)
@@ -117,7 +126,12 @@ export function HomepageLayout({ children }: HomepageLayoutProps) {
     [register],
   )
 
-  const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
+  // Read path only after mount to avoid SSR/client hydration mismatch
+  // (server has no window → '' vs client → '/ferramentas' etc.)
+  const [currentPath, setCurrentPath] = useState('')
+  useEffect(() => {
+    setCurrentPath(window.location.pathname)
+  }, [])
 
   return (
     <div className="min-h-screen bg-background text-foreground">

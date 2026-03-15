@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { UserRole } from '@/features/auth/types'
 import { Header } from './Header'
@@ -56,7 +56,10 @@ export function UserLayout({ children }: UserLayoutProps) {
 }
 
 function NavLink({ href, children }: { href: string; children: ReactNode }) {
-  const isActive = typeof window !== 'undefined' && window.location.pathname === href
+  const [isActive, setIsActive] = useState(false)
+  useEffect(() => {
+    setIsActive(window.location.pathname === href)
+  }, [href])
 
   return (
     <a

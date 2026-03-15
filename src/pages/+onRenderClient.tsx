@@ -1,4 +1,4 @@
-import { hydrateRoot } from 'react-dom/client'
+import { hydrateRoot, createRoot } from 'react-dom/client'
 import type { PageContext } from '../lib/types/pageContext'
 import { PageShell } from '../renderer/PageShell'
 import { resolvePageComponent } from '../renderer/resolvePageComponent'
@@ -16,12 +16,31 @@ function onRenderClient(pageContext: PageContext) {
     return
   }
 
-  hydrateRoot(
-    appElement,
+  const app = (
     <PageShell pageContext={pageContext}>
       <ResolvedPage {...(pageProps || {})} />
-    </PageShell>,
+    </PageShell>
   )
+
+  // Server routing: every page load is a fresh hydration.
+  // If hydration fails (e.g. server/client mismatch), fall back to a full
+  // client render so the page stays interactive instead of being "dead".
+  const hasServerHtml = appElement.innerHTML.trim().length > 0
+  if (hasServerHtml) {
+    try {
+      hydrateRoot(appElement, app, {
+        onRecoverableError(error) {
+          console.warn('[Vike] Hydration recoverable error:', error)
+        },
+      })
+    } catch (err) {
+      console.error('[Vike] Hydration failed, falling back to client render:', err)
+      appElement.innerHTML = ''
+      createRoot(appElement).render(app)
+    }
+  } else {
+    createRoot(appElement).render(app)
+  }
 }
 
 export default onRenderClient

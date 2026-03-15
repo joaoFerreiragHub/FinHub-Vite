@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Design Tokens (CSS custom properties used by Tailwind config) */
+@import './styles/design-tokens.css';
+
 /* Reset de estilos específicos removido — agora usamos utilitários do Tailwind + UI do ShadCN */
 
 @layer base {

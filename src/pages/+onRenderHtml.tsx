@@ -3,6 +3,7 @@ import { escapeInject, dangerouslySkipEscape } from 'vike/server'
 import type { PageContext } from '../lib/types/pageContext'
 import { PageShell } from '../renderer/PageShell'
 import { resolvePageComponent } from '../renderer/resolvePageComponent'
+import '../index.css'
 
 type RenderResult = {
   documentHtml: ReturnType<typeof escapeInject>
