@@ -1,6 +1,16 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
-import { BarChart3, PlayCircle, Target } from 'lucide-react'
+import { ArrowDownRight, ArrowUpRight, BarChart3, PlayCircle, Target } from 'lucide-react'
 import { toast } from 'react-toastify'
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
 import {
   Badge,
   Button,
@@ -49,6 +59,35 @@ function formatPct(value: number, digits = 2) {
   return `${value.toFixed(digits)}%`
 }
 
+type DeltaTone = 'positive' | 'negative' | 'neutral'
+type FirePercentileKey = 'p10' | 'p50' | 'p90'
+
+const FIRE_PERCENTILE_KEYS: FirePercentileKey[] = ['p10', 'p50', 'p90']
+
+function resolveDeltaTone(delta: number | null, higherIsBetter: boolean): DeltaTone {
+  if (delta === null || delta === 0) return 'neutral'
+  const improved = higherIsBetter ? delta > 0 : delta < 0
+  return improved ? 'positive' : 'negative'
+}
+
+function deltaToneClass(tone: DeltaTone) {
+  if (tone === 'positive') return 'text-emerald-500'
+  if (tone === 'negative') return 'text-rose-500'
+  return 'text-foreground'
+}
+
+function formatSignedNumber(value: number | null, suffix: string) {
+  if (value === null) return 'n/a'
+  if (value === 0) return `0${suffix}`
+  return `${value > 0 ? '+' : ''}${value}${suffix}`
+}
+
+function formatSignedMoney(value: number | null, currency: FirePortfolioCurrency) {
+  if (value === null) return 'n/a'
+  const abs = formatMoney(Math.abs(value), currency)
+  if (value === 0) return abs
+  return `${value > 0 ? '+' : '-'}${abs}`
+}
 export default function FireSimulatorPage() {
   const portfoliosQuery = useFirePortfolioList({ page: 1, limit: 50 })
   const simulationMutation = useRunFireSimulation()
@@ -104,7 +143,71 @@ export default function FireSimulatorPage() {
   const calibrationSummary = result?.assumptions.historicalCalibration
   const monteCarloResult = result?.monteCarlo ?? null
   const whatIfResult = result?.whatIf ?? null
+  const monteCarloTimelineData = monteCarloResult?.timelineSuccessProbability ?? []
 
+  const whatIfComparisonCards = useMemo(() => {
+    if (!whatIfResult || !result) return []
+    return [
+      {
+        key: 'months-to-fire',
+        label: 'Tempo ate FIRE',
+        baseline: whatIfResult.baseline.monthsToFire,
+        adjusted: whatIfResult.adjusted.monthsToFire,
+        delta: whatIfResult.delta.monthsToFire,
+        higherIsBetter: false,
+        renderValue: (value: number | null) => (value === null ? 'n/a' : `${value} meses`),
+        renderDelta: (value: number | null) => formatSignedNumber(value, ' meses'),
+      },
+      {
+        key: 'final-portfolio-value',
+        label: 'Valor final projetado',
+        baseline: whatIfResult.baseline.finalPortfolioValue,
+        adjusted: whatIfResult.adjusted.finalPortfolioValue,
+        delta: whatIfResult.delta.finalPortfolioValue,
+        higherIsBetter: true,
+        renderValue: (value: number | null) =>
+          value === null ? 'n/a' : formatMoney(value, result.currency),
+        renderDelta: (value: number | null) => formatSignedMoney(value, result.currency),
+      },
+      {
+        key: 'passive-income',
+        label: 'Rendimento passivo mensal',
+        baseline: whatIfResult.baseline.projectedMonthlyPassiveIncome,
+        adjusted: whatIfResult.adjusted.projectedMonthlyPassiveIncome,
+        delta: whatIfResult.delta.projectedMonthlyPassiveIncome,
+        higherIsBetter: true,
+        renderValue: (value: number | null) =>
+          value === null ? 'n/a' : formatMoney(value, result.currency),
+        renderDelta: (value: number | null) => formatSignedMoney(value, result.currency),
+      },
+    ]
+  }, [result, whatIfResult])
+
+  const monteCarloYearsPercentiles = useMemo(() => {
+    const yearsPercentiles = monteCarloResult?.yearsToFirePercentiles
+    if (!yearsPercentiles) return null
+    return FIRE_PERCENTILE_KEYS.map((key) => ({
+      key,
+      label: key.toUpperCase(),
+      value: yearsPercentiles[key],
+    }))
+  }, [monteCarloResult])
+
+  const monteCarloValuePercentiles = useMemo(() => {
+    if (!monteCarloResult || !result) return null
+    return FIRE_PERCENTILE_KEYS.map((key) => ({
+      key,
+      label: key.toUpperCase(),
+      value: monteCarloResult.finalPortfolioValuePercentiles[key],
+    }))
+  }, [monteCarloResult, result])
+
+  const monteCarloNarrativeYears =
+    monteCarloResult?.yearsToFirePercentiles?.p50 ?? result?.assumptions.maxYears ?? null
+  const monteCarloMatchesWhatIfScenario =
+    whatIfResult !== null &&
+    monteCarloResult !== null &&
+    whatIfResult.scenario === monteCarloResult.scenario
   const onRunSimulation = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!selectedPortfolioId) {
@@ -491,7 +594,7 @@ export default function FireSimulatorPage() {
                     baseline.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3 text-sm">
+                <CardContent className="space-y-4 text-sm">
                   <div className="grid gap-3 md:grid-cols-3">
                     <div className="rounded-lg border border-border bg-background/50 p-3">
                       <p className="text-muted-foreground">Delta contribuicao</p>
@@ -513,49 +616,78 @@ export default function FireSimulatorPage() {
                     </div>
                   </div>
 
-                  <div className="overflow-auto rounded-lg border border-border">
-                    <table className="w-full min-w-[520px] text-sm">
-                      <thead className="bg-muted/40">
-                        <tr>
-                          <th className="px-3 py-2 text-left">Metrica</th>
-                          <th className="px-3 py-2 text-right">Baseline</th>
-                          <th className="px-3 py-2 text-right">Ajustado</th>
-                          <th className="px-3 py-2 text-right">Delta</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr className="border-t border-border">
-                          <td className="px-3 py-2">Meses para FIRE</td>
-                          <td className="px-3 py-2 text-right">
-                            {whatIfResult.baseline.monthsToFire ?? 'n/a'}
-                          </td>
-                          <td className="px-3 py-2 text-right">
-                            {whatIfResult.adjusted.monthsToFire ?? 'n/a'}
-                          </td>
-                          <td className="px-3 py-2 text-right">
-                            {whatIfResult.delta.monthsToFire ?? 'n/a'}
-                          </td>
-                        </tr>
-                        <tr className="border-t border-border">
-                          <td className="px-3 py-2">Valor final</td>
-                          <td className="px-3 py-2 text-right">
-                            {formatMoney(
-                              whatIfResult.baseline.finalPortfolioValue,
-                              result.currency,
-                            )}
-                          </td>
-                          <td className="px-3 py-2 text-right">
-                            {formatMoney(
-                              whatIfResult.adjusted.finalPortfolioValue,
-                              result.currency,
-                            )}
-                          </td>
-                          <td className="px-3 py-2 text-right">
-                            {formatMoney(whatIfResult.delta.finalPortfolioValue, result.currency)}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                  <div className="grid gap-3 lg:grid-cols-3">
+                    {whatIfComparisonCards.map((metric) => {
+                      const tone = resolveDeltaTone(metric.delta, metric.higherIsBetter)
+                      const toneClass = deltaToneClass(tone)
+                      const DeltaIcon = tone === 'negative' ? ArrowDownRight : ArrowUpRight
+                      return (
+                        <div
+                          key={metric.key}
+                          className="rounded-lg border border-border bg-card p-4 shadow-sm"
+                        >
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            {metric.label}
+                          </p>
+                          <div className="mt-3 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground">Baseline</span>
+                              <span className="font-semibold">
+                                {metric.renderValue(metric.baseline)}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground">Ajustado</span>
+                              <span className="font-semibold">
+                                {metric.renderValue(metric.adjusted)}
+                              </span>
+                            </div>
+                            <div className="rounded-md border border-border bg-background/60 px-2.5 py-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-muted-foreground">Delta</span>
+                                <span
+                                  className={`inline-flex items-center gap-1 text-sm font-semibold ${toneClass}`}
+                                >
+                                  {tone !== 'neutral' ? (
+                                    <DeltaIcon className="h-3.5 w-3.5" />
+                                  ) : null}
+                                  {metric.renderDelta(metric.delta)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  <div className="rounded-lg border border-border bg-background/50 p-4">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Probabilidade no cenario
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-baseline gap-2">
+                      <span className="text-2xl font-semibold">
+                        {monteCarloResult
+                          ? formatPct(monteCarloResult.successProbabilityPct, 2)
+                          : 'n/a'}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        {monteCarloResult
+                          ? `Monte Carlo (${scenarioLabel(monteCarloResult.scenario)})`
+                          : 'Ativa Monte Carlo para ler probabilidade de sucesso.'}
+                      </span>
+                    </div>
+                    {monteCarloResult ? (
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        {monteCarloMatchesWhatIfScenario
+                          ? 'Cenario alinhado com o what-if selecionado.'
+                          : 'Para comparacao direta, usa o mesmo cenario em what-if e Monte Carlo.'}
+                      </p>
+                    ) : null}
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      O contrato atual devolve probabilidade por cenario Monte Carlo, sem delta
+                      baseline vs ajustado.
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -570,7 +702,129 @@ export default function FireSimulatorPage() {
                     {scenarioLabel(monteCarloResult.scenario)}.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3 text-sm">
+                <CardContent className="space-y-4 text-sm">
+                  <div className="rounded-lg border border-border bg-background/50 p-4">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Leitura rapida
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Probabilidade de sucesso</p>
+                        <p className="text-3xl font-bold">
+                          {formatPct(monteCarloResult.successProbabilityPct, 2)}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-muted-foreground">Runs que atingiram FIRE</p>
+                        <p className="text-lg font-semibold">
+                          {monteCarloResult.achievedRuns}/{monteCarloResult.simulations}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="mt-3 text-sm text-muted-foreground">
+                      {formatPct(monteCarloResult.successProbabilityPct, 2)} de probabilidade de
+                      atingir FIRE em aproximadamente{' '}
+                      {monteCarloNarrativeYears === null
+                        ? 'n/a'
+                        : `${monteCarloNarrativeYears.toFixed(1)} anos`}{' '}
+                      com este cenario.
+                    </p>
+                  </div>
+
+                  <div className="grid gap-3 lg:grid-cols-2">
+                    <div className="rounded-lg border border-border bg-card p-3">
+                      <p className="text-sm font-semibold">Curva de probabilidade por horizonte</p>
+                      <div className="mt-3 h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart
+                            data={monteCarloTimelineData}
+                            margin={{ top: 12, right: 8, left: 0, bottom: 6 }}
+                          >
+                            <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" />
+                            <XAxis
+                              dataKey="years"
+                              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                              tickFormatter={(value) => `${Number(value).toFixed(0)}a`}
+                            />
+                            <YAxis
+                              domain={[0, 100]}
+                              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                              tickFormatter={(value) => `${value}%`}
+                            />
+                            <Tooltip
+                              formatter={(value) => [
+                                `${Number(value).toFixed(2)}%`,
+                                'Probabilidade',
+                              ]}
+                              labelFormatter={(value) =>
+                                `Horizonte: ${Number(value).toFixed(2)} anos`
+                              }
+                              contentStyle={{
+                                borderColor: 'hsl(var(--border))',
+                                backgroundColor: 'hsl(var(--card))',
+                                color: 'hsl(var(--foreground))',
+                              }}
+                            />
+                            <ReferenceLine
+                              y={monteCarloResult.successProbabilityPct}
+                              stroke="hsl(var(--muted-foreground))"
+                              strokeDasharray="4 4"
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="probabilityPct"
+                              stroke="hsl(var(--primary))"
+                              strokeWidth={2.5}
+                              dot={{ r: 2 }}
+                              activeDot={{ r: 4 }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="rounded-lg border border-border bg-card p-3">
+                        <p className="text-sm font-semibold">Percentis de tempo ate FIRE</p>
+                        <div className="mt-3 grid grid-cols-3 gap-2">
+                          {(monteCarloYearsPercentiles ?? []).map((item) => (
+                            <div
+                              key={`years-${item.key}`}
+                              className="rounded-md border border-border bg-background/60 p-2.5 text-center"
+                            >
+                              <p className="text-xs text-muted-foreground">{item.label}</p>
+                              <p className="mt-1 text-sm font-semibold">
+                                {item.value.toFixed(1)} anos
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                        {!monteCarloYearsPercentiles ? (
+                          <p className="mt-2 text-xs text-muted-foreground">
+                            Nao ha runs suficientes para percentis de tempo.
+                          </p>
+                        ) : null}
+                      </div>
+
+                      <div className="rounded-lg border border-border bg-card p-3">
+                        <p className="text-sm font-semibold">Percentis de valor final</p>
+                        <div className="mt-3 grid grid-cols-3 gap-2">
+                          {(monteCarloValuePercentiles ?? []).map((item) => (
+                            <div
+                              key={`value-${item.key}`}
+                              className="rounded-md border border-border bg-background/60 p-2.5 text-center"
+                            >
+                              <p className="text-xs text-muted-foreground">{item.label}</p>
+                              <p className="mt-1 text-sm font-semibold">
+                                {formatMoney(item.value, result.currency)}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="grid gap-3 md:grid-cols-3">
                     <div className="rounded-lg border border-border bg-background/50 p-3">
                       <p className="text-muted-foreground">Probabilidade de sucesso</p>
@@ -587,32 +841,11 @@ export default function FireSimulatorPage() {
                     <div className="rounded-lg border border-border bg-background/50 p-3">
                       <p className="text-muted-foreground">Percentil p50 (anos)</p>
                       <p className="font-semibold">
-                        {monteCarloResult.yearsToFirePercentiles?.p50 ?? 'n/a'}
+                        {monteCarloResult.yearsToFirePercentiles
+                          ? `${monteCarloResult.yearsToFirePercentiles.p50.toFixed(1)}`
+                          : 'n/a'}
                       </p>
                     </div>
-                  </div>
-
-                  <div className="overflow-auto rounded-lg border border-border">
-                    <table className="w-full min-w-[560px] text-sm">
-                      <thead className="bg-muted/40">
-                        <tr>
-                          <th className="px-3 py-2 text-left">Horizonte</th>
-                          <th className="px-3 py-2 text-right">Probabilidade acumulada</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {monteCarloResult.timelineSuccessProbability.slice(0, 12).map((item) => (
-                          <tr key={`${item.month}-${item.date}`} className="border-t border-border">
-                            <td className="px-3 py-2">
-                              {item.years.toFixed(2)} anos ({item.date})
-                            </td>
-                            <td className="px-3 py-2 text-right">
-                              {formatPct(item.probabilityPct, 2)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
                   </div>
                 </CardContent>
               </Card>
