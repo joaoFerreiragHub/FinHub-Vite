@@ -1,4 +1,4 @@
-import { ArrowRight, BarChart3, Calculator, TrendingUp, Wrench } from 'lucide-react'
+import { ArrowRight, BarChart3, Calculator, Target, TrendingUp, Wrench } from 'lucide-react'
 import { HomepageLayout } from '@/components/home/HomepageLayout'
 import { PageHero } from '@/components/public'
 import { Badge, Button, Card, CardContent } from '@/components/ui'
@@ -24,7 +24,7 @@ export function Page() {
         />
 
         <section className="px-4 sm:px-6 md:px-10 lg:px-12 py-10">
-          <div className="mx-auto grid max-w-6xl gap-5 lg:grid-cols-2">
+          <div className="mx-auto grid max-w-6xl gap-5 lg:grid-cols-3">
             <Card className="group overflow-hidden border border-primary/30 bg-gradient-to-br from-primary/15 via-primary/8 to-background transition-all duration-300 hover:border-primary/50 hover:shadow-xl">
               <CardContent className="p-6 sm:p-7">
                 <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/20 text-primary">
@@ -54,6 +54,44 @@ export function Page() {
                 <Button asChild className="mt-6 w-full justify-between">
                   <a href="/ferramentas/raio-x">
                     Abrir Raio-X
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="group overflow-hidden border border-emerald-500/30 bg-gradient-to-br from-emerald-500/15 via-emerald-500/10 to-background transition-all duration-300 hover:border-emerald-500/50 hover:shadow-xl">
+              <CardContent className="p-6 sm:p-7">
+                <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-600">
+                  <Target className="h-6 w-6" />
+                </div>
+
+                <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                  FIRE Simulator
+                </h2>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                  Planeamento de independencia financeira com portfolio, simulacao por cenarios,
+                  what-if e Monte Carlo.
+                </p>
+
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10">
+                    Portfolio
+                  </Badge>
+                  <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10">
+                    What-if
+                  </Badge>
+                  <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10">
+                    Monte Carlo
+                  </Badge>
+                </div>
+
+                <Button
+                  asChild
+                  className="mt-6 w-full justify-between bg-emerald-600 hover:bg-emerald-700 text-white"
+                >
+                  <a href="/ferramentas/fire">
+                    Abrir FIRE
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </a>
                 </Button>
@@ -104,8 +142,8 @@ export function Page() {
               <h3 className="text-lg font-semibold text-foreground">Estado atual</h3>
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
-              O Raio-X e as ferramentas avulsas ja estao funcionais com o mesmo motor de calculo. A
-              proxima iteracao foca persistencia por utilizador e historico de simulacoes.
+              O Raio-X, as ferramentas avulsas e o modulo FIRE ja estao navegaveis no frontend.
+              Proxima iteracao: persistencia por utilizador e historico de simulacoes.
             </p>
           </div>
         </section>
@@ -113,4 +151,3 @@ export function Page() {
     </HomepageLayout>
   )
 }
-
