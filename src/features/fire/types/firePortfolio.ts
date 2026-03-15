@@ -107,9 +107,30 @@ export interface FireSimulationResult {
     drip: boolean
     includeInflation: boolean
     maxYears: number
+    useHistoricalCalibration?: boolean
+    historicalLookbackMonths?: number
+    historicalCalibration?: {
+      source: 'fmp_stable' | null
+      attemptedHoldings: number
+      calibratedHoldings: number
+      reason?: string
+      items: FireSimulationHistoricalCalibrationItem[]
+    }
+    whatIf?: {
+      scenario: FireSimulationScenario
+      contributionDelta: number
+      annualReturnShock: number
+      inflationShock: number
+    } | null
+    monteCarlo?: {
+      scenario: FireSimulationScenario
+      simulations: number
+    } | null
   }
   fireTarget: FireTargetConfig
   scenarios: FireSimulationScenarioResult[]
+  whatIf?: FireSimulationWhatIfResult | null
+  monteCarlo?: FireSimulationMonteCarloResult | null
   suggestions: FireSuggestion[]
   generatedAt: string
 }
@@ -122,6 +143,21 @@ export interface FirePortfolioListQuery {
 export interface FireSimulationCustomOverride {
   annualReturn?: number
   dividendYield?: number
+  annualVolatility?: number
+}
+
+export interface FireSimulationWhatIfInput {
+  enabled?: boolean
+  scenario?: FireSimulationScenario
+  contributionDelta?: number
+  annualReturnShock?: number
+  inflationShock?: number
+}
+
+export interface FireSimulationMonteCarloInput {
+  enabled?: boolean
+  scenario?: FireSimulationScenario
+  simulations?: number
 }
 
 export interface FireSimulationInput {
@@ -129,7 +165,71 @@ export interface FireSimulationInput {
   maxYears?: number
   drip?: boolean
   includeInflation?: boolean
+  useHistoricalCalibration?: boolean
+  historicalLookbackMonths?: number
   customOverrides?: Record<string, FireSimulationCustomOverride>
+  whatIf?: FireSimulationWhatIfInput
+  monteCarlo?: FireSimulationMonteCarloInput
+}
+
+export interface FireSimulationHistoricalCalibrationItem {
+  ticker: string
+  assetType: FireAssetType
+  status: 'calibrated' | 'fallback'
+  annualReturn: number | null
+  annualDividendYield: number | null
+  annualVolatility: number | null
+  lookbackMonths: number
+  priceSamples: number
+  monthlyReturnSamples: number
+  dividendSamples: number
+  reason?: string
+}
+
+export interface FireSimulationPercentiles {
+  p10: number
+  p25: number
+  p50: number
+  p75: number
+  p90: number
+}
+
+export interface FireSimulationWhatIfResult {
+  enabled: boolean
+  scenario: FireSimulationScenario
+  assumptions: {
+    contributionDelta: number
+    adjustedMonthlyContribution: number
+    annualReturnShock: number
+    inflationShock: number
+  }
+  baseline: FireSimulationScenarioResult
+  adjusted: FireSimulationScenarioResult
+  delta: {
+    achievedChanged: boolean
+    monthsToFire: number | null
+    yearsToFire: number | null
+    finalPortfolioValue: number
+    projectedMonthlyPassiveIncome: number
+    targetAtEnd: number
+  }
+}
+
+export interface FireSimulationMonteCarloResult {
+  enabled: boolean
+  scenario: FireSimulationScenario
+  simulations: number
+  achievedRuns: number
+  successProbabilityPct: number
+  monthsToFirePercentiles: FireSimulationPercentiles | null
+  yearsToFirePercentiles: FireSimulationPercentiles | null
+  finalPortfolioValuePercentiles: FireSimulationPercentiles
+  timelineSuccessProbability: Array<{
+    month: number
+    years: number
+    date: string
+    probabilityPct: number
+  }>
 }
 
 export interface CreateFirePortfolioInput {

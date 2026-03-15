@@ -4,12 +4,15 @@ Data da consolidacao: 2026-03-01
 Escopo: pasta `dcos`
 
 ## Estado atual validado
+
 1. Backend
+
 - `API_finhub` -> `npm run typecheck` PASS.
 - `API_finhub` -> `npm run build` PASS.
 - `API_finhub` -> `npm run contract:openapi` PASS.
 
 2. Frontend
+
 - `FinHub-Vite` -> `npm run typecheck:p1` PASS.
 - `FinHub-Vite` -> `npm run build` PASS.
 - `FinHub-Vite` -> `npm run test -- --runInBand` PASS (15 suites, 120 testes).
@@ -17,6 +20,7 @@ Escopo: pasta `dcos`
 - `FinHub-Vite` -> `yarn lint` PASS (warnings nao bloqueantes existentes).
 
 3. Plano
+
 - P1.1 global esta FECHADO (backend + frontend + validacao integrada).
 - P1.2 frontend (notificacoes: preferencias + subscriptions por criador) esta FECHADO.
 - P1.3 frontend (homepage completa: paridade + UX) esta FECHADO.
@@ -107,6 +111,7 @@ Escopo: pasta `dcos`
   - claims, ownership transfer e historico de transfers ja integrados.
   - referencia tecnica: `dcos/P4_ADMIN_EDITORIAL_CMS.md`.
 - P4 Moderation Control Plane operacional no backend e surfacado no painel admin:
+
   - backend com `fast hide`, bulk guardrails, reports, policy engine, auto-hide opcional, creator controls, trust scoring, deteccao automatica, rollback assistido, kill switches, jobs assincronos e drill-down.
   - frontend com queue enriquecida, creator risk board, trust profile, creator controls, kill switches, jobs recentes, false positive review e drill-down no dashboard/stats.
   - validacao tecnica mais recente:
@@ -138,11 +143,13 @@ Escopo: pasta `dcos`
   - cards setoriais passam a exibir badge de estado e eliminam `-` ambiguo para estados nao aplicavel/sem dado atual/erro.
 
 4. CI remoto (GitHub Actions)
+
 - `API_finhub` (branch `main`) com workflow CI verde no remoto.
 - `FinHub-Vite` (branch `master`) com workflow CI verde no remoto.
 - evidencias P2.1: commit `99a03f9` com `build` remoto `success` (run `22204921602`).
 
 ## Fontes de verdade para seguimento
+
 - Estado detalhado: `dcos/ESTADO_IMPLEMENTADO.md`
 - Backlog priorizado: `dcos/PENDENCIAS_PRIORIZADAS.md`
 - Plano Admin CMS (P4): `dcos/P4_ADMIN_EDITORIAL_CMS.md`
@@ -151,6 +158,7 @@ Escopo: pasta `dcos`
 - Plano P5 analytics de negocio/patrocinios: `dcos/P5_ANALYTICS_NEGOCIO_PATROCINIOS.md`
 
 ## Pontos remanescentes (nao bloqueantes para operacao atual)
+
 - Warnings de build em mocks legados e avisos de deprecacao de plugin.
 - Divida tecnica fora de escopo imediato: tipagem global de modulos legados para eventual retorno do gate full `tsc -b`.
 - Expansao de E2E para full business flows continua recomendada como reforco de qualidade (atualmente existe smoke).
@@ -159,4 +167,3 @@ Escopo: pasta `dcos`
   2. fechar o hardening do P4 Moderation Control Plane (docs, runbook, E2E e robustez operacional).
   3. continuar P4 Admin CMS com a Fase E de E2E/hardening editorial.
   4. arrancar P5.0 (instrumentacao e taxonomia de eventos) em paralelo controlado.
-
