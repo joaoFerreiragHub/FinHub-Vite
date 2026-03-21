@@ -2,6 +2,7 @@
 
 import type { Creator as CreatorType } from '@/features/creators/types/creator'
 import { useEffect, useMemo, useState } from 'react'
+import { Globe, Play } from 'lucide-react'
 import { CreatorHeader } from './CreatorHeader'
 import { CreatorCourses } from './CreatorCourses'
 import { CreatorSocial } from './CreatorSocial'
@@ -53,6 +54,16 @@ const extractVideoId = (url: string) => {
     return null
   } catch {
     return null
+  }
+}
+
+/** Pretty-print a URL into a clean domain string */
+const prettifyUrl = (url: string): string => {
+  try {
+    const parsed = new URL(url)
+    return parsed.hostname.replace(/^www\./, '')
+  } catch {
+    return url
   }
 }
 
@@ -109,147 +120,210 @@ export function CreatorModal({ open, onClose, creator, previewMode = false }: Cr
     }
   }, [open, previewMode])
 
+  const hasBio = showBio && Boolean(creator.bio?.trim())
+  const hasWebsite = showWebsite && Boolean(websiteLink)
+  const hasSocial = showSocialLinks && (creator.socialMediaLinks?.length ?? 0) > 0
+
   const generalSectionsVisible =
-    showWelcomeVideo ||
-    (showBio && Boolean(creator.bio?.trim())) ||
-    (showWebsite && Boolean(websiteLink)) ||
-    (showSocialLinks && (creator.socialMediaLinks?.length ?? 0) > 0) ||
-    featuredContentIds.length > 0
+    showWelcomeVideo || hasBio || hasWebsite || hasSocial || featuredContentIds.length > 0
+
+  /* ── Tab label mapping ─────────────────────────────────────────── */
+  const tabLabels: Record<CreatorModalTab, string> = {
+    geral: 'Geral',
+    cursos: 'Cursos',
+    artigos: 'Artigos',
+    avaliacao: 'Avaliação',
+  }
 
   const modalBody = (
-    <div className="w-full max-w-4xl mx-auto">
+    <div className="w-full max-w-4xl mx-auto space-y-5">
+      {/* Header card */}
       <CreatorHeader creator={creator} showRatings={showRatings} />
-      <div className="mt-6">
-        <Tabs
-          value={tab}
-          onValueChange={(nextValue) => setTab(nextValue as CreatorModalTab)}
-          className="w-full"
-        >
-          <TabsList className="mb-4 flex flex-wrap gap-1">
-            <TabsTrigger value="geral">Geral</TabsTrigger>
-            {showCourses ? <TabsTrigger value="cursos">Cursos</TabsTrigger> : null}
-            {showArticles ? <TabsTrigger value="artigos">Artigos</TabsTrigger> : null}
-            {showRatings ? <TabsTrigger value="avaliacao">Avaliacao</TabsTrigger> : null}
-          </TabsList>
 
-          <TabsContent value="geral" className="space-y-4">
-            {generalSectionsVisible ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
+      {/* Tabs */}
+      <Tabs
+        value={tab}
+        onValueChange={(nextValue) => setTab(nextValue as CreatorModalTab)}
+        className="w-full"
+      >
+        <TabsList className="w-full justify-start gap-1 rounded-lg bg-muted/40 p-1">
+          {availableTabs.map((tabKey) => (
+            <TabsTrigger
+              key={tabKey}
+              value={tabKey}
+              className="rounded-md px-4 py-2 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:shadow-sm"
+            >
+              {tabLabels[tabKey]}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        {/* ── TAB: Geral ──────────────────────────────────────────── */}
+        <TabsContent value="geral" className="mt-5">
+          {generalSectionsVisible ? (
+            <div className="space-y-5">
+              {/* Video + Bio row */}
+              {showWelcomeVideo || hasBio ? (
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
+                  {/* Video – left, 3 cols */}
                   {showWelcomeVideo ? (
-                    videoId ? (
-                      <AspectRatio ratio={16 / 9}>
-                        <iframe
-                          className="rounded-xl w-full h-full"
-                          src={`https://www.youtube.com/embed/${videoId}`}
-                          title="Video de boas-vindas"
-                          frameBorder="0"
-                          allowFullScreen
-                        />
-                      </AspectRatio>
-                    ) : (
-                      <div className="text-muted-foreground italic text-sm">
-                        Este criador ainda nao tem video de boas-vindas configurado.
-                      </div>
-                    )
-                  ) : null}
-
-                  {showBio && creator.bio?.trim() ? (
-                    <div>
-                      <h4 className="font-semibold text-base mb-2">Bio</h4>
-                      <p className="text-sm text-muted-foreground">{creator.bio}</p>
+                    <div className="md:col-span-3">
+                      {videoId ? (
+                        <div className="overflow-hidden rounded-xl border border-border/40 shadow-sm">
+                          <AspectRatio ratio={16 / 9}>
+                            <iframe
+                              className="h-full w-full"
+                              src={`https://www.youtube.com/embed/${videoId}?rel=0`}
+                              title="Video de boas-vindas"
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
+                          </AspectRatio>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center rounded-xl border border-dashed border-border/60 bg-muted/20 py-12">
+                          <div className="text-center text-muted-foreground">
+                            <Play size={28} className="mx-auto mb-2 opacity-40" />
+                            <p className="text-sm">Video de boas-vindas em breve</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : null}
 
-                  {showWebsite && websiteLink ? (
-                    <div>
-                      <h4 className="font-semibold text-base mb-2">Website</h4>
+                  {/* Bio – right, 2 cols (or full if no video) */}
+                  {hasBio ? (
+                    <div className={showWelcomeVideo ? 'md:col-span-2' : 'md:col-span-5'}>
+                      <div className="rounded-xl border border-border/40 bg-muted/20 p-4 h-full">
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                          Sobre
+                        </h4>
+                        <p className="text-sm leading-relaxed text-foreground/90">{creator.bio}</p>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {/* Website + Social row */}
+              {hasWebsite || hasSocial ? (
+                <div className="rounded-xl border border-border/40 bg-muted/10 p-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                    {/* Website pill */}
+                    {hasWebsite && websiteLink ? (
                       <a
                         href={websiteLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-primary underline underline-offset-4"
+                        className="inline-flex items-center gap-2 rounded-lg border border-border/50 bg-background px-3 py-2 text-sm text-muted-foreground transition-all hover:border-primary/40 hover:text-primary"
                       >
-                        {websiteLink}
+                        <Globe size={15} />
+                        <span>{prettifyUrl(websiteLink)}</span>
                       </a>
-                    </div>
-                  ) : null}
-                </div>
+                    ) : null}
 
-                <div className="space-y-4">
-                  {showSocialLinks ? <CreatorSocial links={creator.socialMediaLinks} /> : null}
-
-                  {featuredContentIds.length > 0 ? (
-                    <div>
-                      <h4 className="font-semibold text-base mb-2">Conteudo em destaque</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {featuredContentIds.map((contentId) => (
-                          <Badge key={contentId} variant="outline" className="font-mono text-xs">
-                            {contentId}
-                          </Badge>
-                        ))}
+                    {/* Social icons */}
+                    {hasSocial ? (
+                      <div className="flex-1">
+                        <CreatorSocial links={creator.socialMediaLinks} />
                       </div>
-                    </div>
-                  ) : null}
+                    ) : null}
+                  </div>
                 </div>
-              </div>
+              ) : null}
+
+              {/* Featured content */}
+              {featuredContentIds.length > 0 ? (
+                <div>
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                    Conteúdo em destaque
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {featuredContentIds.map((contentId) => (
+                      <Badge
+                        key={contentId}
+                        variant="secondary"
+                        className="font-mono text-xs px-3 py-1"
+                      >
+                        {contentId}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center rounded-xl border border-dashed border-border/60 bg-muted/10 py-12">
+              <p className="text-sm text-muted-foreground">
+                Este criador ainda não configurou o seu cartão de visita.
+              </p>
+            </div>
+          )}
+        </TabsContent>
+
+        {/* ── TAB: Cursos ─────────────────────────────────────────── */}
+        {showCourses ? (
+          <TabsContent value="cursos" className="mt-5">
+            {creator.courses && creator.courses.length > 0 ? (
+              <CreatorCourses courses={creator.courses} />
             ) : (
-              <div className="text-sm text-muted-foreground italic">
-                Nao existem secoes visiveis na tab Geral para esta configuracao.
+              <div className="flex items-center justify-center rounded-xl border border-dashed border-border/60 bg-muted/10 py-12">
+                <p className="text-sm text-muted-foreground">Ainda sem cursos publicados.</p>
               </div>
             )}
           </TabsContent>
+        ) : null}
 
-          {showCourses ? (
-            <TabsContent value="cursos">
-              {creator.courses && creator.courses.length > 0 ? (
-                <CreatorCourses courses={creator.courses} />
-              ) : (
-                <div className="text-sm text-muted-foreground italic">
-                  Este criador ainda nao tem cursos publicados.
-                </div>
-              )}
-            </TabsContent>
-          ) : null}
-
-          {showArticles ? (
-            <TabsContent value="artigos">
-              {creator.articles && creator.articles.length > 0 ? (
-                <div className="space-y-2">
-                  {creator.articles.map((article) => (
-                    <a
-                      key={article.articleId}
-                      href={`/hub/articles/${encodeURIComponent(article.articleId)}`}
-                      className="block rounded-lg border border-border/60 px-3 py-2 text-sm transition-colors hover:bg-muted/40"
-                    >
-                      <div className="font-medium">Artigo #{article.articleId.slice(0, 8)}</div>
-                      <div className="text-xs text-muted-foreground">{article.timestamp}</div>
-                    </a>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-sm text-muted-foreground italic">
-                  Este criador ainda nao tem artigos disponiveis.
-                </div>
-              )}
-            </TabsContent>
-          ) : null}
-
-          {showRatings ? (
-            <TabsContent value="avaliacao">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="md:col-span-2">
-                  <CreatorRatings creator={creator} readOnly={previewMode} />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-base mb-2">Opinioes</h4>
-                  <ReviewsDisplay reviews={[]} />
-                </div>
+        {/* ── TAB: Artigos ────────────────────────────────────────── */}
+        {showArticles ? (
+          <TabsContent value="artigos" className="mt-5">
+            {creator.articles && creator.articles.length > 0 ? (
+              <div className="space-y-2">
+                {creator.articles.map((article) => (
+                  <a
+                    key={article.articleId}
+                    href={`/hub/articles/${encodeURIComponent(article.articleId)}`}
+                    className="group flex items-center gap-3 rounded-xl border border-border/50 bg-card px-4 py-3 transition-all hover:border-border hover:shadow-sm"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium group-hover:text-primary transition-colors">
+                        Artigo #{article.articleId.slice(0, 8)}
+                      </div>
+                      {article.timestamp ? (
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          {article.timestamp}
+                        </div>
+                      ) : null}
+                    </div>
+                  </a>
+                ))}
               </div>
-            </TabsContent>
-          ) : null}
-        </Tabs>
-      </div>
+            ) : (
+              <div className="flex items-center justify-center rounded-xl border border-dashed border-border/60 bg-muted/10 py-12">
+                <p className="text-sm text-muted-foreground">Ainda sem artigos publicados.</p>
+              </div>
+            )}
+          </TabsContent>
+        ) : null}
+
+        {/* ── TAB: Avaliação ──────────────────────────────────────── */}
+        {showRatings ? (
+          <TabsContent value="avaliacao" className="mt-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-2">
+                <CreatorRatings creator={creator} readOnly={previewMode} />
+              </div>
+              <div>
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                  Opiniões
+                </h4>
+                <ReviewsDisplay reviews={[]} />
+              </div>
+            </div>
+          </TabsContent>
+        ) : null}
+      </Tabs>
     </div>
   )
 
@@ -261,7 +335,9 @@ export function CreatorModal({ open, onClose, creator, previewMode = false }: Cr
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl p-6 space-y-6">{modalBody}</DialogContent>
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-6">
+        {modalBody}
+      </DialogContent>
     </Dialog>
   )
 }

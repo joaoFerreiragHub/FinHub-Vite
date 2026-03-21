@@ -1,10 +1,9 @@
 // src/features/creators/components/modals/CreatorHeader.tsx
 
-import { User2 } from 'lucide-react'
+import { ExternalLink, Star, Users } from 'lucide-react'
 
 import { Button } from '@/components/ui'
 import type { Creator } from '@/features/creators/types/creator'
-import { RatingDisplay } from '~/features/hub'
 
 interface CreatorHeaderProps {
   creator: Creator
@@ -17,34 +16,74 @@ export function CreatorHeader({ creator, showRatings = true }: CreatorHeaderProp
       ? creator.followersCount
       : (creator.followers?.length ?? 0)
 
+  const displayName = creator.firstname
+    ? `${creator.firstname}${creator.lastname ? ` ${creator.lastname}` : ''}`
+    : creator.name || creator.username
+
+  const formattedFollowers =
+    followerCount >= 1000
+      ? `${(followerCount / 1000).toFixed(followerCount >= 10000 ? 0 : 1)}k`
+      : String(followerCount)
+
+  const ratingValue = creator.averageRating || 0
+
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div>
-        <h2 className="text-2xl font-bold">{creator.username}</h2>
-        <div className="text-muted-foreground flex items-center gap-2 text-sm">
-          <User2 size={16} />
-          {followerCount} seguidores
+    <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/8 via-primary/4 to-transparent border border-border/40 p-5">
+      <div className="flex items-start gap-4">
+        {/* Avatar */}
+        <div className="shrink-0">
+          {creator.avatar ? (
+            <img
+              src={creator.avatar}
+              alt={displayName}
+              className="h-16 w-16 rounded-full object-cover ring-2 ring-background shadow-md"
+            />
+          ) : (
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 ring-2 ring-background shadow-md">
+              <span className="text-xl font-bold text-primary">
+                {displayName.charAt(0).toUpperCase()}
+              </span>
+            </div>
+          )}
         </div>
-      </div>
 
-      <div className="flex items-center gap-4 flex-wrap">
-        {showRatings ? (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Avaliacoes:</span>
-            <RatingDisplay rating={creator.averageRating || 0} />
+        {/* Info */}
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="text-xl font-bold tracking-tight truncate">{displayName}</h2>
+              <p className="text-sm text-muted-foreground">@{creator.username}</p>
+
+              {/* Stats row */}
+              <div className="mt-2 flex flex-wrap items-center gap-3 text-sm">
+                <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                  <Users size={14} className="text-primary/70" />
+                  <span className="font-medium text-foreground tabular-nums">
+                    {formattedFollowers}
+                  </span>{' '}
+                  seguidores
+                </span>
+
+                {showRatings && ratingValue > 0 ? (
+                  <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                    <Star size={14} className="fill-amber-400 text-amber-400" />
+                    <span className="font-medium text-foreground tabular-nums">
+                      {ratingValue.toFixed(1)}
+                    </span>
+                  </span>
+                ) : null}
+              </div>
+            </div>
+
+            {/* CTA */}
+            <Button asChild size="sm" className="shrink-0 gap-1.5">
+              <a href={`/creators/${creator.username}`}>
+                Ver perfil
+                <ExternalLink size={14} />
+              </a>
+            </Button>
           </div>
-        ) : null}
-
-        {showRatings ? (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Tua avaliacao:</span>
-            <RatingDisplay rating={3.5} />
-          </div>
-        ) : null}
-
-        <Button asChild size="sm" variant="outline">
-          <a href={`/creators/${creator.username}`}>Saber mais</a>
-        </Button>
+        </div>
       </div>
     </div>
   )
