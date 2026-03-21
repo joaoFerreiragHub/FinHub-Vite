@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+const linkClass = 'text-muted-foreground transition-colors hover:text-foreground'
 
 export default function Footer() {
   return (
@@ -23,44 +23,29 @@ export default function Footer() {
             <h3 className="mb-3 text-sm font-semibold text-foreground">Explorar</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link
-                  to="/explorar/tudo"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <a href="/hub/conteudos" className={linkClass}>
                   Tudo
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  to="/explorar/artigos"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <a href="/hub/conteudos/artigos" className={linkClass}>
                   Artigos
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  to="/explorar/videos"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <a href="/hub/conteudos/videos" className={linkClass}>
                   Videos
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  to="/explorar/cursos"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <a href="/hub/conteudos/cursos" className={linkClass}>
                   Cursos
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  to="/criadores"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <a href="/creators" className={linkClass}>
                   Criadores
-                </Link>
+                </a>
               </li>
             </ul>
           </div>
@@ -69,36 +54,24 @@ export default function Footer() {
             <h3 className="mb-3 text-sm font-semibold text-foreground">Recursos</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link
-                  to="/recursos/corretoras"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <a href="/recursos/corretoras" className={linkClass}>
                   Corretoras
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  to="/recursos/plataformas"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <a href="/recursos/plataformas" className={linkClass}>
                   Plataformas
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  to="/recursos/apps"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <a href="/recursos/apps" className={linkClass}>
                   Apps
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  to="/recursos/sites"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <a href="/recursos/sites" className={linkClass}>
                   Sites
-                </Link>
+                </a>
               </li>
             </ul>
           </div>
@@ -107,60 +80,39 @@ export default function Footer() {
             <h3 className="mb-3 text-sm font-semibold text-foreground">Informacao</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link
-                  to="/sobre"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <a href="/sobre" className={linkClass}>
                   Sobre
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  to="/contacto"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <a href="/contacto" className={linkClass}>
                   Contacto
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  to="/faq"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <a href="/faq" className={linkClass}>
                   FAQ
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  to="/termos"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <a href="/legal/termos" className={linkClass}>
                   Termos
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  to="/privacidade"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <a href="/legal/privacidade" className={linkClass}>
                   Privacidade
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  to="/cookies"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <a href="/legal/cookies" className={linkClass}>
                   Cookies
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  to="/aviso-legal"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <a href="/aviso-legal" className={linkClass}>
                   Aviso legal
-                </Link>
+                </a>
               </li>
             </ul>
           </div>
