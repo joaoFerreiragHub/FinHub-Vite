@@ -2,6 +2,30 @@
 
 Data de referencia: 2026-03-01 (atualizado apos consolidacao do P4 Editorial CMS e Moderation Control Plane).
 
+## Atualizacao 2026-03-21 (SSR + VIKE RENDERING PIPELINE — FECHADO)
+
+Pipeline de renderização SSR + Vike estabilizado após migração de `vite-plugin-ssr` → Vike 0.4.255.
+Documentação detalhada em `dcos/SSR_VIKE_RENDERING_FIXES.md` e `Front/docs/finhub/SSR_VIKE_FIXES.md`.
+
+**7 problemas resolvidos (commits `02aa430`, `c9d6019`, `3e9f88b`):**
+
+- **CSS não injetado em SSR** — `index.css` importado em `+onRenderHtml.tsx` e `+onRenderClient.tsx`; ordem dos `@import` corrigida (tokens antes de `@tailwind`)
+- **Hydration mismatch por Zustand** — layout defer com `useState(false)` + `useEffect` em `PageShell.tsx`; servidor e cliente renderizam sempre `PublicLayout` na primeira passagem
+- **Shape do export `Page` ambíguo** — `resolvePageComponent.ts` normaliza todos os formatos possíveis de export dos `+Page.tsx`
+- **Root React recriada por navegação** — root guardada como singleton a nível de módulo em `+onRenderClient.tsx`; navegações seguintes chamam `root.render()` sem recriar
+- **Dupla navegação React Router + Vike** — `VikeRouter` custom em `PageShell.tsx` que delega push/replace ao `vikeNavigate()`; interceção automática do Vike desativada
+- **`react-helmet-async` CJS/ESM crash em SSR** — `ssr.noExternal` em `vite.config.ts`; wrapper `src/lib/helmet.ts` resolve named exports em ambos os contextos
+- **Design tokens não aplicados** — `@import` movido para antes das diretivas `@tailwind`
+
+**Ficheiros principais modificados:**
+- `src/pages/+onRenderClient.tsx`
+- `src/pages/+onRenderHtml.tsx`
+- `src/renderer/PageShell.tsx`
+- `src/renderer/resolvePageComponent.ts` *(novo)*
+- `src/lib/helmet.ts` *(novo)*
+- `vite.config.ts`
+- `src/index.css`, `src/styles/globals.css`
+
 ## Atualizacao 2026-03-12 (P4.4-02 FECHADO)
 - Nova area admin `Stats > Financial tools` em `/admin/stats/ferramentas-financeiras`.
 - Painel operacional entregue com:
