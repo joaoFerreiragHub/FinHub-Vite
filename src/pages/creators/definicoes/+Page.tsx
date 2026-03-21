@@ -1,6 +1,7 @@
 import { ProtectedRoute } from '@/shared/guards'
 import CreatorSidebar from '@/features/creators/components/sidebar/creatorSidebar'
 import { AccountSettings } from '@/features/auth/components/settings'
+import { CreatorCardConfigPanel } from '@/features/creators/components/dashboard/CreatorCardConfigPanel'
 
 function ConfiguracoesPage() {
   return (
@@ -15,7 +16,10 @@ function ConfiguracoesPage() {
             </p>
           </div>
 
-          <AccountSettings />
+          <div className="space-y-8 mt-8">
+            <AccountSettings />
+            <CreatorCardConfigPanel />
+          </div>
         </main>
       </div>
     </ProtectedRoute>

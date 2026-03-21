@@ -6,6 +6,7 @@ import {
   RefreshResponse,
   MeResponse,
   UserCookieConsent,
+  UserCreatorCardConfig,
 } from '../types'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
@@ -30,21 +31,21 @@ interface ChangePasswordResponse {
   message: string
 }
 
-interface UpdateMyProfileRequest {
+export interface UpdateMyProfileRequest {
   name?: string
   avatar?: string | null
+  welcomeVideoUrl?: string | null
   bio?: string | null
-  socialLinks?:
-    | {
-        website?: string | null
-        twitter?: string | null
-        linkedin?: string | null
-        instagram?: string | null
-      }
-    | null
+  cardConfig?: UserCreatorCardConfig | null
+  socialLinks?: {
+    website?: string | null
+    twitter?: string | null
+    linkedin?: string | null
+    instagram?: string | null
+  } | null
 }
 
-interface UpdateMyProfileResponse {
+export interface UpdateMyProfileResponse {
   message: string
   user: MeResponse['user']
 }

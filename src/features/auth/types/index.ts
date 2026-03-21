@@ -44,6 +44,18 @@ export interface UserSocialLinks {
   instagram?: string
 }
 
+export interface UserCreatorCardConfig {
+  showWelcomeVideo?: boolean
+  showBio?: boolean
+  showCourses?: boolean
+  showArticles?: boolean
+  showProducts?: boolean
+  showWebsite?: boolean
+  showSocialLinks?: boolean
+  showRatings?: boolean
+  featuredContentIds?: string[]
+}
+
 export interface RegisterLegalAcceptanceInput {
   termsAccepted: boolean
   privacyAccepted: boolean
@@ -68,7 +80,9 @@ export interface User {
   email: string
   username: string
   avatar?: string
+  welcomeVideoUrl?: string
   bio?: string
+  cardConfig?: UserCreatorCardConfig
   socialLinks?: UserSocialLinks
   role: UserRole
   accountStatus?: UserAccountStatus
@@ -149,4 +163,3 @@ export interface RefreshResponse {
 export interface MeResponse {
   user: User
 }
-

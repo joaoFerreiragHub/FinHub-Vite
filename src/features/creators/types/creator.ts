@@ -12,6 +12,7 @@ export interface SocialMediaLink {
   platform: string
   url: string
 }
+
 export interface PlaylistVideo {
   videoId: string
   title?: string
@@ -22,7 +23,7 @@ export interface PlaylistVideo {
 export interface CoursesSectionProps {
   courses: CourseWithRatings[]
   onCourseClick: (course: CourseWithRatings) => void
-  coursesWithRatings: CourseWithRatings[] // ✅ adiciona esta linha
+  coursesWithRatings: CourseWithRatings[]
 }
 
 export interface CreatorContent {
@@ -34,6 +35,18 @@ export interface CreatorContent {
 export interface CreatorEngagement {
   enrolledCourses?: { courseId: string; timestamp: string }[]
   likedCourses?: { courseId: string; timestamp: string }[]
+}
+
+export interface CreatorCardConfig {
+  showWelcomeVideo?: boolean
+  showBio?: boolean
+  showCourses?: boolean
+  showArticles?: boolean
+  showProducts?: boolean
+  showWebsite?: boolean
+  showSocialLinks?: boolean
+  showRatings?: boolean
+  featuredContentIds?: string[]
 }
 
 // Modelo base
@@ -57,7 +70,8 @@ export interface Creator {
   typeOfContent?: string
   contentCategories?: string[]
   website?: string
-  publicationFrequency?: 'Diário' | 'Semanal' | 'Mensal' | 'Ocasional'
+  publicationFrequency?: 'Diario' | 'Semanal' | 'Mensal' | 'Ocasional'
+  cardConfig?: CreatorCardConfig
 
   termsOfServiceAgreement: boolean
   contentLicenseAgreement: boolean
@@ -104,7 +118,7 @@ export interface Creator {
   updatedAt?: string
 }
 
-// Criador expandido (para página pública)
+// Criador expandido (para pagina publica)
 export interface CreatorFull extends Creator {
   mainPlaylist?: PlaylistResolved
   fullPlaylists?: Playlist[]
@@ -116,7 +130,6 @@ export interface CreatorFull extends Creator {
   mainVideo?: {
     videoLink: string
   }
-  // Se quiseres, também podes manter o contentVisibility aqui como override
   contentVisibility?: {
     playlists?: {
       regular?: boolean

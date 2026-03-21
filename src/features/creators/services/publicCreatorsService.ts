@@ -1,5 +1,10 @@
 import { apiClient } from '@/lib/api/client'
-import type { Creator, CreatorFull, SocialMediaLink } from '@/features/creators/types/creator'
+import type {
+  Creator,
+  CreatorCardConfig,
+  CreatorFull,
+  SocialMediaLink,
+} from '@/features/creators/types/creator'
 
 interface BackendCreatorSocialLinks {
   website?: string | null
@@ -13,6 +18,18 @@ interface BackendCreatorRating {
   count?: number
 }
 
+interface BackendCreatorCardConfig {
+  showWelcomeVideo?: unknown
+  showBio?: unknown
+  showCourses?: unknown
+  showArticles?: unknown
+  showProducts?: unknown
+  showWebsite?: unknown
+  showSocialLinks?: unknown
+  showRatings?: unknown
+  featuredContentIds?: unknown
+}
+
 interface BackendPublicCreator {
   id: string
   name: string
@@ -20,6 +37,7 @@ interface BackendPublicCreator {
   avatar?: string | null
   welcomeVideoUrl?: string | null
   bio?: string | null
+  cardConfig?: BackendCreatorCardConfig | null
   socialLinks?: BackendCreatorSocialLinks | null
   followers?: number
   following?: number
@@ -295,6 +313,43 @@ const toSocialMediaLinks = (links?: BackendCreatorSocialLinks | null): SocialMed
   return rows
 }
 
+const toCardConfig = (value: unknown): CreatorCardConfig | undefined => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return undefined
+  }
+
+  const payload = value as Record<string, unknown>
+  const next: CreatorCardConfig = {}
+  const flagKeys: Array<keyof Omit<CreatorCardConfig, 'featuredContentIds'>> = [
+    'showWelcomeVideo',
+    'showBio',
+    'showCourses',
+    'showArticles',
+    'showProducts',
+    'showWebsite',
+    'showSocialLinks',
+    'showRatings',
+  ]
+
+  for (const key of flagKeys) {
+    const rawValue = payload[key]
+    if (typeof rawValue === 'boolean') {
+      next[key] = rawValue
+    }
+  }
+
+  if (Array.isArray(payload.featuredContentIds)) {
+    const normalizedIds = payload.featuredContentIds
+      .map((entry) => (typeof entry === 'string' ? entry.trim() : ''))
+      .filter((entry) => entry.length > 0)
+    if (normalizedIds.length > 0) {
+      next.featuredContentIds = Array.from(new Set(normalizedIds)).slice(0, 3)
+    }
+  }
+
+  return Object.keys(next).length > 0 ? next : undefined
+}
+
 const toBaseCreator = (row: BackendPublicCreator): Creator => {
   const { firstname, lastname } = splitDisplayName(row.name || '', row.username)
   const followersCount = Number(row.followers ?? 0)
@@ -319,6 +374,7 @@ const toBaseCreator = (row: BackendPublicCreator): Creator => {
     contentLicenseAgreement: true,
     paymentTermsAgreement: true,
     bio: row.bio || undefined,
+    cardConfig: toCardConfig(row.cardConfig),
     socialMediaLinks: toSocialMediaLinks(row.socialLinks),
     followersCount,
     followers: [],
@@ -421,6 +477,7 @@ export interface PublicCreatorListItem {
   avatar?: string
   welcomeVideoUrl?: string
   bio?: string
+  cardConfig?: CreatorCardConfig
   socialLinks?: BackendCreatorSocialLinks
   followersCount: number
   followingCount: number
@@ -444,6 +501,7 @@ export interface PublicCreatorProfile {
   avatar?: string
   welcomeVideoUrl?: string
   bio?: string
+  cardConfig?: CreatorCardConfig
   socialLinks?: BackendCreatorSocialLinks
   followersCount: number
   followingCount: number
@@ -525,6 +583,7 @@ export async function fetchPublicCreatorsPage(
     avatar: row.avatar || undefined,
     welcomeVideoUrl: row.welcomeVideoUrl || undefined,
     bio: row.bio || undefined,
+    cardConfig: toCardConfig(row.cardConfig),
     socialLinks: row.socialLinks || undefined,
     followersCount: toNumber(row.followers, 0),
     followingCount: toNumber(row.following, 0),
@@ -563,6 +622,7 @@ export const mapPublicCreatorListItemToCreator = (creator: PublicCreatorListItem
     avatar: creator.avatar || null,
     welcomeVideoUrl: creator.welcomeVideoUrl || null,
     bio: creator.bio || null,
+    cardConfig: creator.cardConfig,
     socialLinks: creator.socialLinks || null,
     followers: creator.followersCount,
     following: creator.followingCount,
@@ -597,6 +657,7 @@ export async function fetchPublicCreatorByUsername(
       avatar: creator.avatar || undefined,
       welcomeVideoUrl: creator.welcomeVideoUrl || undefined,
       bio: creator.bio || undefined,
+      cardConfig: toCardConfig(creator.cardConfig),
       socialLinks: creator.socialLinks || undefined,
       followersCount: toNumber(creator.followers, 0),
       followingCount: toNumber(creator.following, 0),
@@ -623,6 +684,7 @@ export async function fetchPublicCreatorProfile(username: string): Promise<Creat
     avatar: profile.avatar || null,
     welcomeVideoUrl: profile.welcomeVideoUrl || null,
     bio: profile.bio || null,
+    cardConfig: profile.cardConfig,
     socialLinks: profile.socialLinks || null,
     followers: profile.followersCount,
     following: profile.followingCount,
