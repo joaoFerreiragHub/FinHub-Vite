@@ -288,7 +288,7 @@ const toSocialMediaLinks = (links?: BackendCreatorSocialLinks | null): SocialMed
   if (!links) return []
 
   const rows: SocialMediaLink[] = []
-  if (links.website) rows.push({ platform: 'Other', url: links.website })
+  if (links.website) rows.push({ platform: 'website', url: links.website })
   if (links.twitter) rows.push({ platform: 'Twitter', url: links.twitter })
   if (links.linkedin) rows.push({ platform: 'LinkedIn', url: links.linkedin })
   if (links.instagram) rows.push({ platform: 'Instagram', url: links.instagram })
