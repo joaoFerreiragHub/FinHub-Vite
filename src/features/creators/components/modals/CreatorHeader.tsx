@@ -11,7 +11,11 @@ interface CreatorHeaderProps {
 }
 
 export function CreatorHeader({ creator }: CreatorHeaderProps) {
-  console.log('Creator:', creator.username)
+  const followerCount =
+    typeof creator.followersCount === 'number'
+      ? creator.followersCount
+      : (creator.followers?.length ?? 0)
+
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
       {/* Informação base */}
@@ -19,7 +23,7 @@ export function CreatorHeader({ creator }: CreatorHeaderProps) {
         <h2 className="text-2xl font-bold">{creator.username}</h2>
         <div className="text-muted-foreground flex items-center gap-2 text-sm">
           <User2 size={16} />
-          {creator.followers?.length ?? 0} seguidores
+          {followerCount} seguidores
         </div>
       </div>
 

@@ -3,26 +3,16 @@ import { useQuery } from '@tanstack/react-query'
 import { HomepageLayout } from '@/components/home/HomepageLayout'
 import { HeroBanner, type HeroBannerSlide } from '@/components/home/HeroBanner'
 import { ContentRow } from '@/components/home/ContentRow'
+import { ArticleCard, CourseCard, BookCardHome, ResourceCard } from '@/components/home/cards'
+import { Creator } from '@/features/creators/components/Creator'
 import {
-  ArticleCard,
-  CourseCard,
-  CreatorCardLarge,
-  BookCardHome,
-  ResourceCard,
-} from '@/components/home/cards'
+  fetchPublicCreatorsPage,
+  mapPublicCreatorListItemToCreator,
+} from '@/features/creators/services/publicCreatorsService'
+import type { Creator as CreatorModel } from '@/features/creators/types/creator'
 import { apiClient } from '@/lib/api/client'
 
 type ContentListKey = 'articles' | 'courses' | 'books'
-
-interface ApiCreatorSummary {
-  _id?: string
-  id?: string
-  username?: string
-  name?: string
-  avatar?: string
-  averageRating?: number
-  isPremium?: boolean
-}
 
 interface ApiContentItem {
   _id?: string
@@ -33,7 +23,14 @@ interface ApiContentItem {
   coverImage?: string
   imageUrl?: string
   author?: string
-  creator?: ApiCreatorSummary | string
+  creator?:
+    | {
+        _id?: string
+        id?: string
+        username?: string
+        name?: string
+      }
+    | string
   createdAt?: string
   views?: number
   likes?: number
@@ -83,17 +80,7 @@ interface HomeFeedData {
   courses: ApiContentItem[]
   books: ApiContentItem[]
   resources: ApiBrandItem[]
-}
-
-interface CreatorCardData {
-  _id: string
-  username: string
-  profilePictureUrl?: string
-  topics?: string[]
-  averageRating?: number
-  followers?: { userId: string }[]
-  isPremium?: boolean
-  famous?: string[]
+  creators: CreatorModel[]
 }
 
 const heroSlides: HeroBannerSlide[] = [
@@ -185,14 +172,26 @@ const fetchResourceCollection = async (): Promise<ApiBrandItem[]> => {
 }
 
 const fetchHomepageData = async (): Promise<HomeFeedData> => {
-  const [articles, courses, books, resources] = await Promise.all([
+  const [articles, courses, books, resources, creatorsPage] = await Promise.all([
     fetchCollection('/articles', 'articles'),
     fetchCollection('/courses', 'courses'),
     fetchCollection('/books', 'books'),
     fetchResourceCollection(),
+    fetchPublicCreatorsPage({
+      page: 1,
+      limit: 12,
+      sortBy: 'followers',
+      sortOrder: 'desc',
+    }),
   ])
 
-  return { articles, courses, books, resources }
+  return {
+    articles,
+    courses,
+    books,
+    resources,
+    creators: creatorsPage.items.map(mapPublicCreatorListItemToCreator),
+  }
 }
 
 const toCardId = (item: ApiContentItem, index: number, prefix: string) =>
@@ -202,11 +201,6 @@ const resolveCreatorName = (creator: ApiContentItem['creator']) => {
   if (!creator) return 'FinHub'
   if (typeof creator === 'string') return 'FinHub'
   return creator.name || creator.username || 'FinHub'
-}
-
-const resolveCreatorUsername = (creator: ApiContentItem['creator']) => {
-  if (!creator || typeof creator === 'string') return ''
-  return creator.username || ''
 }
 
 const toTopicLabel = (value?: string) => {
@@ -351,54 +345,7 @@ export function Page() {
     [data?.resources],
   )
 
-  const creatorCards = useMemo(() => {
-    const source = [...(data?.articles ?? []), ...(data?.courses ?? []), ...(data?.books ?? [])]
-    const creatorMap = new Map<string, CreatorCardData & { score: number; topicSet: Set<string> }>()
-
-    for (const item of source) {
-      const username = resolveCreatorUsername(item.creator)
-      if (!username) continue
-
-      const key = username.toLowerCase()
-      const existing = creatorMap.get(key)
-      const topic = toTopicLabel(item.category)
-
-      if (existing) {
-        existing.score += 1
-        existing.topicSet.add(topic)
-        continue
-      }
-
-      const creatorInfo =
-        typeof item.creator === 'string' || !item.creator ? undefined : item.creator
-      creatorMap.set(key, {
-        _id: creatorInfo?._id || creatorInfo?.id || username,
-        username,
-        profilePictureUrl: creatorInfo?.avatar,
-        averageRating: creatorInfo?.averageRating,
-        isPremium: creatorInfo?.isPremium,
-        followers: [],
-        famous: [],
-        topics: [],
-        score: 1,
-        topicSet: new Set([topic]),
-      })
-    }
-
-    return Array.from(creatorMap.values())
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 12)
-      .map((creator) => ({
-        _id: creator._id,
-        username: creator.username,
-        profilePictureUrl: creator.profilePictureUrl,
-        averageRating: creator.averageRating,
-        isPremium: creator.isPremium,
-        followers: creator.followers,
-        famous: creator.famous,
-        topics: Array.from(creator.topicSet).slice(0, 2),
-      }))
-  }, [data?.articles, data?.courses, data?.books])
+  const creatorCards = useMemo(() => data?.creators ?? [], [data?.creators])
 
   return (
     <HomepageLayout>
@@ -406,13 +353,15 @@ export function Page() {
 
       <ContentRow
         title="Criadores Populares"
-        subtitle="Criadores derivados de conteudos reais publicados"
+        subtitle="Criadores com dados completos para preview e modal"
         href="/creators"
       >
         {isLoading ? (
           <LoadingRowState />
         ) : creatorCards.length > 0 ? (
-          creatorCards.map((creator) => <CreatorCardLarge key={creator._id} creator={creator} />)
+          creatorCards.map((creator) => (
+            <Creator key={creator._id} creator={creator} variant="row" />
+          ))
         ) : (
           <EmptyRowState message="Sem criadores disponiveis neste momento." />
         )}
@@ -500,4 +449,3 @@ export function Page() {
     </HomepageLayout>
   )
 }
-

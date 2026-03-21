@@ -1,15 +1,17 @@
 import { ChangeEvent, FormEvent, useMemo, useState } from 'react'
 import { Compass, Search, Users } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { Button, Card } from '@/components/ui'
+import { Button } from '@/components/ui'
 import LoadingSpinner from '@/components/ui/loading-spinner'
 import { HomepageLayout } from '@/components/home/HomepageLayout'
 import { PageHero } from '@/components/public'
+import { Creator } from '@/features/creators/components/Creator'
 import { PublicSurfaceDisabledState } from '@/features/platform/components/PublicSurfaceDisabledState'
 import { usePublicSurfaceControl } from '@/features/platform/hooks/usePublicSurfaceControl'
 import {
   fetchCreatorPublicationStats,
   fetchPublicCreatorsPage,
+  mapPublicCreatorListItemToCreator,
   mapCreatorFilterToContentType,
   PUBLIC_CREATOR_CONTENT_FILTER_OPTIONS,
   PublicCreatorPublicationStats,
@@ -25,30 +27,6 @@ const SORT_OPTIONS: Array<{ label: string; value: SortOption }> = [
   { label: 'Melhor avaliados', value: 'rating' },
   { label: 'Mais recentes', value: 'newest' },
 ]
-
-const typeLabelByKey: Record<'article' | 'video' | 'course' | 'podcast' | 'book', string> = {
-  article: 'Artigos',
-  video: 'Videos',
-  course: 'Cursos',
-  podcast: 'Podcasts',
-  book: 'Livros',
-}
-
-const getInitials = (name: string, username: string): string => {
-  const source = name.trim() || username.trim()
-  if (!source) return 'CR'
-  const parts = source.split(/\s+/)
-  const first = parts[0]?.charAt(0) || source.charAt(0)
-  const last = parts.length > 1 ? parts[parts.length - 1]?.charAt(0) : source.charAt(1)
-  return `${first}${last || ''}`.toUpperCase()
-}
-
-const formatDate = (value?: string): string => {
-  if (!value) return 'Data indisponivel'
-  const parsed = Date.parse(value)
-  if (!Number.isFinite(parsed)) return 'Data indisponivel'
-  return new Date(parsed).toLocaleDateString('pt-PT')
-}
 
 export default function CreatorsListPage() {
   const creatorPageSurface = usePublicSurfaceControl('creator_page')
@@ -246,86 +224,18 @@ export default function CreatorsListPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {filteredCreators.map((creator) => {
-                const stats = statsByCreator[creator.id]
-                const publicationCount =
-                  creator.publicationsCount !== null ? creator.publicationsCount : stats?.total
-                const publicationLabel =
-                  typeof publicationCount === 'number'
-                    ? publicationCount
-                    : publicationsQuery.isLoading
-                      ? '...'
-                      : '--'
-
-                return (
-                  <a
-                    key={creator.id}
-                    href={`/creators/${encodeURIComponent(creator.username)}`}
-                    className="group block"
-                  >
-                    <Card className="h-full border-border/70 bg-card/70 p-5 transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10">
-                      <div className="flex items-start gap-4">
-                        {creator.avatar ? (
-                          <img
-                            src={creator.avatar}
-                            alt={creator.name}
-                            className="h-14 w-14 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted text-sm font-semibold text-muted-foreground">
-                            {getInitials(creator.name, creator.username)}
-                          </div>
-                        )}
-
-                        <div className="min-w-0 flex-1">
-                          <h3 className="truncate text-base font-semibold text-foreground">
-                            {creator.name}
-                          </h3>
-                          <p className="truncate text-xs text-muted-foreground">
-                            @{creator.username}
-                          </p>
-                          <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
-                            {creator.bio || 'Criador da comunidade FinHub.'}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 grid grid-cols-2 gap-3 rounded-md border border-border/60 bg-background/60 p-3 text-sm">
-                        <div>
-                          <p className="text-xs uppercase text-muted-foreground">Seguidores</p>
-                          <p className="tabular-nums font-semibold text-foreground">
-                            {creator.followersCount}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs uppercase text-muted-foreground">Publicacoes</p>
-                          <p className="tabular-nums font-semibold text-foreground">
-                            {publicationLabel}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-                        <span>Rating {creator.ratingAverage.toFixed(1)}</span>
-                        <span>Criado em {formatDate(creator.createdAt)}</span>
-                      </div>
-
-                      {creator.contentTypes.length > 0 ? (
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {creator.contentTypes.map((type) => (
-                            <span
-                              key={`${creator.id}-${type}`}
-                              className="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground"
-                            >
-                              {typeLabelByKey[type]}
-                            </span>
-                          ))}
-                        </div>
-                      ) : null}
-                    </Card>
-                  </a>
-                )
-              })}
+              {filteredCreators.map((creator) => (
+                <Creator
+                  key={creator.id}
+                  creator={mapPublicCreatorListItemToCreator({
+                    ...creator,
+                    publicationsCount:
+                      creator.publicationsCount !== null
+                        ? creator.publicationsCount
+                        : (statsByCreator[creator.id]?.total ?? null),
+                  })}
+                />
+              ))}
             </div>
           )}
 

@@ -18,6 +18,7 @@ interface BackendPublicCreator {
   name: string
   username: string
   avatar?: string | null
+  welcomeVideoUrl?: string | null
   bio?: string | null
   socialLinks?: BackendCreatorSocialLinks | null
   followers?: number
@@ -130,6 +131,13 @@ const CONTENT_CONFIG: Record<CreatorContentType, CreatorContentConfig> = {
 }
 
 const ALL_CONTENT_TYPES: CreatorContentType[] = ['article', 'video', 'course', 'podcast', 'book']
+const CONTENT_TYPE_TOPIC_LABEL: Record<CreatorContentType, string> = {
+  article: 'Artigos',
+  video: 'Videos',
+  course: 'Cursos',
+  podcast: 'Podcasts',
+  book: 'Livros',
+}
 
 const toString = (value: unknown, fallback = ''): string =>
   typeof value === 'string' ? value : fallback
@@ -238,6 +246,11 @@ const parseCreatorContentTypes = (row: BackendPublicCreator): CreatorContentType
   return Array.from(new Set(normalized))
 }
 
+const toCreatorTopics = (contentTypes: CreatorContentType[]): string[] => {
+  if (contentTypes.length === 0) return ['Conteudo']
+  return contentTypes.map((type) => CONTENT_TYPE_TOPIC_LABEL[type])
+}
+
 const resolvePublicationsCount = (row: BackendPublicCreator): number | null => {
   const candidates: unknown[] = [
     row.publicationsCount,
@@ -275,16 +288,21 @@ const toSocialMediaLinks = (links?: BackendCreatorSocialLinks | null): SocialMed
   if (!links) return []
 
   const rows: SocialMediaLink[] = []
-  if (links.website) rows.push({ platform: 'website', url: links.website })
-  if (links.twitter) rows.push({ platform: 'twitter', url: links.twitter })
-  if (links.linkedin) rows.push({ platform: 'linkedin', url: links.linkedin })
-  if (links.instagram) rows.push({ platform: 'instagram', url: links.instagram })
+  if (links.website) rows.push({ platform: 'Other', url: links.website })
+  if (links.twitter) rows.push({ platform: 'Twitter', url: links.twitter })
+  if (links.linkedin) rows.push({ platform: 'LinkedIn', url: links.linkedin })
+  if (links.instagram) rows.push({ platform: 'Instagram', url: links.instagram })
   return rows
 }
 
 const toBaseCreator = (row: BackendPublicCreator): Creator => {
   const { firstname, lastname } = splitDisplayName(row.name || '', row.username)
   const followersCount = Number(row.followers ?? 0)
+  const contentTypes = parseCreatorContentTypes(row)
+  const welcomeVideoUrl =
+    typeof row.welcomeVideoUrl === 'string' && row.welcomeVideoUrl.trim().length > 0
+      ? row.welcomeVideoUrl.trim()
+      : undefined
 
   return {
     _id: row.id,
@@ -295,7 +313,7 @@ const toBaseCreator = (row: BackendPublicCreator): Creator => {
     profilePictureUrl: row.avatar || undefined,
     role: 'creator',
     isPremium: false,
-    topics: [],
+    topics: toCreatorTopics(contentTypes),
     termsAccepted: true,
     termsOfServiceAgreement: true,
     contentLicenseAgreement: true,
@@ -307,6 +325,8 @@ const toBaseCreator = (row: BackendPublicCreator): Creator => {
     famous: [],
     content: [],
     averageRating: Number(row.rating?.average ?? 0),
+    welcomeVideo: welcomeVideoUrl ? [welcomeVideoUrl] : undefined,
+    courses: [],
     createdAt: row.createdAt,
     updatedAt: row.lastActiveAt || row.createdAt,
   }
@@ -399,7 +419,9 @@ export interface PublicCreatorListItem {
   username: string
   name: string
   avatar?: string
+  welcomeVideoUrl?: string
   bio?: string
+  socialLinks?: BackendCreatorSocialLinks
   followersCount: number
   followingCount: number
   ratingAverage: number
@@ -420,6 +442,7 @@ export interface PublicCreatorProfile {
   username: string
   name: string
   avatar?: string
+  welcomeVideoUrl?: string
   bio?: string
   socialLinks?: BackendCreatorSocialLinks
   followersCount: number
@@ -500,7 +523,9 @@ export async function fetchPublicCreatorsPage(
     username: row.username,
     name: resolveName(row),
     avatar: row.avatar || undefined,
+    welcomeVideoUrl: row.welcomeVideoUrl || undefined,
     bio: row.bio || undefined,
+    socialLinks: row.socialLinks || undefined,
     followersCount: toNumber(row.followers, 0),
     followingCount: toNumber(row.following, 0),
     ratingAverage: toNumber(row.rating?.average, 0),
@@ -530,6 +555,28 @@ export async function fetchPublicCreatorsPage(
   }
 }
 
+export const mapPublicCreatorListItemToCreator = (creator: PublicCreatorListItem): Creator => {
+  return toBaseCreator({
+    id: creator.id,
+    name: creator.name,
+    username: creator.username,
+    avatar: creator.avatar || null,
+    welcomeVideoUrl: creator.welcomeVideoUrl || null,
+    bio: creator.bio || null,
+    socialLinks: creator.socialLinks || null,
+    followers: creator.followersCount,
+    following: creator.followingCount,
+    rating: {
+      average: creator.ratingAverage,
+      count: creator.ratingCount,
+    },
+    contentTypes: creator.contentTypes,
+    publicationsCount: creator.publicationsCount ?? undefined,
+    createdAt: creator.createdAt,
+    lastActiveAt: creator.lastActiveAt || null,
+  })
+}
+
 export async function fetchPublicCreatorByUsername(
   username: string,
 ): Promise<PublicCreatorProfile | null> {
@@ -548,6 +595,7 @@ export async function fetchPublicCreatorByUsername(
       username: creator.username,
       name: resolveName(creator),
       avatar: creator.avatar || undefined,
+      welcomeVideoUrl: creator.welcomeVideoUrl || undefined,
       bio: creator.bio || undefined,
       socialLinks: creator.socialLinks || undefined,
       followersCount: toNumber(creator.followers, 0),
@@ -573,6 +621,7 @@ export async function fetchPublicCreatorProfile(username: string): Promise<Creat
     name: profile.name,
     username: profile.username,
     avatar: profile.avatar || null,
+    welcomeVideoUrl: profile.welcomeVideoUrl || null,
     bio: profile.bio || null,
     socialLinks: profile.socialLinks || null,
     followers: profile.followersCount,
@@ -605,7 +654,7 @@ export async function fetchPublicCreatorProfile(username: string): Promise<Creat
         podcast: true,
         featured: true,
       },
-      welcomeVideo: false,
+      welcomeVideo: Boolean(profile.welcomeVideoUrl),
     },
   }
 }
