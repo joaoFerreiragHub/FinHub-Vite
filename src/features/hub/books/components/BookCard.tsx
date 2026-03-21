@@ -1,9 +1,6 @@
 // src/components/book/BookCard.tsx
 
-import { useState } from 'react'
-
 import { Rating, RatingStars } from '@/features/hub'
-import BookModal from './BookModal'
 import { Book, Review } from '@/features/hub/books/types/book'
 import { Card, CardContent } from '@/components/ui'
 import { AspectRatio } from '@/components/ui'
@@ -15,14 +12,13 @@ interface BookCardProps {
   reviews?: Review[]
 }
 
-export function BookCard({ book, averageRating = 0, ratings = [], reviews = [] }: BookCardProps) {
-  const [open, setOpen] = useState(false)
+export function BookCard({ book, averageRating = 0 }: BookCardProps) {
+  const href = `/hub/books/${encodeURIComponent(book.slug || book.id)}`
 
   return (
-    <>
+    <a href={href} className="block">
       <Card
-        onClick={() => setOpen(true)}
-        className="cursor-pointer w-[160px] sm:w-[180px] rounded-2xl border bg-card transition-all duration-300 ease-in-out
+        className="w-[160px] sm:w-[180px] rounded-2xl border bg-card transition-all duration-300 ease-in-out
                   hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:border-primary"
       >
         <CardContent className="p-4 flex flex-col items-center text-center space-y-2">
@@ -39,15 +35,6 @@ export function BookCard({ book, averageRating = 0, ratings = [], reviews = [] }
           </div>
         </CardContent>
       </Card>
-
-      <BookModal
-        open={open}
-        onClose={() => setOpen(false)}
-        book={book}
-        ratings={ratings}
-        reviews={reviews}
-        averageRating={averageRating}
-      />
-    </>
+    </a>
   )
 }

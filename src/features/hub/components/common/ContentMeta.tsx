@@ -1,5 +1,4 @@
 import { type HTMLAttributes } from 'react'
-import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { type BaseContent } from '../../types'
 import { formatDistanceToNow } from 'date-fns'
@@ -77,7 +76,7 @@ export function ContentMeta({
       {/* Creator */}
       <div className="flex items-center gap-2">
         {showAvatar && creator && (
-          <Link to={`/creators/${creator.username}`}>
+          <a href={`/creators/${encodeURIComponent(creator.username)}`}>
             <div
               className={cn(
                 sizeClasses[size].avatar,
@@ -94,16 +93,16 @@ export function ContentMeta({
                 <span className="text-xs font-medium">{creator.name.charAt(0)}</span>
               )}
             </div>
-          </Link>
+          </a>
         )}
 
         {creator && (
-          <Link
-            to={`/creators/${creator.username}`}
+          <a
+            href={`/creators/${encodeURIComponent(creator.username)}`}
             className="font-medium text-foreground hover:text-primary transition-colors"
           >
             {creator.name}
-          </Link>
+          </a>
         )}
       </div>
 

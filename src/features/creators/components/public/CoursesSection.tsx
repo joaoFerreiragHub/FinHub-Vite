@@ -38,19 +38,23 @@ const CoursesSection: React.FC<CoursesSectionProps> = ({ courses, onCourseClick 
 
   return (
     <div className="courses-section">
-      <h2 className="courses-title">Cursos e Formações</h2>
+      <h2 className="courses-title">Cursos e Formacoes</h2>
       <div className="courses-grid">
         {courses.map((course) => (
-          <div key={course.id} className="course-card" onClick={() => onCourseClick(course)}>
+          <a
+            key={course.id}
+            href={`/hub/courses/${encodeURIComponent(course.id)}`}
+            onClick={() => onCourseClick(course)}
+            className="course-card block"
+          >
             <img src={course.bannerImage} alt={course.title} className="course-image" />
             <div className="course-details">
               <h3 className="course-name">{course.title}</h3>
               <div className="course-ratings">
                 <RatingDisplay rating={userRatings[course.id] || 0} />
-                {/* <p className="course-average">Média: {userRatings[course.id]?.toFixed(1)}/5</p> */}
               </div>
             </div>
-          </div>
+          </a>
         ))}
       </div>
     </div>

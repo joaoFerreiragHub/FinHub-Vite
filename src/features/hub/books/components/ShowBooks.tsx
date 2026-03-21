@@ -24,7 +24,7 @@ export default function ShowBooks() {
       </div>
 
       <div className="text-center mt-6">
-        <a href="/livros">
+        <a href="/hub/books">
           <Button variant="secondary">Ver Todos os Livros</Button>
         </a>
       </div>

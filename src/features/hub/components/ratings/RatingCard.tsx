@@ -1,5 +1,4 @@
 import { type HTMLAttributes, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { Card } from '@/components/ui'
 import { type Rating, type RatingReaction, type ReviewReactionInput } from '../../types'
@@ -135,7 +134,7 @@ export function RatingCard({
   }
 
   const userName = user?.name ?? user?.username ?? 'Utilizador'
-  const userHandle = user?.username ?? user?.id
+  const userHandle = user?.username ?? user?.id ?? ''
 
   const showLegacyHelpful = showHelpful && !showReactions && !!onMarkHelpful
   const showReviewReactions = showHelpful && showReactions && !isOwner
@@ -145,7 +144,7 @@ export function RatingCard({
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
           {user && (
-            <Link to={`/users/${userHandle}`}>
+            <a href={`/users/${encodeURIComponent(userHandle)}`}>
               <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-primary text-primary-foreground">
                 {user.avatar ? (
                   <img src={user.avatar} alt={userName} className="h-full w-full object-cover" />
@@ -153,17 +152,17 @@ export function RatingCard({
                   <span className="text-sm font-medium">{userName.charAt(0)}</span>
                 )}
               </div>
-            </Link>
+            </a>
           )}
 
           <div>
             {user && (
-              <Link
-                to={`/users/${userHandle}`}
+              <a
+                href={`/users/${encodeURIComponent(userHandle)}`}
                 className="font-medium transition-colors hover:text-primary"
               >
                 {userName}
-              </Link>
+              </a>
             )}
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <RatingStars rating={rating.rating} size="sm" />

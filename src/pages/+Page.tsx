@@ -276,6 +276,7 @@ export function Page() {
     () =>
       (data?.articles ?? []).slice(0, 12).map((item, index) => ({
         id: toCardId(item, index, 'article'),
+        slug: item.slug,
         title: item.title || 'Sem titulo',
         topic: toTopicLabel(item.category),
         imageUrl: item.coverImage || item.imageUrl,

@@ -7,11 +7,15 @@ import { AspectRatio } from '@/components/ui'
 interface CreatorCardMiniProps {
   creator: Creator
   onClick?: () => void
+  href?: string
 }
 
-export function CreatorCardMini({ creator, onClick }: CreatorCardMiniProps) {
+export function CreatorCardMini({ creator, onClick, href }: CreatorCardMiniProps) {
+  const profileHref = href || `/creators/${encodeURIComponent(creator.username)}`
+
   return (
-    <div
+    <a
+      href={profileHref}
       onClick={onClick}
       className="flex items-center gap-4 cursor-pointer p-2 rounded-lg hover:bg-muted transition"
     >
@@ -27,6 +31,6 @@ export function CreatorCardMini({ creator, onClick }: CreatorCardMiniProps) {
         <span className="font-medium text-sm line-clamp-1">{creator.username}</span>
         <RatingDisplay rating={creator.averageRating || 0} />
       </div>
-    </div>
+    </a>
   )
 }

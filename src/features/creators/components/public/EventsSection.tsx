@@ -29,23 +29,26 @@ const EventsSection: React.FC<Props> = ({ events, onEventClick }) => {
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {events.map((event) => (
-          <Card
+          <a
             key={event.id}
+            href="/hub/conteudos/eventos"
             onClick={() => onEventClick(event)}
-            className="cursor-pointer hover:shadow-md transition-shadow"
+            className="block"
           >
-            <img
-              src={event.bannerImage || fallbackImage}
-              alt={event.name}
-              className="w-full h-40 object-cover rounded-t-md"
-            />
-            <CardContent className="p-4 space-y-2">
-              <h4 className="text-lg font-semibold text-foreground">{event.name}</h4>
-              <p className="text-sm text-muted-foreground line-clamp-3">
-                {stripHtml(event.description)}
-              </p>
-            </CardContent>
-          </Card>
+            <Card className="hover:shadow-md transition-shadow">
+              <img
+                src={event.bannerImage || fallbackImage}
+                alt={event.name}
+                className="w-full h-40 object-cover rounded-t-md"
+              />
+              <CardContent className="p-4 space-y-2">
+                <h4 className="text-lg font-semibold text-foreground">{event.name}</h4>
+                <p className="text-sm text-muted-foreground line-clamp-3">
+                  {stripHtml(event.description)}
+                </p>
+              </CardContent>
+            </Card>
+          </a>
         ))}
       </div>
     </section>

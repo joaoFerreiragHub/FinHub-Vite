@@ -3,6 +3,7 @@ import { Eye, Heart, Clock } from 'lucide-react'
 
 interface ArticleCardArticle {
   id: string
+  slug?: string
   title: string
   topic: string
   imageUrl?: string
@@ -34,7 +35,7 @@ function timeAgo(dateStr: string): string {
 export function ArticleCard({ article }: ArticleCardProps) {
   return (
     <a
-      href={`/hub/articles/${article.id}`}
+      href={`/hub/articles/${encodeURIComponent(article.slug || article.id)}`}
       className="content-row__item netflix-card group/card"
       style={{ width: 'clamp(240px, 30vw, 320px)' }}
     >

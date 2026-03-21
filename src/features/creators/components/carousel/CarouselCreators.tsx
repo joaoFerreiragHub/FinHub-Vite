@@ -26,7 +26,7 @@ export function CarouselCreators({ creators, maxToShow = 4 }: CarouselCreatorsPr
       </div>
 
       <div className="text-center mt-6">
-        <a href="/criadores">
+        <a href="/creators">
           <Button variant="secondary">Explora todos os criadores</Button>
         </a>
       </div>

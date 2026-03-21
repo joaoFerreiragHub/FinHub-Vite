@@ -30,7 +30,7 @@ const ArticlesSection: React.FC<ArticlesSectionProps> = ({
           )
           ratings[article.id] = res.data.rating ?? 0
         } catch (error) {
-          console.error(`Erro ao buscar avaliação do artigo ${article.id}:`, error)
+          console.error(`Erro ao buscar avaliacao do artigo ${article.id}:`, error)
         }
       }
 
@@ -50,38 +50,42 @@ const ArticlesSection: React.FC<ArticlesSectionProps> = ({
           const userRating = userRatings[article.id]
           const averageRating = article.averageRating ?? 0
           const imageSrc = article.bannerImage || '/assets/serriquinho.jpg'
+          const articleHref = `/hub/articles/${encodeURIComponent(article.id)}`
 
           return (
-            <Card
+            <a
               key={article.id}
+              href={articleHref}
               onClick={() => onArticleClick(article)}
-              className="cursor-pointer hover:shadow-lg transition duration-300"
+              className="block"
             >
-              <img
-                src={imageSrc}
-                alt={article.title}
-                className="w-full h-40 object-cover rounded-t-lg"
-              />
-              <CardContent className="p-4 space-y-2">
-                <h3 className="font-semibold text-lg line-clamp-2">{article.title}</h3>
+              <Card className="hover:shadow-lg transition duration-300">
+                <img
+                  src={imageSrc}
+                  alt={article.title}
+                  className="w-full h-40 object-cover rounded-t-lg"
+                />
+                <CardContent className="p-4 space-y-2">
+                  <h3 className="font-semibold text-lg line-clamp-2">{article.title}</h3>
 
-                <div className="text-sm text-muted-foreground space-y-2 text-center">
-                  <div>
-                    <p className="font-medium">Média de Avaliações</p>
-                    <RatingDisplay rating={averageRating} />
-                    <p>{averageRating.toFixed(1)}/5</p>
-                  </div>
-
-                  {userRating !== undefined && (
+                  <div className="text-sm text-muted-foreground space-y-2 text-center">
                     <div>
-                      <p className="font-medium">A tua Avaliação</p>
-                      <RatingDisplay rating={userRating} />
-                      <p>{userRating.toFixed(1)}/5</p>
+                      <p className="font-medium">Media de Avaliacoes</p>
+                      <RatingDisplay rating={averageRating} />
+                      <p>{averageRating.toFixed(1)}/5</p>
                     </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+
+                    {userRating !== undefined && (
+                      <div>
+                        <p className="font-medium">A tua Avaliacao</p>
+                        <RatingDisplay rating={userRating} />
+                        <p>{userRating.toFixed(1)}/5</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </a>
           )
         })}
       </div>

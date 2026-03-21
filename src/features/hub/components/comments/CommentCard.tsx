@@ -1,5 +1,4 @@
 import { type HTMLAttributes, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { type Comment } from '../../types'
 import { formatDistanceToNow } from 'date-fns'
@@ -107,7 +106,7 @@ export function CommentCard({
           <div className="flex items-center gap-2">
             {/* Avatar */}
             {user && (
-              <Link to={`/users/${user.username}`}>
+              <a href={`/perfil/${encodeURIComponent(user.username)}`}>
                 <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-primary text-primary-foreground">
                   {user.avatar ? (
                     <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
@@ -115,18 +114,18 @@ export function CommentCard({
                     <span className="text-xs font-medium">{user.name.charAt(0)}</span>
                   )}
                 </div>
-              </Link>
+              </a>
             )}
 
             {/* User info */}
             <div className="text-sm">
               {user && (
-                <Link
-                  to={`/users/${user.username}`}
+                <a
+                  href={`/perfil/${encodeURIComponent(user.username)}`}
                   className="font-medium hover:text-primary transition-colors"
                 >
                   {user.name}
-                </Link>
+                </a>
               )}
               <span className="mx-2 text-muted-foreground">•</span>
               <time dateTime={comment.createdAt} className="text-muted-foreground">
