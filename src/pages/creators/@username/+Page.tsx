@@ -1,11 +1,11 @@
 import CreatorProfilePage from '@/features/creators/pages/CreatorProfilePage'
+import { usePageContext } from '@/renderer/PageShell'
 
 export const passToClient = ['routeParams', 'pageProps', 'user']
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function Page(props: any) {
-  const username =
-    props.pageContext?.routeParams?.username ?? props.routeParams?.username ?? props.username
+export function Page() {
+  const pageContext = usePageContext()
+  const username = (pageContext.routeParams?.username as string) ?? undefined
 
   return <CreatorProfilePage username={username} />
 }

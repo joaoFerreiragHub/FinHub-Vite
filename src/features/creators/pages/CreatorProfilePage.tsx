@@ -62,10 +62,13 @@ const toSocialLinks = (value?: {
 
 export default function CreatorProfilePage({ username }: CreatorProfilePageProps) {
   const creatorPageSurface = usePublicSurfaceControl('creator_page')
+  // Fallback: extract username from URL path /creators/:username
   const rawUsername =
     username ||
     (typeof window !== 'undefined'
-      ? (new URLSearchParams(window.location.search).get('username') ?? '')
+      ? (window.location.pathname.match(/\/creators\/([^/]+)/)?.[1] ??
+        new URLSearchParams(window.location.search).get('username') ??
+        '')
       : '')
   const resolvedUsername = safeDecode(rawUsername.trim())
   const normalizedUsername = resolvedUsername.toLowerCase()
