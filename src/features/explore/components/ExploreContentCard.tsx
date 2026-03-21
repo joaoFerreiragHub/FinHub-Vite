@@ -1,5 +1,4 @@
 import { Eye, Star } from 'lucide-react'
-import { Link } from 'react-router-dom'
 import type { ExploreContentItem } from '@/features/explore/services/publicExploreService'
 
 interface ExploreContentCardProps {
@@ -62,7 +61,7 @@ export function ExploreContentCard({ item }: ExploreContentCardProps) {
 
   return (
     <article className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
-      <Link to={item.href} className="block">
+      <a href={item.href} className="block">
         <div className="relative h-44 overflow-hidden bg-muted">
           {item.coverImage ? (
             <img
@@ -113,7 +112,7 @@ export function ExploreContentCard({ item }: ExploreContentCardProps) {
             </div>
           </div>
         </div>
-      </Link>
+      </a>
     </article>
   )
 }
