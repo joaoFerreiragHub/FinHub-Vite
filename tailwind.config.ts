@@ -124,6 +124,11 @@ const config: Config = {
           4: 'hsl(var(--chart-4) / <alpha-value>)',
           5: 'hsl(var(--chart-5) / <alpha-value>)',
         },
+        market: {
+          bull: '#22C55E',
+          bear: '#EF4444',
+          neutral: '#94A3B8',
+        },
       },
 
       // Font families

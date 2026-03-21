@@ -2,13 +2,13 @@
  * Global Styles - FinHub
  */
 
+/* Import Design Tokens */
+@import './design-tokens.css';
+
 /* Import Tailwind */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import Design Tokens */
-@import './design-tokens.css';
 
 /* ========================================
  * BASE STYLES
@@ -16,6 +16,7 @@
 
 @layer base {
   :root {
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
     --background: 0 0% 100%;
     --foreground: 222.2 47% 8%;
     --card: 0 0% 100%;
@@ -49,9 +50,9 @@
   }
 
   .dark {
-    --background: 224 20% 12%;
+    --background: 222 25% 8%;
     --foreground: 220 20% 92%;
-    --card: 224 15% 16%;
+    --card: 222 20% 11%;
     --card-foreground: 220 20% 92%;
     --popover: 224 15% 16%;
     --popover-foreground: 220 20% 92%;
@@ -71,9 +72,14 @@
     --cancel-foreground: 0 0% 100%;
     --danger: 0 72% 51%;
     --danger-foreground: 0 0% 100%;
-    --border: 224 12% 18%;
-    --input: 224 12% 18%;
+    --border: 220 15% 18%;
+    --input: 220 15% 18%;
     --ring: 220 30% 70%;
+    --chart-1: 217 91% 65%;
+    --chart-2: 160 72% 48%;
+    --chart-3: 38 92% 58%;
+    --chart-4: 0 84% 65%;
+    --chart-5: 270 67% 70%;
   }
 
   * {
@@ -224,6 +230,11 @@
 
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
   }
 }
 

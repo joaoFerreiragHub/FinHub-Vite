@@ -22,7 +22,7 @@ function MetricRow({
   const showIndicator = isGood && rawValue !== undefined && !isNaN(rawValue)
   return (
     <p>
-      <strong>{label}:</strong> {display}
+      <strong>{label}:</strong> <span className="tabular-nums">{display}</span>
       {showIndicator && <IndicatorValue value={rawValue!} isGood={isGood!} />}
     </p>
   )

@@ -16,7 +16,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { MarketsNav } from '@/features/markets/components/MarketsNav'
 import { fetchReitsToolkit } from '@/features/markets/services/marketToolsApi'
-import { getErrorMessage, isNetworkError } from '@/lib/api/client'
+import { isNetworkError } from '@/lib/api/client'
 
 type Frequency = 'Mensal' | 'Trimestral' | 'Semestral' | 'Anual'
 type NavScenario = 'optimistic' | 'base' | 'conservative'
@@ -264,7 +264,9 @@ export default function ReitsToolkitPage() {
           'Nao foi possivel ligar ao backend. Confirma a API em http://localhost:5000 e CORS para a porta atual do frontend.',
         )
       } else {
-        setError(`Nao foi possivel carregar os dados de REIT: ${getErrorMessage(apiError)}`)
+        setError(
+          'Nao foi possivel carregar os dados de REIT. Verifica os endpoints /reits/* no backend.',
+        )
       }
     } finally {
       setLoading(false)

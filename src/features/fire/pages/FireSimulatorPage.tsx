@@ -2,9 +2,9 @@ import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { ArrowDownRight, ArrowUpRight, BarChart3, PlayCircle, Target } from 'lucide-react'
 import { toast } from 'react-toastify'
 import {
+  Area,
+  AreaChart,
   CartesianGrid,
-  Line,
-  LineChart,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui'
+import { ChartTooltip } from '@/components/ui/ChartTooltip'
 import { getErrorMessage } from '@/lib/api/client'
 import { FireToolNav } from '../components/FireToolNav'
 import { useFirePortfolioList, useRunFireSimulation } from '../hooks/useFirePortfolio'
@@ -736,10 +737,30 @@ export default function FireSimulatorPage() {
                       <p className="text-sm font-semibold">Curva de probabilidade por horizonte</p>
                       <div className="mt-3 h-64">
                         <ResponsiveContainer width="100%" height="100%">
-                          <LineChart
+                          <AreaChart
                             data={monteCarloTimelineData}
                             margin={{ top: 12, right: 8, left: 0, bottom: 6 }}
                           >
+                            <defs>
+                              <linearGradient
+                                id="fireProbabilityGradient"
+                                x1="0"
+                                y1="0"
+                                x2="0"
+                                y2="1"
+                              >
+                                <stop
+                                  offset="0%"
+                                  stopColor="hsl(var(--chart-1))"
+                                  stopOpacity={0.42}
+                                />
+                                <stop
+                                  offset="100%"
+                                  stopColor="hsl(var(--chart-1))"
+                                  stopOpacity={0}
+                                />
+                              </linearGradient>
+                            </defs>
                             <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" />
                             <XAxis
                               dataKey="years"
@@ -752,33 +773,38 @@ export default function FireSimulatorPage() {
                               tickFormatter={(value) => `${value}%`}
                             />
                             <Tooltip
-                              formatter={(value) => [
-                                `${Number(value).toFixed(2)}%`,
-                                'Probabilidade',
-                              ]}
-                              labelFormatter={(value) =>
-                                `Horizonte: ${Number(value).toFixed(2)} anos`
+                              content={
+                                <ChartTooltip
+                                  dataset={monteCarloTimelineData as Array<Record<string, unknown>>}
+                                  xDataKey="years"
+                                  deltaDataKey="probabilityPct"
+                                  valueLabel="Probabilidade"
+                                  deltaLabel="Variacao"
+                                  labelFormatter={(value) =>
+                                    `Horizonte: ${Number(value ?? 0).toFixed(2)} anos`
+                                  }
+                                  valueFormatter={(value) => `${value.toFixed(2)}%`}
+                                  deltaFormatter={(delta) =>
+                                    `${delta > 0 ? '+' : ''}${delta.toFixed(2)} pp`
+                                  }
+                                />
                               }
-                              contentStyle={{
-                                borderColor: 'hsl(var(--border))',
-                                backgroundColor: 'hsl(var(--card))',
-                                color: 'hsl(var(--foreground))',
-                              }}
                             />
                             <ReferenceLine
                               y={monteCarloResult.successProbabilityPct}
                               stroke="hsl(var(--muted-foreground))"
                               strokeDasharray="4 4"
                             />
-                            <Line
+                            <Area
                               type="monotone"
                               dataKey="probabilityPct"
                               stroke="hsl(var(--primary))"
+                              fill="url(#fireProbabilityGradient)"
                               strokeWidth={2.5}
-                              dot={{ r: 2 }}
+                              dot={{ r: 1.8 }}
                               activeDot={{ r: 4 }}
                             />
-                          </LineChart>
+                          </AreaChart>
                         </ResponsiveContainer>
                       </div>
                     </div>

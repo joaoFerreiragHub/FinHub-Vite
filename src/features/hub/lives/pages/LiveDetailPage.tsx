@@ -16,12 +16,17 @@ import { Card, Button } from '@/components/ui'
 import { useComments } from '@/features/hub/hooks/useComments'
 import { ContentType } from '@/features/hub/types'
 
+interface LiveDetailPageProps {
+  slug?: string
+}
+
 /**
  * Pagina de detalhe do evento (publica)
  */
-export function LiveDetailPage() {
-  const { slug } = useParams<{ slug: string }>()
-  const { data: live, isLoading, error } = useLive(slug!)
+export function LiveDetailPage({ slug }: LiveDetailPageProps) {
+  const params = useParams<{ slug: string }>()
+  const resolvedSlug = (slug || params.slug || '').trim()
+  const { data: live, isLoading, error } = useLive(resolvedSlug)
   const { role } = usePermissions()
   const { PaywallComponent } = usePaywall()
   const registerMutation = useRegisterLive()

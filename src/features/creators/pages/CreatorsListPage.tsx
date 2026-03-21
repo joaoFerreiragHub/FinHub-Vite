@@ -1,177 +1,141 @@
-import { useMemo, useState } from 'react'
-import { Compass, Sparkles, Users } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { ChangeEvent, FormEvent, useMemo, useState } from 'react'
+import { Compass, Search, Users } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import type { Creator } from '@/features/creators/types/creator'
-import { Button } from '@/components/ui'
+import { Button, Card } from '@/components/ui'
 import LoadingSpinner from '@/components/ui/loading-spinner'
 import { HomepageLayout } from '@/components/home/HomepageLayout'
-import { ContentRow } from '@/components/home/ContentRow'
-import { CreatorCard } from '@/features/creators/components/cards/CreatorCard'
-import { addVisitedTopics } from '@/features/hub/utils/visitedTopics'
-import { useVisitedTopics } from '@/features/hub/hooks/useVisitedTopics'
-import { CreatorModal } from '@/features/creators/components/modals/CreatorModal'
-import { fetchPublicCreators } from '@/features/creators/services/publicCreatorsService'
-import { PageHero, FilterBar } from '@/components/public'
+import { PageHero } from '@/components/public'
 import { PublicSurfaceDisabledState } from '@/features/platform/components/PublicSurfaceDisabledState'
 import { usePublicSurfaceControl } from '@/features/platform/hooks/usePublicSurfaceControl'
+import {
+  fetchCreatorPublicationStats,
+  fetchPublicCreatorsPage,
+  mapCreatorFilterToContentType,
+  PUBLIC_CREATOR_CONTENT_FILTER_OPTIONS,
+  PublicCreatorPublicationStats,
+} from '@/features/creators/services/publicCreatorsService'
 
-const SORT_OPTIONS = [
-  { label: 'Mais populares', value: 'popular' },
+type SortOption = 'followers' | 'rating' | 'newest'
+type CreatorTypeFilter = (typeof PUBLIC_CREATOR_CONTENT_FILTER_OPTIONS)[number]['value']
+
+const PAGE_SIZE = 20
+
+const SORT_OPTIONS: Array<{ label: string; value: SortOption }> = [
+  { label: 'Mais populares', value: 'followers' },
   { label: 'Melhor avaliados', value: 'rating' },
-  { label: 'Mais recentes', value: 'recent' },
+  { label: 'Mais recentes', value: 'newest' },
 ]
 
-export default function CreatorsListPage() {
-  const navigate = useNavigate()
-  const creatorPageSurface = usePublicSurfaceControl('creator_page')
-  const [selectedTopic, setSelectedTopic] = useState('')
-  const [sortOption, setSortOption] = useState('popular')
-  const [selectedRating, setSelectedRating] = useState<number | null>(null)
-  const [selectedFrequency, setSelectedFrequency] = useState('')
-  const [selectedType, setSelectedType] = useState('')
-  const [selectedCreator, setSelectedCreator] = useState<Creator | null>(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  const visitedTopics = useVisitedTopics()
+const typeLabelByKey: Record<'article' | 'video' | 'course' | 'podcast' | 'book', string> = {
+  article: 'Artigos',
+  video: 'Videos',
+  course: 'Cursos',
+  podcast: 'Podcasts',
+  book: 'Livros',
+}
 
-  const mappedSortBy =
-    sortOption === 'rating' ? 'rating' : sortOption === 'recent' ? 'newest' : 'followers'
+const getInitials = (name: string, username: string): string => {
+  const source = name.trim() || username.trim()
+  if (!source) return 'CR'
+  const parts = source.split(/\s+/)
+  const first = parts[0]?.charAt(0) || source.charAt(0)
+  const last = parts.length > 1 ? parts[parts.length - 1]?.charAt(0) : source.charAt(1)
+  return `${first}${last || ''}`.toUpperCase()
+}
+
+const formatDate = (value?: string): string => {
+  if (!value) return 'Data indisponivel'
+  const parsed = Date.parse(value)
+  if (!Number.isFinite(parsed)) return 'Data indisponivel'
+  return new Date(parsed).toLocaleDateString('pt-PT')
+}
+
+export default function CreatorsListPage() {
+  const creatorPageSurface = usePublicSurfaceControl('creator_page')
+  const [searchDraft, setSearchDraft] = useState('')
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [sortBy, setSortBy] = useState<SortOption>('followers')
+  const [typeFilter, setTypeFilter] = useState<CreatorTypeFilter>('todos')
 
   const creatorsQuery = useQuery({
-    queryKey: ['public-creators', mappedSortBy, selectedRating, searchTerm],
+    queryKey: ['public-creators-page', page, sortBy, search],
     queryFn: () =>
-      fetchPublicCreators({
-        search: searchTerm || undefined,
-        minRating: selectedRating ?? undefined,
-        sortBy: mappedSortBy,
+      fetchPublicCreatorsPage({
+        page,
+        limit: PAGE_SIZE,
+        search: search || undefined,
+        sortBy,
         sortOrder: 'desc',
-        limit: 120,
       }),
     staleTime: 60 * 1000,
     retry: 1,
   })
 
-  const apiCreators = useMemo(() => creatorsQuery.data ?? [], [creatorsQuery.data])
+  const creators = useMemo(() => creatorsQuery.data?.items ?? [], [creatorsQuery.data])
+  const creatorIds = useMemo(() => creators.map((creator) => creator.id), [creators])
 
-  const creators = useMemo(() => {
-    let filtered = [...apiCreators]
-
-    if (selectedTopic) {
-      filtered = filtered.filter((creator) =>
-        creator.topics.length > 0 ? creator.topics.includes(selectedTopic) : true,
+  const publicationsQuery = useQuery({
+    queryKey: ['public-creators-publications', creatorIds.join(',')],
+    queryFn: async () => {
+      const rows = await Promise.all(
+        creatorIds.map(async (creatorId) => {
+          const stats = await fetchCreatorPublicationStats(creatorId)
+          return [creatorId, stats] as const
+        }),
       )
-    }
 
-    if (selectedRating !== null) {
-      filtered = filtered.filter((creator) => (creator.averageRating ?? 0) >= selectedRating)
-    }
-
-    if (selectedFrequency === 'daily') {
-      filtered = filtered.filter((creator) => {
-        const value = (creator.publicationFrequency ?? '').toLowerCase()
-        return value ? value.startsWith('di') : true
-      })
-    } else if (selectedFrequency === 'weekly') {
-      filtered = filtered.filter((creator) => {
-        const value = (creator.publicationFrequency ?? '').toLowerCase()
-        return value ? value.startsWith('se') : true
-      })
-    }
-
-    if (selectedType) {
-      filtered = filtered.filter((creator) =>
-        creator.typeOfContent?.toLowerCase()
-          ? creator.typeOfContent.toLowerCase() === selectedType.toLowerCase()
-          : true,
+      return rows.reduce<Record<string, PublicCreatorPublicationStats>>(
+        (acc, [creatorId, stats]) => {
+          acc[creatorId] = stats
+          return acc
+        },
+        {},
       )
+    },
+    enabled: creatorIds.length > 0,
+    staleTime: 60 * 1000,
+    retry: 1,
+  })
+
+  const statsByCreator = useMemo(() => publicationsQuery.data ?? {}, [publicationsQuery.data])
+  const selectedContentType = mapCreatorFilterToContentType(typeFilter)
+
+  const filteredCreators = useMemo(() => {
+    if (!selectedContentType) {
+      return creators
     }
 
-    if (sortOption === 'rating') {
-      filtered.sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0))
-    } else if (sortOption === 'recent') {
-      filtered.sort(
-        (a, b) => (Date.parse(b.createdAt ?? '') || 0) - (Date.parse(a.createdAt ?? '') || 0),
-      )
-    } else {
-      filtered.sort(
-        (a, b) =>
-          (b.followersCount ?? b.followers?.length ?? 0) -
-          (a.followersCount ?? a.followers?.length ?? 0),
-      )
-    }
+    return creators.filter((creator) => {
+      const stats = statsByCreator[creator.id]
+      if (stats) {
+        return stats[selectedContentType] > 0
+      }
 
-    return filtered
-  }, [apiCreators, selectedFrequency, selectedRating, selectedTopic, selectedType, sortOption])
+      return creator.contentTypes.includes(selectedContentType)
+    })
+  }, [creators, selectedContentType, statsByCreator])
 
-  const topics = useMemo(
-    () =>
-      Array.from(new Set(creators.flatMap((creator) => creator.topics))).map((topic) => ({
-        label: topic,
-        value: topic,
-      })),
-    [creators],
-  )
-
-  const handleSearch = (query: string) => {
-    const cleanQuery = query.trim().toLowerCase()
-    if (!cleanQuery) return
-    const found = creators.find((creator) => creator.username.toLowerCase().includes(cleanQuery))
-    if (found) {
-      navigate(`/criadores/${encodeURIComponent(found.username)}`)
-    }
+  const handleSubmitSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setPage(1)
+    setSearch(searchDraft.trim())
   }
 
-  const openCreatorModal = (creator: Creator) => {
-    addVisitedTopics(creator.topics)
-    setSelectedCreator(creator)
+  const handleChangeSort = (event: ChangeEvent<HTMLSelectElement>) => {
+    setPage(1)
+    setSortBy(event.target.value as SortOption)
   }
 
-  const toggleFilters = [
-    { label: 'Videos', key: 'videos', active: selectedType === 'videos' },
-    { label: 'Artigos', key: 'artigos', active: selectedType === 'artigos' },
-    { label: 'Cursos', key: 'cursos', active: selectedType === 'cursos' },
-    { label: 'Diario', key: 'daily', active: selectedFrequency === 'daily' },
-    { label: 'Semanal', key: 'weekly', active: selectedFrequency === 'weekly' },
-    { label: 'Rating 4+', key: 'rating4', active: selectedRating === 4 },
-    { label: 'Rating 5', key: 'rating5', active: selectedRating === 5 },
-  ]
-
-  const handleToggleFilter = (key: string) => {
-    if (['videos', 'artigos', 'cursos'].includes(key)) {
-      setSelectedType(selectedType === key ? '' : key)
-    } else if (['daily', 'weekly'].includes(key)) {
-      setSelectedFrequency(selectedFrequency === key ? '' : key)
-    } else if (key === 'rating4') {
-      setSelectedRating(selectedRating === 4 ? null : 4)
-    } else if (key === 'rating5') {
-      setSelectedRating(selectedRating === 5 ? null : 5)
-    }
+  const handleChangeType = (value: CreatorTypeFilter) => {
+    setPage(1)
+    setTypeFilter(value)
   }
 
-  const hasActiveFilters = !!(selectedTopic || selectedType || selectedFrequency || selectedRating)
-
-  const handleClearFilters = () => {
-    setSelectedTopic('')
-    setSelectedType('')
-    setSelectedFrequency('')
-    setSelectedRating(null)
-    setSearchTerm('')
-  }
-
-  const byVisitedTopics = creators.filter((creator) =>
-    visitedTopics.some((visitedTopic) => creator.topics.includes(visitedTopic)),
-  )
-
-  const topCreators = (byVisitedTopics.length > 0 ? byVisitedTopics : creators).slice(0, 8)
-  const topicCreators = selectedTopic
-    ? creators.filter((creator) => creator.topics.includes(selectedTopic)).slice(0, 8)
-    : []
-  const similarCreators = (byVisitedTopics.length > 0 ? byVisitedTopics : creators).slice(0, 8)
-  const recommendedCreators = [...creators]
-    .sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0))
-    .slice(0, 8)
-
-  const premiumCreators = creators.filter((creator) => creator.isPremium).length
+  const pagination = creatorsQuery.data?.pagination
+  const pageLabel = pagination
+    ? `Pagina ${pagination.page} de ${pagination.pages}`
+    : 'Pagina 1 de 1'
   const loading = creatorsQuery.isLoading
 
   if (creatorPageSurface.data && !creatorPageSurface.data.enabled) {
@@ -193,143 +157,204 @@ export default function CreatorsListPage() {
       <div className="min-h-screen bg-background">
         <PageHero
           title="Criadores em destaque"
-          subtitle="Descobre os educadores da comunidade e encontra quem encaixa no teu estilo de aprendizagem."
+          subtitle="Explora perfis publicos, acompanha novos especialistas e encontra o teu estilo de aprendizagem."
           searchPlaceholder="Pesquisar criadores por nome..."
-          searchValue={searchTerm}
-          onSearchChange={setSearchTerm}
-          onSearch={handleSearch}
-          categories={topics}
-          activeCategory={selectedTopic}
-          onCategoryChange={setSelectedTopic}
-          backgroundImage="https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?w=1800&q=80"
+          searchValue={searchDraft}
+          onSearchChange={setSearchDraft}
+          onSearch={() => {
+            setPage(1)
+            setSearch(searchDraft.trim())
+          }}
+          backgroundImage="https://images.unsplash.com/photo-1487017159836-4e23ece2e4cf?w=1800&q=80"
         >
           <div className="flex flex-wrap justify-center gap-2">
             <span className="filter-bar__pill border-border/40 bg-background/60 text-foreground">
               <Users className="mr-1 h-3.5 w-3.5" />
-              {creators.length} criadores
-            </span>
-            <span className="filter-bar__pill border-border/40 bg-background/60 text-foreground">
-              <Sparkles className="mr-1 h-3.5 w-3.5" />
-              {premiumCreators} premium
+              {pagination?.total ?? creators.length} criadores
             </span>
             <span className="filter-bar__pill border-border/40 bg-background/60 text-foreground">
               <Compass className="mr-1 h-3.5 w-3.5" />
-              Navegacao rapida por tema
+              Lista publica paginada
             </span>
           </div>
         </PageHero>
 
-        <FilterBar
-          sortOptions={SORT_OPTIONS}
-          sortValue={sortOption}
-          onSortChange={setSortOption}
-          toggleFilters={toggleFilters}
-          onToggleFilter={handleToggleFilter}
-          resultCount={creators.length}
-          resultLabel="Criadores"
-          hasActiveFilters={hasActiveFilters}
-          onClearFilters={handleClearFilters}
-        />
+        <section className="space-y-4 px-4 py-6 sm:px-6 md:px-10 lg:px-12">
+          <form
+            onSubmit={handleSubmitSearch}
+            className="flex flex-col gap-3 md:flex-row md:items-center"
+          >
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                value={searchDraft}
+                onChange={(event) => setSearchDraft(event.target.value)}
+                placeholder="Pesquisar criador por nome ou username"
+                className="h-10 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
+              />
+            </div>
 
-        <div className="space-y-2 pt-6">
+            <Button type="submit" size="sm">
+              Aplicar pesquisa
+            </Button>
+
+            <select
+              value={sortBy}
+              onChange={handleChangeSort}
+              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              {SORT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </form>
+
+          <div className="flex flex-wrap gap-2">
+            {PUBLIC_CREATOR_CONTENT_FILTER_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => handleChangeType(option.value)}
+                className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                  option.value === typeFilter
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'border-border bg-background text-muted-foreground hover:border-primary/40'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="px-4 pb-12 sm:px-6 md:px-10 lg:px-12">
           {creatorsQuery.isError ? (
-            <div className="mx-4 rounded-md border border-red-500/40 bg-red-500/10 p-3 text-xs text-red-300 sm:mx-6 md:mx-10 lg:mx-12">
+            <div className="mb-4 rounded-md border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300">
               Nao foi possivel carregar a lista de criadores da API neste momento.
             </div>
           ) : null}
 
-          {topCreators.length > 0 && (
-            <ContentRow title="Top criadores da semana">
-              {topCreators.map((creator) => (
-                <CreatorCard
-                  key={creator._id}
-                  creator={creator}
-                  variant="row"
-                  onOpenModal={() => openCreatorModal(creator)}
-                />
-              ))}
-            </ContentRow>
-          )}
-
-          {topicCreators.length > 0 && (
-            <ContentRow title={`Novos criadores em ${selectedTopic}`}>
-              {topicCreators.map((creator) => (
-                <CreatorCard
-                  key={creator._id}
-                  creator={creator}
-                  variant="row"
-                  onOpenModal={() => openCreatorModal(creator)}
-                />
-              ))}
-            </ContentRow>
-          )}
-
-          {similarCreators.length > 0 && (
-            <ContentRow title="Criadores semelhantes aos que visitaste">
-              {similarCreators.map((creator) => (
-                <CreatorCard
-                  key={creator._id}
-                  creator={creator}
-                  variant="row"
-                  onOpenModal={() => openCreatorModal(creator)}
-                />
-              ))}
-            </ContentRow>
-          )}
-
-          {recommendedCreators.length > 0 && (
-            <ContentRow title="Recomendado para ti">
-              {recommendedCreators.map((creator) => (
-                <CreatorCard
-                  key={creator._id}
-                  creator={creator}
-                  variant="row"
-                  onOpenModal={() => openCreatorModal(creator)}
-                />
-              ))}
-            </ContentRow>
-          )}
-        </div>
-
-        <section className="px-4 py-8 sm:px-6 md:px-10 lg:px-12">
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-foreground">Todos os criadores</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Explora perfis, abre o detalhe e escolhe quem queres seguir.
-            </p>
-          </div>
-
           {loading ? (
-            <div className="flex justify-center py-16">
+            <div className="flex justify-center py-20">
               <LoadingSpinner />
             </div>
-          ) : creators.length === 0 ? (
-            <p className="py-16 text-center text-muted-foreground">Nenhum criador encontrado.</p>
+          ) : filteredCreators.length === 0 ? (
+            <div className="rounded-lg border border-border bg-card/70 p-10 text-center text-sm text-muted-foreground">
+              Nenhum criador encontrado com os filtros selecionados.
+            </div>
           ) : (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {creators.map((creator) => (
-                <CreatorCard
-                  key={creator._id}
-                  creator={creator}
-                  onOpenModal={() => openCreatorModal(creator)}
-                />
-              ))}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {filteredCreators.map((creator) => {
+                const stats = statsByCreator[creator.id]
+                const publicationCount =
+                  creator.publicationsCount !== null ? creator.publicationsCount : stats?.total
+                const publicationLabel =
+                  typeof publicationCount === 'number'
+                    ? publicationCount
+                    : publicationsQuery.isLoading
+                      ? '...'
+                      : '--'
+
+                return (
+                  <a
+                    key={creator.id}
+                    href={`/creators/${encodeURIComponent(creator.username)}`}
+                    className="group block"
+                  >
+                    <Card className="h-full border-border/70 bg-card/70 p-5 transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10">
+                      <div className="flex items-start gap-4">
+                        {creator.avatar ? (
+                          <img
+                            src={creator.avatar}
+                            alt={creator.name}
+                            className="h-14 w-14 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted text-sm font-semibold text-muted-foreground">
+                            {getInitials(creator.name, creator.username)}
+                          </div>
+                        )}
+
+                        <div className="min-w-0 flex-1">
+                          <h3 className="truncate text-base font-semibold text-foreground">
+                            {creator.name}
+                          </h3>
+                          <p className="truncate text-xs text-muted-foreground">
+                            @{creator.username}
+                          </p>
+                          <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+                            {creator.bio || 'Criador da comunidade FinHub.'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 grid grid-cols-2 gap-3 rounded-md border border-border/60 bg-background/60 p-3 text-sm">
+                        <div>
+                          <p className="text-xs uppercase text-muted-foreground">Seguidores</p>
+                          <p className="tabular-nums font-semibold text-foreground">
+                            {creator.followersCount}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase text-muted-foreground">Publicacoes</p>
+                          <p className="tabular-nums font-semibold text-foreground">
+                            {publicationLabel}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
+                        <span>Rating {creator.ratingAverage.toFixed(1)}</span>
+                        <span>Criado em {formatDate(creator.createdAt)}</span>
+                      </div>
+
+                      {creator.contentTypes.length > 0 ? (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {creator.contentTypes.map((type) => (
+                            <span
+                              key={`${creator.id}-${type}`}
+                              className="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground"
+                            >
+                              {typeLabelByKey[type]}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                    </Card>
+                  </a>
+                )
+              })}
             </div>
           )}
+
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/70 bg-card/60 px-4 py-3 text-sm">
+            <p className="text-muted-foreground">{pageLabel}</p>
+
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={!pagination || pagination.page <= 1}
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
+              >
+                Pagina anterior
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={!pagination || pagination.page >= pagination.pages}
+                onClick={() => setPage((current) => current + 1)}
+              >
+                Pagina seguinte
+              </Button>
+            </div>
+          </div>
         </section>
-
-        <div className="pb-16 text-center">
-          <Button variant="secondary">Explorar mais criadores</Button>
-        </div>
       </div>
-
-      {selectedCreator && (
-        <CreatorModal
-          open={true}
-          onClose={() => setSelectedCreator(null)}
-          creator={selectedCreator}
-        />
-      )}
     </HomepageLayout>
   )
 }

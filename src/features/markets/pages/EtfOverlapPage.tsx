@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { AlertCircle, BarChart3, Loader2, RefreshCw, Waypoints } from 'lucide-react'
 import { Badge, Button, Card, CardContent, Input, Label } from '@/components/ui'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { MarketsNav } from '@/features/markets/components/MarketsNav'
 import { fetchEtfOverlap, type EtfSectorWeight } from '@/features/markets/services/marketToolsApi'
 
@@ -124,6 +125,13 @@ export default function EtfOverlapPage() {
               ETF overlap
             </Badge>
           </div>
+          <Alert variant="warning" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Os dados de sobreposição são estimativas baseadas em amostragem e podem não refletir a
+              composição real dos ETFs. Não constituem aconselhamento financeiro.
+            </AlertDescription>
+          </Alert>
           <MarketsNav />
         </section>
 
@@ -202,7 +210,9 @@ export default function EtfOverlapPage() {
               <Card className="border border-border/60 bg-card/75">
                 <CardContent className="space-y-2 p-5">
                   <p className="text-sm text-muted-foreground">Sobreposicao setorial</p>
-                  <p className="text-2xl font-semibold">{totalOverlap?.toFixed(2) ?? '0.00'}%</p>
+                  <p className="text-2xl font-semibold tabular-nums">
+                    {totalOverlap?.toFixed(2) ?? '0.00'}%
+                  </p>
                 </CardContent>
               </Card>
             </section>
@@ -228,7 +238,7 @@ export default function EtfOverlapPage() {
                         <div key={holding.name} className="space-y-1">
                           <div className="flex items-center justify-between gap-3 text-sm">
                             <span className="truncate text-muted-foreground">{holding.name}</span>
-                            <span className="font-medium text-foreground">
+                            <span className="font-medium text-foreground tabular-nums">
                               {holding.weight.toFixed(2)}%
                             </span>
                           </div>
@@ -253,7 +263,9 @@ export default function EtfOverlapPage() {
                 <CardContent className="space-y-4 p-6">
                   <div className="flex items-center justify-between">
                     <h2 className="text-lg font-semibold">Overlap por setor</h2>
-                    <Badge variant="secondary">Max: {topSectorOverlap.toFixed(2)}%</Badge>
+                    <Badge variant="secondary" className="tabular-nums">
+                      Max: {topSectorOverlap.toFixed(2)}%
+                    </Badge>
                   </div>
                   {sectorRows.length > 0 ? (
                     <div className="space-y-3">
@@ -261,18 +273,18 @@ export default function EtfOverlapPage() {
                         <div key={row.sector} className="rounded-lg border border-border/70 p-3">
                           <div className="mb-2 flex items-center justify-between gap-3">
                             <span className="truncate text-sm font-medium">{row.sector}</span>
-                            <span className="text-sm text-muted-foreground">
+                            <span className="text-sm text-muted-foreground tabular-nums">
                               overlap {row.overlap.toFixed(2)}%
                             </span>
                           </div>
                           <div className="grid gap-1 text-xs text-muted-foreground">
                             <div className="flex items-center justify-between">
                               <span>{etf1.trim().toUpperCase()}</span>
-                              <span>{row.etf1Weight.toFixed(2)}%</span>
+                              <span className="tabular-nums">{row.etf1Weight.toFixed(2)}%</span>
                             </div>
                             <div className="flex items-center justify-between">
                               <span>{etf2.trim().toUpperCase()}</span>
-                              <span>{row.etf2Weight.toFixed(2)}%</span>
+                              <span className="tabular-nums">{row.etf2Weight.toFixed(2)}%</span>
                             </div>
                           </div>
                         </div>

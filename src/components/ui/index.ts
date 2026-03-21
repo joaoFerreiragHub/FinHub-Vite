@@ -8,6 +8,7 @@
 // CORE - Most used
 export * from './button'
 export * from './card'
+export * from './MetricCard'
 export * from './separator'
 export * from './loading'
 export * from './aspect-ratio'
@@ -27,6 +28,7 @@ export * from './popover'
 export * from './tabs'
 export * from './calendar'
 export * from './tooltip'
+export * from './ChartTooltip'
 
 // NAVIGATION
 export * from './carousel'
@@ -61,6 +63,7 @@ export * from './toggle-group'
 // export * from './toggle-group'
 // export * from './calendar'
 // export * from './tooltip'
+// export * from './ChartTooltip'
 // export * from './command'
 // export * from './collapsible'
 // export { default as LoadingSpinner } from './loading-spinner'

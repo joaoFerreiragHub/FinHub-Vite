@@ -91,15 +91,17 @@ export function ValuationSimulator({
         {valuation && (
           <div className="text-sm mt-2">
             <p>
-              <strong>Valuation estimado:</strong> ${valuation.toFixed(2)}
+              <strong>Valuation estimado:</strong>{' '}
+              <span className="tabular-nums">${valuation.toFixed(2)}</span>
             </p>
             <p>
-              <strong>Preço atual:</strong> ${precoAtual.toFixed(2)}
+              <strong>Preço atual:</strong>{' '}
+              <span className="tabular-nums">${precoAtual.toFixed(2)}</span>
             </p>
             <p className="flex items-center gap-1">
               Diferença:
               <IndicatorValue value={valuation} isGood={(v) => v > precoAtual} />
-              <span className="ml-1">
+              <span className="ml-1 tabular-nums">
                 {(((valuation - precoAtual) / precoAtual) * 100).toFixed(2)}%
               </span>
             </p>

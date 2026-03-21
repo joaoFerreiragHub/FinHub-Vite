@@ -10,6 +10,9 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from '../lib/react-query-client'
 import { TooltipProvider } from '@radix-ui/react-tooltip'
 import { DevUserSwitcher } from '../shared/dev'
+import { Router, createPath, type Navigator, type To } from 'react-router-dom'
+import { HelmetProvider } from '@/lib/helmet'
+import { navigate as vikeNavigate } from 'vike/client/router'
 
 // Create PageContext for component consumption
 const PageContextContext = React.createContext<PageContext | null>(null)
@@ -25,6 +28,133 @@ export function usePageContext() {
 interface Props {
   children: React.ReactNode
   pageContext: PageContext
+}
+
+const isExternalHref = (href: string): boolean => /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(href)
+
+const toRouterLocation = (pageContext: PageContext) => {
+  const candidate = pageContext.urlOriginal ?? pageContext.urlPathname ?? '/'
+  const fallbackPath = pageContext.urlPathname ?? '/'
+
+  const parsedUrl = (() => {
+    try {
+      return new URL(candidate.startsWith('/') ? `http://localhost${candidate}` : candidate)
+    } catch {
+      return new URL(`http://localhost${fallbackPath}`)
+    }
+  })()
+
+  return {
+    pathname: parsedUrl.pathname,
+    search: parsedUrl.search,
+    hash: parsedUrl.hash,
+  }
+}
+
+const readHistoryUserState = (): unknown => {
+  if (typeof window === 'undefined') {
+    return null
+  }
+  if (!window.history.state || typeof window.history.state !== 'object') {
+    return null
+  }
+
+  return (window.history.state as Record<string, unknown>).usr ?? null
+}
+
+const persistHistoryUserState = (state: unknown) => {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  const currentState =
+    window.history.state && typeof window.history.state === 'object'
+      ? (window.history.state as Record<string, unknown>)
+      : {}
+
+  if (state === undefined) {
+    if (!('usr' in currentState)) {
+      return
+    }
+    const rest = { ...currentState }
+    delete rest['usr']
+    window.history.replaceState(
+      rest,
+      '',
+      `${window.location.pathname}${window.location.search}${window.location.hash}`,
+    )
+    return
+  }
+
+  window.history.replaceState(
+    { ...currentState, usr: state },
+    '',
+    `${window.location.pathname}${window.location.search}${window.location.hash}`,
+  )
+}
+
+const toHref = (to: To): string => (typeof to === 'string' ? to : createPath(to))
+
+function VikeRouter({
+  pageContext,
+  children,
+}: {
+  pageContext: PageContext
+  children: React.ReactNode
+}) {
+  const locationBase = toRouterLocation(pageContext)
+  const location = {
+    ...locationBase,
+    state: readHistoryUserState(),
+    key: `${locationBase.pathname}${locationBase.search}${locationBase.hash}`,
+  }
+
+  const navigator = React.useMemo<Navigator>(
+    () => ({
+      createHref(to: To) {
+        return toHref(to)
+      },
+      push(to: To, state?: unknown) {
+        const href = toHref(to)
+        if (typeof window === 'undefined') {
+          return
+        }
+        if (isExternalHref(href)) {
+          window.location.assign(href)
+          return
+        }
+        void vikeNavigate(href).then(() => {
+          persistHistoryUserState(state)
+        })
+      },
+      replace(to: To, state?: unknown) {
+        const href = toHref(to)
+        if (typeof window === 'undefined') {
+          return
+        }
+        if (isExternalHref(href)) {
+          window.location.replace(href)
+          return
+        }
+        void vikeNavigate(href, { overwriteLastHistoryEntry: true }).then(() => {
+          persistHistoryUserState(state)
+        })
+      },
+      go(delta: number) {
+        if (typeof window === 'undefined') {
+          return
+        }
+        window.history.go(delta)
+      },
+    }),
+    [],
+  )
+
+  return (
+    <Router location={location} navigationType="POP" navigator={navigator}>
+      {children}
+    </Router>
+  )
 }
 
 export function PageShell({ children, pageContext }: Props) {
@@ -52,26 +182,30 @@ export function PageShell({ children, pageContext }: Props) {
   const Layout = useAuthLayout ? UserLayout : PublicLayout
 
   return (
-    <PageContextContext.Provider value={pageContext}>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <TooltipProvider>
-            <Layout>
-              {children}
-              <ToastContainer
-                position="top-right"
-                autoClose={3000}
-                hideProgressBar={false}
-                closeOnClick
-                pauseOnHover
-                theme="colored"
-              />
-            </Layout>
-            {/* Dev Tools - Só aparece em desenvolvimento */}
-            <DevUserSwitcher />
-          </TooltipProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </PageContextContext.Provider>
+    <HelmetProvider>
+      <VikeRouter pageContext={pageContext}>
+        <PageContextContext.Provider value={pageContext}>
+          <QueryClientProvider client={queryClient}>
+            <ThemeProvider>
+              <TooltipProvider>
+                <Layout>
+                  {children}
+                  <ToastContainer
+                    position="top-right"
+                    autoClose={3000}
+                    hideProgressBar={false}
+                    closeOnClick
+                    pauseOnHover
+                    theme="colored"
+                  />
+                </Layout>
+                {/* Dev Tools - Só aparece em desenvolvimento */}
+                <DevUserSwitcher />
+              </TooltipProvider>
+            </ThemeProvider>
+          </QueryClientProvider>
+        </PageContextContext.Provider>
+      </VikeRouter>
+    </HelmetProvider>
   )
 }

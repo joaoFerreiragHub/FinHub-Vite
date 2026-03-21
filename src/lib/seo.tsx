@@ -1,5 +1,5 @@
 // src/lib/SEO.tsx
-import { Helmet } from 'react-helmet-async'
+import { Helmet } from '@/lib/helmet'
 
 type Props = {
   title: string

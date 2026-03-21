@@ -78,6 +78,22 @@ interface OwnershipTransferState {
   createdAt: string
 }
 
+interface AuditLogState {
+  id: string
+  action: string
+  resourceType: string
+  resourceId: string | null
+  actor: {
+    id: string
+    username: string
+    name: string
+    email: string
+    role: string
+  }
+  metadata: Record<string, unknown> | null
+  createdAt: string
+}
+
 interface EditorialFlowState {
   claim: ClaimState | null
   transfers: OwnershipTransferState[]
@@ -90,6 +106,8 @@ interface EditorialFlowState {
     role: string
   } | null
   transferSequence: number
+  auditLogs?: AuditLogState[]
+  auditSequence?: number
 }
 
 const NOW = new Date().toISOString()
@@ -186,6 +204,53 @@ const normalizePagination = (
   }
 }
 
+const ensureAuditState = (state: EditorialFlowState) => {
+  if (!Array.isArray(state.auditLogs)) {
+    state.auditLogs = []
+  }
+
+  if (typeof state.auditSequence !== 'number' || !Number.isFinite(state.auditSequence)) {
+    state.auditSequence = 0
+  }
+}
+
+const recordAuditLog = ({
+  state,
+  action,
+  resourceType,
+  resourceId,
+  actor,
+  metadata = null,
+}: {
+  state: EditorialFlowState
+  action: string
+  resourceType: string
+  resourceId: string | null
+  actor: {
+    id: string
+    username: string
+    name: string
+    email: string
+    role: string
+  }
+  metadata?: Record<string, unknown> | null
+}) => {
+  ensureAuditState(state)
+  state.auditSequence = (state.auditSequence ?? 0) + 1
+
+  const entry: AuditLogState = {
+    id: `audit-log-e2e-${state.auditSequence}`,
+    action,
+    resourceType,
+    resourceId,
+    actor,
+    metadata,
+    createdAt: new Date().toISOString(),
+  }
+
+  state.auditLogs = [entry, ...(state.auditLogs ?? [])]
+}
+
 const installCreatorEditorialApiMocks = async (page: Page, state: EditorialFlowState) => {
   await page.route('**/api/auth/assisted-sessions/**', async (route) => {
     await fulfillJson(route, { items: [], total: 0 })
@@ -231,11 +296,18 @@ const installCreatorEditorialApiMocks = async (page: Page, state: EditorialFlowS
         note?: string
       }
 
+      const requestedTargetId = payload.targetId ?? TARGET_ID
+
+      if (state.claim && state.claim.targetId === requestedTargetId) {
+        await fulfillJson(route, state.claim)
+        return
+      }
+
       const createdAt = new Date().toISOString()
       state.claim = {
         id: CLAIM_ID,
         targetType: 'directory_entry',
-        targetId: payload.targetId ?? TARGET_ID,
+        targetId: requestedTargetId,
         status: 'pending',
         reason: payload.reason ?? CLAIM_REASON,
         note: typeof payload.note === 'string' ? payload.note : null,
@@ -248,6 +320,18 @@ const installCreatorEditorialApiMocks = async (page: Page, state: EditorialFlowS
         createdAt,
         updatedAt: createdAt,
       }
+
+      recordAuditLog({
+        state,
+        action: 'editorial.claims.create',
+        resourceType: 'claim_request',
+        resourceId: state.claim.id,
+        actor: creatorUser,
+        metadata: {
+          targetType: state.claim.targetType,
+          targetId: state.claim.targetId,
+        },
+      })
 
       await fulfillJson(route, state.claim)
       return
@@ -331,6 +415,31 @@ const installAdminEditorialApiMocks = async (page: Page, state: EditorialFlowSta
       state.currentOwnerUser = creatorUser
       state.transfers = [transferLog, ...state.transfers]
 
+      recordAuditLog({
+        state,
+        action: 'admin.claims.approve',
+        resourceType: 'claim_request',
+        resourceId: state.claim.id,
+        actor: adminUser,
+        metadata: {
+          targetType: state.claim.targetType,
+          targetId: state.claim.targetId,
+        },
+      })
+
+      recordAuditLog({
+        state,
+        action: 'admin.ownership.transfer',
+        resourceType: 'ownership_transfer',
+        resourceId: transferLogId,
+        actor: adminUser,
+        metadata: {
+          targetType: transferLog.targetType,
+          targetId: transferLog.targetId,
+          reason: transferLog.reason,
+        },
+      })
+
       await fulfillJson(route, {
         claim: state.claim,
         transfer: {
@@ -399,6 +508,19 @@ const installAdminEditorialApiMocks = async (page: Page, state: EditorialFlowSta
       state.currentOwnerUser = nextOwnerUser
       state.transfers = [transferLog, ...state.transfers]
 
+      recordAuditLog({
+        state,
+        action: 'admin.ownership.transfer',
+        resourceType: 'ownership_transfer',
+        resourceId: transferLogId,
+        actor: adminUser,
+        metadata: {
+          targetType: transferLog.targetType,
+          targetId: transferLog.targetId,
+          reason: transferLog.reason,
+        },
+      })
+
       await fulfillJson(route, {
         changed,
         targetType: transferLog.targetType,
@@ -409,6 +531,31 @@ const installAdminEditorialApiMocks = async (page: Page, state: EditorialFlowSta
         toOwnerUserId: transferLog.toOwnerUser?.id ?? null,
         transferLogId,
         transferAt,
+      })
+      return
+    }
+
+    if (method === 'GET' && pathname.endsWith('/api/admin/audit-logs')) {
+      ensureAuditState(state)
+      const actionFilter = (searchParams.get('action') ?? '').trim()
+      const filteredItems = (state.auditLogs ?? []).filter((item) =>
+        actionFilter.length > 0 ? item.action === actionFilter : true,
+      )
+
+      const paginationMeta = normalizePagination(
+        searchParams.get('page'),
+        searchParams.get('limit'),
+        filteredItems.length,
+      )
+
+      await fulfillJson(route, {
+        items: filteredItems.slice(paginationMeta.slice.start, paginationMeta.slice.end),
+        pagination: {
+          page: paginationMeta.page,
+          limit: paginationMeta.limit,
+          total: filteredItems.length,
+          pages: paginationMeta.pages,
+        },
       })
       return
     }
@@ -558,5 +705,189 @@ test.describe('Admin Editorial P4 - E2E claim -> review -> transfer', () => {
     await expect(adminPage.getByText(APPROVE_TRANSFER_REASON)).toBeVisible()
 
     await adminPage.close()
+  })
+
+  test('audit log regista acoes editoriais de claim e transfer', async ({ page }) => {
+    const state: EditorialFlowState = {
+      claim: null,
+      transfers: [],
+      currentOwnerType: 'admin_seeded',
+      currentOwnerUser: null,
+      transferSequence: 0,
+    }
+
+    await page.goto('/')
+    await setSessionStorage(page, {
+      userId: creatorUser.id,
+      name: creatorUser.name,
+      email: creatorUser.email,
+      username: creatorUser.username,
+      role: 'creator',
+    })
+    await installCreatorEditorialApiMocks(page, state)
+    await page.reload()
+
+    const createdClaim = await page.evaluate(
+      async ({ targetId, reason }) => {
+        const response = await fetch('/api/editorial/claims', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            targetType: 'directory_entry',
+            targetId,
+            reason,
+            note: 'Submissao auditoria E2E',
+          }),
+        })
+
+        const payload = await response.json()
+        return {
+          status: response.status,
+          payload,
+        }
+      },
+      { targetId: TARGET_ID, reason: CLAIM_REASON },
+    )
+
+    expect(createdClaim.status).toBe(200)
+    expect(createdClaim.payload.id).toBe(CLAIM_ID)
+
+    const browserContext = page.context()
+    await page.close()
+
+    const adminPage = await browserContext.newPage()
+    await installAdminEditorialApiMocks(adminPage, state)
+    await adminPage.goto('/')
+    await setSessionStorage(adminPage, {
+      userId: adminUser.id,
+      name: adminUser.name,
+      email: adminUser.email,
+      username: adminUser.username,
+      role: 'admin',
+      adminReadOnly: false,
+      adminScopes: ['admin.claim.review', 'admin.claim.transfer', 'admin.audit.read'],
+    })
+    await adminPage.reload()
+
+    const approvedClaim = await adminPage.evaluate(
+      async ({ claimId }) => {
+        const response = await fetch(`/api/admin/claims/${claimId}/approve`, {
+          method: 'POST',
+        })
+        const payload = await response.json()
+        return {
+          status: response.status,
+          payload,
+        }
+      },
+      { claimId: CLAIM_ID },
+    )
+
+    expect(approvedClaim.status).toBe(200)
+    expect(approvedClaim.payload.claim.status).toBe('approved')
+
+    const auditLogsResult = await adminPage.evaluate(async () => {
+      const response = await fetch('/api/admin/audit-logs?page=1&limit=20')
+      const payload = await response.json()
+      return {
+        status: response.status,
+        payload,
+      }
+    })
+
+    expect(auditLogsResult.status).toBe(200)
+    expect(auditLogsResult.payload.items.length).toBeGreaterThanOrEqual(1)
+
+    const hasClaimOrTransferAction = auditLogsResult.payload.items.some(
+      (item: { action?: string }) => /claim|transfer/i.test(item.action ?? ''),
+    )
+    expect(hasClaimOrTransferAction).toBe(true)
+
+    await adminPage.close()
+  })
+
+  test('claim idempotente evita duplicados para o mesmo target', async ({ page }) => {
+    const state: EditorialFlowState = {
+      claim: null,
+      transfers: [],
+      currentOwnerType: 'admin_seeded',
+      currentOwnerUser: null,
+      transferSequence: 0,
+    }
+
+    await page.goto('/')
+    await setSessionStorage(page, {
+      userId: creatorUser.id,
+      name: creatorUser.name,
+      email: creatorUser.email,
+      username: creatorUser.username,
+      role: 'creator',
+    })
+    await installCreatorEditorialApiMocks(page, state)
+    await page.reload()
+
+    const firstClaim = await page.evaluate(
+      async ({ targetId, reason }) => {
+        const response = await fetch('/api/editorial/claims', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            targetType: 'directory_entry',
+            targetId,
+            reason,
+            note: 'Primeiro pedido E2E',
+          }),
+        })
+
+        const payload = await response.json()
+        return {
+          status: response.status,
+          payload,
+        }
+      },
+      { targetId: TARGET_ID, reason: CLAIM_REASON },
+    )
+
+    const secondClaim = await page.evaluate(
+      async ({ targetId, reason }) => {
+        const response = await fetch('/api/editorial/claims', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            targetType: 'directory_entry',
+            targetId,
+            reason,
+            note: 'Tentativa duplicada E2E',
+          }),
+        })
+
+        const payload = await response.json()
+        return {
+          status: response.status,
+          payload,
+        }
+      },
+      { targetId: TARGET_ID, reason: CLAIM_REASON },
+    )
+
+    expect(firstClaim.status).toBe(200)
+    expect(secondClaim.status).toBe(200)
+    expect(secondClaim.payload.id).toBe(firstClaim.payload.id)
+    expect(secondClaim.payload.createdAt).toBe(firstClaim.payload.createdAt)
+
+    const creatorClaimsList = await page.evaluate(async () => {
+      const response = await fetch('/api/editorial/claims/my?page=1&limit=8')
+      return response.json()
+    })
+
+    expect(creatorClaimsList.items).toHaveLength(1)
+    expect(creatorClaimsList.items[0].id).toBe(firstClaim.payload.id)
+    await page.close()
   })
 })

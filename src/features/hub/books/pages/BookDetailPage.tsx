@@ -16,12 +16,17 @@ import { Card, Button } from '@/components/ui'
 import { useComments } from '@/features/hub/hooks/useComments'
 import { ContentType } from '@/features/hub/types'
 
+interface BookDetailPageProps {
+  slug?: string
+}
+
 /**
  * Pagina de detalhe do livro (publica)
  */
-export function BookDetailPage() {
-  const { slug } = useParams<{ slug: string }>()
-  const { data: book, isLoading, error } = useBook(slug!)
+export function BookDetailPage({ slug }: BookDetailPageProps) {
+  const params = useParams<{ slug: string }>()
+  const resolvedSlug = (slug || params.slug || '').trim()
+  const { data: book, isLoading, error } = useBook(resolvedSlug)
   const { role } = usePermissions()
   const { PaywallComponent } = usePaywall()
   const currentUserId = useAuthStore((state) => state.user?.id)

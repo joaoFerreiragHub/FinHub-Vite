@@ -1,4 +1,4 @@
-import { Helmet } from 'react-helmet-async'
+import { Helmet } from '@/lib/helmet'
 import { useLocation } from 'react-router-dom'
 import { usePlatformRuntimeConfig } from '@/features/platform/hooks/usePlatformRuntimeConfig'
 import { platformRuntimeConfigService } from '@/features/platform/services/platformRuntimeConfigService'

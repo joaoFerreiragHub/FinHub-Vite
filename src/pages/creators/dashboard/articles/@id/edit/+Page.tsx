@@ -1,5 +1,5 @@
 import { EditArticle } from '@/features/creators/dashboard/articles'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const resolveId = (props: any): string => {
@@ -22,11 +22,8 @@ export function Page(props: any) {
   if (!id) return null
 
   return (
-    <MemoryRouter initialEntries={[`/creators/dashboard/articles/${id}/edit`]}>
-      <Routes>
-        <Route path="/creators/dashboard/articles/:id/edit" element={<EditArticle />} />
-      </Routes>
-    </MemoryRouter>
+    <Routes>
+      <Route path="/creators/dashboard/articles/:id/edit" element={<EditArticle />} />
+    </Routes>
   )
 }
-

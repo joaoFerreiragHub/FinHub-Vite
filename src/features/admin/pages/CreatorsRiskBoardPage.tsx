@@ -1,7 +1,6 @@
 ﻿import { useEffect, useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Loader2, RefreshCcw, Search, ShieldAlert, Sparkles, Users } from 'lucide-react'
-import { Link } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import {
   Badge,
@@ -577,22 +576,22 @@ export default function CreatorsRiskBoardPage() {
 
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="outline" asChild>
-            <Link to="/admin/creators">Risk board</Link>
+            <a href="/admin/creators">Risk board</a>
           </Button>
           <Button type="button" variant="outline" asChild>
-            <Link to="/admin/creators/analytics">Analytics positivos</Link>
+            <a href="/admin/creators/analytics">Analytics positivos</a>
           </Button>
           <Button type="button" variant="outline" onClick={() => creatorsQuery.refetch()}>
             <RefreshCcw className="h-4 w-4" />
             Atualizar
           </Button>
           <Button asChild type="button" variant="outline">
-            <Link to={moderationContextHref}>
+            <a href={moderationContextHref}>
               <ShieldAlert className="h-4 w-4" />
               {focusSource === 'content' && focusedCreatorId
                 ? 'Voltar a moderacao'
                 : 'Ir para moderacao'}
-            </Link>
+            </a>
           </Button>
         </div>
       </div>
@@ -1427,4 +1426,3 @@ export default function CreatorsRiskBoardPage() {
     </div>
   )
 }
-

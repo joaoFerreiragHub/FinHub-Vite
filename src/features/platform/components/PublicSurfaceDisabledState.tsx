@@ -1,5 +1,4 @@
 import { ShieldAlert } from 'lucide-react'
-import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui'
 
 interface PublicSurfaceDisabledStateProps {
@@ -35,10 +34,10 @@ export function PublicSurfaceDisabledState({
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Button asChild>
-            <Link to="/">Voltar a Home</Link>
+            <a href="/">Voltar a Home</a>
           </Button>
           <Button asChild variant="outline">
-            <Link to="/explorar/tudo">Explorar conteudos</Link>
+            <a href="/explorar/tudo">Explorar conteudos</a>
           </Button>
         </div>
       </div>

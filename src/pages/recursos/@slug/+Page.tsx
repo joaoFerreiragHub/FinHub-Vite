@@ -1,6 +1,6 @@
 import { HomepageLayout } from '@/components/home/HomepageLayout'
 import BrandDetailPage from '@/features/brands/pages/BrandDetailPage'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 
 export const passToClient = ['routeParams']
 
@@ -33,12 +33,9 @@ export function Page(props: any) {
 
   return (
     <HomepageLayout>
-      <MemoryRouter initialEntries={[`/recursos/${slug}`]}>
-        <Routes>
-          <Route path="/recursos/:slug" element={<BrandDetailPage />} />
-        </Routes>
-      </MemoryRouter>
+      <Routes>
+        <Route path="/recursos/:slug" element={<BrandDetailPage />} />
+      </Routes>
     </HomepageLayout>
   )
 }
-

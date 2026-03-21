@@ -109,6 +109,22 @@ export function usePublishArticle() {
 }
 
 /**
+ * Hook para despublicar artigo
+ */
+export function useUnpublishArticle() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => articleService.unpublishArticle(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['article', id] })
+      queryClient.invalidateQueries({ queryKey: ['article-by-id', id] })
+      queryClient.invalidateQueries({ queryKey: ['my-articles'] })
+    },
+  })
+}
+
+/**
  * Hook para like/unlike
  */
 export function useToggleLike() {

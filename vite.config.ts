@@ -22,4 +22,9 @@ export default defineConfig({
       '/api': 'http://localhost:3000',
     },
   },
+  ssr: {
+    // Força bundling destes módulos em SSR para o Vite resolver o interop CJS/ESM
+    // Em vez de tratar como externos (Node require), são processados pelo bundler
+    noExternal: ['react-helmet-async'],
+  },
 })

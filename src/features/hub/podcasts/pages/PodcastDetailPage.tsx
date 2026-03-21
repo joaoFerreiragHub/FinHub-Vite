@@ -17,12 +17,17 @@ import type { PodcastEpisode } from '../types'
 import { useComments } from '@/features/hub/hooks/useComments'
 import { ContentType } from '@/features/hub/types'
 
+interface PodcastDetailPageProps {
+  slug?: string
+}
+
 /**
  * Pagina de detalhe do podcast (publica)
  */
-export function PodcastDetailPage() {
-  const { slug } = useParams<{ slug: string }>()
-  const { data: podcast, isLoading, error } = usePodcast(slug!)
+export function PodcastDetailPage({ slug }: PodcastDetailPageProps) {
+  const params = useParams<{ slug: string }>()
+  const resolvedSlug = (slug || params.slug || '').trim()
+  const { data: podcast, isLoading, error } = usePodcast(resolvedSlug)
   const { role } = usePermissions()
   const { PaywallComponent } = usePaywall()
   const [expandedEpisode, setExpandedEpisode] = useState<string | null>(null)

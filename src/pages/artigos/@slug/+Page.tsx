@@ -1,6 +1,6 @@
 import { HomepageLayout } from '@/components/home/HomepageLayout'
 import ArticleDetailPage from '@/features/content/pages/ArticleDetailPage'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 
 export const passToClient = ['routeParams']
 
@@ -33,12 +33,9 @@ export function Page(props: any) {
 
   return (
     <HomepageLayout>
-      <MemoryRouter initialEntries={[`/artigos/${slug}`]}>
-        <Routes>
-          <Route path="/artigos/:slug" element={<ArticleDetailPage />} />
-        </Routes>
-      </MemoryRouter>
+      <Routes>
+        <Route path="/artigos/:slug" element={<ArticleDetailPage />} />
+      </Routes>
     </HomepageLayout>
   )
 }
-
