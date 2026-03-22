@@ -151,6 +151,12 @@ export function QuickAnalysis({ data, onPeerClick }: QuickAnalysisProps) {
         label={data.finHubLabel}
         coverage={data.finHubCoverage}
         dataPeriod={data.dataPeriod}
+        breakdown={{
+          qualityScore: data.qualityScore,
+          growthScore: data.growthScore,
+          valuationGrade: data.valuationGrade,
+          riskScore: data.riskScore,
+        }}
       />
 
       <ScoresSummary data={mapCompanyDataToScoresSummary(data)} />
