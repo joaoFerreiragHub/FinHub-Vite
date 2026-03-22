@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui'
-import { Skeleton } from '@/components/ui'
+import { Skeleton, Button, Input, Textarea } from '@/components/ui'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { UserProfileCard } from '../components/UserProfileCard'
 import { ActivityFeedItem } from '../components/ActivityFeedItem'
@@ -11,9 +11,11 @@ import {
   useFavorites,
   useFollowing,
   useActivityFeed,
+  useUpdateMyProfile,
 } from '../hooks/useSocial'
 import { PublicSurfaceDisabledState } from '@/features/platform/components/PublicSurfaceDisabledState'
 import { usePublicSurfaceControl } from '@/features/platform/hooks/usePublicSurfaceControl'
+import { useToast } from '@/shared/hooks'
 
 interface UserProfilePageProps {
   username?: string // If undefined, show own profile
@@ -30,6 +32,35 @@ export function UserProfilePage({ username }: UserProfilePageProps) {
   const profile = profileQuery.data
 
   const [activeTab, setActiveTab] = useState('atividade')
+  const [editing, setEditing] = useState(false)
+  const [editName, setEditName] = useState('')
+  const [editBio, setEditBio] = useState('')
+  const [editAvatar, setEditAvatar] = useState('')
+
+  const updateProfile = useUpdateMyProfile()
+  const { toastSuccess, toastError } = useToast()
+
+  function startEditing() {
+    if (!profile) return
+    setEditName(profile.name)
+    setEditBio(profile.bio ?? '')
+    setEditAvatar(profile.avatar ?? '')
+    setEditing(true)
+  }
+
+  async function handleSave() {
+    try {
+      await updateProfile.mutateAsync({
+        name: editName,
+        bio: editBio || undefined,
+        avatar: editAvatar || undefined,
+      })
+      setEditing(false)
+      toastSuccess('Perfil actualizado')
+    } catch {
+      toastError('Erro ao actualizar perfil. Tenta novamente.')
+    }
+  }
 
   if (profileQuery.isLoading) {
     return (
@@ -54,7 +85,65 @@ export function UserProfilePage({ username }: UserProfilePageProps) {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-6">
-      <UserProfileCard profile={profile} />
+      {isOwnProfile && editing ? (
+        <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+          <h2 className="text-lg font-semibold">Editar perfil</h2>
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm font-medium">Nome</label>
+              <Input
+                className="mt-1"
+                placeholder="Nome"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Bio</label>
+              <Textarea
+                className="mt-1"
+                placeholder="Bio (opcional, max. 280 caracteres)"
+                value={editBio}
+                onChange={(e) => setEditBio(e.target.value)}
+                maxLength={280}
+                rows={3}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">URL da foto de perfil</label>
+              <Input
+                className="mt-1"
+                placeholder="https://exemplo.com/foto.jpg"
+                value={editAvatar}
+                onChange={(e) => setEditAvatar(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="flex gap-2 pt-1">
+            <Button onClick={handleSave} disabled={updateProfile.isPending}>
+              {updateProfile.isPending ? 'A guardar...' : 'Guardar'}
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => setEditing(false)}
+              disabled={updateProfile.isPending}
+            >
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <UserProfileCard profile={profile} />
+          {isOwnProfile && (
+            <div className="flex justify-end">
+              <Button variant="outline" size="sm" onClick={startEditing}>
+                Editar perfil
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
