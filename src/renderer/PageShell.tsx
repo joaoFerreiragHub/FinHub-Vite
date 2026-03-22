@@ -12,6 +12,7 @@ import { UserRole } from '@/features/auth/types'
 import { PublicShell, UnifiedTopShell } from '../shared/layouts'
 import { DevUserSwitcher } from '../shared/dev'
 import { ThemeProvider } from '../shared/providers/ThemeProvider'
+import { OnboardingOverlay } from '@/features/onboarding'
 
 const PageContextContext = React.createContext<PageContext | null>(null)
 
@@ -234,6 +235,7 @@ export function PageShell({ children, pageContext }: Props) {
                     />
                   </PublicShell>
                 )}
+                {mounted ? <OnboardingOverlay /> : null}
                 <DevUserSwitcher />
               </TooltipProvider>
             </ThemeProvider>
