@@ -9,7 +9,13 @@ import {
   CardHeader,
   CardTitle,
   Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui'
+import { PageHero } from '@/components/public'
 import { BrandCard } from '@/features/brands/components/BrandCard'
 import { usePublicDirectories } from '@/features/brands/hooks/usePublicDirectories'
 import type { PublicDirectoryVertical } from '@/features/brands/services/publicDirectoriesService'
@@ -73,18 +79,14 @@ export default function PublicDirectoryPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <PageHero
+        title="Marcas e entidades financeiras"
+        subtitle="Pesquisa por nome, filtra por categoria e pais, e compara entidades com dados publicos e ratings da comunidade."
+        backgroundImage="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1800&q=80"
+      />
+
       <section className="mx-auto w-full max-w-7xl space-y-8 px-4 py-10 sm:px-6 lg:px-8">
-        <header className="space-y-4">
-          <Badge className="w-fit">Diretorio Publico</Badge>
-          <div className="space-y-2">
-            <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              Marcas e entidades financeiras
-            </h1>
-            <p className="max-w-3xl text-sm text-muted-foreground sm:text-base">
-              Pesquisa por nome, filtra por categoria e pais, e compara as entidades com dados
-              publicos e ratings da comunidade.
-            </p>
-          </div>
+        <header className="flex items-center gap-3">
           <Badge variant="secondary">{formatCount(total)} marcas encontradas</Badge>
         </header>
 
@@ -95,17 +97,18 @@ export default function PublicDirectoryPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="grid gap-3 md:grid-cols-4">
-              <select
-                value={category}
-                onChange={(event) => setCategory(event.target.value as CategoryFilter)}
-                className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-              >
-                {CATEGORY_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              <Select value={category} onValueChange={(v) => setCategory(v as CategoryFilter)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORY_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
               <Input
                 value={countryInput}

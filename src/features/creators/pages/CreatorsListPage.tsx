@@ -1,7 +1,15 @@
-﻿import { ChangeEvent, FormEvent, useMemo, useState } from 'react'
+﻿import { FormEvent, useMemo, useState } from 'react'
 import { Compass, Search, Users } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { Button } from '@/components/ui'
+import {
+  Button,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui'
 import LoadingSpinner from '@/components/ui/loading-spinner'
 import { PageHero } from '@/components/public'
 import { Creator } from '@/features/creators/components/Creator'
@@ -99,9 +107,9 @@ export default function CreatorsListPage() {
     setSearch(searchDraft.trim())
   }
 
-  const handleChangeSort = (event: ChangeEvent<HTMLSelectElement>) => {
+  const handleChangeSort = (value: SortOption) => {
     setPage(1)
-    setSortBy(event.target.value as SortOption)
+    setSortBy(value)
   }
 
   const handleChangeType = (value: CreatorTypeFilter) => {
@@ -156,110 +164,111 @@ export default function CreatorsListPage() {
           </div>
         </PageHero>
 
-        <section className="space-y-4 px-4 py-6 sm:px-6 md:px-10 lg:px-12">
-          <form
-            onSubmit={handleSubmitSearch}
-            className="flex flex-col gap-3 md:flex-row md:items-center"
-          >
-            <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                value={searchDraft}
-                onChange={(event) => setSearchDraft(event.target.value)}
-                placeholder="Pesquisar criador por nome ou username"
-                className="h-10 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
-              />
-            </div>
-
-            <Button type="submit" size="sm">
-              Aplicar pesquisa
-            </Button>
-
-            <select
-              value={sortBy}
-              onChange={handleChangeSort}
-              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+        <section className="px-4 py-6 sm:px-6 md:px-10 lg:px-12">
+          <div className="mx-auto max-w-7xl space-y-4">
+            <form
+              onSubmit={handleSubmitSearch}
+              className="flex flex-col gap-3 md:flex-row md:items-center"
             >
-              {SORT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </form>
+              <div className="relative flex-1">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={searchDraft}
+                  onChange={(event) => setSearchDraft(event.target.value)}
+                  placeholder="Pesquisar criador por nome ou username"
+                  className="pl-9"
+                />
+              </div>
 
-          <div className="flex flex-wrap gap-2">
-            {PUBLIC_CREATOR_CONTENT_FILTER_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => handleChangeType(option.value)}
-                className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
-                  option.value === typeFilter
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-border bg-background text-muted-foreground hover:border-primary/40'
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
+              <Button type="submit" size="sm">
+                Aplicar pesquisa
+              </Button>
+
+              <Select value={sortBy} onValueChange={handleChangeSort}>
+                <SelectTrigger className="w-full md:w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SORT_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </form>
+
+            <div className="flex flex-wrap gap-2">
+              {PUBLIC_CREATOR_CONTENT_FILTER_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => handleChangeType(option.value)}
+                  className={`filter-bar__pill${option.value === typeFilter ? ' filter-bar__pill--active' : ''}`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
           </div>
         </section>
 
         <section className="px-4 pb-12 sm:px-6 md:px-10 lg:px-12">
-          {creatorsQuery.isError ? (
-            <div className="mb-4 rounded-md border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300">
-              Nao foi possivel carregar a lista de criadores da API neste momento.
-            </div>
-          ) : null}
+          <div className="mx-auto max-w-7xl">
+            {creatorsQuery.isError ? (
+              <div className="mb-4 rounded-md border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300">
+                Nao foi possivel carregar a lista de criadores da API neste momento.
+              </div>
+            ) : null}
 
-          {loading ? (
-            <div className="flex justify-center py-20">
-              <LoadingSpinner />
-            </div>
-          ) : filteredCreators.length === 0 ? (
-            <div className="rounded-lg border border-border bg-card/70 p-10 text-center text-sm text-muted-foreground">
-              Nenhum criador encontrado com os filtros selecionados.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {filteredCreators.map((creator) => (
-                <Creator
-                  key={creator.id}
-                  creator={mapPublicCreatorListItemToCreator({
-                    ...creator,
-                    publicationsCount:
-                      creator.publicationsCount !== null
-                        ? creator.publicationsCount
-                        : (statsByCreator[creator.id]?.total ?? null),
-                  })}
-                />
-              ))}
-            </div>
-          )}
+            {loading ? (
+              <div className="flex justify-center py-20">
+                <LoadingSpinner />
+              </div>
+            ) : filteredCreators.length === 0 ? (
+              <div className="rounded-lg border border-border bg-card/70 p-10 text-center text-sm text-muted-foreground">
+                Nenhum criador encontrado com os filtros selecionados.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {filteredCreators.map((creator) => (
+                  <Creator
+                    key={creator.id}
+                    creator={mapPublicCreatorListItemToCreator({
+                      ...creator,
+                      publicationsCount:
+                        creator.publicationsCount !== null
+                          ? creator.publicationsCount
+                          : (statsByCreator[creator.id]?.total ?? null),
+                    })}
+                  />
+                ))}
+              </div>
+            )}
 
-          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/70 bg-card/60 px-4 py-3 text-sm">
-            <p className="text-muted-foreground">{pageLabel}</p>
+            <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/70 bg-card/60 px-4 py-3 text-sm">
+              <p className="text-muted-foreground">{pageLabel}</p>
 
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={!pagination || pagination.page <= 1}
-                onClick={() => setPage((current) => Math.max(1, current - 1))}
-              >
-                Pagina anterior
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={!pagination || pagination.page >= pagination.pages}
-                onClick={() => setPage((current) => current + 1)}
-              >
-                Pagina seguinte
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={!pagination || pagination.page <= 1}
+                  onClick={() => setPage((current) => Math.max(1, current - 1))}
+                >
+                  Pagina anterior
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={!pagination || pagination.page >= pagination.pages}
+                  onClick={() => setPage((current) => current + 1)}
+                >
+                  Pagina seguinte
+                </Button>
+              </div>
             </div>
           </div>
         </section>

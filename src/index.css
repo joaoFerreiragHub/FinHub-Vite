@@ -192,6 +192,8 @@
     @apply flex items-baseline justify-between
            px-4 sm:px-6 md:px-10 lg:px-12
            mb-2 sm:mb-3 md:mb-4;
+    max-width: min(100%, 1400px);
+    margin-inline: auto;
   }
 
   .content-row__title {
@@ -207,6 +209,8 @@
 
   .content-row__container {
     @apply relative;
+    max-width: min(100%, 1400px);
+    margin-inline: auto;
   }
 
   .content-row__scroll {
