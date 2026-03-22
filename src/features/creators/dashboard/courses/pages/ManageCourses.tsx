@@ -1,6 +1,6 @@
 ﻿import { useState } from 'react'
 import { Button, Card } from '@/components/ui'
-import { DashboardLayout } from '@/shared/layouts'
+import { CreatorDashboardShell } from '@/shared/layouts'
 import {
   useMyCourses,
   useDeleteCourse,
@@ -41,7 +41,7 @@ export function ManageCourses() {
   }
 
   return (
-    <DashboardLayout>
+    <CreatorDashboardShell>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -261,6 +261,6 @@ export function ManageCourses() {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </CreatorDashboardShell>
   )
 }

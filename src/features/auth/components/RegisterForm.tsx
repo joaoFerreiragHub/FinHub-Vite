@@ -188,7 +188,7 @@ export function RegisterForm() {
           />
           <Label htmlFor="termsAccepted" className="text-xs leading-relaxed text-muted-foreground">
             Aceito os{' '}
-            <Link to="/termos" className="font-medium text-primary hover:underline">
+            <Link to="/legal/termos" className="font-medium text-primary hover:underline">
               Termos de Servico
             </Link>
             .
@@ -214,7 +214,7 @@ export function RegisterForm() {
             className="text-xs leading-relaxed text-muted-foreground"
           >
             Aceito a{' '}
-            <Link to="/privacidade" className="font-medium text-primary hover:underline">
+            <Link to="/legal/privacidade" className="font-medium text-primary hover:underline">
               Politica de Privacidade
             </Link>
             .

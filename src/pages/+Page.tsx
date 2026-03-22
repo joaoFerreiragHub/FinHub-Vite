@@ -1,6 +1,5 @@
-import { useMemo } from 'react'
+﻿import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { HomepageLayout } from '@/components/home/HomepageLayout'
 import { HeroBanner, type HeroBannerSlide } from '@/components/home/HeroBanner'
 import { ContentRow } from '@/components/home/ContentRow'
 import { ArticleCard, CourseCard, BookCardHome, ResourceCard } from '@/components/home/cards'
@@ -349,7 +348,7 @@ export function Page() {
   const creatorCards = useMemo(() => data?.creators ?? [], [data?.creators])
 
   return (
-    <HomepageLayout>
+    <>
       <HeroBanner slides={heroSlides} />
 
       <ContentRow
@@ -447,6 +446,6 @@ export function Page() {
           </div>
         </div>
       </section>
-    </HomepageLayout>
+    </>
   )
 }

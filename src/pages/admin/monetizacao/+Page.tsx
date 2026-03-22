@@ -1,12 +1,13 @@
-import AdminMonetizationPaywallPage from '@/features/admin/pages/AdminMonetizationPaywallPage'
+﻿import AdminMonetizationPaywallPage from '@/features/admin/pages/AdminMonetizationPaywallPage'
 import { ProtectedRoute } from '@/shared/guards'
+import { AdminShell } from '@/shared/layouts'
 
 function AdminMonetizationPage() {
   return (
     <ProtectedRoute allowedRoles={['admin']} requiredAdminModule="monetization">
-      <div className="mx-auto max-w-7xl p-6">
+      <AdminShell>
         <AdminMonetizationPaywallPage />
-      </div>
+      </AdminShell>
     </ProtectedRoute>
   )
 }

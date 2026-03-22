@@ -1,4 +1,4 @@
-import {
+﻿import {
   ArrowRight,
   BarChart3,
   Coins,
@@ -9,7 +9,6 @@ import {
   TrendingUp,
   Waypoints,
 } from 'lucide-react'
-import { HomepageLayout } from '@/components/home/HomepageLayout'
 import { PageHero } from '@/components/public'
 import { Button, Card, CardContent } from '@/components/ui'
 import { MarketSubNav } from '@/pages/mercados/_components/MarketSubNav'
@@ -66,7 +65,7 @@ const marketModules = [
 
 export function Page() {
   return (
-    <HomepageLayout>
+    <>
       <div className="min-h-screen bg-background">
         <PageHero
           title="Mercados"
@@ -114,7 +113,6 @@ export function Page() {
           </div>
         </section>
       </div>
-    </HomepageLayout>
+    </>
   )
 }
-

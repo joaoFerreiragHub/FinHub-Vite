@@ -1,12 +1,13 @@
-import EditorialCmsPage from '@/features/admin/pages/EditorialCmsPage'
+﻿import EditorialCmsPage from '@/features/admin/pages/EditorialCmsPage'
 import { ProtectedRoute } from '@/shared/guards'
+import { AdminShell } from '@/shared/layouts'
 
 function AdminEditorialCmsPage() {
   return (
     <ProtectedRoute allowedRoles={['admin']} requiredAdminModule="editorial">
-      <div className="mx-auto max-w-7xl p-6">
+      <AdminShell>
         <EditorialCmsPage />
-      </div>
+      </AdminShell>
     </ProtectedRoute>
   )
 }

@@ -1,27 +1,24 @@
-import { ProtectedRoute } from '@/shared/guards'
-import CreatorSidebar from '@/features/creators/components/sidebar/creatorSidebar'
+﻿import { ProtectedRoute } from '@/shared/guards'
+import { CreatorDashboardShell } from '@/shared/layouts'
 import { AccountSettings } from '@/features/auth/components/settings'
 import { CreatorCardConfigPanel } from '@/features/creators/components/dashboard/CreatorCardConfigPanel'
 
 function ConfiguracoesPage() {
   return (
     <ProtectedRoute allowedRoles={['creator', 'admin']}>
-      <div className="flex min-h-screen">
-        <CreatorSidebar />
-        <main className="flex-1 bg-background text-foreground p-6">
-          <div>
-            <h1 className="text-2xl font-bold">Definições da Conta</h1>
-            <p className="text-muted-foreground text-sm">
-              Altera os teus dados, preferências e definições de segurança.
-            </p>
-          </div>
+      <CreatorDashboardShell>
+        <div>
+          <h1 className="text-2xl font-bold">Definicoes da Conta</h1>
+          <p className="text-sm text-muted-foreground">
+            Altera os teus dados, preferencias e definicoes de seguranca.
+          </p>
 
-          <div className="space-y-8 mt-8">
+          <div className="mt-8 space-y-8">
             <AccountSettings />
             <CreatorCardConfigPanel />
           </div>
-        </main>
-      </div>
+        </div>
+      </CreatorDashboardShell>
     </ProtectedRoute>
   )
 }

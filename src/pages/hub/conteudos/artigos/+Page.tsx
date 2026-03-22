@@ -1,12 +1,11 @@
-import { ArticleListPage } from '@/features/hub/articles/pages'
-import { HomepageLayout } from '@/components/home/HomepageLayout'
+﻿import { ArticleListPage } from '@/features/hub/articles/pages'
 
 export const passToClient = ['pageProps']
 
 export function Page() {
   return (
-    <HomepageLayout>
+    <>
       <ArticleListPage />
-    </HomepageLayout>
+    </>
   )
 }

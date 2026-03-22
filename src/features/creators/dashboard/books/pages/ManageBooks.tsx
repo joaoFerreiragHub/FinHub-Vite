@@ -1,6 +1,6 @@
 ﻿import { useState } from 'react'
 import { Button, Card } from '@/components/ui'
-import { DashboardLayout } from '@/shared/layouts'
+import { CreatorDashboardShell } from '@/shared/layouts'
 import { useMyBooks, useDeleteBook, usePublishBook } from '@/features/hub/books/hooks/useBooks'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -36,7 +36,7 @@ export function ManageBooks() {
   }
 
   return (
-    <DashboardLayout>
+    <CreatorDashboardShell>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -216,6 +216,6 @@ export function ManageBooks() {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </CreatorDashboardShell>
   )
 }

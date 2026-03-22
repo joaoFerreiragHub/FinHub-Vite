@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import {
   AlertCircle,
   BarChart3,
@@ -12,7 +12,6 @@ import {
   TrendingUp,
 } from 'lucide-react'
 
-import { HomepageLayout } from '@/components/home/HomepageLayout'
 import { PageHero } from '@/components/public'
 import { NewsGrid, CategoryFilterTabs, NewsFilters } from '@/features/hub/news/components'
 import { Button, Card, CardContent, Badge } from '@/components/ui'
@@ -107,7 +106,7 @@ export function Page() {
   const activeSourceInfo = getSourceInfo(filters.source || 'all')
 
   return (
-    <HomepageLayout>
+    <>
       <div className="min-h-screen bg-background">
         <PageHero
           title="Noticias Financeiras"
@@ -497,6 +496,6 @@ export function Page() {
           )}
         </div>
       </div>
-    </HomepageLayout>
+    </>
   )
 }

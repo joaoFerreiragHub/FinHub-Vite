@@ -1,42 +1,34 @@
-import { ProtectedRoute } from '@/shared/guards'
+﻿import { ProtectedRoute } from '@/shared/guards'
+import { CreatorDashboardShell } from '@/shared/layouts'
 import AnnouncementsManager from '@/features/creators/components/contentManagement/announcements/announcementsManager'
-
-import CreatorSidebar from '@/features/creators/components/sidebar/creatorSidebar'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 
 function GerirConteudosPage() {
   const { user, hydrated } = useAuthStore()
 
-  console.log('🚀 ~ file: index.page.tsx:8 ~ GerirConteudosPage ~ hydrated teste:', hydrated, user)
-
   if (!hydrated) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
-        <span className="ml-2 text-sm text-muted-foreground ml-2">A carregar utilizador...</span>
+      <div className="flex h-screen items-center justify-center">
+        <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
+        <span className="ml-2 text-sm text-muted-foreground">A carregar utilizador...</span>
       </div>
     )
   }
 
   return (
     <ProtectedRoute allowedRoles={['creator', 'admin']}>
-      <div className="flex min-h-screen">
-        {/* Sidebar do Criador */}
-        <CreatorSidebar />
-
-        {/* Conteúdo Principal */}
-        <main className="flex-1 p-6 space-y-6 bg-background text-foreground">
+      <CreatorDashboardShell>
+        <div className="space-y-6">
           <div>
-            <h1 className="text-2xl font-bold mb-2">Olá, {user?.name}! 👋</h1>
-            <p className="text-muted-foreground mb-6">
-              Aqui podes gerir os teus anúncios e manter os teus seguidores atualizados.
+            <h1 className="mb-2 text-2xl font-bold">Ola, {user?.name}!</h1>
+            <p className="mb-6 text-muted-foreground">
+              Aqui podes gerir os teus anuncios e manter os teus seguidores atualizados.
             </p>
           </div>
 
-          {/* Gerir Anúncios */}
           <AnnouncementsManager />
-        </main>
-      </div>
+        </div>
+      </CreatorDashboardShell>
     </ProtectedRoute>
   )
 }

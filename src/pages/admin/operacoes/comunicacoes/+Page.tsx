@@ -1,12 +1,13 @@
-import AdminCommunicationsBroadcastsPage from '@/features/admin/pages/AdminCommunicationsBroadcastsPage'
+﻿import AdminCommunicationsBroadcastsPage from '@/features/admin/pages/AdminCommunicationsBroadcastsPage'
 import { ProtectedRoute } from '@/shared/guards'
+import { AdminShell } from '@/shared/layouts'
 
 function AdminOperationsCommunicationsPage() {
   return (
     <ProtectedRoute allowedRoles={['admin']} requiredAdminModule="operations">
-      <div className="mx-auto max-w-7xl p-6">
+      <AdminShell>
         <AdminCommunicationsBroadcastsPage />
-      </div>
+      </AdminShell>
     </ProtectedRoute>
   )
 }

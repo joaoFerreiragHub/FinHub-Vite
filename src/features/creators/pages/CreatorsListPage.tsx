@@ -1,9 +1,8 @@
-import { ChangeEvent, FormEvent, useMemo, useState } from 'react'
+﻿import { ChangeEvent, FormEvent, useMemo, useState } from 'react'
 import { Compass, Search, Users } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui'
 import LoadingSpinner from '@/components/ui/loading-spinner'
-import { HomepageLayout } from '@/components/home/HomepageLayout'
 import { PageHero } from '@/components/public'
 import { Creator } from '@/features/creators/components/Creator'
 import { PublicSurfaceDisabledState } from '@/features/platform/components/PublicSurfaceDisabledState'
@@ -118,7 +117,7 @@ export default function CreatorsListPage() {
 
   if (creatorPageSurface.data && !creatorPageSurface.data.enabled) {
     return (
-      <HomepageLayout>
+      <>
         <PublicSurfaceDisabledState
           title="Pagina de creators temporariamente indisponivel"
           message={
@@ -126,12 +125,12 @@ export default function CreatorsListPage() {
             'A descoberta de creators foi temporariamente desativada enquanto decorre revisao operacional.'
           }
         />
-      </HomepageLayout>
+      </>
     )
   }
 
   return (
-    <HomepageLayout>
+    <>
       <div className="min-h-screen bg-background">
         <PageHero
           title="Criadores em destaque"
@@ -265,6 +264,6 @@ export default function CreatorsListPage() {
           </div>
         </section>
       </div>
-    </HomepageLayout>
+    </>
   )
 }

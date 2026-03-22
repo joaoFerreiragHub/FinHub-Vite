@@ -1,12 +1,13 @@
 ﻿import AdminCreatorsPositiveAnalyticsPage from '@/features/admin/pages/AdminCreatorsPositiveAnalyticsPage'
 import { ProtectedRoute } from '@/shared/guards'
+import { AdminShell } from '@/shared/layouts'
 
 function AdminCreatorsPositiveAnalyticsRoutePage() {
   return (
     <ProtectedRoute allowedRoles={['admin']} requiredAdminModule="creators">
-      <div className="mx-auto max-w-7xl p-6">
+      <AdminShell>
         <AdminCreatorsPositiveAnalyticsPage />
-      </div>
+      </AdminShell>
     </ProtectedRoute>
   )
 }

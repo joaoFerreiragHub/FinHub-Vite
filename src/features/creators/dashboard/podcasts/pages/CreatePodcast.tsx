@@ -1,4 +1,4 @@
-import { DashboardLayout } from '@/shared/layouts'
+﻿import { CreatorDashboardShell } from '@/shared/layouts'
 import { PodcastForm } from '../components/PodcastForm'
 import { useCreatePodcast } from '@/features/hub/podcasts/hooks/usePodcasts'
 import { Card } from '@/components/ui'
@@ -15,7 +15,7 @@ export function CreatePodcast() {
   }
 
   return (
-    <DashboardLayout>
+    <CreatorDashboardShell>
       <div className="mx-auto max-w-4xl space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Criar Novo Podcast</h1>
@@ -37,6 +37,6 @@ export function CreatePodcast() {
           </ul>
         </Card>
       </div>
-    </DashboardLayout>
+    </CreatorDashboardShell>
   )
 }

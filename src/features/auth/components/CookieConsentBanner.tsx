@@ -145,7 +145,7 @@ export function CookieConsentBanner() {
             <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
               Usamos cookies essenciais para seguranca e sessao. Podes ativar analytics,
               preferencias e marketing. Consulta a{' '}
-              {renderLegalLink('/cookies', 'Politica de Cookies')} e o{' '}
+              {renderLegalLink('/legal/cookies', 'Politica de Cookies')} e o{' '}
               {renderLegalLink('/aviso-legal', 'Aviso Legal Financeiro')}.
             </p>
           </div>

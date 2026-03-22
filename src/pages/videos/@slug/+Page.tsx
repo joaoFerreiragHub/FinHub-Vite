@@ -1,5 +1,4 @@
-import { HomepageLayout } from '@/components/home/HomepageLayout'
-import VideoDetailPage from '@/features/content/pages/VideoDetailPage'
+﻿import VideoDetailPage from '@/features/content/pages/VideoDetailPage'
 import { Route, Routes } from 'react-router-dom'
 
 export const passToClient = ['routeParams']
@@ -23,19 +22,19 @@ export function Page(props: any) {
 
   if (!slug) {
     return (
-      <HomepageLayout>
+      <>
         <section className="mx-auto max-w-4xl px-4 py-12 text-center">
           <p className="text-sm text-muted-foreground">Video nao encontrado.</p>
         </section>
-      </HomepageLayout>
+      </>
     )
   }
 
   return (
-    <HomepageLayout>
+    <>
       <Routes>
         <Route path="/videos/:slug" element={<VideoDetailPage />} />
       </Routes>
-    </HomepageLayout>
+    </>
   )
 }

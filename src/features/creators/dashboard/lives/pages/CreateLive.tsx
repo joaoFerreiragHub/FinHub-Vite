@@ -1,4 +1,4 @@
-import { DashboardLayout } from '@/shared/layouts'
+﻿import { CreatorDashboardShell } from '@/shared/layouts'
 import { LiveForm } from '../components/LiveForm'
 import { useCreateLive } from '@/features/hub/lives/hooks/useLives'
 import { Card } from '@/components/ui'
@@ -15,7 +15,7 @@ export function CreateLive() {
   }
 
   return (
-    <DashboardLayout>
+    <CreatorDashboardShell>
       <div className="mx-auto max-w-4xl space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Criar Novo Evento</h1>
@@ -40,6 +40,6 @@ export function CreateLive() {
           </ul>
         </Card>
       </div>
-    </DashboardLayout>
+    </CreatorDashboardShell>
   )
 }

@@ -1,5 +1,4 @@
-import { useEffect } from 'react'
-import { HomepageLayout } from '@/components/home/HomepageLayout'
+﻿import { useEffect } from 'react'
 
 export function Page() {
   useEffect(() => {
@@ -7,7 +6,7 @@ export function Page() {
   }, [])
 
   return (
-    <HomepageLayout>
+    <>
       <section className="mx-auto max-w-4xl px-4 py-12 text-center">
         <h1 className="text-2xl font-semibold">A redirecionar para hub/conteudos</h1>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -17,6 +16,6 @@ export function Page() {
           Ir para conteudos
         </a>
       </section>
-    </HomepageLayout>
+    </>
   )
 }

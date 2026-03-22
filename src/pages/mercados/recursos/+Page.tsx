@@ -1,4 +1,4 @@
-import {
+﻿import {
   ArrowRight,
   BookOpen,
   Building2,
@@ -9,7 +9,6 @@ import {
   Smartphone,
   Wallet,
 } from 'lucide-react'
-import { HomepageLayout } from '@/components/home/HomepageLayout'
 import { PageHero } from '@/components/public'
 import { Button, Card, CardContent } from '@/components/ui'
 import { MarketSubNav } from '@/pages/mercados/_components/MarketSubNav'
@@ -61,7 +60,7 @@ const verticalIcons = {
 
 export function Page() {
   return (
-    <HomepageLayout>
+    <>
       <div className="min-h-screen bg-background">
         <PageHero
           title="Recursos de Mercado"
@@ -77,7 +76,7 @@ export function Page() {
             <div className="space-y-3">
               <h2 className="text-xl font-semibold text-foreground">Diretorios editoriais</h2>
               <p className="text-sm text-muted-foreground">
-                Landings publicas por vertical, com filtros e paginação ligados ao backend real.
+                Landings publicas por vertical, com filtros e paginaÃ§Ã£o ligados ao backend real.
               </p>
             </div>
 
@@ -142,7 +141,6 @@ export function Page() {
           </div>
         </section>
       </div>
-    </HomepageLayout>
+    </>
   )
 }
-

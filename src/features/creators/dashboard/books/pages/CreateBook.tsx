@@ -1,4 +1,4 @@
-import { DashboardLayout } from '@/shared/layouts'
+﻿import { CreatorDashboardShell } from '@/shared/layouts'
 import { BookForm } from '../components/BookForm'
 import { useCreateBook } from '@/features/hub/books/hooks/useBooks'
 import { Card } from '@/components/ui'
@@ -15,7 +15,7 @@ export function CreateBook() {
   }
 
   return (
-    <DashboardLayout>
+    <CreatorDashboardShell>
       <div className="mx-auto max-w-4xl space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Adicionar Novo Livro</h1>
@@ -39,6 +39,6 @@ export function CreateBook() {
           </ul>
         </Card>
       </div>
-    </DashboardLayout>
+    </CreatorDashboardShell>
   )
 }

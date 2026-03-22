@@ -1,12 +1,11 @@
-import { LiveListPage } from '@/features/hub/lives/pages'
-import { HomepageLayout } from '@/components/home/HomepageLayout'
+﻿import { LiveListPage } from '@/features/hub/lives/pages'
 
 export const passToClient = ['pageProps']
 
 export function Page() {
   return (
-    <HomepageLayout>
+    <>
       <LiveListPage />
-    </HomepageLayout>
+    </>
   )
 }

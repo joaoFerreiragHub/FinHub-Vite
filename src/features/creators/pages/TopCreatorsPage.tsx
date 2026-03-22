@@ -1,9 +1,8 @@
-import { useMemo, useState } from 'react'
+﻿import { useMemo, useState } from 'react'
 import { Trophy, Users, Star } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import type { Creator } from '@/features/creators/types/creator'
 import LoadingSpinner from '@/components/ui/loading-spinner'
-import { HomepageLayout } from '@/components/home/HomepageLayout'
 import { ContentRow } from '@/components/home/ContentRow'
 import { CreatorCard } from '@/features/creators/components/cards/CreatorCard'
 import { CreatorModal } from '@/features/creators/components/modals/CreatorModal'
@@ -36,7 +35,7 @@ export default function TopCreatorsPage() {
 
   if (creatorPageSurface.data && !creatorPageSurface.data.enabled) {
     return (
-      <HomepageLayout>
+      <>
         <PublicSurfaceDisabledState
           title="Top creators temporariamente indisponivel"
           message={
@@ -44,12 +43,12 @@ export default function TopCreatorsPage() {
             'A descoberta publica de creators foi temporariamente desligada durante revisao operacional.'
           }
         />
-      </HomepageLayout>
+      </>
     )
   }
 
   return (
-    <HomepageLayout>
+    <>
       <div className="min-h-screen bg-background">
         <PageHero
           title="Top criadores"
@@ -121,6 +120,6 @@ export default function TopCreatorsPage() {
           creator={selectedCreator}
         />
       ) : null}
-    </HomepageLayout>
+    </>
   )
 }

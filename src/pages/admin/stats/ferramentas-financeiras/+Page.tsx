@@ -1,12 +1,13 @@
-import AdminFinancialToolsPage from '@/features/admin/pages/AdminFinancialToolsPage'
+﻿import AdminFinancialToolsPage from '@/features/admin/pages/AdminFinancialToolsPage'
 import { ProtectedRoute } from '@/shared/guards'
+import { AdminShell } from '@/shared/layouts'
 
 function AdminStatsFinancialToolsPage() {
   return (
     <ProtectedRoute allowedRoles={['admin']} requiredAdminModule="stats">
-      <div className="mx-auto max-w-7xl p-6">
+      <AdminShell>
         <AdminFinancialToolsPage />
-      </div>
+      </AdminShell>
     </ProtectedRoute>
   )
 }

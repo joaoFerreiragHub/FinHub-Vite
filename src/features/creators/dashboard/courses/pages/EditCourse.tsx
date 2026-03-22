@@ -1,5 +1,5 @@
-import { useParams, Navigate } from 'react-router-dom'
-import { DashboardLayout } from '@/shared/layouts'
+﻿import { useParams, Navigate } from 'react-router-dom'
+import { CreatorDashboardShell } from '@/shared/layouts'
 import { CourseForm } from '../components/CourseForm'
 import { useCourse, useUpdateCourse } from '@/features/hub/courses/hooks/useCourses'
 import { Card } from '@/components/ui'
@@ -20,11 +20,11 @@ export function EditCourse() {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
+      <CreatorDashboardShell>
         <div className="flex min-h-[400px] items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
-      </DashboardLayout>
+      </CreatorDashboardShell>
     )
   }
 
@@ -33,7 +33,7 @@ export function EditCourse() {
   }
 
   return (
-    <DashboardLayout>
+    <CreatorDashboardShell>
       <div className="mx-auto max-w-4xl space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Editar Curso</h1>
@@ -51,6 +51,6 @@ export function EditCourse() {
           />
         </Card>
       </div>
-    </DashboardLayout>
+    </CreatorDashboardShell>
   )
 }

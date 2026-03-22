@@ -1,12 +1,13 @@
-import AdminAdPartnershipsPage from '@/features/admin/pages/AdminAdPartnershipsPage'
+﻿import AdminAdPartnershipsPage from '@/features/admin/pages/AdminAdPartnershipsPage'
 import { ProtectedRoute } from '@/shared/guards'
+import { AdminShell } from '@/shared/layouts'
 
 function AdminOperationsAdsPage() {
   return (
     <ProtectedRoute allowedRoles={['admin']} requiredAdminModule="operations">
-      <div className="mx-auto max-w-7xl p-6">
+      <AdminShell>
         <AdminAdPartnershipsPage />
-      </div>
+      </AdminShell>
     </ProtectedRoute>
   )
 }

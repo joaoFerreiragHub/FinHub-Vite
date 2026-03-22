@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+﻿import { useMemo, useState } from 'react'
 import {
   Area,
   AreaChart,
@@ -26,7 +26,6 @@ import {
   Upload,
   Wallet,
 } from 'lucide-react'
-import { HomepageLayout } from '@/components/home/HomepageLayout'
 import { PageHero } from '@/components/public'
 import { Badge, Button, Card, CardContent, Input, Label, Progress } from '@/components/ui'
 import {
@@ -324,7 +323,7 @@ function SnapshotRow({
             <span
               className={`text-xs font-medium ${scoreDelta > 0 ? 'text-emerald-500' : 'text-rose-500'}`}
             >
-              {scoreDelta > 0 ? '↑' : '↓'}
+              {scoreDelta > 0 ? 'â†‘' : 'â†“'}
               {Math.abs(scoreDelta)}
             </span>
           )}
@@ -400,7 +399,7 @@ export function Page() {
   ])
 
   return (
-    <HomepageLayout>
+    <>
       <div className="min-h-screen bg-background">
         <PageHero
           title="Raio-X Financeiro"
@@ -992,7 +991,6 @@ export function Page() {
           </div>
         </section>
       </div>
-    </HomepageLayout>
+    </>
   )
 }
-

@@ -1,6 +1,5 @@
-import { useStockSearch, useWatchlist } from '@/features/tools/stocks/components'
+﻿import { useStockSearch, useWatchlist } from '@/features/tools/stocks/components'
 import { StocksSearchBar, StockDetails } from '@/features/tools/stocks/components'
-import { HomepageLayout } from '@/components/home/HomepageLayout'
 import { PageHero } from '@/components/public'
 import { Card, CardContent } from '@/components/ui'
 import { MarketSubNav } from '@/pages/mercados/_components/MarketSubNav'
@@ -10,7 +9,7 @@ export function Page() {
   const { isInWatchlist, toggle } = useWatchlist()
 
   return (
-    <HomepageLayout>
+    <>
       <div className="min-h-screen bg-background">
         <PageHero
           title="Analise de Acoes"
@@ -46,7 +45,6 @@ export function Page() {
           )}
         </section>
       </div>
-    </HomepageLayout>
+    </>
   )
 }
-

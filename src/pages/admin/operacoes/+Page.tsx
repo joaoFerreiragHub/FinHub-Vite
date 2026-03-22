@@ -1,12 +1,13 @@
-import AdminBulkImportPage from '@/features/admin/pages/AdminBulkImportPage'
+﻿import AdminBulkImportPage from '@/features/admin/pages/AdminBulkImportPage'
 import { ProtectedRoute } from '@/shared/guards'
+import { AdminShell } from '@/shared/layouts'
 
 function AdminOperationsPage() {
   return (
     <ProtectedRoute allowedRoles={['admin']} requiredAdminModule="operations">
-      <div className="mx-auto max-w-7xl p-6">
+      <AdminShell>
         <AdminBulkImportPage />
-      </div>
+      </AdminShell>
     </ProtectedRoute>
   )
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ComponentType } from 'react'
+﻿import { useCallback, useEffect, useMemo, useState, type ComponentType } from 'react'
 import { Bell, ChevronDown, ChevronUp, ExternalLink, Heart, Rss, User, Users } from 'lucide-react'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { Button, Progress } from '@/components/ui'
@@ -32,6 +32,10 @@ const toSidebarItem = (route: (typeof creatorDashboardRouts)[number]): SidebarIt
   children: route.children,
 })
 
+/**
+ * @deprecated Use CreatorDashboardShell instead.
+ * Legacy sidebar kept temporarily to avoid breaking older pages/components.
+ */
 export default function CreatorSidebar() {
   const { user } = useAuthStore()
   const [currentPath, setCurrentPath] = useState<string>('')
@@ -226,7 +230,7 @@ export default function CreatorSidebar() {
       </div>
 
       <div className="mt-6 border-t border-border pt-4 text-center text-xs text-muted-foreground">
-        <span>FinHub © 2025</span>
+        <span>FinHub Â© 2025</span>
       </div>
     </aside>
   )

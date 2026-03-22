@@ -2,7 +2,7 @@ import type { User } from '@/features/auth/types'
 import type { AdminModuleKey } from './access'
 import { canReadAdminModule, findAdminModule } from './access'
 
-export type AdminGoShortcutKey = 'd' | 'u' | 'r' | 'c' | 'e' | 's' | 'b' | 'o' | 'a' | 't'
+export type AdminGoShortcutKey = 'd' | 'u' | 'r' | 'c' | 'e' | 's' | 'b' | 'm' | 'o' | 'a' | 't'
 
 const ADMIN_GO_SHORTCUT_TO_MODULE: Record<AdminGoShortcutKey, AdminModuleKey> = {
   d: 'dashboard',
@@ -12,6 +12,7 @@ const ADMIN_GO_SHORTCUT_TO_MODULE: Record<AdminGoShortcutKey, AdminModuleKey> = 
   e: 'editorial',
   s: 'support',
   b: 'brands',
+  m: 'monetization',
   o: 'operations',
   a: 'audit',
   t: 'stats',
@@ -25,6 +26,7 @@ const ADMIN_MODULE_TO_GO_SHORTCUT: Record<AdminModuleKey, AdminGoShortcutKey> = 
   editorial: 'e',
   support: 's',
   brands: 'b',
+  monetization: 'm',
   operations: 'o',
   audit: 'a',
   stats: 't',
@@ -42,6 +44,7 @@ const isKnownShortcutKey = (key: string): key is AdminGoShortcutKey => {
     key === 'e' ||
     key === 's' ||
     key === 'b' ||
+    key === 'm' ||
     key === 'o' ||
     key === 'a' ||
     key === 't'

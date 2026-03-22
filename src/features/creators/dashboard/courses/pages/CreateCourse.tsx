@@ -1,4 +1,4 @@
-import { DashboardLayout } from '@/shared/layouts'
+﻿import { CreatorDashboardShell } from '@/shared/layouts'
 import { CourseForm } from '../components/CourseForm'
 import { useCreateCourse } from '@/features/hub/courses/hooks/useCourses'
 import { Card } from '@/components/ui'
@@ -15,7 +15,7 @@ export function CreateCourse() {
   }
 
   return (
-    <DashboardLayout>
+    <CreatorDashboardShell>
       <div className="mx-auto max-w-4xl space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Criar Novo Curso</h1>
@@ -40,6 +40,6 @@ export function CreateCourse() {
           </ul>
         </Card>
       </div>
-    </DashboardLayout>
+    </CreatorDashboardShell>
   )
 }

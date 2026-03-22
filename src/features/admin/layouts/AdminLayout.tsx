@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import AdminSidebar from '../components/AdminSidebar'
 import AdminCommandPalette from '../components/AdminCommandPalette'
@@ -14,6 +14,10 @@ import { useAdminDashboardPersonalization } from '../hooks/useAdminDashboardPers
 
 /**
  * Layout responsivo do painel de administracao.
+ */
+/**
+ * @deprecated Use AdminShell for Vike admin pages (/admin/*).
+ * Kept only for legacy React Router flow in router.tsx.
  */
 export default function AdminLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)

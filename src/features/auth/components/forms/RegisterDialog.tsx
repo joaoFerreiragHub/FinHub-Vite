@@ -216,7 +216,7 @@ export function RegisterDialog({ open, onOpenChange, onRegister }: RegisterDialo
               />
               <Label htmlFor="dialog-terms" className="text-xs text-muted-foreground">
                 Aceito os{' '}
-                <a href="/termos" className="underline">
+                <a href="/legal/termos" className="underline">
                   Termos de Servico
                 </a>
               </Label>
@@ -231,7 +231,7 @@ export function RegisterDialog({ open, onOpenChange, onRegister }: RegisterDialo
               />
               <Label htmlFor="dialog-privacy" className="text-xs text-muted-foreground">
                 Aceito a{' '}
-                <a href="/privacidade" className="underline">
+                <a href="/legal/privacidade" className="underline">
                   Politica de Privacidade
                 </a>
               </Label>

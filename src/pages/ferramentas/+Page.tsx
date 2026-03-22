@@ -1,5 +1,4 @@
-import { ArrowRight, BarChart3, Calculator, Target, TrendingUp, Wrench } from 'lucide-react'
-import { HomepageLayout } from '@/components/home/HomepageLayout'
+﻿import { ArrowRight, BarChart3, Calculator, Target, TrendingUp, Wrench } from 'lucide-react'
 import { PageHero } from '@/components/public'
 import { Badge, Button, Card, CardContent } from '@/components/ui'
 
@@ -14,7 +13,7 @@ const standaloneTools = [
 
 export function Page() {
   return (
-    <HomepageLayout>
+    <>
       <div className="min-h-screen bg-background">
         <PageHero
           title="Ferramentas Financeiras"
@@ -148,6 +147,6 @@ export function Page() {
           </div>
         </section>
       </div>
-    </HomepageLayout>
+    </>
   )
 }

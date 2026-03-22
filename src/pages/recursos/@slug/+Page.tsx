@@ -1,5 +1,4 @@
-import { HomepageLayout } from '@/components/home/HomepageLayout'
-import BrandDetailPage from '@/features/brands/pages/BrandDetailPage'
+﻿import BrandDetailPage from '@/features/brands/pages/BrandDetailPage'
 import { Route, Routes } from 'react-router-dom'
 
 export const passToClient = ['routeParams']
@@ -23,19 +22,19 @@ export function Page(props: any) {
 
   if (!slug) {
     return (
-      <HomepageLayout>
+      <>
         <section className="mx-auto max-w-4xl px-4 py-12 text-center">
           <p className="text-sm text-muted-foreground">Recurso nao encontrado.</p>
         </section>
-      </HomepageLayout>
+      </>
     )
   }
 
   return (
-    <HomepageLayout>
+    <>
       <Routes>
         <Route path="/recursos/:slug" element={<BrandDetailPage />} />
       </Routes>
-    </HomepageLayout>
+    </>
   )
 }

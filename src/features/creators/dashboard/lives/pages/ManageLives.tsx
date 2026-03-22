@@ -1,6 +1,6 @@
 ﻿import { useState } from 'react'
 import { Button, Card } from '@/components/ui'
-import { DashboardLayout } from '@/shared/layouts'
+import { CreatorDashboardShell } from '@/shared/layouts'
 import { useMyLives, useDeleteLive, usePublishLive } from '@/features/hub/lives/hooks/useLives'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -40,7 +40,7 @@ export function ManageLives() {
   const past = data?.items.filter((e) => new Date(e.startDate) <= now) || []
 
   return (
-    <DashboardLayout>
+    <CreatorDashboardShell>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -246,6 +246,6 @@ export function ManageLives() {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </CreatorDashboardShell>
   )
 }

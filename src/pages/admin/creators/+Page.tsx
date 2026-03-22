@@ -1,12 +1,13 @@
-import CreatorsRiskBoardPage from '@/features/admin/pages/CreatorsRiskBoardPage'
+﻿import CreatorsRiskBoardPage from '@/features/admin/pages/CreatorsRiskBoardPage'
 import { ProtectedRoute } from '@/shared/guards'
+import { AdminShell } from '@/shared/layouts'
 
 function AdminCreatorsPage() {
   return (
     <ProtectedRoute allowedRoles={['admin']} requiredAdminModule="creators">
-      <div className="mx-auto max-w-7xl p-6">
+      <AdminShell>
         <CreatorsRiskBoardPage />
-      </div>
+      </AdminShell>
     </ProtectedRoute>
   )
 }

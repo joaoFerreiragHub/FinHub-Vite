@@ -1,12 +1,13 @@
-import AdminDashboardPage from '@/features/admin/pages/AdminDashboardPage'
+﻿import AdminDashboardPage from '@/features/admin/pages/AdminDashboardPage'
 import { ProtectedRoute } from '@/shared/guards'
+import { AdminShell } from '@/shared/layouts'
 
 function AdminIndexPage() {
   return (
     <ProtectedRoute allowedRoles={['admin']} requiredAdminModule="dashboard">
-      <div className="mx-auto max-w-7xl p-6">
+      <AdminShell>
         <AdminDashboardPage />
-      </div>
+      </AdminShell>
     </ProtectedRoute>
   )
 }

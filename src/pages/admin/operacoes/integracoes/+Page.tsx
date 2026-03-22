@@ -1,12 +1,13 @@
-import AdminPlatformIntegrationsPage from '@/features/admin/pages/AdminPlatformIntegrationsPage'
+﻿import AdminPlatformIntegrationsPage from '@/features/admin/pages/AdminPlatformIntegrationsPage'
 import { ProtectedRoute } from '@/shared/guards'
+import { AdminShell } from '@/shared/layouts'
 
 function AdminOperationsIntegrationsPage() {
   return (
     <ProtectedRoute allowedRoles={['admin']} requiredAdminModule="operations">
-      <div className="mx-auto max-w-7xl p-6">
+      <AdminShell>
         <AdminPlatformIntegrationsPage />
-      </div>
+      </AdminShell>
     </ProtectedRoute>
   )
 }

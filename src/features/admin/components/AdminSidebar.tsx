@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom'
+﻿import { Link, useLocation } from 'react-router-dom'
 import {
   BarChart3,
   LayoutDashboard,
@@ -36,6 +36,10 @@ const links = [
   { key: 'stats' as AdminModuleKey, icon: BarChart3, exact: false },
 ]
 
+/**
+ * @deprecated Use AdminShell sidebar navigation for Vike admin pages.
+ * This component remains for legacy AdminLayout compatibility.
+ */
 export default function AdminSidebar({ className, onNavigate }: AdminSidebarProps) {
   const location = useLocation()
   const user = useAuthStore((state) => state.user)

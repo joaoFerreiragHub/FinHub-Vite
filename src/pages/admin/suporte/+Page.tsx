@@ -1,12 +1,13 @@
-import AssistedSessionsPage from '@/features/admin/pages/AssistedSessionsPage'
+﻿import AssistedSessionsPage from '@/features/admin/pages/AssistedSessionsPage'
 import { ProtectedRoute } from '@/shared/guards'
+import { AdminShell } from '@/shared/layouts'
 
 function AdminSupportPage() {
   return (
     <ProtectedRoute allowedRoles={['admin']} requiredAdminModule="support">
-      <div className="mx-auto max-w-7xl p-6">
+      <AdminShell>
         <AssistedSessionsPage />
-      </div>
+      </AdminShell>
     </ProtectedRoute>
   )
 }

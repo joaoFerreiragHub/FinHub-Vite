@@ -1,12 +1,13 @@
-import BrandsManagementPage from '@/features/admin/pages/BrandsManagementPage'
+﻿import BrandsManagementPage from '@/features/admin/pages/BrandsManagementPage'
 import { ProtectedRoute } from '@/shared/guards'
+import { AdminShell } from '@/shared/layouts'
 
 function AdminResourcesPage() {
   return (
     <ProtectedRoute allowedRoles={['admin']} requiredAdminModule="brands">
-      <div className="mx-auto max-w-7xl p-6">
+      <AdminShell>
         <BrandsManagementPage />
-      </div>
+      </AdminShell>
     </ProtectedRoute>
   )
 }

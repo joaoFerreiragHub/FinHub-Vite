@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import { AlertCircle, ArrowLeft, ArrowRight, ExternalLink, RefreshCw } from 'lucide-react'
-import { HomepageLayout } from '@/components/home/HomepageLayout'
 import { PageHero } from '@/components/public'
 import { Badge, Button, Card, CardContent, Input, Label } from '@/components/ui'
 import {
@@ -41,7 +40,7 @@ const splitCommaValues = (value: string): string[] =>
 
 function InvalidVerticalState() {
   return (
-    <HomepageLayout>
+    <>
       <div className="min-h-screen bg-background">
         <PageHero
           title="Vertical nao encontrada"
@@ -74,7 +73,7 @@ function InvalidVerticalState() {
           </div>
         </section>
       </div>
-    </HomepageLayout>
+    </>
   )
 }
 
@@ -138,7 +137,7 @@ function DirectoryPageContent({
   const canGoNext = pagination.page < pagination.pages
 
   return (
-    <HomepageLayout>
+    <>
       <div className="min-h-screen bg-background">
         <PageHero
           title={`${vertical.label} ${mode === 'show-all' ? '- Show all' : ''}`}
@@ -391,7 +390,7 @@ function DirectoryPageContent({
           </div>
         </section>
       </div>
-    </HomepageLayout>
+    </>
   )
 }
 

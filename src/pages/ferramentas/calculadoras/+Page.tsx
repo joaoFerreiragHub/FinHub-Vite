@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+﻿import { useMemo, useState } from 'react'
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import {
   AlertTriangle,
@@ -15,7 +15,6 @@ import {
   TrendingUp,
   Wallet,
 } from 'lucide-react'
-import { HomepageLayout } from '@/components/home/HomepageLayout'
 import { PageHero } from '@/components/public'
 import {
   Badge,
@@ -43,7 +42,7 @@ import {
   formatPercentPt,
 } from '@/features/tools/financial/engine'
 
-/* ─── Shared helpers ─── */
+/* â”€â”€â”€ Shared helpers â”€â”€â”€ */
 
 type NumericInputProps = {
   id: string
@@ -240,7 +239,7 @@ function BudgetBar({
   )
 }
 
-/* ─── Page ─── */
+/* â”€â”€â”€ Page â”€â”€â”€ */
 
 export function Page() {
   const [activeTab, setActiveTab] = useState('juros')
@@ -316,7 +315,7 @@ export function Page() {
     extraMonthlyPayment: 100,
   })
 
-  /* ─── Calculations ─── */
+  /* â”€â”€â”€ Calculations â”€â”€â”€ */
 
   const compoundResult = useMemo(() => calculateInvestmentProjection(compound), [compound])
   const compoundAfterTax = useMemo(() => {
@@ -440,7 +439,7 @@ export function Page() {
   ]
 
   return (
-    <HomepageLayout>
+    <>
       <div className="min-h-screen bg-background">
         <PageHero
           title="Ferramentas Avulsas"
@@ -483,7 +482,7 @@ export function Page() {
                 })}
               </TabsList>
 
-              {/* ── Juros Compostos ── */}
+              {/* â”€â”€ Juros Compostos â”€â”€ */}
               <TabsContent value="juros">
                 <Card className="border border-border/60 bg-card/75">
                   <CardContent className="grid gap-5 p-6 lg:grid-cols-[1fr_1.1fr]">
@@ -590,7 +589,7 @@ export function Page() {
                 </Card>
               </TabsContent>
 
-              {/* ── Simulador de Investimentos ── */}
+              {/* â”€â”€ Simulador de Investimentos â”€â”€ */}
               <TabsContent value="simulador">
                 <Card className="border border-border/60 bg-card/75">
                   <CardContent className="grid gap-5 p-6 lg:grid-cols-[1fr_1.1fr]">
@@ -688,7 +687,7 @@ export function Page() {
                 </Card>
               </TabsContent>
 
-              {/* ── Aposentadoria ── */}
+              {/* â”€â”€ Aposentadoria â”€â”€ */}
               <TabsContent value="aposentadoria">
                 <Card className="border border-border/60 bg-card/75">
                   <CardContent className="grid gap-5 p-6 lg:grid-cols-[1fr_1.1fr]">
@@ -816,7 +815,7 @@ export function Page() {
                 </Card>
               </TabsContent>
 
-              {/* ── ROI ── */}
+              {/* â”€â”€ ROI â”€â”€ */}
               <TabsContent value="roi">
                 <Card className="border border-border/60 bg-card/75">
                   <CardContent className="grid gap-5 p-6 lg:grid-cols-[1fr_1.1fr]">
@@ -898,7 +897,7 @@ export function Page() {
                 </Card>
               </TabsContent>
 
-              {/* ── Budget Planner ── */}
+              {/* â”€â”€ Budget Planner â”€â”€ */}
               <TabsContent value="budget">
                 <Card className="border border-border/60 bg-card/75">
                   <CardContent className="grid gap-5 p-6 lg:grid-cols-[1fr_1.1fr]">
@@ -1002,7 +1001,7 @@ export function Page() {
                 </Card>
               </TabsContent>
 
-              {/* ── Comparador ── */}
+              {/* â”€â”€ Comparador â”€â”€ */}
               <TabsContent value="comparador">
                 <Card className="border border-border/60 bg-card/75">
                   <CardContent className="space-y-5 p-6">
@@ -1136,7 +1135,7 @@ export function Page() {
                 </Card>
               </TabsContent>
 
-              {/* ── Fundo de Emergencia ── */}
+              {/* â”€â”€ Fundo de Emergencia â”€â”€ */}
               <TabsContent value="emergencia">
                 <Card className="border border-border/60 bg-card/75">
                   <CardContent className="grid gap-5 p-6 lg:grid-cols-[1fr_1.1fr]">
@@ -1253,7 +1252,7 @@ export function Page() {
                 </Card>
               </TabsContent>
 
-              {/* ── Divida / Debt Payoff ── */}
+              {/* â”€â”€ Divida / Debt Payoff â”€â”€ */}
               <TabsContent value="divida">
                 <Card className="border border-border/60 bg-card/75">
                   <CardContent className="grid gap-5 p-6 lg:grid-cols-[1fr_1.1fr]">
@@ -1445,7 +1444,6 @@ export function Page() {
           </div>
         </section>
       </div>
-    </HomepageLayout>
+    </>
   )
 }
-

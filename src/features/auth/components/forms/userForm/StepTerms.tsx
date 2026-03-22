@@ -24,7 +24,7 @@ export default function StepTerms({ formik, isInvalid, errorMessage }: Props) {
         />
         <Label htmlFor="termsAccepted" className="text-sm">
           Aceito os{' '}
-          <a href="/termos" className="underline">
+          <a href="/legal/termos" className="underline">
             termos e condições
           </a>{' '}
           *

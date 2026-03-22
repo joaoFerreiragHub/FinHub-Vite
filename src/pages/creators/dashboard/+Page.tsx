@@ -1,4 +1,4 @@
-import { useMemo, type ElementType } from 'react'
+﻿import { useMemo, type ElementType } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Eye, FileText, PenSquare, Star, Users } from 'lucide-react'
 
@@ -9,7 +9,7 @@ import type { Article } from '@/features/hub/articles/types'
 import { ratingService } from '@/features/hub/services/ratingService'
 import { apiClient } from '@/lib/api/client'
 import { ProtectedRoute } from '@/shared/guards'
-import { DashboardLayout } from '@/shared/layouts'
+import { CreatorDashboardShell } from '@/shared/layouts'
 
 const THIRTY_DAYS_IN_MS = 30 * 24 * 60 * 60 * 1000
 
@@ -239,7 +239,7 @@ function DashboardPage() {
 
   return (
     <ProtectedRoute allowedRoles={['creator', 'admin']}>
-      <DashboardLayout>
+      <CreatorDashboardShell>
         <div className="space-y-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -331,7 +331,7 @@ function DashboardPage() {
             </>
           )}
         </div>
-      </DashboardLayout>
+      </CreatorDashboardShell>
     </ProtectedRoute>
   )
 }

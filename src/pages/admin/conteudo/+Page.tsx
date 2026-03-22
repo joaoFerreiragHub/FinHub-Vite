@@ -1,12 +1,13 @@
-import ContentModerationPage from '@/features/admin/pages/ContentModerationPage'
+﻿import ContentModerationPage from '@/features/admin/pages/ContentModerationPage'
 import { ProtectedRoute } from '@/shared/guards'
+import { AdminShell } from '@/shared/layouts'
 
 function AdminContentPage() {
   return (
     <ProtectedRoute allowedRoles={['admin']} requiredAdminModule="content">
-      <div className="mx-auto max-w-7xl p-6">
+      <AdminShell>
         <ContentModerationPage />
-      </div>
+      </AdminShell>
     </ProtectedRoute>
   )
 }
