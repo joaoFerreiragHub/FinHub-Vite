@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Menu, X, LayoutDashboard, PanelLeft, User, LogOut } from 'lucide-react'
-import { Button } from '@/components/ui'
+import { useMemo, useState } from 'react'
+import { LayoutDashboard, LogOut, Menu, PanelLeft, Settings, User, X } from 'lucide-react'
+import { Button, Popover, PopoverContent, PopoverTrigger } from '@/components/ui'
 import { ToggleTheme } from '@/components/ui/toggle-theme'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { GlobalSearchBar } from '@/features/social/components/GlobalSearchBar'
@@ -43,31 +42,44 @@ function isActivePath(pathname: string, activeWhen: string[]) {
   return activeWhen.some((pattern) => pathname === pattern || pathname.startsWith(`${pattern}/`))
 }
 
+function navigateTo(path: string) {
+  if (typeof window !== 'undefined') {
+    window.location.href = path
+  }
+}
+
 function NavItem({
   item,
   currentPath,
   mobile = false,
+  onSelect,
 }: {
   item: NavItemConfig
   currentPath: string
   mobile?: boolean
+  onSelect?: () => void
 }) {
   const active = isActivePath(currentPath, item.activeWhen)
 
   return (
-    <Link
-      to={item.to}
+    <a
+      href={item.to}
+      onClick={onSelect}
       className={cn(
         mobile
-          ? 'rounded-lg px-3 py-2 text-sm font-medium transition-colors'
-          : 'rounded-md px-3 py-2 text-sm font-medium transition-colors',
-        active
-          ? 'bg-accent text-foreground'
-          : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground',
+          ? 'rounded-md px-3 py-2.5 text-sm font-medium transition-colors'
+          : 'border-b-2 border-transparent px-1 py-4 text-sm transition-colors',
+        mobile
+          ? active
+            ? 'bg-accent text-foreground'
+            : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'
+          : active
+            ? 'border-primary text-foreground font-medium'
+            : 'text-muted-foreground hover:text-foreground',
       )}
     >
       {item.label}
-    </Link>
+    </a>
   )
 }
 
@@ -80,29 +92,43 @@ interface HeaderProps {
 export default function Header({
   onSidebarToggle,
   sidebarToggleLabel = 'Abrir menu lateral',
-  containerClassName = 'max-w-[1600px]',
+  containerClassName = 'max-w-7xl',
 }: HeaderProps) {
-  const location = useLocation()
-  const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
   const { isAuthenticated, user, logout } = useAuthStore()
-
-  useEffect(() => {
-    setMobileOpen(false)
-  }, [location.pathname])
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : ''
 
   const profilePath = useMemo(() => `/perfil/${user?.username ?? 'me'}`, [user?.username])
+  const settingsPath = useMemo(
+    () => (user?.role === 'creator' ? '/creators/definicoes' : '/perfil'),
+    [user?.role],
+  )
+  const userInitial = useMemo(() => {
+    const name = (user?.name ?? user?.username ?? 'U').trim()
+    return name ? name.charAt(0).toUpperCase() : 'U'
+  }, [user?.name, user?.username])
+
+  const handleNavigate = (url: string) => {
+    setMobileOpen(false)
+    navigateTo(url)
+  }
+
+  const handleLogout = () => {
+    logout()
+    setMobileOpen(false)
+    navigateTo('/login')
+  }
 
   return (
-    <header className="sticky top-0 z-50 isolate border-b border-border/70 bg-background/90 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div
         className={cn(
-          'mx-auto flex h-16 w-full items-center justify-between px-4 sm:px-6 lg:px-10',
+          'mx-auto flex h-14 w-full items-center gap-4 px-4 sm:px-6',
           containerClassName,
         )}
       >
         <div className="flex items-center gap-2">
-          {onSidebarToggle && (
+          {onSidebarToggle ? (
             <Button
               variant="ghost"
               size="icon"
@@ -112,81 +138,108 @@ export default function Header({
             >
               <PanelLeft className="h-5 w-5" />
             </Button>
-          )}
+          ) : null}
 
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-              <span className="text-sm font-bold">F</span>
-            </div>
-            <span className="text-lg font-semibold tracking-tight">
+          <a href="/" className="flex items-center gap-2 font-bold text-foreground">
+            <span className="text-xl font-extrabold tracking-tight">
               Fin<span className="text-primary">Hub</span>
             </span>
-          </Link>
+          </a>
         </div>
 
-        <nav className="hidden items-center gap-1 lg:flex">
+        <nav className="hidden flex-1 items-center justify-center gap-5 lg:flex">
           {navItems.map((item) => (
-            <NavItem key={item.to} item={item} currentPath={location.pathname} />
+            <NavItem key={item.to} item={item} currentPath={pathname} />
           ))}
         </nav>
 
-        <div className="hidden w-full max-w-sm flex-1 px-4 md:block">
-          <GlobalSearchBar
-            onNavigate={(url) => {
-              navigate(url)
-            }}
-          />
-        </div>
-
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden min-w-0 flex-1 items-center justify-end gap-2 md:flex">
+          <div className="w-full max-w-sm">
+            <GlobalSearchBar onNavigate={handleNavigate} />
+          </div>
+          {isAuthenticated ? (
+            <NotificationBell
+              onNavigateToNotifications={() => handleNavigate('/notificacoes')}
+              onClickNotification={(notification) =>
+                handleNavigate(notification.targetUrl || '/notificacoes')
+              }
+            />
+          ) : null}
           <ToggleTheme />
           {!isAuthenticated ? (
             <>
               <Button variant="ghost" asChild>
-                <Link to="/login">Entrar</Link>
+                <a href="/login">Entrar</a>
               </Button>
               <Button asChild>
-                <Link to="/registar">Criar conta</Link>
+                <a href="/registar">Registar</a>
               </Button>
             </>
           ) : (
-            <>
-              <NotificationBell
-                onNavigateToNotifications={() => navigate('/notificacoes')}
-                onClickNotification={(notification) => {
-                  navigate(notification.targetUrl || '/notificacoes')
-                }}
-              />
-              <Button variant="outline" asChild>
-                <Link to="/dashboard">
-                  <LayoutDashboard className="h-4 w-4" />
-                  Painel
-                </Link>
-              </Button>
-              <Button variant="ghost" asChild>
-                <Link to={profilePath}>
-                  <User className="h-4 w-4" />
-                  {user?.name ?? 'Conta'}
-                </Link>
-              </Button>
-              <Button variant="ghost" onClick={logout}>
-                <LogOut className="h-4 w-4" />
-                Sair
-              </Button>
-            </>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9 rounded-full border-border/60 bg-card p-0"
+                  aria-label="Abrir menu de conta"
+                >
+                  <span className="text-sm font-semibold">{userInitial}</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" sideOffset={10} className="w-56 p-1.5">
+                <div className="border-b border-border px-2 py-1.5">
+                  <p className="text-xs text-muted-foreground">Conta</p>
+                  <p className="truncate text-sm font-medium text-foreground">
+                    {user?.name ?? user?.username ?? 'Utilizador'}
+                  </p>
+                </div>
+                <div className="mt-1 grid gap-1">
+                  <a
+                    href="/dashboard"
+                    className="inline-flex items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground hover:bg-accent"
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                    Dashboard
+                  </a>
+                  <a
+                    href={profilePath}
+                    className="inline-flex items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground hover:bg-accent"
+                  >
+                    <User className="h-4 w-4" />
+                    Perfil
+                  </a>
+                  <a
+                    href={settingsPath}
+                    className="inline-flex items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground hover:bg-accent"
+                  >
+                    <Settings className="h-4 w-4" />
+                    Definicoes
+                  </a>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="inline-flex items-center gap-2 rounded-md px-2 py-2 text-left text-sm text-foreground hover:bg-accent"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </button>
+                </div>
+              </PopoverContent>
+            </Popover>
           )}
         </div>
 
-        <div className="flex items-center gap-1 md:hidden">
-          <ToggleTheme />
-          {isAuthenticated && (
+        <div className="ml-auto flex items-center gap-1 md:hidden">
+          {isAuthenticated ? (
             <NotificationBell
-              onNavigateToNotifications={() => navigate('/notificacoes')}
-              onClickNotification={(notification) => {
-                navigate(notification.targetUrl || '/notificacoes')
-              }}
+              onNavigateToNotifications={() => handleNavigate('/notificacoes')}
+              onClickNotification={(notification) =>
+                handleNavigate(notification.targetUrl || '/notificacoes')
+              }
             />
-          )}
+          ) : null}
+          <ToggleTheme />
           <Button
             variant="ghost"
             size="icon"
@@ -198,48 +251,67 @@ export default function Header({
         </div>
       </div>
 
-      {mobileOpen && (
+      {mobileOpen ? (
         <div className="border-t border-border/70 bg-background/95 md:hidden">
-          <div className={cn('mx-auto w-full space-y-2 px-4 py-3 sm:px-6', containerClassName)}>
+          <div className={cn('mx-auto w-full space-y-3 px-4 py-3 sm:px-6', containerClassName)}>
+            <GlobalSearchBar onNavigate={handleNavigate} />
             <nav className="grid gap-1">
               {navItems.map((item) => (
-                <NavItem key={item.to} item={item} currentPath={location.pathname} mobile />
+                <NavItem
+                  key={item.to}
+                  item={item}
+                  currentPath={pathname}
+                  mobile
+                  onSelect={() => setMobileOpen(false)}
+                />
               ))}
             </nav>
-            <div className="grid gap-2 border-t border-border pt-3">
+            <div className="grid gap-1 border-t border-border pt-3">
               {!isAuthenticated ? (
                 <>
                   <Button variant="outline" asChild className="justify-start">
-                    <Link to="/login">Entrar</Link>
+                    <a href="/login">Entrar</a>
                   </Button>
                   <Button asChild className="justify-start">
-                    <Link to="/registar">Criar conta</Link>
+                    <a href="/registar">Registar</a>
                   </Button>
                 </>
               ) : (
                 <>
-                  <Button variant="outline" asChild className="justify-start">
-                    <Link to="/dashboard">
-                      <LayoutDashboard className="h-4 w-4" />
-                      Abrir painel
-                    </Link>
-                  </Button>
-                  <Button variant="outline" asChild className="justify-start">
-                    <Link to={profilePath}>
-                      <User className="h-4 w-4" />
-                      Ver perfil
-                    </Link>
-                  </Button>
-                  <Button variant="ghost" className="justify-start" onClick={logout}>
+                  <a
+                    href="/dashboard"
+                    onClick={() => setMobileOpen(false)}
+                    className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                    Dashboard
+                  </a>
+                  <a
+                    href={profilePath}
+                    onClick={() => setMobileOpen(false)}
+                    className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"
+                  >
+                    <User className="h-4 w-4" />
+                    Perfil
+                  </a>
+                  <a
+                    href={settingsPath}
+                    onClick={() => setMobileOpen(false)}
+                    className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"
+                  >
+                    <Settings className="h-4 w-4" />
+                    Definicoes
+                  </a>
+                  <Button variant="ghost" className="justify-start" onClick={handleLogout}>
                     <LogOut className="h-4 w-4" />
-                    Terminar sessao
+                    Logout
                   </Button>
                 </>
               )}
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </header>
   )
 }
