@@ -178,6 +178,18 @@ export function ShellFooter() {
                 Contacto
               </a>
               <a
+                href="/faq"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                FAQ
+              </a>
+              <a
+                href="/precos"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Precos
+              </a>
+              <a
                 href="/legal/termos"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >

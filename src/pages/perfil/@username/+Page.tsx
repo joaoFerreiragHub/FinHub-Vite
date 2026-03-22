@@ -1,5 +1,10 @@
-import { UserProfilePage } from '@/features/social/pages'
+import { PublicUserProfilePage } from '@/features/user/pages/PublicUserProfilePage'
+import { usePageContext } from '@/renderer/PageShell'
 
-export function Page({ username }: { username: string }) {
-  return <UserProfilePage username={username} />
+export const passToClient = ['routeParams', 'pageProps', 'user']
+
+export function Page() {
+  const pageContext = usePageContext()
+  const username = (pageContext.routeParams?.username as string) ?? ''
+  return <PublicUserProfilePage username={username} />
 }
