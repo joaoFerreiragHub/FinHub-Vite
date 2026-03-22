@@ -1,5 +1,7 @@
+import { ExternalLink, Eye, Globe, ShieldCheck } from 'lucide-react'
 import { Badge } from '@/components/ui'
-import { ExternalLink, Eye, ShieldCheck, Star } from 'lucide-react'
+import { formatCount } from '@/lib/cardUtils'
+import { RatingStars } from '@/components/shared/RatingStars'
 
 interface ResourceCardResource {
   id: string
@@ -19,83 +21,79 @@ interface ResourceCardProps {
   resource: ResourceCardResource
 }
 
-const formatCount = (value?: number) => {
-  if (!value || value <= 0) return '0'
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`
-  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}k`
-  return String(value)
-}
-
+/**
+ * Card for external resources (tools, calculators, websites).
+ * Uses the same visual language as ContentCard — consistent hover, same border-radius.
+ * Kept separate because it has unique fields (description, external link CTA, verified badge).
+ */
 export function ResourceCard({ resource }: ResourceCardProps) {
   return (
     <a
       href={resource.href}
       target={resource.isExternal ? '_blank' : undefined}
       rel={resource.isExternal ? 'noopener noreferrer' : undefined}
-      className="content-row__item netflix-card group/card"
+      className="content-row__item group block overflow-hidden rounded-2xl border border-border/70 bg-card/80 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg"
       style={{ width: 'clamp(240px, 30vw, 320px)' }}
     >
-      <div className="netflix-card__image-container" style={{ aspectRatio: '16/9' }}>
-        <img
-          src={
-            resource.imageUrl ||
-            'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=640&q=80'
-          }
-          alt={resource.name}
-          className="netflix-card__image"
-          loading="lazy"
-        />
-        <div className="netflix-card__overlay" />
-        <div className="netflix-card__overlay--hover" />
+      {/* Image */}
+      <div className="relative aspect-video overflow-hidden bg-muted">
+        {resource.imageUrl ? (
+          <img
+            src={resource.imageUrl}
+            alt={resource.name}
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+            loading="lazy"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-muted via-muted/80 to-muted/30">
+            <Globe className="h-8 w-8 text-muted-foreground" />
+          </div>
+        )}
 
-        <div className="absolute top-3 left-3 z-10">
-          <Badge
-            variant="secondary"
-            className="text-xs bg-background/80 backdrop-blur-sm border-0 text-foreground font-medium"
-          >
+        {/* Type badge */}
+        <div className="absolute left-3 top-3">
+          <Badge variant="secondary" className="border-0 bg-background/85 backdrop-blur-sm">
             {resource.typeLabel}
           </Badge>
         </div>
 
+        {/* Verified badge */}
         {resource.isVerified && (
-          <div className="absolute top-3 right-3 z-10">
-            <Badge className="text-xs bg-emerald-600 text-white border-0">
+          <div className="absolute right-3 top-3">
+            <Badge className="border-0 bg-emerald-600 text-white">
               <ShieldCheck className="mr-1 h-3.5 w-3.5" />
               Verificado
             </Badge>
           </div>
         )}
-
-        <div className="netflix-card__info">
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            {resource.averageRating != null && resource.averageRating > 0 && (
-              <span className="flex items-center gap-1 text-amber-500">
-                <Star className="h-3.5 w-3.5 fill-amber-500" />
-                {resource.averageRating.toFixed(1)}
-                {resource.ratingsCount != null && resource.ratingsCount > 0 && (
-                  <span className="text-muted-foreground">({resource.ratingsCount})</span>
-                )}
-              </span>
-            )}
-            {resource.views != null && resource.views > 0 && (
-              <span className="flex items-center gap-1">
-                <Eye className="h-3.5 w-3.5" />
-                {formatCount(resource.views)}
-              </span>
-            )}
-          </div>
-        </div>
       </div>
 
-      <div className="netflix-card__body">
-        <h3 className="text-sm sm:text-base font-semibold leading-tight line-clamp-2 text-foreground group-hover/card:text-primary transition-colors">
+      {/* Body */}
+      <div className="space-y-2 p-4">
+        <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground sm:text-base">
           {resource.name}
         </h3>
-        <p className="text-xs text-muted-foreground line-clamp-2">{resource.description}</p>
-        <span className="inline-flex items-center gap-1 text-xs font-medium text-primary pt-0.5">
-          {resource.isExternal ? 'Visitar site' : 'Abrir recurso'}
-          {resource.isExternal && <ExternalLink className="h-3.5 w-3.5" />}
-        </span>
+
+        {resource.averageRating != null && resource.averageRating > 0 && (
+          <RatingStars rating={resource.averageRating} />
+        )}
+
+        <p className="line-clamp-2 text-xs text-muted-foreground">{resource.description}</p>
+
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          {resource.views != null && resource.views > 0 ? (
+            <span className="inline-flex items-center gap-1">
+              <Eye className="h-3.5 w-3.5" />
+              {formatCount(resource.views)}
+            </span>
+          ) : (
+            <span />
+          )}
+          <span className="inline-flex items-center gap-1 font-medium text-primary">
+            {resource.isExternal ? 'Visitar site' : 'Abrir recurso'}
+            {resource.isExternal && <ExternalLink className="h-3.5 w-3.5" />}
+          </span>
+        </div>
       </div>
     </a>
   )
