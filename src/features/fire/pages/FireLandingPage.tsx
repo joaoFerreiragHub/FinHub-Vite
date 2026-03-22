@@ -1,4 +1,3 @@
-import { Link, useInRouterContext } from 'react-router-dom'
 import { ArrowRight, BarChart3, Target, Wallet2 } from 'lucide-react'
 import { Badge, Button, Card, CardContent } from '@/components/ui'
 import { FireToolNav } from '../components/FireToolNav'
@@ -28,8 +27,6 @@ const fireHighlights = [
 ]
 
 export default function FireLandingPage() {
-  const hasRouterContext = useInRouterContext()
-
   return (
     <div className="px-4 pb-10 pt-6 sm:px-6 lg:px-10">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 sm:gap-8">
@@ -56,24 +53,13 @@ export default function FireLandingPage() {
             </p>
             <div className="flex flex-wrap gap-3">
               <Button asChild>
-                {hasRouterContext ? (
-                  <Link to="/ferramentas/fire/portfolio">
-                    Abrir portfolio
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                ) : (
-                  <a href="/ferramentas/fire/portfolio">
-                    Abrir portfolio
-                    <ArrowRight className="h-4 w-4" />
-                  </a>
-                )}
+                <a href="/ferramentas/fire/portfolio">
+                  Abrir portfolio
+                  <ArrowRight className="h-4 w-4" />
+                </a>
               </Button>
               <Button asChild variant="outline">
-                {hasRouterContext ? (
-                  <Link to="/ferramentas/fire/simulador">Ir para simulador</Link>
-                ) : (
-                  <a href="/ferramentas/fire/simulador">Ir para simulador</a>
-                )}
+                <a href="/ferramentas/fire/simulador">Ir para simulador</a>
               </Button>
             </div>
             <FireToolNav />
@@ -97,17 +83,10 @@ export default function FireLandingPage() {
                     <p className="text-sm text-muted-foreground">{item.description}</p>
                   </div>
                   <Button asChild variant="outline" className="w-full justify-between">
-                    {hasRouterContext ? (
-                      <Link to={item.to}>
-                        Abrir
-                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                      </Link>
-                    ) : (
-                      <a href={item.to}>
-                        Abrir
-                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                      </a>
-                    )}
+                    <a href={item.to}>
+                      Abrir
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </a>
                   </Button>
                 </CardContent>
               </Card>
