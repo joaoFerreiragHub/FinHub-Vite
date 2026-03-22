@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+﻿import { useMemo, useState } from 'react'
 import { PenSquare, RefreshCcw, Rocket, Trash2, Undo2 } from 'lucide-react'
 
 import {
@@ -27,7 +27,7 @@ import {
 } from '@/features/hub/articles/hooks/useArticles'
 import type { Article } from '@/features/hub/articles/types'
 import { getErrorMessage } from '@/lib/api/client'
-import { DashboardLayout } from '@/shared/layouts'
+import { CreatorDashboardShell } from '@/shared/layouts'
 
 type ArticleStatusFilter = 'all' | 'draft' | 'published'
 type NumericCandidate = number | string | null | undefined
@@ -169,7 +169,7 @@ export function ManageArticles() {
   }
 
   return (
-    <DashboardLayout>
+    <CreatorDashboardShell>
       <div className="space-y-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -374,6 +374,6 @@ export function ManageArticles() {
           </DialogContent>
         </Dialog>
       </div>
-    </DashboardLayout>
+    </CreatorDashboardShell>
   )
 }

@@ -1,11 +1,27 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Button, Input, Card, Label } from '@/components/ui'
+import { navigate } from 'vike/client/router'
+import { Button, Card, Input, Label } from '@/components/ui'
 import { ContentCategory } from '@/features/hub/types'
 import type { Article, CreateArticleDto, UpdateArticleDto } from '@/features/hub/articles/types'
 import { getErrorMessage } from '@/lib/api/client'
+
+const DEFAULT_ARTICLE_TAGS = [
+  'poupanca',
+  'orcamento',
+  'investimento',
+  'acoes',
+  'etf',
+  'crypto',
+  'dividendos',
+  'imobiliario',
+  'fiscalidade',
+  'fundo de emergencia',
+  'gestao de risco',
+  'planeamento financeiro',
+]
 
 const articleFormSchema = z.object({
   title: z.string().min(1, 'Titulo e obrigatorio').max(200, 'Maximo 200 caracteres'),
@@ -14,11 +30,10 @@ const articleFormSchema = z.object({
   content: z.string().min(1, 'Conteudo e obrigatorio'),
   coverImage: z.string().url('URL invalida').optional().or(z.literal('')),
   category: z.nativeEnum(ContentCategory),
-  tags: z.string().optional(),
+  tags: z.array(z.string()).optional(),
   requiredRole: z.enum(['visitor', 'free', 'premium']).optional(),
   isPremium: z.boolean().optional(),
-  status: z.enum(['draft', 'published', 'scheduled']).optional(),
-  scheduledFor: z.string().optional(),
+  publishNow: z.boolean().optional(),
   language: z.string().optional(),
 })
 
@@ -44,15 +59,21 @@ export type ArticleFormProps = ArticleFormCreateProps | ArticleFormEditProps
 
 export function ArticleForm(props: ArticleFormProps) {
   const { article } = props
-  const submitText = props.submitText ?? (article ? 'Atualizar' : 'Criar Artigo')
+  const submitText = props.submitText ?? (article ? 'Atualizar Artigo' : 'Criar Artigo')
   const showDraftOption = props.showDraftOption ?? true
   const redirectTo = props.redirectTo ?? '/creators/dashboard/articles'
   const [serverError, setServerError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const tagOptions = useMemo(() => {
+    const articleTags = article?.tags ?? []
+    return Array.from(new Set([...DEFAULT_ARTICLE_TAGS, ...articleTags])).sort((left, right) =>
+      left.localeCompare(right),
+    )
+  }, [article?.tags])
+
   const navigateTo = (path: string) => {
-    if (typeof window !== 'undefined') {
-      window.location.assign(path)
-    }
+    void navigate(path)
   }
 
   const {
@@ -70,42 +91,49 @@ export function ArticleForm(props: ArticleFormProps) {
           content: article.content,
           coverImage: article.coverImage || '',
           category: article.category,
-          tags: article.tags.join(', '),
+          tags: article.tags,
           requiredRole: article.requiredRole as 'visitor' | 'free' | 'premium',
           isPremium: article.isPremium,
-          status: article.status as 'draft' | 'published',
+          publishNow: article.status === 'published' || article.isPublished === true,
           language: article.language,
         }
       : {
-          status: 'draft',
           category: ContentCategory.PERSONAL_FINANCE,
           requiredRole: 'free',
           isPremium: false,
+          publishNow: false,
           language: 'pt',
+          tags: [],
         },
   })
 
   const isPremium = watch('isPremium')
+  const publishNow = watch('publishNow')
 
   const handleSubmit = async (data: ArticleFormData, isDraft = false) => {
     setServerError(null)
     setIsSubmitting(true)
 
     try {
-      const tags = data.tags
-        ? data.tags
-            .split(',')
-            .map((t) => t.trim())
-            .filter(Boolean)
-        : []
+      const tags = (data.tags ?? []).map((tag) => tag.trim()).filter(Boolean)
+      const status: 'draft' | 'published' = isDraft
+        ? 'draft'
+        : data.publishNow
+          ? 'published'
+          : 'draft'
 
       if (article) {
         const updatePayload: UpdateArticleDto = {
-          ...data,
-          tags,
-          status: isDraft ? 'draft' : data.status,
+          title: data.title,
+          description: data.description,
+          content: data.content,
           excerpt: data.excerpt || undefined,
           coverImage: data.coverImage || undefined,
+          category: data.category,
+          tags,
+          requiredRole: data.requiredRole,
+          isPremium: data.isPremium,
+          status,
         }
         await props.onSubmit(updatePayload)
       } else {
@@ -113,18 +141,18 @@ export function ArticleForm(props: ArticleFormProps) {
           title: data.title,
           description: data.description,
           content: data.content,
+          excerpt: data.excerpt || undefined,
+          coverImage: data.coverImage || undefined,
           category: data.category,
           tags,
           requiredRole: data.requiredRole,
           isPremium: data.isPremium,
-          status: isDraft ? 'draft' : data.status,
-          scheduledFor: data.scheduledFor,
-          excerpt: data.excerpt || undefined,
-          coverImage: data.coverImage || undefined,
+          status,
           language: data.language,
         }
         await props.onSubmit(createPayload)
       }
+
       navigateTo(redirectTo)
     } catch (error) {
       setServerError(getErrorMessage(error))
@@ -135,54 +163,60 @@ export function ArticleForm(props: ArticleFormProps) {
 
   return (
     <form onSubmit={handleFormSubmit((data) => handleSubmit(data, false))} className="space-y-6">
-      {serverError && (
+      {serverError ? (
         <Card className="border-red-500 bg-red-50 p-4">
           <p className="text-sm text-red-800">
             <strong>Erro:</strong> {serverError}
           </p>
         </Card>
-      )}
+      ) : null}
 
       <div className="space-y-2">
         <Label htmlFor="title">Titulo</Label>
-        <Input id="title" placeholder="Ex: Como Poupar 1000EUR em 6 Meses" {...register('title')} />
-        {errors.title && <p className="text-sm text-red-600">{errors.title.message}</p>}
+        <Input
+          id="title"
+          placeholder="Ex: Como poupar 1000 EUR em 6 meses"
+          {...register('title')}
+        />
+        {errors.title ? <p className="text-sm text-red-600">{errors.title.message}</p> : null}
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Descricao (SEO)</label>
+        <Label htmlFor="description">Descricao (SEO)</Label>
         <textarea
+          id="description"
           rows={3}
-          placeholder="Resumo curto que aparece nos resultados de busca..."
+          placeholder="Resumo curto para resultados de pesquisa e cards."
           className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm"
           {...register('description')}
         />
-        {errors.description && <p className="text-sm text-red-600">{errors.description.message}</p>}
+        {errors.description ? (
+          <p className="text-sm text-red-600">{errors.description.message}</p>
+        ) : null}
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Resumo (opcional)</label>
+        <Label htmlFor="excerpt">Resumo (opcional)</Label>
         <textarea
+          id="excerpt"
           rows={2}
-          placeholder="Resumo que aparece no card do artigo..."
+          placeholder="Resumo breve para destaque no card do artigo."
           className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm"
           {...register('excerpt')}
         />
-        {errors.excerpt && <p className="text-sm text-red-600">{errors.excerpt.message}</p>}
+        {errors.excerpt ? <p className="text-sm text-red-600">{errors.excerpt.message}</p> : null}
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Conteudo *</label>
+        <Label htmlFor="content">Conteudo</Label>
         <textarea
+          id="content"
           rows={15}
-          placeholder="Escreva o conteudo do artigo em Markdown ou HTML..."
-          className="w-full rounded-lg border border-input bg-transparent px-3 py-2 font-mono text-sm"
+          placeholder="Escreve o conteudo do artigo..."
+          className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm"
           {...register('content')}
         />
-        {errors.content && <p className="text-sm text-red-600">{errors.content.message}</p>}
-        <p className="text-xs text-muted-foreground">
-          Suporta Markdown e HTML. Usa Markdown para formatacao simples.
-        </p>
+        {errors.content ? <p className="text-sm text-red-600">{errors.content.message}</p> : null}
       </div>
 
       <div className="space-y-2">
@@ -193,13 +227,16 @@ export function ArticleForm(props: ArticleFormProps) {
           placeholder="https://exemplo.com/imagem.jpg"
           {...register('coverImage')}
         />
-        {errors.coverImage && <p className="text-sm text-red-600">{errors.coverImage.message}</p>}
+        {errors.coverImage ? (
+          <p className="text-sm text-red-600">{errors.coverImage.message}</p>
+        ) : null}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Categoria *</label>
+          <Label htmlFor="category">Categoria</Label>
           <select
+            id="category"
             className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm"
             {...register('category')}
           >
@@ -218,63 +255,85 @@ export function ArticleForm(props: ArticleFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="tags">Tags (separadas por virgula)</Label>
-          <Input id="tags" placeholder="poupanca, investimento, dicas" {...register('tags')} />
-          <p className="text-xs text-muted-foreground">Ex: poupanca, dicas, iniciantes</p>
-          {errors.tags && <p className="text-sm text-red-600">{errors.tags.message}</p>}
-        </div>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Nivel de Acesso</label>
+          <Label htmlFor="requiredRole">Nivel de Acesso</Label>
           <select
+            id="requiredRole"
             className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm"
             {...register('requiredRole')}
           >
-            <option value="visitor">Visitante (Todos)</option>
-            <option value="free">Gratuito (Conta necessaria)</option>
-            <option value="premium">Premium (Assinantes)</option>
-          </select>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Estado</label>
-          <select
-            className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm"
-            {...register('status')}
-          >
-            <option value="draft">Rascunho</option>
-            <option value="published">Publicado</option>
-            <option value="scheduled">Agendado</option>
+            <option value="visitor">Visitante (todos)</option>
+            <option value="free">Gratuito</option>
+            <option value="premium">Premium</option>
           </select>
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="isPremium"
-          className="h-4 w-4 rounded border-gray-300"
-          {...register('isPremium')}
-        />
-        <label htmlFor="isPremium" className="text-sm font-medium">
-          Marcar como conteudo Premium
-        </label>
+      <div className="space-y-2">
+        <Label htmlFor="tags">Topicos/Tags</Label>
+        <select
+          id="tags"
+          multiple
+          size={Math.min(8, Math.max(4, tagOptions.length))}
+          className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm"
+          {...register('tags')}
+        >
+          {tagOptions.map((tag) => (
+            <option key={tag} value={tag}>
+              {tag}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-muted-foreground">
+          Usa Ctrl/Cmd para selecionar varios topicos.
+        </p>
+        {errors.tags ? <p className="text-sm text-red-600">{errors.tags.message}</p> : null}
       </div>
 
-      {isPremium && (
-        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
-          Este artigo sera visivel apenas para assinantes Premium
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="publishNow"
+            className="h-4 w-4 rounded border-gray-300"
+            {...register('publishNow')}
+          />
+          <label htmlFor="publishNow" className="text-sm font-medium">
+            Publicar imediatamente
+          </label>
         </div>
-      )}
+        <p className="text-xs text-muted-foreground">
+          {publishNow
+            ? 'Este artigo sera publicado assim que gravares.'
+            : 'Este artigo sera guardado como rascunho.'}
+        </p>
+      </div>
 
-      <div className="flex gap-3">
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="isPremium"
+            className="h-4 w-4 rounded border-gray-300"
+            {...register('isPremium')}
+          />
+          <label htmlFor="isPremium" className="text-sm font-medium">
+            Marcar como conteudo premium
+          </label>
+        </div>
+
+        {isPremium ? (
+          <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
+            Este artigo sera visivel apenas para assinantes premium.
+          </div>
+        ) : null}
+      </div>
+
+      <div className="flex flex-wrap gap-3">
         <Button type="submit" variant="default" size="lg" isLoading={isSubmitting}>
           {submitText}
         </Button>
 
-        {showDraftOption && !article && (
+        {showDraftOption && !article ? (
           <Button
             type="button"
             variant="outline"
@@ -284,7 +343,7 @@ export function ArticleForm(props: ArticleFormProps) {
           >
             Guardar Rascunho
           </Button>
-        )}
+        ) : null}
 
         <Button type="button" variant="ghost" size="lg" onClick={() => navigateTo(redirectTo)}>
           Cancelar

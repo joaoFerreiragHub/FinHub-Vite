@@ -1,11 +1,11 @@
-import { DashboardLayout } from '@/shared/layouts'
+﻿import { CreatorDashboardShell } from '@/shared/layouts'
 import { ArticleForm } from '../components/ArticleForm'
 import { useCreateArticle } from '@/features/hub/articles/hooks/useArticles'
 import { Card } from '@/components/ui'
 import type { CreateArticleDto } from '@/features/hub/articles/types'
 
 /**
- * Página de criação de artigo
+ * PÃ¡gina de criaÃ§Ã£o de artigo
  */
 export function CreateArticle() {
   const createArticle = useCreateArticle()
@@ -15,13 +15,13 @@ export function CreateArticle() {
   }
 
   return (
-    <DashboardLayout>
+    <CreatorDashboardShell>
       <div className="mx-auto max-w-4xl space-y-6">
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold">Criar Novo Artigo</h1>
           <p className="mt-1 text-muted-foreground">
-            Partilha o teu conhecimento sobre finanças pessoais e investimentos
+            Partilha o teu conhecimento sobre finanÃ§as pessoais e investimentos
           </p>
         </div>
 
@@ -32,17 +32,17 @@ export function CreateArticle() {
 
         {/* Tips */}
         <Card className="border-dashed bg-muted/30 p-6">
-          <h3 className="mb-2 font-semibold">💡 Dicas para um bom artigo</h3>
+          <h3 className="mb-2 font-semibold">ðŸ’¡ Dicas para um bom artigo</h3>
           <ul className="space-y-1 text-sm text-muted-foreground">
-            <li>✅ Usa um título claro e descritivo</li>
-            <li>✅ Estrutura o conteúdo com headings (# ## ###)</li>
-            <li>✅ Adiciona exemplos práticos</li>
-            <li>✅ Usa listas para facilitar leitura</li>
-            <li>✅ Inclui uma imagem de capa atrativa</li>
-            <li>✅ Revê ortografia e gramática</li>
+            <li>âœ… Usa um tÃ­tulo claro e descritivo</li>
+            <li>âœ… Estrutura o conteÃºdo com headings (# ## ###)</li>
+            <li>âœ… Adiciona exemplos prÃ¡ticos</li>
+            <li>âœ… Usa listas para facilitar leitura</li>
+            <li>âœ… Inclui uma imagem de capa atrativa</li>
+            <li>âœ… RevÃª ortografia e gramÃ¡tica</li>
           </ul>
         </Card>
       </div>
-    </DashboardLayout>
+    </CreatorDashboardShell>
   )
 }

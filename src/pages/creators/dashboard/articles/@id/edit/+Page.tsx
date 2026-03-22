@@ -1,29 +1,16 @@
 import { EditArticle } from '@/features/creators/dashboard/articles'
-import { Route, Routes } from 'react-router-dom'
+import { usePageContext } from '@/renderer/PageShell'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const resolveId = (props: any): string => {
-  const fromProps = props.pageContext?.routeParams?.id ?? props.routeParams?.id ?? props.id
-  if (fromProps) return decodeURIComponent(String(fromProps))
+export const passToClient = ['routeParams']
 
-  if (typeof window !== 'undefined') {
-    const routeMatch = window.location.pathname.match(
-      /^\/creators\/dashboard\/articles\/([^/?#]+)\/edit$/,
-    )
-    if (routeMatch?.[1]) return decodeURIComponent(routeMatch[1])
-  }
+function CreatorDashboardEditArticleRoutePage() {
+  const pageContext = usePageContext()
+  const rawId = pageContext.routeParams?.id
+  const articleId = typeof rawId === 'string' ? decodeURIComponent(rawId) : undefined
 
-  return ''
+  return <EditArticle articleId={articleId} />
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function Page(props: any) {
-  const id = resolveId(props)
-  if (!id) return null
-
-  return (
-    <Routes>
-      <Route path="/creators/dashboard/articles/:id/edit" element={<EditArticle />} />
-    </Routes>
-  )
+export default {
+  Page: CreatorDashboardEditArticleRoutePage,
 }

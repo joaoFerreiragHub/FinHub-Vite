@@ -1,25 +1,29 @@
-import { type ReactNode, useState } from 'react'
+﻿import { type ReactNode, useState } from 'react'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { getRoutesByRole } from '@/lib/routing/getRoutesByRole'
 import { Button } from '@/components/ui'
 import { Menu } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+/**
+ * @deprecated Use CreatorDashboardShell for creator/admin dashboard pages.
+ * Keep this layout only for legacy authenticated routes that still rely on role-wide navigation.
+ */
 export interface DashboardLayoutProps {
   /**
-   * Conteúdo da página
+   * ConteÃºdo da pÃ¡gina
    */
   children: ReactNode
 }
 
 /**
- * Layout principal para páginas autenticadas
+ * Layout principal para pÃ¡ginas autenticadas
  *
  * Features:
- * - Sidebar com navegação baseada em role
+ * - Sidebar com navegaÃ§Ã£o baseada em role
  * - Header com user menu
  * - Responsive
- * - Usa configurações de rotas de src/routes/
+ * - Usa configuraÃ§Ãµes de rotas de src/routes/
  *
  * @example
  * <DashboardLayout>

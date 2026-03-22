@@ -80,8 +80,16 @@ export const articleService = {
    * Atualizar artigo (CREATOR/ADMIN)
    */
   updateArticle: async (id: string, data: UpdateArticleDto): Promise<Article> => {
-    const response = await apiClient.patch<Article>(`/articles/${id}`, data)
-    return response.data
+    try {
+      const response = await apiClient.put<Article>(`/articles/${id}`, data)
+      return response.data
+    } catch (error) {
+      if (axios.isAxiosError(error) && [404, 405].includes(error.response?.status ?? 0)) {
+        const fallbackResponse = await apiClient.patch<Article>(`/articles/${id}`, data)
+        return fallbackResponse.data
+      }
+      throw error
+    }
   },
 
   /**
