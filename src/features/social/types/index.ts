@@ -123,6 +123,12 @@ export interface UserProfile extends User {
   joinedAt: string
 }
 
+export interface UpdateMyProfileInput {
+  name: string
+  bio?: string
+  avatar?: string
+}
+
 // ========== SEARCH ==========
 
 export type SearchContentType = Exclude<ContentType, ContentType.NEWS>

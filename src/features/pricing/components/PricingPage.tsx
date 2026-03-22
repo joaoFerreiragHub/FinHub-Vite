@@ -228,7 +228,7 @@ export function PricingPage() {
               <Card
                 key={plan.key}
                 className={cn(
-                  'relative h-full border-border/70 shadow-sm transition-colors',
+                  'relative flex h-full flex-col border-border/70 shadow-sm transition-colors',
                   plan.highlighted ? 'ring-2 ring-primary' : '',
                 )}
               >
@@ -244,7 +244,7 @@ export function PricingPage() {
                   </div>
                   <CardDescription>{plan.description}</CardDescription>
                 </CardHeader>
-                <CardContent className="flex h-full flex-col gap-6">
+                <CardContent className="flex flex-1 flex-col gap-6">
                   <div>
                     <p className="text-3xl font-bold tabular-nums">
                       {priceText}

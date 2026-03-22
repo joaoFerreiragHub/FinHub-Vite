@@ -7,6 +7,8 @@ import type {
   FollowedCreator,
   NotificationPreferencesPatchInput,
   SearchFilterType,
+  UpdateMyProfileInput,
+  UserProfile,
 } from '../types'
 
 interface CreatorSubscriptionMutationInput {
@@ -183,6 +185,21 @@ export function useMyProfile() {
   return useQuery({
     queryKey: ['social', 'profile', 'me'],
     queryFn: () => socialService.getMyProfile(),
+  })
+}
+
+export function useUpdateMyProfile() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: UpdateMyProfileInput) => socialService.updateMyProfile(input),
+    onSuccess: (updatedProfile) => {
+      queryClient.setQueryData<UserProfile | undefined>(['social', 'profile', 'me'], (current) => {
+        if (!current) return current
+        return { ...current, ...updatedProfile }
+      })
+      queryClient.invalidateQueries({ queryKey: ['social', 'profile', 'me'] })
+    },
   })
 }
 

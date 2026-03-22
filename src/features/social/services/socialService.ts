@@ -15,6 +15,7 @@ import {
   type ActivityFeedItem,
   type ActivityFeedResponse,
   type UserProfile,
+  type UpdateMyProfileInput,
   type SearchResponse,
 } from '../types'
 
@@ -543,9 +544,7 @@ const mapCreatorSubscriptionsResponse = (
   }
 }
 
-const mapBackendCategoryToHubCategory = (
-  rawCategory?: string,
-): ContentCategory => {
+const mapBackendCategoryToHubCategory = (rawCategory?: string): ContentCategory => {
   switch (rawCategory) {
     case 'crypto':
       return ContentCategory.CRYPTO
@@ -620,14 +619,12 @@ const mapFeedItem = (item: BackendFeedItem): ActivityFeedItem | null => {
       publishedAt: content.publishedAt,
       createdAt: content.createdAt ?? item.createdAt ?? new Date().toISOString(),
       updatedAt:
-        content.updatedAt ??
-        content.createdAt ??
-        item.createdAt ??
-        new Date().toISOString(),
+        content.updatedAt ?? content.createdAt ?? item.createdAt ?? new Date().toISOString(),
     },
     creatorName: item.creatorName ?? 'Criador',
     creatorAvatar: item.creatorAvatar ?? undefined,
-    createdAt: item.createdAt ?? content.publishedAt ?? content.createdAt ?? new Date().toISOString(),
+    createdAt:
+      item.createdAt ?? content.publishedAt ?? content.createdAt ?? new Date().toISOString(),
   }
 }
 
@@ -929,6 +926,24 @@ export const socialService = {
   getMyProfile: async (): Promise<UserProfile> => {
     const response = await apiClient.get<UserProfile>('/auth/me')
     return response.data
+  },
+
+  updateMyProfile: async (input: UpdateMyProfileInput): Promise<UpdateMyProfileInput> => {
+    const normalizedName = input.name.trim()
+    const normalizedBio = input.bio?.trim() ?? ''
+    const normalizedAvatar = input.avatar?.trim() ?? ''
+
+    await apiClient.patch('/users/me', {
+      name: normalizedName,
+      bio: normalizedBio.length > 0 ? normalizedBio : null,
+      avatar: normalizedAvatar.length > 0 ? normalizedAvatar : null,
+    })
+
+    return {
+      name: normalizedName,
+      bio: normalizedBio || undefined,
+      avatar: normalizedAvatar || undefined,
+    }
   },
 
   // ========== SEARCH ==========
