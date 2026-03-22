@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import { ArrowRight, BarChart3, BookOpen, ShieldCheck, Users } from 'lucide-react'
 import { Button } from '@/components/ui'
 
@@ -34,26 +33,32 @@ export default function AboutPage() {
     <div className="px-4 py-8 sm:px-6 sm:py-10 lg:px-10 lg:py-12">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
-          <span className="inline-flex rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-muted-foreground">
+          <a
+            href="/"
+            className="inline-flex text-xs font-medium uppercase tracking-wide text-primary hover:underline"
+          >
+            Voltar ao inicio
+          </a>
+          <span className="mt-3 inline-flex rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-muted-foreground">
             Sobre
           </span>
           <h1 className="mt-4 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             O FinHub existe para tornar investimento mais compreensivel e acessivel
           </h1>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-            Somos uma plataforma de educacao financeira que combina criadores, conteudo e ferramentas
-            de mercado num unico produto. O objetivo e simples: reduzir ruida, aumentar clareza e
-            ajudar cada utilizador a evoluir com consistencia.
+            Somos uma plataforma de educacao financeira que combina criadores, conteudo e
+            ferramentas de mercado num unico produto. O objetivo e simples: reduzir ruida, aumentar
+            clareza e ajudar cada utilizador a evoluir com consistencia.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <Button asChild>
-              <Link to="/explorar/tudo">
+              <a href="/hub/conteudos">
                 Explorar conteudos
                 <ArrowRight className="h-4 w-4" />
-              </Link>
+              </a>
             </Button>
             <Button asChild variant="outline">
-              <Link to="/criadores">Conhecer criadores</Link>
+              <a href="/creators">Conhecer criadores</a>
             </Button>
           </div>
         </section>

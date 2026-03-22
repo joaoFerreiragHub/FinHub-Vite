@@ -126,21 +126,21 @@ const resolveSeoMeta = (
     }
   }
 
-  if (pathname === '/termos') {
+  if (pathname === '/legal/termos' || pathname === '/termos') {
     return {
       title: withBrand('Termos e Condicoes', siteName),
       description: 'Consulta os termos e condicoes de utilizacao da plataforma FinHub.',
     }
   }
 
-  if (pathname === '/privacidade') {
+  if (pathname === '/legal/privacidade' || pathname === '/privacidade') {
     return {
       title: withBrand('Politica de Privacidade', siteName),
       description: 'Consulta a politica de privacidade e tratamento de dados da FinHub.',
     }
   }
 
-  if (pathname === '/cookies') {
+  if (pathname === '/legal/cookies' || pathname === '/cookies') {
     return {
       title: withBrand('Politica de Cookies', siteName),
       description: 'Consulta a politica de cookies e a gestao de consentimentos na FinHub.',

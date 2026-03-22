@@ -10,9 +10,9 @@ import {
 } from '@/features/platform/services/legalDocumentsService'
 
 const FALLBACK_ROUTES: Record<LegalDocumentKey, string> = {
-  terms: '/termos',
-  privacy: '/privacidade',
-  cookies: '/cookies',
+  terms: '/legal/termos',
+  privacy: '/legal/privacidade',
+  cookies: '/legal/cookies',
   'financial-disclaimer': '/aviso-legal',
 }
 
@@ -21,6 +21,17 @@ const FALLBACK_TITLES: Record<LegalDocumentKey, string> = {
   privacy: 'Politica de Privacidade',
   cookies: 'Politica de Cookies',
   'financial-disclaimer': 'Aviso Legal Financeiro',
+}
+
+const LEGACY_ROUTE_MAP: Record<string, string> = {
+  '/termos': '/legal/termos',
+  '/privacidade': '/legal/privacidade',
+  '/cookies': '/legal/cookies',
+}
+
+const normalizeLegalRoute = (routePath: string): string => {
+  const normalizedPath = routePath.trim().toLowerCase()
+  return LEGACY_ROUTE_MAP[normalizedPath] ?? routePath
 }
 
 const formatDateTime = (value?: string): string => {
@@ -139,19 +150,19 @@ export function LegalDocumentPage({ documentKey }: LegalDocumentPageProps) {
             {relatedDocuments.length > 0 ? (
               relatedDocuments.map((item) => (
                 <Button key={item.key} asChild variant="outline" size="sm">
-                  <Link to={item.routePath}>{item.title}</Link>
+                  <Link to={normalizeLegalRoute(item.routePath)}>{item.title}</Link>
                 </Button>
               ))
             ) : (
               <>
                 <Button asChild variant="outline" size="sm">
-                  <Link to="/termos">Termos</Link>
+                  <Link to="/legal/termos">Termos</Link>
                 </Button>
                 <Button asChild variant="outline" size="sm">
-                  <Link to="/privacidade">Privacidade</Link>
+                  <Link to="/legal/privacidade">Privacidade</Link>
                 </Button>
                 <Button asChild variant="outline" size="sm">
-                  <Link to="/cookies">Cookies</Link>
+                  <Link to="/legal/cookies">Cookies</Link>
                 </Button>
                 <Button asChild variant="outline" size="sm">
                   <Link to="/aviso-legal">Aviso legal</Link>
