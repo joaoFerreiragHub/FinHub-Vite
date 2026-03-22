@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { navigate } from 'vike/client/router'
 import { Button, Input, Card, Label } from '@/components/ui'
 import { ContentCategory } from '@/features/hub/types'
 import {
@@ -8,6 +9,7 @@ import {
   type VideoFormValues,
 } from '@/features/hub/videos/schemas/videoFormSchema'
 import type { Video, CreateVideoDto, UpdateVideoDto } from '@/features/hub/videos/types'
+import { resolveVideoEmbedPreview } from '@/features/hub/videos/utils/videoUrl'
 import { getErrorMessage } from '@/lib/api/client'
 
 interface VideoFormCreateProps {
@@ -28,17 +30,46 @@ interface VideoFormEditProps {
 
 export type VideoFormProps = VideoFormCreateProps | VideoFormEditProps
 
+const DEFAULT_VIDEO_TOPICS = [
+  'youtube',
+  'vimeo',
+  'investimento',
+  'acoes',
+  'etf',
+  'crypto',
+  'dividendos',
+  'fundo imobiliario',
+  'analise fundamental',
+  'analise tecnica',
+  'macroeconomia',
+  'gestao de risco',
+  'planeamento financeiro',
+]
+
+const secondsToMinutes = (seconds: number | undefined): number | undefined => {
+  if (typeof seconds !== 'number' || !Number.isFinite(seconds) || seconds <= 0) {
+    return undefined
+  }
+  return Number((seconds / 60).toFixed(1))
+}
+
 export function VideoForm(props: VideoFormProps) {
   const { video } = props
-  const submitText = props.submitText ?? (video ? 'Atualizar' : 'Criar Video')
+  const submitText = props.submitText ?? (video ? 'Atualizar Video' : 'Publicar Video')
   const showDraftOption = props.showDraftOption ?? true
   const redirectTo = props.redirectTo ?? '/creators/dashboard/videos'
   const [serverError, setServerError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const topicOptions = useMemo(() => {
+    const videoTopics = video?.tags ?? []
+    return Array.from(new Set([...DEFAULT_VIDEO_TOPICS, ...videoTopics])).sort((left, right) =>
+      left.localeCompare(right),
+    )
+  }, [video?.tags])
+
   const navigateTo = (path: string) => {
-    if (typeof window !== 'undefined') {
-      window.location.assign(path)
-    }
+    void navigate(path)
   }
 
   const {
@@ -46,6 +77,8 @@ export function VideoForm(props: VideoFormProps) {
     handleSubmit: handleFormSubmit,
     formState: { errors },
     watch,
+    setValue,
+    getValues,
   } = useForm<VideoFormValues>({
     resolver: zodResolver(videoFormSchema),
     defaultValues: video
@@ -54,40 +87,64 @@ export function VideoForm(props: VideoFormProps) {
           description: video.description,
           excerpt: video.excerpt,
           videoUrl: video.videoUrl,
-          duration: video.duration,
+          durationMinutes: secondsToMinutes(video.duration),
           thumbnail: video.thumbnail || '',
           coverImage: video.coverImage || '',
           category: video.category,
-          tags: video.tags.join(', '),
+          tags: video.tags,
           quality: video.quality,
           requiredRole: video.requiredRole as 'visitor' | 'free' | 'premium',
           isPremium: video.isPremium,
-          status: video.status as 'draft' | 'published',
+          publishNow: video.status === 'published' || video.isPublished === true,
           language: video.language || 'pt',
         }
       : {
-          status: 'draft',
           category: ContentCategory.PERSONAL_FINANCE,
           requiredRole: 'free',
           isPremium: false,
           quality: '1080p',
           language: 'pt',
+          tags: [],
+          publishNow: false,
         },
   })
 
   const isPremium = watch('isPremium')
+  const publishNow = watch('publishNow')
+  const videoUrl = watch('videoUrl')
+  const videoPreview = useMemo(() => resolveVideoEmbedPreview(videoUrl ?? ''), [videoUrl])
+
+  useEffect(() => {
+    const thumbnailSuggestion = videoPreview?.youtubeThumbnailUrl
+    if (!thumbnailSuggestion) return
+
+    const currentThumbnail = getValues('thumbnail')
+    if (typeof currentThumbnail === 'string' && currentThumbnail.trim()) return
+
+    setValue('thumbnail', thumbnailSuggestion, { shouldValidate: true })
+  }, [getValues, setValue, videoPreview?.youtubeThumbnailUrl])
+
+  const useSuggestedThumbnail = () => {
+    if (!videoPreview?.youtubeThumbnailUrl) return
+    setValue('thumbnail', videoPreview.youtubeThumbnailUrl, {
+      shouldDirty: true,
+      shouldValidate: true,
+    })
+  }
 
   const handleSubmit = async (data: VideoFormValues, isDraft = false) => {
     setServerError(null)
     setIsSubmitting(true)
 
     try {
-      const tags = data.tags
-        ? data.tags
-            .split(',')
-            .map((t) => t.trim())
-            .filter(Boolean)
-        : []
+      const tags = (data.tags ?? []).map((tag) => tag.trim()).filter(Boolean)
+      const durationSeconds =
+        typeof data.durationMinutes === 'number' ? Math.round(data.durationMinutes * 60) : undefined
+      const status: 'draft' | 'published' = isDraft
+        ? 'draft'
+        : data.publishNow
+          ? 'published'
+          : 'draft'
 
       if (video) {
         const updatePayload: UpdateVideoDto = {
@@ -95,7 +152,7 @@ export function VideoForm(props: VideoFormProps) {
           description: data.description,
           excerpt: data.excerpt || undefined,
           videoUrl: data.videoUrl,
-          duration: data.duration,
+          duration: durationSeconds,
           thumbnail: data.thumbnail || undefined,
           coverImage: data.coverImage || undefined,
           category: data.category,
@@ -103,7 +160,7 @@ export function VideoForm(props: VideoFormProps) {
           quality: data.quality,
           requiredRole: data.requiredRole,
           isPremium: data.isPremium,
-          status: isDraft ? 'draft' : data.status,
+          status,
         }
         await props.onSubmit(updatePayload)
       } else {
@@ -112,7 +169,7 @@ export function VideoForm(props: VideoFormProps) {
           description: data.description,
           excerpt: data.excerpt || undefined,
           videoUrl: data.videoUrl,
-          duration: data.duration,
+          duration: durationSeconds ?? 0,
           thumbnail: data.thumbnail || undefined,
           coverImage: data.coverImage || undefined,
           category: data.category,
@@ -120,7 +177,7 @@ export function VideoForm(props: VideoFormProps) {
           quality: data.quality,
           requiredRole: data.requiredRole,
           isPremium: data.isPremium,
-          status: isDraft ? 'draft' : data.status,
+          status,
           language: data.language,
         }
         await props.onSubmit(createPayload)
@@ -169,17 +226,58 @@ export function VideoForm(props: VideoFormProps) {
         <Input
           id="videoUrl"
           type="url"
-          placeholder="https://youtube.com/embed/... ou https://vimeo.com/..."
+          placeholder="https://www.youtube.com/watch?v=... ou https://vimeo.com/..."
           {...register('videoUrl')}
         />
         {errors.videoUrl && <p className="text-sm text-red-600">{errors.videoUrl.message}</p>}
+        {!errors.videoUrl && videoUrl ? (
+          <p className="text-xs text-muted-foreground">Formatos suportados: YouTube e Vimeo.</p>
+        ) : null}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      {videoPreview ? (
+        <Card className="overflow-hidden border-dashed">
+          <div className="aspect-video bg-black">
+            <iframe
+              src={videoPreview.embedUrl}
+              title="Preview do video"
+              className="h-full w-full"
+              allowFullScreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            />
+          </div>
+          <div className="px-4 py-3 text-xs text-muted-foreground">
+            Preview do embed {videoPreview.provider === 'youtube' ? 'YouTube' : 'Vimeo'}.
+          </div>
+        </Card>
+      ) : null}
+
+      <div className="space-y-2">
+        <Label htmlFor="excerpt">Resumo (opcional)</Label>
+        <textarea
+          id="excerpt"
+          rows={2}
+          placeholder="Resumo curto para card e SEO."
+          className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm"
+          {...register('excerpt')}
+        />
+        {errors.excerpt && <p className="text-sm text-red-600">{errors.excerpt.message}</p>}
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="duration">Duracao (segundos) *</Label>
-          <Input id="duration" type="number" min="1" placeholder="600" {...register('duration')} />
-          {errors.duration && <p className="text-sm text-red-600">{errors.duration.message}</p>}
+          <Label htmlFor="durationMinutes">Duracao (minutos, opcional)</Label>
+          <Input
+            id="durationMinutes"
+            type="number"
+            min="0.5"
+            step="0.5"
+            placeholder="12"
+            {...register('durationMinutes')}
+          />
+          {errors.durationMinutes && (
+            <p className="text-sm text-red-600">{errors.durationMinutes.message}</p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -217,11 +315,36 @@ export function VideoForm(props: VideoFormProps) {
           <Label htmlFor="thumbnail">Thumbnail (URL)</Label>
           <Input id="thumbnail" type="url" placeholder="https://..." {...register('thumbnail')} />
           {errors.thumbnail && <p className="text-sm text-red-600">{errors.thumbnail.message}</p>}
+          {videoPreview?.youtubeThumbnailUrl ? (
+            <button
+              type="button"
+              className="text-xs font-medium text-primary hover:underline"
+              onClick={useSuggestedThumbnail}
+            >
+              Usar thumbnail sugerida do YouTube
+            </button>
+          ) : null}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="tags">Tags (separadas por virgula)</Label>
-          <Input id="tags" placeholder="acoes, analise, tutorial" {...register('tags')} />
+          <Label htmlFor="tags">Topicos/Tags</Label>
+          <select
+            id="tags"
+            multiple
+            size={Math.min(8, Math.max(4, topicOptions.length))}
+            className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm"
+            {...register('tags')}
+          >
+            {topicOptions.map((topic) => (
+              <option key={topic} value={topic}>
+                {topic}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-muted-foreground">
+            Usa Ctrl/Cmd para selecionar varios topicos.
+          </p>
+          {errors.tags && <p className="text-sm text-red-600">{errors.tags.message}</p>}
         </div>
       </div>
 
@@ -239,17 +362,6 @@ export function VideoForm(props: VideoFormProps) {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Estado</label>
-          <select
-            className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm"
-            {...register('status')}
-          >
-            <option value="draft">Rascunho</option>
-            <option value="published">Publicado</option>
-          </select>
-        </div>
-
-        <div className="space-y-2">
           <label className="text-sm font-medium">Idioma</label>
           <select
             className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm"
@@ -260,6 +372,25 @@ export function VideoForm(props: VideoFormProps) {
             <option value="es">Espanhol</option>
           </select>
         </div>
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="publishNow"
+            className="h-4 w-4 rounded border-gray-300"
+            {...register('publishNow')}
+          />
+          <label htmlFor="publishNow" className="text-sm font-medium">
+            Publicar imediatamente
+          </label>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {publishNow
+            ? 'Este video sera publicado assim que gravares.'
+            : 'Este video sera guardado como rascunho.'}
+        </p>
       </div>
 
       <div className="flex items-center gap-2">

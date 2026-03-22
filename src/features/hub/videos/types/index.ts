@@ -21,7 +21,7 @@ export interface CreateVideoDto {
   description: string
   excerpt?: string
   videoUrl: string
-  duration: number
+  duration?: number
   thumbnail?: string
   coverImage?: string
   category: ContentCategory

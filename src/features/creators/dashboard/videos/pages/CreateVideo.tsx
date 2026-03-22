@@ -1,4 +1,4 @@
-import { DashboardLayout } from '@/shared/layouts'
+﻿import { CreatorDashboardShell } from '@/shared/layouts'
 import { VideoForm } from '../components/VideoForm'
 import { useCreateVideo } from '@/features/hub/videos/hooks/useVideos'
 import { Card } from '@/components/ui'
@@ -15,7 +15,7 @@ export function CreateVideo() {
   }
 
   return (
-    <DashboardLayout>
+    <CreatorDashboardShell>
       <div className="mx-auto max-w-4xl space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Criar Novo Video</h1>
@@ -25,9 +25,9 @@ export function CreateVideo() {
         </div>
 
         <Card className="p-8">
-          <VideoForm onSubmit={handleSubmit} submitText="Criar Video" />
+          <VideoForm onSubmit={handleSubmit} submitText="Guardar Video" />
         </Card>
       </div>
-    </DashboardLayout>
+    </CreatorDashboardShell>
   )
 }

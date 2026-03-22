@@ -1,6 +1,6 @@
 ﻿import { useState } from 'react'
 import { Button, Card } from '@/components/ui'
-import { DashboardLayout } from '@/shared/layouts'
+import { CreatorDashboardShell } from '@/shared/layouts'
 import { useMyVideos, useDeleteVideo, usePublishVideo } from '@/features/hub/videos/hooks/useVideos'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -42,7 +42,7 @@ export function ManageVideos() {
   }
 
   return (
-    <DashboardLayout>
+    <CreatorDashboardShell>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -52,7 +52,7 @@ export function ManageVideos() {
 
           <a href="/creators/dashboard/videos/create">
             <Button variant="default" size="lg">
-              + Criar Video
+              + Novo Video
             </Button>
           </a>
         </div>
@@ -226,6 +226,6 @@ export function ManageVideos() {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </CreatorDashboardShell>
   )
 }
