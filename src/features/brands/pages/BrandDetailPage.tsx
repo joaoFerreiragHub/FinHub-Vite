@@ -1,5 +1,4 @@
 import { ArrowLeft, ArrowRight, ExternalLink, Scale, ShieldCheck } from 'lucide-react'
-import { Link, useParams } from 'react-router-dom'
 import { CommentSection, RatingsSection } from '@/features/hub/components'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { PublicAdSlot } from '@/features/ads/components/PublicAdSlot'
@@ -83,9 +82,21 @@ const formatDate = (value: string | null) => {
   })
 }
 
-export default function BrandDetailPage() {
-  const { slug = '' } = useParams<{ slug: string }>()
-  const normalizedSlug = slug.trim().toLowerCase()
+interface BrandDetailPageProps {
+  slug?: string
+}
+
+const resolveSlugFromPathname = (): string => {
+  if (typeof window === 'undefined') return ''
+
+  const routeMatch = window.location.pathname.match(/^\/(?:directory|recursos)\/([^/?#]+)/)
+  if (!routeMatch?.[1]) return ''
+
+  return decodeURIComponent(routeMatch[1])
+}
+
+export default function BrandDetailPage({ slug }: BrandDetailPageProps) {
+  const normalizedSlug = (slug || resolveSlugFromPathname()).trim().toLowerCase()
   const currentUserId = useAuthStore((state) => state.user?.id)
 
   const detailQuery = usePublicDirectoryDetailBySlug(normalizedSlug)
@@ -133,10 +144,10 @@ export default function BrandDetailPage() {
             </CardHeader>
             <CardFooter>
               <Button asChild variant="outline">
-                <Link to="/recursos">
+                <a href="/directory">
                   <ArrowLeft className="h-4 w-4" />
                   Voltar ao diretorio
-                </Link>
+                </a>
               </Button>
             </CardFooter>
           </Card>
@@ -154,10 +165,10 @@ export default function BrandDetailPage() {
       <section className="mx-auto w-full max-w-7xl space-y-8 px-4 py-10 sm:px-6 lg:px-8">
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="ghost" size="sm">
-            <Link to="/recursos">
+            <a href="/directory">
               <ArrowLeft className="h-4 w-4" />
               Diretorio
-            </Link>
+            </a>
           </Button>
           <Badge variant="outline">{verticalLabel[entry.verticalType] || 'Recurso'}</Badge>
           {entry.verificationStatus === 'verified' ? (
@@ -184,10 +195,10 @@ export default function BrandDetailPage() {
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button asChild size="sm" variant="outline">
-                  <Link to={`/recursos/comparar?slugs=${encodeURIComponent(entry.slug)}`}>
+                  <a href={`/recursos/comparar?slugs=${encodeURIComponent(entry.slug)}`}>
                     Comparar
                     <Scale className="h-4 w-4" />
-                  </Link>
+                  </a>
                 </Button>
                 {entry.website ? (
                   <Button asChild size="sm">
@@ -467,10 +478,10 @@ export default function BrandDetailPage() {
                   </CardContent>
                   <CardFooter>
                     <Button asChild size="sm" variant="outline">
-                      <Link to={getRelatedLink(item.type, item.slug, item.url)}>
+                      <a href={getRelatedLink(item.type, item.slug, item.url)}>
                         Abrir conteudo
                         <ArrowRight className="h-4 w-4" />
-                      </Link>
+                      </a>
                     </Button>
                   </CardFooter>
                 </Card>
