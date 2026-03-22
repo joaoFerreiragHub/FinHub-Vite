@@ -57,7 +57,7 @@ const getRelatedLink = (
   fallbackUrl: string,
 ) => {
   const normalizedSlug = slug.trim()
-  if (!normalizedSlug) return fallbackUrl || '/explorar/tudo'
+  if (!normalizedSlug) return fallbackUrl || '/hub/conteudos'
 
   if (type === 'article') return `/artigos/${normalizedSlug}`
   if (type === 'course') return `/cursos/${normalizedSlug}`
@@ -65,7 +65,7 @@ const getRelatedLink = (
   if (type === 'event') return `/eventos/${normalizedSlug}`
   if (type === 'book') return `/livros/${normalizedSlug}`
   if (type === 'podcast') return `/podcasts/${normalizedSlug}`
-  return fallbackUrl || '/explorar/tudo'
+  return fallbackUrl || '/hub/conteudos'
 }
 
 const formatCount = (value: number) => numberFormatter.format(value)
@@ -89,7 +89,7 @@ interface BrandDetailPageProps {
 const resolveSlugFromPathname = (): string => {
   if (typeof window === 'undefined') return ''
 
-  const routeMatch = window.location.pathname.match(/^\/(?:directory|recursos)\/([^/?#]+)/)
+  const routeMatch = window.location.pathname.match(/^\/(?:directory|marcas|recursos)\/([^/?#]+)/)
   if (!routeMatch?.[1]) return ''
 
   return decodeURIComponent(routeMatch[1])

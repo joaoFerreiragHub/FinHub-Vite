@@ -107,6 +107,19 @@ export const videoService = {
     return response.data
   },
 
+  unpublishVideo: async (id: string): Promise<Video> => {
+    try {
+      const response = await apiClient.post<Video>(`/videos/${id}/unpublish`)
+      return response.data
+    } catch (error) {
+      if (axios.isAxiosError(error) && [404, 405].includes(error.response?.status ?? 0)) {
+        const fallbackResponse = await apiClient.patch<Video>(`/videos/${id}`, { status: 'draft' })
+        return fallbackResponse.data
+      }
+      throw error
+    }
+  },
+
   incrementView: async (id: string): Promise<void> => {
     await apiClient.post(`/videos/${id}/view`)
   },

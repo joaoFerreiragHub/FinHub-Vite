@@ -80,3 +80,16 @@ export function usePublishVideo() {
     },
   })
 }
+
+export function useUnpublishVideo() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => videoService.unpublishVideo(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['video', id] })
+      queryClient.invalidateQueries({ queryKey: ['video-by-id', id] })
+      queryClient.invalidateQueries({ queryKey: ['videos'] })
+      queryClient.invalidateQueries({ queryKey: ['my-videos'] })
+    },
+  })
+}
