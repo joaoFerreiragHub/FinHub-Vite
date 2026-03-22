@@ -10,8 +10,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui'
-import LoadingSpinner from '@/components/ui/loading-spinner'
 import { PageHero } from '@/components/public'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { ErrorState } from '@/components/shared/ErrorState'
+import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton'
 import { Creator } from '@/features/creators/components/Creator'
 import { PublicSurfaceDisabledState } from '@/features/platform/components/PublicSurfaceDisabledState'
 import { usePublicSurfaceControl } from '@/features/platform/hooks/usePublicSurfaceControl'
@@ -216,19 +218,19 @@ export default function CreatorsListPage() {
         <section className="px-4 pb-12 sm:px-6 md:px-10 lg:px-12">
           <div className="mx-auto max-w-7xl">
             {creatorsQuery.isError ? (
-              <div className="mb-4 rounded-md border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300">
-                Nao foi possivel carregar a lista de criadores da API neste momento.
-              </div>
+              <ErrorState
+                message="Nao foi possivel carregar a lista de criadores da API neste momento."
+                className="mb-4"
+              />
             ) : null}
 
             {loading ? (
-              <div className="flex justify-center py-20">
-                <LoadingSpinner />
-              </div>
+              <LoadingSkeleton variant="spinner" />
             ) : filteredCreators.length === 0 ? (
-              <div className="rounded-lg border border-border bg-card/70 p-10 text-center text-sm text-muted-foreground">
-                Nenhum criador encontrado com os filtros selecionados.
-              </div>
+              <EmptyState
+                title="Nenhum criador encontrado"
+                description="Tenta ajustar os filtros ou a pesquisa."
+              />
             ) : (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {filteredCreators.map((creator) => (

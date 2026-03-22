@@ -1,5 +1,5 @@
 import { type FormEvent, useMemo, useState } from 'react'
-import { AlertCircle, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import {
   Badge,
   Button,
@@ -16,6 +16,9 @@ import {
   SelectValue,
 } from '@/components/ui'
 import { PageHero } from '@/components/public'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { ErrorState } from '@/components/shared/ErrorState'
+import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton'
 import { BrandCard } from '@/features/brands/components/BrandCard'
 import { usePublicDirectories } from '@/features/brands/hooks/usePublicDirectories'
 import type { PublicDirectoryVertical } from '@/features/brands/services/publicDirectoriesService'
@@ -140,30 +143,22 @@ export default function PublicDirectoryPage() {
         </Card>
 
         {directoriesQuery.isLoading ? (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, index) => (
-              <Card key={`directory-skeleton-${index}`} className="h-56 animate-pulse" />
-            ))}
-          </div>
+          <LoadingSkeleton variant="cards" count={6} columns={3} />
         ) : null}
 
         {directoriesQuery.isError ? (
-          <Card className="border-destructive/40">
-            <CardContent className="flex items-center gap-2 p-4 text-sm text-destructive">
-              <AlertCircle className="h-4 w-4" />
-              Nao foi possivel carregar o diretorio.
-            </CardContent>
-          </Card>
+          <ErrorState message="Nao foi possivel carregar o diretorio." />
         ) : null}
 
         {!directoriesQuery.isLoading && !directoriesQuery.isError ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {items.length === 0 ? (
-              <Card className="md:col-span-2 xl:col-span-3">
-                <CardContent className="p-6 text-sm text-muted-foreground">
-                  Sem resultados para os filtros selecionados.
-                </CardContent>
-              </Card>
+              <div className="md:col-span-2 xl:col-span-3">
+                <EmptyState
+                  title="Sem resultados"
+                  description="Nao foram encontradas marcas com os filtros selecionados."
+                />
+              </div>
             ) : (
               items.map((item) => <BrandCard key={item.id} item={item} />)
             )}
