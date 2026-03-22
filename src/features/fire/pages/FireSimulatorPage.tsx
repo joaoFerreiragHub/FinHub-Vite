@@ -5,6 +5,8 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
+  Legend,
+  Line,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -89,6 +91,44 @@ function formatSignedMoney(value: number | null, currency: FirePortfolioCurrency
   if (value === 0) return abs
   return `${value > 0 ? '+' : '-'}${abs}`
 }
+
+type TimelineChartPoint = {
+  month: number
+  targetValue: number
+} & Partial<Record<FireSimulationScenario, number>>
+
+function formatCurrencyK(value: number, currency: FirePortfolioCurrency) {
+  const symbol = currency === 'EUR' ? '€' : currency === 'USD' ? '$' : '£'
+  return `${symbol}${(value / 1000).toFixed(0)}k`
+}
+
+function buildTimelineChartData(
+  scenarios: FireSimulationResult['scenarios'],
+  selectedScenarios: FireSimulationScenario[],
+): TimelineChartPoint[] {
+  if (!selectedScenarios.length || !scenarios.length) return []
+
+  const selectedSet = new Set(selectedScenarios)
+  const monthMap = new Map<number, TimelineChartPoint>()
+
+  scenarios.forEach((scenarioResult) => {
+    if (!selectedSet.has(scenarioResult.scenario)) return
+
+    scenarioResult.timeline.forEach((point) => {
+      const current = monthMap.get(point.month) ?? {
+        month: point.month,
+        targetValue: point.targetValue,
+      }
+      current[scenarioResult.scenario] = point.portfolioValue
+      monthMap.set(point.month, current)
+    })
+  })
+
+  const sorted = [...monthMap.values()].sort((a, b) => a.month - b.month)
+  if (sorted.length <= 120) return sorted
+  return sorted.filter((_, index) => index % 3 === 0 || index === sorted.length - 1)
+}
+
 export default function FireSimulatorPage() {
   const portfoliosQuery = useFirePortfolioList({ page: 1, limit: 50 })
   const simulationMutation = useRunFireSimulation()
@@ -132,19 +172,14 @@ export default function FireSimulatorPage() {
     [scenarioState],
   )
 
-  const baseScenario = useMemo(() => {
-    if (!result) return null
-    return (
-      result.scenarios.find((scenario) => scenario.scenario === 'base') ??
-      result.scenarios[0] ??
-      null
-    )
-  }, [result])
-
   const calibrationSummary = result?.assumptions.historicalCalibration
   const monteCarloResult = result?.monteCarlo ?? null
   const whatIfResult = result?.whatIf ?? null
   const monteCarloTimelineData = monteCarloResult?.timelineSuccessProbability ?? []
+  const timelineChartData = useMemo(
+    () => (result ? buildTimelineChartData(result.scenarios, selectedScenarioList) : []),
+    [result, selectedScenarioList],
+  )
 
   const whatIfComparisonCards = useMemo(() => {
     if (!whatIfResult || !result) return []
@@ -905,43 +940,126 @@ export default function FireSimulatorPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="h-5 w-5" />
-                  Timeline ({baseScenario?.scenario ? scenarioLabel(baseScenario.scenario) : 'n/a'})
+                  Projecao por cenario
                 </CardTitle>
                 <CardDescription>
-                  Primeiros 12 pontos da timeline para leitura rapida.
+                  {timelineChartData.length} meses agregados dos cenarios selecionados.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {baseScenario?.timeline.length ? (
-                  <div className="overflow-auto rounded-lg border border-border">
-                    <table className="w-full min-w-[700px] text-sm">
-                      <thead className="bg-muted/40">
-                        <tr>
-                          <th className="px-3 py-2 text-left">Mes</th>
-                          <th className="px-3 py-2 text-left">Data</th>
-                          <th className="px-3 py-2 text-right">Portfolio</th>
-                          <th className="px-3 py-2 text-right">Target</th>
-                          <th className="px-3 py-2 text-right">Progress</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {baseScenario.timeline.slice(0, 12).map((point) => (
-                          <tr key={point.month} className="border-t border-border">
-                            <td className="px-3 py-2">{point.month}</td>
-                            <td className="px-3 py-2">{point.date}</td>
-                            <td className="px-3 py-2 text-right">
-                              {formatMoney(point.portfolioValue, result.currency)}
-                            </td>
-                            <td className="px-3 py-2 text-right">
-                              {formatMoney(point.targetValue, result.currency)}
-                            </td>
-                            <td className="px-3 py-2 text-right">
-                              {point.progressPct.toFixed(2)}%
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                {timelineChartData.length ? (
+                  <div className="overflow-hidden rounded-lg border border-border p-3">
+                    <ResponsiveContainer width="100%" height={320}>
+                      <AreaChart
+                        data={timelineChartData}
+                        margin={{ top: 12, right: 12, left: 0, bottom: 4 }}
+                      >
+                        <defs>
+                          <linearGradient
+                            id="fireScenarioGradientOptimistic"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop offset="0%" stopColor="hsl(var(--chart-2))" stopOpacity={0.4} />
+                            <stop offset="100%" stopColor="hsl(var(--chart-2))" stopOpacity={0} />
+                          </linearGradient>
+                          <linearGradient id="fireScenarioGradientBase" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.4} />
+                            <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
+                          </linearGradient>
+                          <linearGradient
+                            id="fireScenarioGradientConservative"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop offset="0%" stopColor="hsl(var(--chart-3))" stopOpacity={0.4} />
+                            <stop offset="100%" stopColor="hsl(var(--chart-3))" stopOpacity={0} />
+                          </linearGradient>
+                          <linearGradient id="fireScenarioGradientBear" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="hsl(var(--chart-4))" stopOpacity={0.4} />
+                            <stop offset="100%" stopColor="hsl(var(--chart-4))" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" />
+                        <XAxis
+                          dataKey="month"
+                          tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                          tickFormatter={(value) => `A${Math.round(Number(value ?? 0) / 12)}`}
+                        />
+                        <YAxis
+                          tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                          tickFormatter={(value) => formatCurrencyK(Number(value), result.currency)}
+                        />
+                        <Tooltip
+                          content={
+                            <ChartTooltip
+                              dataset={timelineChartData as Array<Record<string, unknown>>}
+                              xDataKey="month"
+                              deltaDataKey={
+                                selectedScenarioList.includes('base')
+                                  ? 'base'
+                                  : (selectedScenarioList[0] ?? 'targetValue')
+                              }
+                              valueLabel="Valor"
+                              deltaLabel="Variacao"
+                              labelFormatter={(value) =>
+                                `Ano ${Math.round(Number(value ?? 0) / 12)} (mes ${Number(value ?? 0)})`
+                              }
+                              valueFormatter={(value) => formatMoney(value, result.currency)}
+                              deltaFormatter={(delta) =>
+                                `${delta > 0 ? '+' : ''}${formatMoney(delta, result.currency)}`
+                              }
+                            />
+                          }
+                        />
+                        <Legend />
+                        {selectedScenarioList.map((scenario) => {
+                          const color =
+                            scenario === 'optimistic'
+                              ? 'hsl(var(--chart-2))'
+                              : scenario === 'base'
+                                ? 'hsl(var(--chart-1))'
+                                : scenario === 'conservative'
+                                  ? 'hsl(var(--chart-3))'
+                                  : 'hsl(var(--chart-4))'
+                          const gradientId =
+                            scenario === 'optimistic'
+                              ? 'fireScenarioGradientOptimistic'
+                              : scenario === 'base'
+                                ? 'fireScenarioGradientBase'
+                                : scenario === 'conservative'
+                                  ? 'fireScenarioGradientConservative'
+                                  : 'fireScenarioGradientBear'
+                          return (
+                            <Area
+                              key={`timeline-${scenario}`}
+                              type="monotone"
+                              dataKey={scenario}
+                              name={scenarioLabel(scenario)}
+                              stroke={color}
+                              fill={`url(#${gradientId})`}
+                              strokeWidth={2}
+                              dot={false}
+                              activeDot={{ r: 3.5 }}
+                              connectNulls
+                            />
+                          )
+                        })}
+                        <Line
+                          type="monotone"
+                          dataKey="targetValue"
+                          name="Target"
+                          stroke="hsl(var(--muted-foreground))"
+                          strokeWidth={2}
+                          strokeDasharray="6 4"
+                          dot={false}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">Sem timeline para mostrar.</p>

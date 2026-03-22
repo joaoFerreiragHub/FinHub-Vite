@@ -1,7 +1,30 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Activity, PieChart, Target, TrendingUp } from 'lucide-react'
-import { Badge, Card, CardContent, CardHeader, CardTitle, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui'
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+import {
+  Badge,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui'
+import { ChartTooltip } from '@/components/ui/ChartTooltip'
+import { Progress } from '@/components/ui/progress'
 import { FireToolNav } from '../components/FireToolNav'
 import { useFirePortfolioDetail, useFirePortfolioList } from '../hooks/useFirePortfolio'
 import { firePortfolioService } from '../services/firePortfolioService'
@@ -13,6 +36,17 @@ function formatMoney(value: number, currency: FirePortfolioCurrency) {
     currency,
     maximumFractionDigits: 2,
   }).format(value)
+}
+
+function formatCurrencyK(value: number, currency: FirePortfolioCurrency) {
+  const symbol = currency === 'EUR' ? '€' : currency === 'USD' ? '$' : '£'
+  return `${symbol}${(value / 1000).toFixed(0)}k`
+}
+
+function progressIndicatorToneClass(value: number) {
+  if (value >= 70) return '[&>div]:bg-emerald-500'
+  if (value >= 40) return '[&>div]:bg-blue-500'
+  return '[&>div]:bg-orange-500'
 }
 
 function computeCurrentTarget(portfolio: {
@@ -50,7 +84,9 @@ export default function FireDashboardPage() {
     }
   }, [portfolios, selectedPortfolioId])
 
-  const detailQuery = useFirePortfolioDetail(selectedPortfolioId, { enabled: Boolean(selectedPortfolioId) })
+  const detailQuery = useFirePortfolioDetail(selectedPortfolioId, {
+    enabled: Boolean(selectedPortfolioId),
+  })
 
   const baseSimulationQuery = useQuery({
     queryKey: ['fire', 'dashboard', 'base-simulation', selectedPortfolioId],
@@ -67,6 +103,7 @@ export default function FireDashboardPage() {
 
   const selected = detailQuery.data
   const baseScenario = baseSimulationQuery.data?.scenarios[0]
+  const baseTimeline = baseScenario?.timeline ?? []
   const currentTarget = selected ? computeCurrentTarget(selected) : 0
 
   const progress = useMemo(() => {
@@ -97,6 +134,10 @@ export default function FireDashboardPage() {
       .map(([type, value]) => ({ type, value, pct: (value / total) * 100 }))
       .sort((a, b) => b.value - a.value)
   }, [selected])
+  const baseTimelineYears = useMemo(
+    () => (baseTimeline.length ? Math.max(1, Math.round(baseTimeline.length / 12)) : 0),
+    [baseTimeline.length],
+  )
 
   return (
     <div className="px-4 pb-10 pt-6 sm:px-6 lg:px-10">
@@ -105,7 +146,9 @@ export default function FireDashboardPage() {
           <Badge variant="outline" className="bg-background/80">
             FIRE - Dashboard
           </Badge>
-          <h1 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">Visao rapida de progresso FIRE</h1>
+          <h1 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">
+            Visao rapida de progresso FIRE
+          </h1>
           <p className="mt-2 text-sm text-muted-foreground sm:text-base">
             Resumo consolidado com dados do portfolio e simulacao base para acompanhamento continuo.
           </p>
@@ -118,7 +161,10 @@ export default function FireDashboardPage() {
           <CardContent className="pt-6">
             <div className="max-w-xs space-y-1.5">
               <label className="text-sm font-medium">Portfolio</label>
-              <Select value={selectedPortfolioId ?? ''} onValueChange={(value) => setSelectedPortfolioId(value)}>
+              <Select
+                value={selectedPortfolioId ?? ''}
+                onValueChange={(value) => setSelectedPortfolioId(value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleciona portfolio" />
                 </SelectTrigger>
@@ -137,7 +183,9 @@ export default function FireDashboardPage() {
         {!selected ? (
           <Card>
             <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">Sem portfolio para apresentar dashboard.</p>
+              <p className="text-sm text-muted-foreground">
+                Sem portfolio para apresentar dashboard.
+              </p>
             </CardContent>
           </Card>
         ) : (
@@ -151,7 +199,9 @@ export default function FireDashboardPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl font-semibold">{formatMoney(selected.summary.currentValue, selected.currency)}</p>
+                  <p className="text-2xl font-semibold">
+                    {formatMoney(selected.summary.currentValue, selected.currency)}
+                  </p>
                 </CardContent>
               </Card>
               <Card>
@@ -162,7 +212,9 @@ export default function FireDashboardPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl font-semibold">{formatMoney(selected.summary.totalInvested, selected.currency)}</p>
+                  <p className="text-2xl font-semibold">
+                    {formatMoney(selected.summary.totalInvested, selected.currency)}
+                  </p>
                 </CardContent>
               </Card>
               <Card>
@@ -173,8 +225,14 @@ export default function FireDashboardPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl font-semibold">{progress.toFixed(2)}%</p>
-                  <p className="text-xs text-muted-foreground">Target atual: {formatMoney(currentTarget, selected.currency)}</p>
+                  <p className="text-3xl font-semibold tabular-nums">{progress.toFixed(1)}%</p>
+                  <Progress
+                    value={progress}
+                    className={`mt-2 h-2.5 ${progressIndicatorToneClass(progress)}`}
+                  />
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Target atual: {formatMoney(currentTarget, selected.currency)}
+                  </p>
                 </CardContent>
               </Card>
               <Card>
@@ -185,11 +243,87 @@ export default function FireDashboardPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl font-semibold">{baseScenario?.yearsToFire ?? 'n/a'} anos</p>
-                  <p className="text-xs text-muted-foreground">Data FIRE: {baseScenario?.fireDate ?? 'n/a'}</p>
+                  <p className="text-2xl font-semibold">
+                    {baseScenario?.yearsToFire ?? 'n/a'} anos
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Data FIRE: {baseScenario?.fireDate ?? 'n/a'}
+                  </p>
                 </CardContent>
               </Card>
             </section>
+
+            {baseTimeline.length ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Trajetoria base - proximos {baseTimelineYears} anos</CardTitle>
+                  <CardDescription>Evolucao do portfolio no cenario base.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[200px]">
+                    <ResponsiveContainer width="100%" height={200}>
+                      <AreaChart
+                        data={baseTimeline}
+                        margin={{ top: 8, right: 8, left: 0, bottom: 4 }}
+                      >
+                        <defs>
+                          <linearGradient
+                            id="fireDashboardBaseTimeline"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.4} />
+                            <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" />
+                        <XAxis
+                          dataKey="month"
+                          tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                          tickFormatter={(value) => `A${Math.round(Number(value ?? 0) / 12)}`}
+                        />
+                        <YAxis
+                          tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                          tickFormatter={(value) =>
+                            formatCurrencyK(Number(value), selected.currency)
+                          }
+                        />
+                        <Tooltip
+                          content={
+                            <ChartTooltip
+                              dataset={baseTimeline as Array<Record<string, unknown>>}
+                              xDataKey="month"
+                              deltaDataKey="portfolioValue"
+                              valueLabel="Portfolio"
+                              deltaLabel="Variacao"
+                              labelFormatter={(value) =>
+                                `Ano ${Math.round(Number(value ?? 0) / 12)} (mes ${Number(value ?? 0)})`
+                              }
+                              valueFormatter={(value) => formatMoney(value, selected.currency)}
+                              deltaFormatter={(delta) =>
+                                `${delta > 0 ? '+' : ''}${formatMoney(delta, selected.currency)}`
+                              }
+                            />
+                          }
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="portfolioValue"
+                          name="Portfolio"
+                          stroke="hsl(var(--chart-1))"
+                          fill="url(#fireDashboardBaseTimeline)"
+                          strokeWidth={2.5}
+                          dot={false}
+                          activeDot={{ r: 3.5 }}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : null}
 
             <Card>
               <CardHeader>
@@ -206,12 +340,17 @@ export default function FireDashboardPage() {
                         </span>
                       </div>
                       <div className="h-2 rounded-full bg-muted">
-                        <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(item.pct, 100)}%` }} />
+                        <div
+                          className="h-full rounded-full bg-primary"
+                          style={{ width: `${Math.min(item.pct, 100)}%` }}
+                        />
                       </div>
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-muted-foreground">Sem dados para distribuicao de alocacao.</p>
+                  <p className="text-sm text-muted-foreground">
+                    Sem dados para distribuicao de alocacao.
+                  </p>
                 )}
               </CardContent>
             </Card>
