@@ -659,6 +659,16 @@ const toOptionalText = (value: unknown): string | undefined => {
   return normalized.length > 0 ? normalized : undefined
 }
 
+const toUniqueStringArray = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return []
+
+  const normalized = value
+    .map((entry) => (typeof entry === 'string' ? entry.trim() : ''))
+    .filter((entry) => entry.length > 0)
+
+  return Array.from(new Set(normalized))
+}
+
 const toNonNegativeInteger = (...values: unknown[]): number => {
   for (const value of values) {
     const parsed = Number(value)
@@ -701,9 +711,7 @@ const mapToUserProfile = (payload: unknown, fallbackUsername = 'utilizador'): Us
     bio: toOptionalText(source.bio),
     role: normalizeRole(source.role),
     isEmailVerified: Boolean(source.isEmailVerified ?? source.emailVerified),
-    favoriteTopics: Array.isArray(source.favoriteTopics)
-      ? source.favoriteTopics.filter((topic): topic is string => typeof topic === 'string')
-      : [],
+    favoriteTopics: toUniqueStringArray(source.favoriteTopics ?? source.topics),
     createdAt,
     updatedAt: toOptionalText(source.updatedAt) ?? createdAt,
     followingCount: toNonNegativeInteger(source.followingCount, source.following),
@@ -1002,18 +1010,74 @@ export const socialService = {
     const normalizedName = input.name.trim()
     const normalizedBio = input.bio?.trim() ?? ''
     const normalizedAvatar = input.avatar?.trim() ?? ''
+    const hasWelcomeVideo = Object.prototype.hasOwnProperty.call(input, 'welcomeVideoUrl')
+    const hasFavoriteTopics = Object.prototype.hasOwnProperty.call(input, 'favoriteTopics')
+    const hasSocialLinks = Object.prototype.hasOwnProperty.call(input, 'socialLinks')
+    const normalizedWelcomeVideo = input.welcomeVideoUrl?.trim() ?? ''
+    const normalizedTopics = Array.isArray(input.favoriteTopics)
+      ? Array.from(
+          new Set(
+            input.favoriteTopics.map((topic) => topic.trim()).filter((topic) => topic.length > 0),
+          ),
+        ).slice(0, 5)
+      : undefined
+    const normalizedSocialLinks = input.socialLinks
+      ? {
+          website: input.socialLinks.website?.trim() || undefined,
+          twitter: input.socialLinks.twitter?.trim() || undefined,
+          linkedin: input.socialLinks.linkedin?.trim() || undefined,
+          instagram: input.socialLinks.instagram?.trim() || undefined,
+          youtube: input.socialLinks.youtube?.trim() || undefined,
+        }
+      : undefined
 
-    await apiClient.patch('/users/me', {
+    const payload: Record<string, unknown> = {
       name: normalizedName,
       bio: normalizedBio.length > 0 ? normalizedBio : null,
       avatar: normalizedAvatar.length > 0 ? normalizedAvatar : null,
-    })
+    }
 
-    return {
+    if (hasWelcomeVideo) {
+      payload.welcomeVideoUrl = normalizedWelcomeVideo.length > 0 ? normalizedWelcomeVideo : null
+    }
+
+    if (hasFavoriteTopics) {
+      payload.topics = normalizedTopics ?? []
+    }
+
+    if (hasSocialLinks) {
+      payload.socialLinks = normalizedSocialLinks
+        ? {
+            website: normalizedSocialLinks.website ?? null,
+            twitter: normalizedSocialLinks.twitter ?? null,
+            linkedin: normalizedSocialLinks.linkedin ?? null,
+            instagram: normalizedSocialLinks.instagram ?? null,
+            youtube: normalizedSocialLinks.youtube ?? null,
+          }
+        : null
+    }
+
+    await apiClient.patch('/users/me', payload)
+
+    const result: UpdateMyProfileInput = {
       name: normalizedName,
       bio: normalizedBio || undefined,
       avatar: normalizedAvatar || undefined,
     }
+
+    if (hasWelcomeVideo) {
+      result.welcomeVideoUrl = normalizedWelcomeVideo || undefined
+    }
+
+    if (hasFavoriteTopics) {
+      result.favoriteTopics = normalizedTopics
+    }
+
+    if (hasSocialLinks) {
+      result.socialLinks = normalizedSocialLinks
+    }
+
+    return result
   },
 
   // ========== SEARCH ==========

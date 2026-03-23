@@ -11,6 +11,7 @@ interface BackendCreatorSocialLinks {
   twitter?: string | null
   linkedin?: string | null
   instagram?: string | null
+  youtube?: string | null
 }
 
 interface BackendCreatorRating {
@@ -46,6 +47,7 @@ interface BackendPublicCreator {
   createdAt?: string
   lastActiveAt?: string | null
   contentTypes?: unknown
+  topics?: unknown
   typeOfContent?: unknown
   publicationsCount?: unknown
   publicationCount?: unknown
@@ -310,7 +312,16 @@ const toSocialMediaLinks = (links?: BackendCreatorSocialLinks | null): SocialMed
   if (links.twitter) rows.push({ platform: 'Twitter', url: links.twitter })
   if (links.linkedin) rows.push({ platform: 'LinkedIn', url: links.linkedin })
   if (links.instagram) rows.push({ platform: 'Instagram', url: links.instagram })
+  if (links.youtube) rows.push({ platform: 'YouTube', url: links.youtube })
   return rows
+}
+
+const parseCreatorTopics = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return []
+  const normalized = value
+    .map((topic) => (typeof topic === 'string' ? topic.trim() : ''))
+    .filter((topic) => topic.length > 0)
+  return Array.from(new Set(normalized))
 }
 
 const toCardConfig = (value: unknown): CreatorCardConfig | undefined => {
@@ -354,6 +365,7 @@ const toBaseCreator = (row: BackendPublicCreator): Creator => {
   const { firstname, lastname } = splitDisplayName(row.name || '', row.username)
   const followersCount = Number(row.followers ?? 0)
   const contentTypes = parseCreatorContentTypes(row)
+  const explicitTopics = parseCreatorTopics(row.topics)
   const welcomeVideoUrl =
     typeof row.welcomeVideoUrl === 'string' && row.welcomeVideoUrl.trim().length > 0
       ? row.welcomeVideoUrl.trim()
@@ -368,7 +380,7 @@ const toBaseCreator = (row: BackendPublicCreator): Creator => {
     profilePictureUrl: row.avatar || undefined,
     role: 'creator',
     isPremium: false,
-    topics: toCreatorTopics(contentTypes),
+    topics: explicitTopics.length > 0 ? explicitTopics : toCreatorTopics(contentTypes),
     termsAccepted: true,
     termsOfServiceAgreement: true,
     contentLicenseAgreement: true,
@@ -477,6 +489,7 @@ export interface PublicCreatorListItem {
   avatar?: string
   welcomeVideoUrl?: string
   bio?: string
+  topics: string[]
   cardConfig?: CreatorCardConfig
   socialLinks?: BackendCreatorSocialLinks
   followersCount: number
@@ -501,6 +514,7 @@ export interface PublicCreatorProfile {
   avatar?: string
   welcomeVideoUrl?: string
   bio?: string
+  topics: string[]
   cardConfig?: CreatorCardConfig
   socialLinks?: BackendCreatorSocialLinks
   followersCount: number
@@ -583,6 +597,7 @@ export async function fetchPublicCreatorsPage(
     avatar: row.avatar || undefined,
     welcomeVideoUrl: row.welcomeVideoUrl || undefined,
     bio: row.bio || undefined,
+    topics: parseCreatorTopics(row.topics),
     cardConfig: toCardConfig(row.cardConfig),
     socialLinks: row.socialLinks || undefined,
     followersCount: toNumber(row.followers, 0),
@@ -622,6 +637,7 @@ export const mapPublicCreatorListItemToCreator = (creator: PublicCreatorListItem
     avatar: creator.avatar || null,
     welcomeVideoUrl: creator.welcomeVideoUrl || null,
     bio: creator.bio || null,
+    topics: creator.topics,
     cardConfig: creator.cardConfig,
     socialLinks: creator.socialLinks || null,
     followers: creator.followersCount,
@@ -657,6 +673,7 @@ export async function fetchPublicCreatorByUsername(
       avatar: creator.avatar || undefined,
       welcomeVideoUrl: creator.welcomeVideoUrl || undefined,
       bio: creator.bio || undefined,
+      topics: parseCreatorTopics(creator.topics),
       cardConfig: toCardConfig(creator.cardConfig),
       socialLinks: creator.socialLinks || undefined,
       followersCount: toNumber(creator.followers, 0),
@@ -684,6 +701,7 @@ export async function fetchPublicCreatorProfile(username: string): Promise<Creat
     avatar: profile.avatar || null,
     welcomeVideoUrl: profile.welcomeVideoUrl || null,
     bio: profile.bio || null,
+    topics: profile.topics,
     cardConfig: profile.cardConfig,
     socialLinks: profile.socialLinks || null,
     followers: profile.followersCount,

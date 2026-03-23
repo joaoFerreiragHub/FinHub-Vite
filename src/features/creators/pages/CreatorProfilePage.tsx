@@ -49,6 +49,7 @@ const toSocialLinks = (value?: {
   twitter?: string | null
   linkedin?: string | null
   instagram?: string | null
+  youtube?: string | null
 }) => {
   if (!value) return []
 
@@ -265,6 +266,19 @@ export default function CreatorProfilePage({ username }: CreatorProfilePageProps
               <p className="text-sm text-muted-foreground">
                 {creator.bio || 'Este criador ainda nao adicionou uma biografia publica.'}
               </p>
+
+              {creator.topics.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {creator.topics.map((topic) => (
+                    <span
+                      key={`${creator.id}-${topic}`}
+                      className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground"
+                    >
+                      {topic}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
 
               {socialLinks.length > 0 ? (
                 <div className="flex flex-wrap gap-2">

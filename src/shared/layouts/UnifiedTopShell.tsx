@@ -6,7 +6,7 @@ import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { UserRole } from '@/features/auth/types'
 import { GlobalSearchBar } from '@/features/social/components/GlobalSearchBar'
 import { NotificationBell } from '@/features/social/components/NotificationBell'
-import { MAIN_NAV_LINKS, ShellFooter, getUserMenuItems, isMainNavActive } from './shellConfig'
+import { ShellFooter, getMainNavLinks, getUserMenuItems, isMainNavActive } from './shellConfig'
 
 interface UnifiedTopShellProps {
   children: React.ReactNode
@@ -18,6 +18,7 @@ export function UnifiedTopShell({ children, currentPath }: UnifiedTopShellProps)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { user, logout } = useAuthStore()
   const role = user?.role ?? UserRole.VISITOR
+  const mainNavLinks = useMemo(() => getMainNavLinks(role), [role])
   const menuItems = useMemo(() => getUserMenuItems(role), [role])
 
   useEffect(() => {
@@ -37,7 +38,7 @@ export function UnifiedTopShell({ children, currentPath }: UnifiedTopShellProps)
           </a>
 
           <nav className="hidden md:flex items-center gap-1">
-            {MAIN_NAV_LINKS.map((navLink) => (
+            {mainNavLinks.map((navLink) => (
               <a
                 key={navLink.path}
                 href={navLink.path}
@@ -116,7 +117,7 @@ export function UnifiedTopShell({ children, currentPath }: UnifiedTopShellProps)
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-border/30 bg-background/95 backdrop-blur-lg">
             <nav className="flex flex-col p-4 gap-1">
-              {MAIN_NAV_LINKS.map((navLink) => {
+              {mainNavLinks.map((navLink) => {
                 const Icon = navLink.icon
                 return (
                   <a

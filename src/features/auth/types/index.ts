@@ -42,6 +42,7 @@ export interface UserSocialLinks {
   twitter?: string
   linkedin?: string
   instagram?: string
+  youtube?: string
 }
 
 export interface UserCreatorCardConfig {

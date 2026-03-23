@@ -122,6 +122,7 @@ const toCreatorSocialLinks = (socialLinks: {
   twitter?: string
   linkedin?: string
   instagram?: string
+  youtube?: string
 }) => {
   const links: Creator['socialMediaLinks'] = []
 
@@ -136,6 +137,9 @@ const toCreatorSocialLinks = (socialLinks: {
   }
   if (socialLinks.instagram) {
     links.push({ platform: 'Instagram', url: socialLinks.instagram })
+  }
+  if (socialLinks.youtube) {
+    links.push({ platform: 'YouTube', url: socialLinks.youtube })
   }
 
   return links

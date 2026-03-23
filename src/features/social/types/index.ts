@@ -127,6 +127,15 @@ export interface UpdateMyProfileInput {
   name: string
   bio?: string
   avatar?: string
+  welcomeVideoUrl?: string
+  favoriteTopics?: string[]
+  socialLinks?: {
+    website?: string
+    twitter?: string
+    linkedin?: string
+    instagram?: string
+    youtube?: string
+  }
 }
 
 // ========== SEARCH ==========

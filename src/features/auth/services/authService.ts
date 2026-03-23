@@ -36,12 +36,14 @@ export interface UpdateMyProfileRequest {
   avatar?: string | null
   welcomeVideoUrl?: string | null
   bio?: string | null
+  topics?: string[] | null
   cardConfig?: UserCreatorCardConfig | null
   socialLinks?: {
     website?: string | null
     twitter?: string | null
     linkedin?: string | null
     instagram?: string | null
+    youtube?: string | null
   } | null
 }
 
