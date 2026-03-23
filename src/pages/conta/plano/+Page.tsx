@@ -10,6 +10,7 @@ import {
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { UserRole } from '@/features/auth/types'
 import { Helmet } from '@/lib/helmet'
+import { trackUpgradeCtaClicked } from '@/lib/analytics'
 import { useToast } from '@/shared/hooks'
 import { UserAccountShell } from '@/shared/layouts/UserAccountShell'
 
@@ -95,6 +96,7 @@ export function Page() {
 
                 <a
                   href="/precos"
+                  onClick={() => trackUpgradeCtaClicked('account_plan')}
                   className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
                 >
                   Upgrade para Premium - 9EUR/mes

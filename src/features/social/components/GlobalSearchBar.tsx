@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Search,
   FileText,
@@ -16,6 +16,7 @@ import { ContentType } from '@/features/hub/types'
 import { useGlobalSearch } from '../hooks/useSocial'
 import type { SearchResult } from '../types'
 import { usePublicSurfaceControl } from '@/features/platform/hooks/usePublicSurfaceControl'
+import { trackSearchPerformed, trackSearchResultClicked } from '@/lib/analytics'
 
 interface GlobalSearchBarProps {
   onNavigate?: (url: string) => void
@@ -48,6 +49,7 @@ export function GlobalSearchBar({ onNavigate }: GlobalSearchBarProps) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
+  const lastTrackedQueryRef = useRef<string>('')
 
   const { data, isLoading } = useGlobalSearch(debouncedQuery)
 
@@ -63,6 +65,21 @@ export function GlobalSearchBar({ onNavigate }: GlobalSearchBarProps) {
     }
   }, [searchSurface.data?.enabled])
 
+  useEffect(() => {
+    const normalizedQuery = debouncedQuery.trim()
+    if (normalizedQuery.length < 2) {
+      lastTrackedQueryRef.current = ''
+      return
+    }
+
+    if (isLoading) return
+
+    if (lastTrackedQueryRef.current === normalizedQuery) return
+
+    trackSearchPerformed(normalizedQuery, data?.results.length ?? 0)
+    lastTrackedQueryRef.current = normalizedQuery
+  }, [data?.results.length, debouncedQuery, isLoading])
+
   // Keyboard shortcut (Ctrl+K)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -77,8 +94,17 @@ export function GlobalSearchBar({ onNavigate }: GlobalSearchBarProps) {
   }, [searchSurface.data?.enabled])
 
   const handleSelect = (result: SearchResult) => {
+    const normalizedQuery = debouncedQuery.trim() || query.trim()
+    if (normalizedQuery.length >= 2) {
+      const resultIndex =
+        data?.results.findIndex((item) => item.id === result.id && item.type === result.type) ?? -1
+      trackSearchResultClicked(normalizedQuery, resultIndex, result.type)
+    }
+
     setOpen(false)
     setQuery('')
+    setDebouncedQuery('')
+    lastTrackedQueryRef.current = ''
     onNavigate?.(result.url)
   }
 

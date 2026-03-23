@@ -1,8 +1,15 @@
 import { useEffect } from 'react'
+import { JsonLd } from '@/components/seo/JsonLd'
 import { Link, Navigate, useParams } from 'react-router-dom'
+import { Helmet } from '@/lib/helmet'
 import { Clock3, Eye, Star, Users } from 'lucide-react'
 import { useCourse } from '@/features/hub/courses/hooks/useCourses'
 import { courseService } from '@/features/hub/courses/services/courseService'
+import { platformRuntimeConfigService } from '@/features/platform/services/platformRuntimeConfigService'
+import { postRecommendationSignal } from '@/lib/analytics'
+
+const fallbackSeoConfig = platformRuntimeConfigService.getFallback().seo
+const fallbackSiteUrl = fallbackSeoConfig.siteUrl.replace(/\/$/, '')
 
 const formatDate = (value?: string): string => {
   if (!value) return 'Data indisponivel'
@@ -36,11 +43,41 @@ const resolveAuthor = (creator: unknown): string => {
   return row.name || row.username || 'FinHub'
 }
 
+const resolveCreatorUsername = (creator: unknown, fallbackName: string): string => {
+  if (creator && typeof creator === 'object') {
+    const row = creator as { username?: string }
+    if (typeof row.username === 'string' && row.username.trim().length > 0) {
+      return row.username.trim().toLowerCase()
+    }
+  }
+
+  return fallbackName
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-_]/g, '')
+}
+
+const toAbsoluteUrl = (value: unknown): string | undefined => {
+  if (typeof value !== 'string') return undefined
+  const normalized = value.trim()
+  if (!normalized) return undefined
+  if (normalized.startsWith('http://') || normalized.startsWith('https://')) return normalized
+  if (normalized.startsWith('/')) return `${fallbackSiteUrl}${normalized}`
+  return `${fallbackSiteUrl}/${normalized}`
+}
+
 const levelLabel = (level?: string): string => {
   if (level === 'beginner') return 'Iniciante'
   if (level === 'intermediate') return 'Intermedio'
   if (level === 'advanced') return 'Avancado'
   return 'Nivel geral'
+}
+
+const educationalLevelLabel = (level?: string): string => {
+  if (level === 'advanced') return 'Advanced'
+  if (level === 'intermediate') return 'Intermediate'
+  return 'Beginner'
 }
 
 export default function CourseDetailPage() {
@@ -50,6 +87,7 @@ export default function CourseDetailPage() {
   useEffect(() => {
     if (course?.id) {
       courseService.incrementView(course.id).catch(() => {})
+      postRecommendationSignal('content_viewed', course.id, 'course')
     }
   }, [course?.id])
 
@@ -65,8 +103,46 @@ export default function CourseDetailPage() {
     return <Navigate to="/explorar/cursos" replace />
   }
 
+  const seoDescription = course.description || course.excerpt || 'Curso FinHub'
+  const authorName = resolveAuthor(course.creator)
+  const authorUsername = resolveCreatorUsername(course.creator, authorName)
+  const canonicalUrl =
+    typeof window !== 'undefined'
+      ? window.location.href
+      : `${fallbackSiteUrl}/cursos/${encodeURIComponent(slug || '')}`
+  const courseJsonLd: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Course',
+    name: course.title,
+    description: seoDescription,
+    provider: {
+      '@type': 'Organization',
+      name: fallbackSeoConfig.siteName,
+      url: fallbackSiteUrl,
+    },
+    instructor: {
+      '@type': 'Person',
+      name: authorName,
+      url: `${fallbackSiteUrl}/creators/${encodeURIComponent(authorUsername)}`,
+    },
+    courseMode: 'online',
+    educationalLevel: educationalLevelLabel(course.level),
+    image: toAbsoluteUrl(course.coverImage),
+    url: canonicalUrl,
+  }
+
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{`${course.title} | Curso FinHub`}</title>
+        <meta name="description" content={seoDescription} />
+        <meta property="og:title" content={course.title} />
+        <meta property="og:description" content={seoDescription} />
+        <meta property="og:type" content="website" />
+        {course.coverImage ? <meta property="og:image" content={course.coverImage} /> : null}
+        <link rel="canonical" href={canonicalUrl} />
+      </Helmet>
+      <JsonLd schema={courseJsonLd} />
       <div className="px-4 py-8 sm:px-6 md:px-10 lg:px-12">
         <div className="mx-auto max-w-5xl space-y-6">
           <Link
@@ -168,4 +244,3 @@ export default function CourseDetailPage() {
     </div>
   )
 }
-

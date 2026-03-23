@@ -1,5 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
+import { JsonLd } from '@/components/seo/JsonLd'
 import { Link, Navigate, useParams } from 'react-router-dom'
+import { Helmet } from '@/lib/helmet'
 import { Eye, Star } from 'lucide-react'
 import { useArticle } from '@/features/hub/articles/hooks/useArticles'
 import { articleService } from '@/features/hub/articles/services/articleService'
@@ -8,6 +10,11 @@ import { useComments } from '@/features/hub/hooks/useComments'
 import { ContentType } from '@/features/hub/types'
 import { getErrorMessage } from '@/lib/api/client'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import { platformRuntimeConfigService } from '@/features/platform/services/platformRuntimeConfigService'
+import { postRecommendationSignal, trackContentCompleted } from '@/lib/analytics'
+
+const fallbackSeoConfig = platformRuntimeConfigService.getFallback().seo
+const fallbackSiteUrl = fallbackSeoConfig.siteUrl.replace(/\/$/, '')
 
 const formatDate = (value?: string): string => {
   if (!value) return 'Data indisponivel'
@@ -33,11 +40,36 @@ const resolveAuthor = (creator: unknown): string => {
   return row.name || row.username || 'FinHub'
 }
 
+const resolveCreatorUsername = (creator: unknown, fallbackName: string): string => {
+  if (creator && typeof creator === 'object') {
+    const row = creator as { username?: string }
+    if (typeof row.username === 'string' && row.username.trim().length > 0) {
+      return row.username.trim().toLowerCase()
+    }
+  }
+
+  return fallbackName
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-_]/g, '')
+}
+
+const toAbsoluteUrl = (value: unknown): string | undefined => {
+  if (typeof value !== 'string') return undefined
+  const normalized = value.trim()
+  if (!normalized) return undefined
+  if (normalized.startsWith('http://') || normalized.startsWith('https://')) return normalized
+  if (normalized.startsWith('/')) return `${fallbackSiteUrl}${normalized}`
+  return `${fallbackSiteUrl}/${normalized}`
+}
+
 const hasHtml = (value: string): boolean => /<\/?[a-z][\s\S]*>/i.test(value)
 
 export default function ArticleDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const { data: article, isLoading, isError } = useArticle(slug || '')
+  const completionTrackedRef = useRef(false)
   const currentUserId = useAuthStore((state) => state.user?.id)
   const comments = useComments(ContentType.ARTICLE, article?.id ?? '', {
     enabled: Boolean(article?.id && article.commentsEnabled),
@@ -48,7 +80,33 @@ export default function ArticleDetailPage() {
   useEffect(() => {
     if (article?.id) {
       articleService.incrementView(article.id).catch(() => {})
+      postRecommendationSignal('content_viewed', article.id, 'article')
     }
+  }, [article?.id])
+
+  useEffect(() => {
+    completionTrackedRef.current = false
+  }, [article?.id])
+
+  useEffect(() => {
+    if (!article?.id || completionTrackedRef.current) return
+    if (typeof window === 'undefined') return
+
+    const trackReadCompletion = () => {
+      const doc = window.document.documentElement
+      const scrollableHeight = doc.scrollHeight - doc.clientHeight
+      const completionPercent =
+        scrollableHeight <= 0 ? 100 : (doc.scrollTop / scrollableHeight) * 100
+
+      if (completionPercent < 80) return
+
+      completionTrackedRef.current = true
+      trackContentCompleted(article.id, 'article', 80)
+    }
+
+    trackReadCompletion()
+    window.addEventListener('scroll', trackReadCompletion, { passive: true })
+    return () => window.removeEventListener('scroll', trackReadCompletion)
   }, [article?.id])
 
   if (isLoading) {
@@ -64,9 +122,53 @@ export default function ArticleDetailPage() {
   }
 
   const body = article.content || article.excerpt || article.description
+  const seoDescription = article.description || article.excerpt || 'Artigo FinHub'
+  const authorName = resolveAuthor(article.creator)
+  const authorUsername = resolveCreatorUsername(article.creator, authorName)
+  const canonicalUrl =
+    typeof window !== 'undefined'
+      ? window.location.href
+      : `${fallbackSiteUrl}/artigos/${encodeURIComponent(slug || '')}`
+  const keywords = Array.isArray(article.tags)
+    ? article.tags
+        .map((tag) => (typeof tag === 'string' ? tag.trim() : ''))
+        .filter((tag) => tag.length > 0)
+        .join(', ')
+    : ''
+  const articleJsonLd: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: article.title,
+    description: seoDescription,
+    author: {
+      '@type': 'Person',
+      name: authorName,
+      url: `${fallbackSiteUrl}/creators/${encodeURIComponent(authorUsername)}`,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: fallbackSeoConfig.siteName,
+      logo: `${fallbackSiteUrl}/logo.png`,
+    },
+    datePublished: article.publishedAt || article.createdAt,
+    dateModified: article.updatedAt || article.publishedAt || article.createdAt,
+    image: toAbsoluteUrl(article.coverImage),
+    url: canonicalUrl,
+    ...(keywords ? { keywords } : {}),
+  }
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{`${article.title} | FinHub`}</title>
+        <meta name="description" content={seoDescription} />
+        <meta property="og:title" content={article.title} />
+        <meta property="og:description" content={seoDescription} />
+        <meta property="og:type" content="article" />
+        {article.coverImage ? <meta property="og:image" content={article.coverImage} /> : null}
+        <link rel="canonical" href={canonicalUrl} />
+      </Helmet>
+      <JsonLd schema={articleJsonLd} />
       <div className="px-4 py-8 sm:px-6 md:px-10 lg:px-12">
         <div className="mx-auto max-w-4xl space-y-6">
           <Link

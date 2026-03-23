@@ -1,8 +1,15 @@
 import { useEffect } from 'react'
+import { JsonLd } from '@/components/seo/JsonLd'
 import { Link, Navigate, useParams } from 'react-router-dom'
+import { Helmet } from '@/lib/helmet'
 import { Clock3, Eye, Star } from 'lucide-react'
 import { useVideo } from '@/features/hub/videos/hooks/useVideos'
 import { videoService } from '@/features/hub/videos/services/videoService'
+import { platformRuntimeConfigService } from '@/features/platform/services/platformRuntimeConfigService'
+import { postRecommendationSignal } from '@/lib/analytics'
+
+const fallbackSeoConfig = platformRuntimeConfigService.getFallback().seo
+const fallbackSiteUrl = fallbackSeoConfig.siteUrl.replace(/\/$/, '')
 
 const formatDate = (value?: string): string => {
   if (!value) return 'Data indisponivel'
@@ -38,6 +45,47 @@ const resolveAuthor = (creator: unknown): string => {
   return row.name || row.username || 'FinHub'
 }
 
+const resolveCreatorUsername = (creator: unknown, fallbackName: string): string => {
+  if (creator && typeof creator === 'object') {
+    const row = creator as { username?: string }
+    if (typeof row.username === 'string' && row.username.trim().length > 0) {
+      return row.username.trim().toLowerCase()
+    }
+  }
+
+  return fallbackName
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-_]/g, '')
+}
+
+const toAbsoluteUrl = (value: unknown): string | undefined => {
+  if (typeof value !== 'string') return undefined
+  const normalized = value.trim()
+  if (!normalized) return undefined
+  if (normalized.startsWith('http://') || normalized.startsWith('https://')) return normalized
+  if (normalized.startsWith('/')) return `${fallbackSiteUrl}${normalized}`
+  return `${fallbackSiteUrl}/${normalized}`
+}
+
+const toIsoDuration = (seconds: number): string | undefined => {
+  if (!Number.isFinite(seconds) || seconds <= 0) return undefined
+
+  const totalSeconds = Math.floor(seconds)
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const remainingSeconds = totalSeconds % 60
+
+  const parts = [
+    hours > 0 ? `${hours}H` : '',
+    minutes > 0 ? `${minutes}M` : '',
+    remainingSeconds > 0 ? `${remainingSeconds}S` : '',
+  ].filter(Boolean)
+
+  return parts.length > 0 ? `PT${parts.join('')}` : 'PT0S'
+}
+
 export default function VideoDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const { data: video, isLoading, isError } = useVideo(slug || '')
@@ -45,6 +93,7 @@ export default function VideoDetailPage() {
   useEffect(() => {
     if (video?.id) {
       videoService.incrementView(video.id).catch(() => {})
+      postRecommendationSignal('content_viewed', video.id, 'video')
     }
   }, [video?.id])
 
@@ -61,9 +110,48 @@ export default function VideoDetailPage() {
   }
 
   const canEmbed = video.videoUrl && /^https?:\/\//i.test(video.videoUrl)
+  const seoDescription = video.description || video.excerpt || 'Video FinHub'
+  const authorName = resolveAuthor(video.creator)
+  const authorUsername = resolveCreatorUsername(video.creator, authorName)
+  const canonicalUrl =
+    typeof window !== 'undefined'
+      ? window.location.href
+      : `${fallbackSiteUrl}/videos/${encodeURIComponent(slug || '')}`
+  const videoJsonLd: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'VideoObject',
+    name: video.title,
+    description: seoDescription,
+    thumbnailUrl: toAbsoluteUrl(video.thumbnail || video.coverImage),
+    uploadDate: video.publishedAt || video.createdAt,
+    duration: toIsoDuration(video.duration),
+    author: {
+      '@type': 'Person',
+      name: authorName,
+      url: `${fallbackSiteUrl}/creators/${encodeURIComponent(authorUsername)}`,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: fallbackSeoConfig.siteName,
+      logo: `${fallbackSiteUrl}/logo.png`,
+    },
+    url: canonicalUrl,
+  }
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{`${video.title} | Video FinHub`}</title>
+        <meta name="description" content={seoDescription} />
+        <meta property="og:title" content={video.title} />
+        <meta property="og:description" content={seoDescription} />
+        <meta property="og:type" content="video.other" />
+        {video.thumbnail || video.coverImage ? (
+          <meta property="og:image" content={video.thumbnail || video.coverImage} />
+        ) : null}
+        <link rel="canonical" href={canonicalUrl} />
+      </Helmet>
+      <JsonLd schema={videoJsonLd} />
       <div className="px-4 py-8 sm:px-6 md:px-10 lg:px-12">
         <div className="mx-auto max-w-5xl space-y-6">
           <Link
@@ -147,4 +235,3 @@ export default function VideoDetailPage() {
     </div>
   )
 }
-

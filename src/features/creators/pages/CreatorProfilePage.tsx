@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
+import { JsonLd } from '@/components/seo/JsonLd'
 import { Helmet } from '@/lib/helmet'
 import { ExternalLink, Users } from 'lucide-react'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { Button, Card, Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { getErrorMessage } from '@/lib/api/client'
+import { platformRuntimeConfigService } from '@/features/platform/services/platformRuntimeConfigService'
 import SidebarLayout from '@/shared/layouts/SidebarLayout'
 import { PublicSurfaceDisabledState } from '@/features/platform/components/PublicSurfaceDisabledState'
 import { usePublicSurfaceControl } from '@/features/platform/hooks/usePublicSurfaceControl'
@@ -20,6 +22,9 @@ import {
 interface CreatorProfilePageProps {
   username?: string
 }
+
+const fallbackSeoConfig = platformRuntimeConfigService.getFallback().seo
+const fallbackSiteUrl = fallbackSeoConfig.siteUrl.replace(/\/$/, '')
 
 const TAB_DEFINITIONS: Array<{ label: string; type: PublicCreatorContentType }> = [
   { label: 'Artigos', type: 'article' },
@@ -59,6 +64,32 @@ const toSocialLinks = (value?: {
       platform: platform.charAt(0).toUpperCase() + platform.slice(1),
       url: String(url),
     }))
+}
+
+const toAbsoluteUrl = (value: unknown): string | undefined => {
+  if (typeof value !== 'string') return undefined
+  const normalized = value.trim()
+  if (!normalized) return undefined
+  if (normalized.startsWith('http://') || normalized.startsWith('https://')) return normalized
+  if (normalized.startsWith('/')) return `${fallbackSiteUrl}${normalized}`
+  return `${fallbackSiteUrl}/${normalized}`
+}
+
+const toSameAs = (value?: {
+  website?: string | null
+  twitter?: string | null
+  linkedin?: string | null
+  instagram?: string | null
+  youtube?: string | null
+}): string[] => {
+  if (!value) return []
+
+  const urls = Object.values(value)
+    .map((url) => (typeof url === 'string' ? url.trim() : ''))
+    .filter((url) => url.length > 0)
+    .filter((url) => /^https?:\/\//i.test(url))
+
+  return Array.from(new Set(urls))
 }
 
 export default function CreatorProfilePage({ username }: CreatorProfilePageProps) {
@@ -126,6 +157,7 @@ export default function CreatorProfilePage({ username }: CreatorProfilePageProps
   }, [isAuthenticated, followStatusQuery.data, creator?.id])
 
   const socialLinks = useMemo(() => toSocialLinks(creator?.socialLinks), [creator?.socialLinks])
+  const sameAsLinks = useMemo(() => toSameAs(creator?.socialLinks), [creator?.socialLinks])
   const totalPublications = useMemo(
     () => contentQueries.reduce((sum, query) => sum + (query.data?.total ?? 0), 0),
     [contentQueries],
@@ -212,7 +244,18 @@ export default function CreatorProfilePage({ username }: CreatorProfilePageProps
   const canonicalUrl =
     typeof window !== 'undefined'
       ? window.location.href
-      : `/creators/${encodeURIComponent(creator.username)}`
+      : `${fallbackSiteUrl}/creators/${encodeURIComponent(creator.username)}`
+  const personJsonLd: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: creator.name,
+    url: canonicalUrl,
+    image: toAbsoluteUrl(creator.avatar),
+    jobTitle:
+      creator.topics.length > 0 ? `Educador de ${creator.topics[0]}` : 'Educador financeiro',
+    description: creator.bio || `Perfil publico de ${creator.name} na comunidade FinHub.`,
+    ...(sameAsLinks.length > 0 ? { sameAs: sameAsLinks } : {}),
+  }
 
   return (
     <SidebarLayout>
@@ -230,6 +273,7 @@ export default function CreatorProfilePage({ username }: CreatorProfilePageProps
         {creator.avatar ? <meta property="og:image" content={creator.avatar} /> : null}
         <link rel="canonical" href={canonicalUrl} />
       </Helmet>
+      <JsonLd schema={personJsonLd} />
 
       <div className="mx-auto max-w-7xl space-y-8 px-4 py-8">
         {profileQuery.isError ? (

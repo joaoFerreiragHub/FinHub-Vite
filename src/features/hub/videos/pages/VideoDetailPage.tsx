@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react'
+import { JsonLd } from '@/components/seo/JsonLd'
 import { Helmet } from '@/lib/helmet'
 import { Navigate, useParams } from 'react-router-dom'
 import { Clock3, PlayCircle } from 'lucide-react'
@@ -11,9 +12,11 @@ import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import type { UserSocialLinks } from '@/features/auth/types'
 import { getErrorMessage } from '@/lib/api/client'
 import { isRoleAtLeast } from '@/lib/permissions/config'
+import { platformRuntimeConfigService } from '@/features/platform/services/platformRuntimeConfigService'
 import { useComments } from '@/features/hub/hooks/useComments'
 import { ContentType } from '@/features/hub/types'
 import { FollowButton } from '@/features/social/components/FollowButton'
+import { postRecommendationSignal } from '@/lib/analytics'
 
 interface VideoDetailPageProps {
   slug?: string
@@ -27,6 +30,9 @@ interface CreatorSummary {
   bio?: string
   socialLinks?: UserSocialLinks
 }
+
+const fallbackSeoConfig = platformRuntimeConfigService.getFallback().seo
+const fallbackSiteUrl = fallbackSeoConfig.siteUrl.replace(/\/$/, '')
 
 const toNumber = (value: unknown, fallback = 0): number => {
   const parsed = Number(value)
@@ -100,6 +106,45 @@ const resolveLikeCount = (video: unknown): number => {
 const resolveDurationSeconds = (video: unknown): number => {
   const row = toRecord(video)
   return toNumber(row.duration, 0)
+}
+
+const toOptionalDate = (value: unknown): string | undefined => {
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    return undefined
+  }
+
+  const parsed = Date.parse(value)
+  if (!Number.isFinite(parsed)) {
+    return undefined
+  }
+
+  return new Date(parsed).toISOString()
+}
+
+const toAbsoluteUrl = (value: unknown): string | undefined => {
+  if (typeof value !== 'string') return undefined
+  const normalized = value.trim()
+  if (!normalized) return undefined
+  if (normalized.startsWith('http://') || normalized.startsWith('https://')) return normalized
+  if (normalized.startsWith('/')) return `${fallbackSiteUrl}${normalized}`
+  return `${fallbackSiteUrl}/${normalized}`
+}
+
+const toIsoDuration = (seconds: number): string | undefined => {
+  if (!Number.isFinite(seconds) || seconds <= 0) return undefined
+
+  const totalSeconds = Math.floor(seconds)
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const remainingSeconds = totalSeconds % 60
+
+  const parts = [
+    hours > 0 ? `${hours}H` : '',
+    minutes > 0 ? `${minutes}M` : '',
+    remainingSeconds > 0 ? `${remainingSeconds}S` : '',
+  ].filter(Boolean)
+
+  return parts.length > 0 ? `PT${parts.join('')}` : 'PT0S'
 }
 
 const formatDuration = (seconds: number): string => {
@@ -224,6 +269,7 @@ export function VideoDetailPage({ slug }: VideoDetailPageProps) {
   useEffect(() => {
     if (video?.id) {
       videoService.incrementView(video.id).catch(() => {})
+      postRecommendationSignal('content_viewed', video.id, 'video')
     }
   }, [video?.id])
 
@@ -248,7 +294,29 @@ export function VideoDetailPage({ slug }: VideoDetailPageProps) {
   const canonicalUrl =
     typeof window !== 'undefined'
       ? window.location.href
-      : `/hub/videos/${encodeURIComponent(resolvedSlug)}`
+      : `${fallbackSiteUrl}/hub/videos/${encodeURIComponent(resolvedSlug)}`
+  const videoJsonLd: Record<string, unknown> | null = video
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'VideoObject',
+        name: video.title,
+        description: seoDescription,
+        thumbnailUrl: toAbsoluteUrl(video.thumbnail || video.coverImage),
+        uploadDate: toOptionalDate(video.publishedAt ?? video.createdAt),
+        duration: toIsoDuration(durationSeconds),
+        author: {
+          '@type': 'Person',
+          name: creator.name,
+          url: `${fallbackSiteUrl}/creators/${encodeURIComponent(creator.username)}`,
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: fallbackSeoConfig.siteName,
+          logo: `${fallbackSiteUrl}/logo.png`,
+        },
+        url: canonicalUrl,
+      }
+    : null
 
   return (
     <div className="min-h-screen bg-background">
@@ -261,6 +329,7 @@ export function VideoDetailPage({ slug }: VideoDetailPageProps) {
         {video.thumbnail ? <meta property="og:image" content={video.thumbnail} /> : null}
         <link rel="canonical" href={canonicalUrl} />
       </Helmet>
+      <JsonLd schema={videoJsonLd} />
 
       <div className="container mx-auto px-4 py-8">
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">

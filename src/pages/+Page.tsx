@@ -10,6 +10,7 @@ import {
 } from '@/features/creators/services/publicCreatorsService'
 import type { Creator as CreatorModel } from '@/features/creators/types/creator'
 import { apiClient } from '@/lib/api/client'
+import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 
 type ContentListKey = 'articles' | 'courses' | 'books'
 
@@ -18,6 +19,8 @@ interface ApiContentItem {
   id?: string
   slug?: string
   title?: string
+  type?: RecommendationContentType
+  href?: string
   category?: string
   coverImage?: string
   imageUrl?: string
@@ -48,6 +51,12 @@ interface ApiCollectionResponse {
   articles?: ApiContentItem[]
   courses?: ApiContentItem[]
   books?: ApiContentItem[]
+  items?: ApiContentItem[]
+}
+
+type RecommendationContentType = 'article' | 'video' | 'course'
+
+interface ApiRecommendationsResponse {
   items?: ApiContentItem[]
 }
 
@@ -290,6 +299,36 @@ const fetchArticlesForInterests = async (interests: string[]): Promise<ApiConten
   return fetchPopularArticles()
 }
 
+const recommendationHrefByType: Record<RecommendationContentType, string> = {
+  article: '/hub/articles',
+  video: '/hub/videos',
+  course: '/hub/courses',
+}
+
+const normalizeRecommendationItems = (
+  payload: ApiRecommendationsResponse | ApiContentItem[] | null | undefined,
+): ApiContentItem[] => {
+  if (!payload) return []
+  if (Array.isArray(payload)) return payload
+  if (Array.isArray(payload.items)) return payload.items
+  return []
+}
+
+const fetchRecommendationsForUser = async (
+  limit: number,
+  userId?: string,
+): Promise<ApiContentItem[]> => {
+  try {
+    const response = await apiClient.get<ApiRecommendationsResponse>('/recommendations', {
+      params: { limit, userId },
+    })
+    return normalizeRecommendationItems(response.data).slice(0, limit)
+  } catch (error) {
+    console.error('[HOME] Falha ao carregar recomendacoes:', error)
+    return []
+  }
+}
+
 const toCardId = (item: ApiContentItem, index: number, prefix: string) =>
   item.id || item._id || item.slug || `${prefix}-${index}`
 
@@ -361,12 +400,30 @@ const LoadingRowState = ({ count = 4 }: { count?: number }) => (
   </>
 )
 
+const toContentHref = (item: ApiContentItem): string | undefined => {
+  if (item.href) return item.href
+
+  if (!item.type) return undefined
+  const slugOrId = item.slug || item.id || item._id
+  if (!slugOrId) return undefined
+
+  return `${recommendationHrefByType[item.type]}/${encodeURIComponent(slugOrId)}`
+}
+
+const resolveCardTopic = (item: ApiContentItem): string => {
+  if (item.category) return toTopicLabel(item.category)
+  if (item.type === 'video') return 'Video'
+  if (item.type === 'course') return 'Curso'
+  return 'Artigo'
+}
+
 const mapArticleItemsToCards = (items: ApiContentItem[], limit = 12) =>
   items.slice(0, limit).map((item, index) => ({
     id: toCardId(item, index, 'article'),
     slug: item.slug,
+    href: toContentHref(item),
     title: item.title || 'Sem titulo',
-    topic: toTopicLabel(item.category),
+    topic: resolveCardTopic(item),
     imageUrl: item.coverImage || item.imageUrl,
     author: item.author || resolveCreatorName(item.creator),
     createdAt: item.createdAt || new Date().toISOString(),
@@ -378,6 +435,8 @@ export function Page() {
   const [mounted, setMounted] = useState(false)
   const [hasLoadedOnboardingPrefs, setHasLoadedOnboardingPrefs] = useState(false)
   const [onboardingInterests, setOnboardingInterests] = useState<string[]>([])
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const authUserId = useAuthStore((state) => state.user?.id)
 
   useEffect(() => {
     setMounted(true)
@@ -397,13 +456,18 @@ export function Page() {
   })
 
   const personalizedContentQuery = useQuery({
-    queryKey: ['home-feed', 'for-you', onboardingInterests],
-    queryFn: () => fetchArticlesForInterests(onboardingInterests),
+    queryKey: ['home-feed', 'for-you', isAuthenticated, authUserId, onboardingInterests],
+    queryFn: () =>
+      isAuthenticated
+        ? fetchRecommendationsForUser(PERSONALIZED_CONTENT_LIMIT, authUserId)
+        : fetchArticlesForInterests(onboardingInterests),
     enabled: mounted && hasLoadedOnboardingPrefs,
     staleTime: 60_000,
   })
 
   const hasOnboardingInterests = onboardingInterests.length > 0
+  const isUsingBackendRecommendations = isAuthenticated
+  const showingPersonalizedFeed = isUsingBackendRecommendations || hasOnboardingInterests
 
   const articleCards = useMemo(() => mapArticleItemsToCards(data?.articles ?? []), [data?.articles])
 
@@ -478,11 +542,13 @@ export function Page() {
 
       {mounted ? (
         <ContentRow
-          title={hasOnboardingInterests ? 'Para ti' : 'Popular agora'}
+          title={showingPersonalizedFeed ? 'Para ti' : 'Popular agora'}
           subtitle={
-            hasOnboardingInterests
-              ? 'Conteudo selecionado a partir dos teus topicos de interesse.'
-              : 'Conteudos com mais visualizacoes neste momento.'
+            isUsingBackendRecommendations
+              ? 'Recomendacoes personalizadas com base no teu comportamento recente.'
+              : hasOnboardingInterests
+                ? 'Conteudo selecionado a partir dos teus topicos de interesse.'
+                : 'Conteudos com mais visualizacoes neste momento.'
           }
           href="/hub/articles"
         >

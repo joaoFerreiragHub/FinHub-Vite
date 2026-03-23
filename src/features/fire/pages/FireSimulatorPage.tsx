@@ -32,6 +32,7 @@ import {
 } from '@/components/ui'
 import { ChartTooltip } from '@/components/ui/ChartTooltip'
 import { getErrorMessage } from '@/lib/api/client'
+import { trackFireSimulationRun, trackToolUsed } from '@/lib/analytics'
 import { FireToolNav } from '../components/FireToolNav'
 import { useFirePortfolioList, useRunFireSimulation } from '../hooks/useFirePortfolio'
 import type {
@@ -305,6 +306,11 @@ export default function FireSimulatorPage() {
         payload,
       })
       setResult(simulation)
+      trackToolUsed('fire')
+      trackFireSimulationRun(
+        simulation.fireTarget.targetAmount ?? 0,
+        simulation.assumptions.maxYears,
+      )
       toast.success('Simulacao FIRE concluida.')
     } catch (error) {
       toast.error(getErrorMessage(error))

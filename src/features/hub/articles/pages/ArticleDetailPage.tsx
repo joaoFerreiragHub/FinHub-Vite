@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import DOMPurify from 'dompurify'
+import { JsonLd } from '@/components/seo/JsonLd'
 import { Helmet } from '@/lib/helmet'
 import { CalendarClock, Heart } from 'lucide-react'
 import { Navigate, useParams } from 'react-router-dom'
@@ -12,9 +13,15 @@ import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import type { UserSocialLinks } from '@/features/auth/types'
 import { getErrorMessage } from '@/lib/api/client'
 import { Permission, isRoleAtLeast } from '@/lib/permissions/config'
+import { platformRuntimeConfigService } from '@/features/platform/services/platformRuntimeConfigService'
 import { useComments } from '@/features/hub/hooks/useComments'
 import { ContentType } from '@/features/hub/types'
 import { FollowButton } from '@/features/social/components/FollowButton'
+import {
+  postRecommendationSignal,
+  trackContentCompleted,
+  trackContentFavorited,
+} from '@/lib/analytics'
 
 interface ArticleDetailPageProps {
   slug?: string
@@ -28,6 +35,9 @@ interface CreatorSummary {
   bio?: string
   socialLinks?: UserSocialLinks
 }
+
+const fallbackSeoConfig = platformRuntimeConfigService.getFallback().seo
+const fallbackSiteUrl = fallbackSeoConfig.siteUrl.replace(/\/$/, '')
 
 const toNumber = (value: unknown, fallback = 0): number => {
   const parsed = Number(value)
@@ -111,6 +121,39 @@ const resolveSocialLinks = (links?: UserSocialLinks): Array<{ label: string; url
   return rows
 }
 
+const toOptionalDate = (value: unknown): string | undefined => {
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    return undefined
+  }
+
+  const parsed = Date.parse(value)
+  if (!Number.isFinite(parsed)) {
+    return undefined
+  }
+
+  return new Date(parsed).toISOString()
+}
+
+const toAbsoluteUrl = (value: unknown): string | undefined => {
+  if (typeof value !== 'string') return undefined
+  const normalized = value.trim()
+  if (!normalized) return undefined
+  if (normalized.startsWith('http://') || normalized.startsWith('https://')) return normalized
+  if (normalized.startsWith('/')) return `${fallbackSiteUrl}${normalized}`
+  return `${fallbackSiteUrl}/${normalized}`
+}
+
+const toWordCount = (value: unknown): number | undefined => {
+  if (typeof value !== 'string') return undefined
+  const plainText = value
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (!plainText) return undefined
+  const words = plainText.split(' ').filter(Boolean)
+  return words.length > 0 ? words.length : undefined
+}
+
 export function ArticleDetailPage({ slug }: ArticleDetailPageProps) {
   const params = useParams<{ slug: string }>()
   const resolvedSlug = (slug || params.slug || '').trim()
@@ -140,10 +183,12 @@ export function ArticleDetailPage({ slug }: ArticleDetailPageProps) {
   const [likeCount, setLikeCount] = useState(0)
   const [isLikeLoading, setIsLikeLoading] = useState(false)
   const [likeError, setLikeError] = useState<string | null>(null)
+  const completionTrackedRef = useRef(false)
 
   useEffect(() => {
     if (article?.id) {
       articleService.incrementView(article.id).catch(() => {})
+      postRecommendationSignal('content_viewed', article.id, 'article')
     }
   }, [article?.id])
 
@@ -157,6 +202,10 @@ export function ArticleDetailPage({ slug }: ArticleDetailPageProps) {
     setLikeError(null)
   }, [article?.id, article])
 
+  useEffect(() => {
+    completionTrackedRef.current = false
+  }, [article?.id])
+
   const sanitizedContent = useMemo(() => {
     if (!article?.content) {
       return ''
@@ -169,11 +218,64 @@ export function ArticleDetailPage({ slug }: ArticleDetailPageProps) {
     return DOMPurify.sanitize(article.content)
   }, [article?.content])
 
+  useEffect(() => {
+    if (!article?.id || !hasAccess || completionTrackedRef.current) return
+    if (typeof window === 'undefined') return
+
+    const trackReadCompletion = () => {
+      const doc = window.document.documentElement
+      const scrollableHeight = doc.scrollHeight - doc.clientHeight
+      const completionPercent =
+        scrollableHeight <= 0 ? 100 : (doc.scrollTop / scrollableHeight) * 100
+
+      if (completionPercent < 80) return
+
+      completionTrackedRef.current = true
+      trackContentCompleted(article.id, 'article', 80)
+    }
+
+    trackReadCompletion()
+    window.addEventListener('scroll', trackReadCompletion, { passive: true })
+    return () => window.removeEventListener('scroll', trackReadCompletion)
+  }, [article?.id, hasAccess])
+
   const seoDescription = article?.description || article?.excerpt || 'Artigo FinHub'
+  const keywords = Array.isArray(article?.tags)
+    ? article.tags
+        .map((tag) => (typeof tag === 'string' ? tag.trim() : ''))
+        .filter((tag) => tag.length > 0)
+        .join(', ')
+    : ''
   const canonicalUrl =
     typeof window !== 'undefined'
       ? window.location.href
-      : `/hub/articles/${encodeURIComponent(resolvedSlug)}`
+      : `${fallbackSiteUrl}/hub/articles/${encodeURIComponent(resolvedSlug)}`
+  const creatorProfileUrl = `${fallbackSiteUrl}/creators/${encodeURIComponent(creator.username)}`
+  const articleWordCount = toWordCount(article?.content ?? article?.excerpt ?? article?.description)
+  const articleJsonLd: Record<string, unknown> | null = article
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: article.title,
+        description: seoDescription,
+        author: {
+          '@type': 'Person',
+          name: creator.name,
+          url: creatorProfileUrl,
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: fallbackSeoConfig.siteName,
+          logo: `${fallbackSiteUrl}/logo.png`,
+        },
+        url: canonicalUrl,
+        datePublished: toOptionalDate(article.publishedAt ?? article.createdAt),
+        dateModified: toOptionalDate(article.updatedAt ?? article.publishedAt ?? article.createdAt),
+        image: toAbsoluteUrl(article.coverImage),
+        ...(keywords ? { keywords } : {}),
+        ...(articleWordCount ? { wordCount: articleWordCount } : {}),
+      }
+    : null
 
   const handleToggleLike = async () => {
     if (!article?.id || !canLikeContent || isLikeLoading) {
@@ -193,6 +295,9 @@ export function ArticleDetailPage({ slug }: ArticleDetailPageProps) {
       const response = await articleService.toggleLike(article.id, nextLiked)
       setIsLiked(response.liked)
       setLikeCount(response.likeCount)
+      if (response.liked) {
+        trackContentFavorited(article.id, 'article')
+      }
     } catch (mutationError) {
       setIsLiked(previousLiked)
       setLikeCount(previousLikeCount)
@@ -232,6 +337,7 @@ export function ArticleDetailPage({ slug }: ArticleDetailPageProps) {
         {article.coverImage ? <meta property="og:image" content={article.coverImage} /> : null}
         <link rel="canonical" href={canonicalUrl} />
       </Helmet>
+      <JsonLd schema={articleJsonLd} />
 
       {article.coverImage ? (
         <div className="relative h-80 overflow-hidden md:h-96">

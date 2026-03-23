@@ -95,7 +95,12 @@ describe('FollowButton', () => {
 
     fireEvent.click(screen.getByRole('button'))
 
-    expect(mockMutate).toHaveBeenCalledWith('creator-1')
+    expect(mockMutate).toHaveBeenCalledWith(
+      'creator-1',
+      expect.objectContaining({
+        onSuccess: expect.any(Function),
+      }),
+    )
   })
 
   it('shows title tooltip for visitors', () => {

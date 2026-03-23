@@ -1,7 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import {
+  trackOnboardingCompleted,
+  trackOnboardingSkipped,
+  trackOnboardingStep,
+} from '@/lib/analytics'
 
 export type OnboardingStep = 1 | 2 | 3
+
+const ONBOARDING_STEP_NAMES: Record<OnboardingStep, string> = {
+  1: 'welcome',
+  2: 'discovery',
+  3: 'personalization',
+}
 
 const ONBOARDING_STORAGE_KEY = 'finhub-onboarding-done'
 const ONBOARDING_PREFS_STORAGE_KEY = 'finhub_onboarding_prefs'
@@ -70,18 +81,27 @@ export function useOnboarding(): UseOnboardingResult {
   }, [])
 
   const next = useCallback(() => {
-    setStep((prev) => {
-      if (prev === 1) return 2
-      if (prev === 2) return 3
-      return 3
-    })
-  }, [])
+    if (step === 1) {
+      trackOnboardingStep(1, ONBOARDING_STEP_NAMES[1])
+      setStep(2)
+      return
+    }
+    if (step === 2) {
+      trackOnboardingStep(2, ONBOARDING_STEP_NAMES[2])
+      setStep(3)
+      return
+    }
+    setStep(3)
+  }, [step])
 
   const complete = useCallback(() => {
+    trackOnboardingStep(3, ONBOARDING_STEP_NAMES[3])
+    trackOnboardingCompleted(selectedTopics.length)
     persistDone(selectedTopics)
   }, [persistDone, selectedTopics])
 
   const skip = useCallback(() => {
+    trackOnboardingSkipped()
     persistDone()
   }, [persistDone])
 

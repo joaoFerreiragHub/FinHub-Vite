@@ -1,9 +1,18 @@
 import { type MouseEvent, useEffect, useRef } from 'react'
 import { ExternalLink } from 'lucide-react'
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui'
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { UserRole } from '@/features/auth/types'
 import { cn } from '@/lib/utils'
+import { trackAdClicked, trackAdImpression } from '@/lib/analytics'
 import { usePublicAdSlot } from '../hooks/usePublicAds'
 import { publicAdsService } from '../services/publicAdsService'
 
@@ -46,8 +55,9 @@ export function PublicAdSlot({ slotId, vertical = null, className }: PublicAdSlo
     if (impressionTrackedRef.current.has(item.impressionToken)) return
 
     impressionTrackedRef.current.add(item.impressionToken)
+    trackAdImpression(item.campaignId, item.slot.slotId)
     void publicAdsService.trackImpression(item.impressionToken).catch(() => undefined)
-  }, [item?.impressionToken])
+  }, [item?.campaignId, item?.impressionToken, item?.slot.slotId])
 
   const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
     if (!item?.ctaUrl) {
@@ -56,6 +66,7 @@ export function PublicAdSlot({ slotId, vertical = null, className }: PublicAdSlo
     }
 
     if (item.impressionToken) {
+      trackAdClicked(item.campaignId, item.slot.slotId)
       void publicAdsService.trackClick(item.impressionToken).catch(() => undefined)
     }
   }

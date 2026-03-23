@@ -3,6 +3,7 @@ import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { UserRole } from '@/features/auth/types'
 import { useMyProfile } from '@/features/social/hooks/useSocial'
 import { Helmet } from '@/lib/helmet'
+import { trackUpgradeCtaClicked } from '@/lib/analytics'
 import { UserAccountShell } from '@/shared/layouts/UserAccountShell'
 
 function formatRole(role: UserRole | undefined): string {
@@ -114,6 +115,7 @@ export function Page() {
               <CardContent>
                 <a
                   href="/precos"
+                  onClick={() => trackUpgradeCtaClicked('account_overview')}
                   className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
                 >
                   Ver planos

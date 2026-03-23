@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { usePermissions } from './usePermissions'
 import { Permission } from '@/lib/permissions/config'
 import { UserRole } from '../types'
+import { trackUpgradeCtaClicked } from '@/lib/analytics'
 
 export interface PaywallConfig {
   /**
@@ -47,7 +48,7 @@ export function usePaywall() {
     (permission: Permission): boolean => {
       return can(permission)
     },
-    [can]
+    [can],
   )
 
   /**
@@ -57,7 +58,7 @@ export function usePaywall() {
     (requiredRole: UserRole): boolean => {
       return isAtLeast(requiredRole)
     },
-    [isAtLeast]
+    [isAtLeast],
   )
 
   /**
@@ -71,7 +72,7 @@ export function usePaywall() {
       }
       return hasAccess
     },
-    [can, navigate]
+    [can, navigate],
   )
 
   /**
@@ -105,7 +106,10 @@ export function usePaywall() {
 
           <div className="flex gap-4">
             <button
-              onClick={() => navigate(upgradePath)}
+              onClick={() => {
+                trackUpgradeCtaClicked('paywall')
+                navigate(upgradePath)
+              }}
               className="inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               {cta}
@@ -124,7 +128,7 @@ export function usePaywall() {
         </div>
       )
     },
-    [role, navigate]
+    [role, navigate],
   )
 
   return {

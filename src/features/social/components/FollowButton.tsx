@@ -4,6 +4,7 @@ import { useSocialStore } from '../stores/useSocialStore'
 import { useFollowCreator, useUnfollowCreator } from '../hooks/useSocial'
 import { usePermissions } from '@/features/auth/hooks/usePermissions'
 import { Permission } from '@/lib/permissions/config'
+import { trackCreatorFollowed, trackCreatorUnfollowed } from '@/lib/analytics'
 
 interface FollowButtonProps {
   creatorId: string
@@ -38,16 +39,27 @@ export function FollowButton({
     if (!canFollow) return
 
     if (isFollowing) {
-      unfollowMutation.mutate(creatorId)
-    } else {
-      followMutation.mutate({
-        creatorId,
-        username: creatorUsername,
-        name: creatorName,
-        avatar: creatorAvatar,
-        bio: creatorBio,
-        followedAt: new Date().toISOString(),
+      unfollowMutation.mutate(creatorId, {
+        onSuccess: () => {
+          trackCreatorUnfollowed(creatorId)
+        },
       })
+    } else {
+      followMutation.mutate(
+        {
+          creatorId,
+          username: creatorUsername,
+          name: creatorName,
+          avatar: creatorAvatar,
+          bio: creatorBio,
+          followedAt: new Date().toISOString(),
+        },
+        {
+          onSuccess: () => {
+            trackCreatorFollowed(creatorId, creatorUsername)
+          },
+        },
+      )
     }
   }
 

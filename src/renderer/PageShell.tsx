@@ -4,7 +4,10 @@ import { TooltipProvider } from '@radix-ui/react-tooltip'
 import { Router, createPath, type Navigator, type To } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
 import { navigate as vikeNavigate } from 'vike/client/router'
+import { JsonLd } from '@/components/seo/JsonLd'
 import { HelmetProvider } from '@/lib/helmet'
+import { usePlatformRuntimeConfig } from '@/features/platform/hooks/usePlatformRuntimeConfig'
+import { platformRuntimeConfigService } from '@/features/platform/services/platformRuntimeConfigService'
 import type { PageContext } from '../lib/types/pageContext'
 import { queryClient } from '../lib/react-query-client'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
@@ -172,6 +175,27 @@ function VikeRouter({
   )
 }
 
+function OrganizationJsonLd() {
+  const runtimeConfigQuery = usePlatformRuntimeConfig()
+  const runtimeConfig = runtimeConfigQuery.data ?? platformRuntimeConfigService.getFallback()
+  const siteUrl = runtimeConfig.seo.siteUrl.replace(/\/$/, '')
+
+  const schema = React.useMemo<Record<string, unknown>>(
+    () => ({
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: runtimeConfig.seo.siteName,
+      url: siteUrl,
+      logo: `${siteUrl}/logo.png`,
+      description:
+        runtimeConfig.seo.defaultDescription || 'Plataforma portuguesa de educacao financeira',
+    }),
+    [runtimeConfig.seo.defaultDescription, runtimeConfig.seo.siteName, siteUrl],
+  )
+
+  return <JsonLd schema={schema} />
+}
+
 export function PageShell({ children, pageContext }: Props) {
   const { user, isAuthenticated } = useAuthStore()
   const [mounted, setMounted] = React.useState(false)
@@ -201,6 +225,7 @@ export function PageShell({ children, pageContext }: Props) {
       <VikeRouter pageContext={pageContext}>
         <PageContextContext.Provider value={pageContext}>
           <QueryClientProvider client={queryClient}>
+            <OrganizationJsonLd />
             <ThemeProvider>
               <TooltipProvider>
                 {bypassShellLayout ? (

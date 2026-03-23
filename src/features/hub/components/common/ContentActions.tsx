@@ -1,10 +1,16 @@
 import { type HTMLAttributes, useState } from 'react'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui'
 import { usePermissions } from '@/features/auth/hooks/usePermissions'
-import { Permission } from '@/lib/permissions/config'
-import { useSocialStore } from '@/features/social/stores/useSocialStore'
 import type { ContentType } from '@/features/hub/types'
+import { useSocialStore } from '@/features/social/stores/useSocialStore'
+import {
+  resolveContentViewMatch,
+  trackContentFavorited,
+  trackContentShared,
+  type AnalyticsContentType,
+} from '@/lib/analytics'
+import { Permission } from '@/lib/permissions/config'
+import { cn } from '@/lib/utils'
 
 export interface ContentActionsProps extends HTMLAttributes<HTMLDivElement> {
   /**
@@ -52,7 +58,7 @@ export interface ContentActionsProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 /**
- * Componente de ações de conteúdo
+ * Componente de acoes de conteudo
  * Like, Favorite, Share
  *
  * @example
@@ -92,6 +98,14 @@ export function ContentActions({
   const [favoriteCount, setFavoriteCount] = useState(initialFavoriteCount)
   const [isLoading, setIsLoading] = useState(false)
 
+  const resolveTrackedContentType = (): AnalyticsContentType | null => {
+    if (contentType) {
+      return contentType as AnalyticsContentType
+    }
+    if (typeof window === 'undefined') return null
+    return resolveContentViewMatch(window.location.pathname)?.contentType ?? null
+  }
+
   const handleLike = async () => {
     if (!canInteract || isLoading) return
 
@@ -129,6 +143,13 @@ export function ContentActions({
         socialStore.removeFavorite(contentId)
       }
 
+      if (newFavorited) {
+        const trackedContentType = resolveTrackedContentType()
+        if (trackedContentType) {
+          trackContentFavorited(contentId, trackedContentType)
+        }
+      }
+
       await onFavorite?.()
     } catch {
       setIsFavorited(isFavorited)
@@ -141,19 +162,30 @@ export function ContentActions({
   const handleShare = async () => {
     if (isLoading) return
 
-    // Web Share API se disponível
+    let hasShared = false
+
+    // Web Share API if available
     if (navigator.share) {
       try {
         await navigator.share({
           url: window.location.href,
         })
+        hasShared = true
       } catch {
         // User cancelled or error
       }
     } else {
-      // Fallback: copiar link
+      // Fallback: copy link
       await navigator.clipboard.writeText(window.location.href)
+      hasShared = true
       // TODO: Mostrar toast de sucesso
+    }
+
+    if (hasShared) {
+      const trackedContentType = resolveTrackedContentType()
+      if (trackedContentType) {
+        trackContentShared(contentId, trackedContentType, 'link')
+      }
     }
 
     await onShare?.()

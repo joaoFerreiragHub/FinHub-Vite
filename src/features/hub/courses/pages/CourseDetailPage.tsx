@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react'
+import { JsonLd } from '@/components/seo/JsonLd'
 import { Helmet } from '@/lib/helmet'
 import { Navigate, useParams } from 'react-router-dom'
 import { BookOpen, Clock3, GraduationCap } from 'lucide-react'
@@ -11,9 +12,11 @@ import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import type { UserSocialLinks } from '@/features/auth/types'
 import { getErrorMessage } from '@/lib/api/client'
 import { isRoleAtLeast } from '@/lib/permissions/config'
+import { platformRuntimeConfigService } from '@/features/platform/services/platformRuntimeConfigService'
 import { useComments } from '@/features/hub/hooks/useComments'
 import { ContentType } from '@/features/hub/types'
 import { FollowButton } from '@/features/social/components/FollowButton'
+import { postRecommendationSignal } from '@/lib/analytics'
 
 interface CourseDetailPageProps {
   slug?: string
@@ -43,6 +46,9 @@ interface CourseModuleView {
   duration: number
   lessons: CourseLesson[]
 }
+
+const fallbackSeoConfig = platformRuntimeConfigService.getFallback().seo
+const fallbackSiteUrl = fallbackSeoConfig.siteUrl.replace(/\/$/, '')
 
 const toNumber = (value: unknown, fallback = 0): number => {
   const parsed = Number(value)
@@ -215,6 +221,15 @@ const resolveEnrolledCount = (course: unknown): number => {
   return toNumber(row.enrolledCount, toNumber(row.subscriberCount, 0))
 }
 
+const toAbsoluteUrl = (value: unknown): string | undefined => {
+  if (typeof value !== 'string') return undefined
+  const normalized = value.trim()
+  if (!normalized) return undefined
+  if (normalized.startsWith('http://') || normalized.startsWith('https://')) return normalized
+  if (normalized.startsWith('/')) return `${fallbackSiteUrl}${normalized}`
+  return `${fallbackSiteUrl}/${normalized}`
+}
+
 const resolveViewCount = (course: unknown): number => {
   const row = toRecord(course)
   return toNumber(row.viewCount, toNumber(row.views, 0))
@@ -230,6 +245,13 @@ const formatMinutes = (minutes: number): string => {
   }
 
   return `${minutes} min`
+}
+
+const toEducationalLevel = (level: unknown): string => {
+  const normalized = typeof level === 'string' ? level.trim().toLowerCase() : ''
+  if (normalized === 'advanced') return 'Advanced'
+  if (normalized === 'intermediate') return 'Intermediate'
+  return 'Beginner'
 }
 
 const lessonTypeLabel: Record<CourseLesson['type'], string> = {
@@ -272,6 +294,7 @@ export function CourseDetailPage({ slug }: CourseDetailPageProps) {
   useEffect(() => {
     if (course?.id) {
       courseService.incrementView(course.id).catch(() => {})
+      postRecommendationSignal('content_viewed', course.id, 'course')
     }
   }, [course?.id])
 
@@ -304,7 +327,29 @@ export function CourseDetailPage({ slug }: CourseDetailPageProps) {
   const canonicalUrl =
     typeof window !== 'undefined'
       ? window.location.href
-      : `/hub/courses/${encodeURIComponent(resolvedSlug)}`
+      : `${fallbackSiteUrl}/hub/courses/${encodeURIComponent(resolvedSlug)}`
+  const courseJsonLd: Record<string, unknown> | null = course
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'Course',
+        name: course.title,
+        description: seoDescription,
+        provider: {
+          '@type': 'Organization',
+          name: fallbackSeoConfig.siteName,
+          url: fallbackSiteUrl,
+        },
+        instructor: {
+          '@type': 'Person',
+          name: creator.name,
+          url: `${fallbackSiteUrl}/creators/${encodeURIComponent(creator.username)}`,
+        },
+        courseMode: 'online',
+        educationalLevel: toEducationalLevel(course.level),
+        image: toAbsoluteUrl(course.coverImage),
+        url: canonicalUrl,
+      }
+    : null
 
   const originalPrice = Number(course.price || 0)
   const discountPrice = Number(course.discountPrice || 0)
@@ -326,6 +371,7 @@ export function CourseDetailPage({ slug }: CourseDetailPageProps) {
         {course.coverImage ? <meta property="og:image" content={course.coverImage} /> : null}
         <link rel="canonical" href={canonicalUrl} />
       </Helmet>
+      <JsonLd schema={courseJsonLd} />
 
       {course.coverImage ? (
         <div className="relative h-72 overflow-hidden md:h-96">
