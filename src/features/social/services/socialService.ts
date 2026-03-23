@@ -648,6 +648,76 @@ const mapFeedResponse = (payload: BackendFeedResponse): ActivityFeedResponse => 
   }
 }
 
+const toObject = (value: unknown): Record<string, unknown> =>
+  value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {}
+
+const toOptionalText = (value: unknown): string | undefined => {
+  if (typeof value !== 'string') return undefined
+  const normalized = value.trim()
+  return normalized.length > 0 ? normalized : undefined
+}
+
+const toNonNegativeInteger = (...values: unknown[]): number => {
+  for (const value of values) {
+    const parsed = Number(value)
+    if (Number.isFinite(parsed) && parsed >= 0) {
+      return Math.floor(parsed)
+    }
+  }
+
+  return 0
+}
+
+const normalizeRole = (role: unknown): UserRole => {
+  const normalized = toOptionalText(role)?.toLowerCase()
+  if (!normalized) {
+    return UserRole.FREE
+  }
+
+  if (Object.values(UserRole).includes(normalized as UserRole)) {
+    return normalized as UserRole
+  }
+
+  return normalized as UserRole
+}
+
+const mapToUserProfile = (payload: unknown, fallbackUsername = 'utilizador'): UserProfile => {
+  const root = toObject(payload)
+  const maybeNestedUser = toObject(root.user)
+  const source = Object.keys(maybeNestedUser).length > 0 ? maybeNestedUser : root
+
+  const username = toOptionalText(source.username) ?? fallbackUsername
+  const createdAt = toOptionalText(source.createdAt) ?? new Date().toISOString()
+
+  return {
+    id: toOptionalText(source.id ?? source._id) ?? username,
+    name: toOptionalText(source.name) ?? username,
+    lastName: toOptionalText(source.lastName),
+    email: toOptionalText(source.email) ?? '',
+    username,
+    avatar: toOptionalText(source.avatar),
+    bio: toOptionalText(source.bio),
+    role: normalizeRole(source.role),
+    isEmailVerified: Boolean(source.isEmailVerified ?? source.emailVerified),
+    favoriteTopics: Array.isArray(source.favoriteTopics)
+      ? source.favoriteTopics.filter((topic): topic is string => typeof topic === 'string')
+      : [],
+    createdAt,
+    updatedAt: toOptionalText(source.updatedAt) ?? createdAt,
+    followingCount: toNonNegativeInteger(source.followingCount, source.following),
+    favoritesCount: toNonNegativeInteger(
+      source.favoritesCount,
+      source.favoriteArticlesCount,
+      source.favorites,
+    ),
+    commentsCount: toNonNegativeInteger(source.commentsCount, source.comments),
+    ratingsCount: toNonNegativeInteger(source.ratingsCount, source.ratings),
+    joinedAt: toOptionalText(source.joinedAt) ?? createdAt,
+  }
+}
+
 export const socialService = {
   // ========== FOLLOWS ==========
 
@@ -918,14 +988,14 @@ export const socialService = {
   // Nota: Perfis sao geridos atraves do /auth/me endpoint.
 
   getUserProfile: async (username: string): Promise<UserProfile> => {
-    // TODO: Implementar endpoint no backend para obter perfil publico.
-    const response = await apiClient.get<UserProfile>(`/users/${username}`)
-    return response.data
+    const normalizedUsername = username.trim()
+    const response = await apiClient.get(`/users/profile/${encodeURIComponent(normalizedUsername)}`)
+    return mapToUserProfile(response.data, normalizedUsername || 'utilizador')
   },
 
   getMyProfile: async (): Promise<UserProfile> => {
-    const response = await apiClient.get<UserProfile>('/auth/me')
-    return response.data
+    const response = await apiClient.get('/auth/me')
+    return mapToUserProfile(response.data, 'utilizador')
   },
 
   updateMyProfile: async (input: UpdateMyProfileInput): Promise<UpdateMyProfileInput> => {

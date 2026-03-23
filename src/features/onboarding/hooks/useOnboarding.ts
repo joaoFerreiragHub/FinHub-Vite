@@ -4,6 +4,9 @@ import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 export type OnboardingStep = 1 | 2 | 3
 
 const ONBOARDING_STORAGE_KEY = 'finhub-onboarding-done'
+const ONBOARDING_PREFS_STORAGE_KEY = 'finhub_onboarding_prefs'
+const ONBOARDING_DONE_LEGACY_KEY = 'finhub_onboarding_done'
+const ONBOARDING_PREFS_LEGACY_KEY = 'finhub-onboarding-prefs'
 
 export interface UseOnboardingResult {
   show: boolean
@@ -29,19 +32,39 @@ export function useOnboarding(): UseOnboardingResult {
       return
     }
 
-    if (typeof window === 'undefined') {
-      return
-    }
+    if (typeof window === 'undefined') return
 
-    const isDone = window.localStorage.getItem(ONBOARDING_STORAGE_KEY) === '1'
-    setHasCompletedOnboarding(isDone)
+    try {
+      const hasDoneFlag =
+        window.localStorage.getItem(ONBOARDING_STORAGE_KEY) === '1' ||
+        window.localStorage.getItem(ONBOARDING_DONE_LEGACY_KEY) === '1'
+      const hasStoredPreferences =
+        (window.localStorage.getItem(ONBOARDING_PREFS_STORAGE_KEY) ?? '').trim().length > 0 ||
+        (window.localStorage.getItem(ONBOARDING_PREFS_LEGACY_KEY) ?? '').trim().length > 0
+
+      setHasCompletedOnboarding(hasDoneFlag || hasStoredPreferences)
+    } catch {
+      // Fail-open to avoid blocking the UI if storage is unavailable.
+      setHasCompletedOnboarding(true)
+    }
     setStep(1)
     setSelectedTopics([])
   }, [isAuthenticated])
 
-  const persistDone = useCallback(() => {
+  const persistDone = useCallback((topics?: string[]) => {
     if (typeof window !== 'undefined') {
-      window.localStorage.setItem(ONBOARDING_STORAGE_KEY, '1')
+      try {
+        window.localStorage.setItem(ONBOARDING_STORAGE_KEY, '1')
+        window.localStorage.setItem(ONBOARDING_DONE_LEGACY_KEY, '1')
+
+        if (Array.isArray(topics) && topics.length > 0) {
+          const serializedTopics = JSON.stringify({ interests: topics })
+          window.localStorage.setItem(ONBOARDING_PREFS_STORAGE_KEY, serializedTopics)
+          window.localStorage.setItem(ONBOARDING_PREFS_LEGACY_KEY, serializedTopics)
+        }
+      } catch {
+        // Ignore storage write failures to avoid breaking navigation.
+      }
     }
     setHasCompletedOnboarding(true)
   }, [])
@@ -55,8 +78,8 @@ export function useOnboarding(): UseOnboardingResult {
   }, [])
 
   const complete = useCallback(() => {
-    persistDone()
-  }, [persistDone])
+    persistDone(selectedTopics)
+  }, [persistDone, selectedTopics])
 
   const skip = useCallback(() => {
     persistDone()

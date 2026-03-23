@@ -40,6 +40,7 @@ import {
   DialogHeader,
   DialogTitle,
   Input,
+  MetricCard,
   Tabs,
   TabsContent,
   TabsList,
@@ -247,6 +248,8 @@ const formatDateTime = (value: string): string => {
   }).format(date)
 }
 
+const formatInteger = (value: number): string => value.toLocaleString('pt-PT')
+
 const toMinReportPriority = (value: string): 'low' | 'medium' | 'high' | 'critical' | null => {
   if (value === 'low' || value === 'medium' || value === 'high' || value === 'critical') {
     return value
@@ -385,7 +388,12 @@ export default function AdminDashboardPage() {
     { enabled: canReadSupport },
   )
 
-  const { data: metricsOverview, isLoading: loadingMetricsOverview } = useAdminMetricsOverview({
+  const {
+    data: metricsOverview,
+    isLoading: loadingMetricsOverview,
+    isError: isMetricsOverviewError,
+    error: metricsOverviewError,
+  } = useAdminMetricsOverview({
     enabled: canReadStats,
   })
   const { data: metricsDrilldown, isLoading: loadingMetricsDrilldown } = useAdminMetricsDrilldown(
@@ -437,6 +445,16 @@ export default function AdminDashboardPage() {
   const disabledSurfaceCount = surfaceControls?.items.filter((item) => !item.enabled).length ?? 0
   const queuedJobs = metricsOverview?.moderation.jobs.queued ?? 0
   const runningJobs = metricsOverview?.moderation.jobs.running ?? 0
+
+  const metricsTotalUsers = metricsOverview?.usage.totalUsers ?? 0
+  const metricsNewUsersLast7d = metricsOverview?.usage.newUsers.last7d ?? 0
+  const metricsTotalCreators = metricsOverview?.usage.roleDistribution.creator ?? 0
+  const metricsPublishedArticlesLast7d =
+    metricsOverview?.engagement.contentPublishedLast7d.byType.article ?? 0
+  const metricsTotalCoreContent =
+    (metricsOverview?.moderation.queue.byType.total.article ?? 0) +
+    (metricsOverview?.moderation.queue.byType.total.video ?? 0) +
+    (metricsOverview?.moderation.queue.byType.total.course ?? 0)
 
   const moduleCards = useMemo(
     () =>
@@ -787,6 +805,82 @@ export default function AdminDashboardPage() {
                 )}
               </CardContent>
             </Card>
+          ) : null}
+
+          {canReadStats ? (
+            <section>
+              <div className="mb-3 flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  KPIs de negocio
+                </h2>
+              </div>
+
+              {loadingMetricsOverview && !metricsOverview ? (
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <div
+                      key={`metrics-kpi-loading-${index}`}
+                      className="h-[132px] animate-pulse rounded-xl border border-border bg-card"
+                    />
+                  ))}
+                </div>
+              ) : null}
+
+              {isMetricsOverviewError && !metricsOverview ? (
+                <Card className="border-destructive/40 bg-destructive/5">
+                  <CardContent className="py-4 text-sm text-destructive">
+                    {getErrorMessage(metricsOverviewError)}
+                  </CardContent>
+                </Card>
+              ) : null}
+
+              {metricsOverview ? (
+                <div className="space-y-3">
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                    <MetricCard
+                      label="Total de utilizadores"
+                      value={formatInteger(metricsTotalUsers)}
+                      status="Direto"
+                      description="Campo usage.totalUsers do endpoint admin/metrics/overview."
+                    />
+                    <MetricCard
+                      label="Novos utilizadores (7d)"
+                      value={formatInteger(metricsNewUsersLast7d)}
+                      status="Direto"
+                      description="Campo usage.newUsers.last7d."
+                    />
+                    <MetricCard
+                      label="Total de criadores"
+                      value={formatInteger(metricsTotalCreators)}
+                      status="Direto"
+                      description="Campo usage.roleDistribution.creator."
+                    />
+                    <MetricCard
+                      label="Artigos publicados (7d)"
+                      value={formatInteger(metricsPublishedArticlesLast7d)}
+                      status="Direto"
+                      description="Campo engagement.contentPublishedLast7d.byType.article."
+                    />
+                    <MetricCard
+                      label="Conteudo total (art+vid+cur)"
+                      value={formatInteger(metricsTotalCoreContent)}
+                      status="Calculado"
+                      description="Soma de moderation.queue.byType.total.article/video/course."
+                    />
+                  </div>
+
+                  {isMetricsOverviewError ? (
+                    <Card className="border-yellow-500/40 bg-yellow-500/5">
+                      <CardContent className="py-3 text-xs text-muted-foreground">
+                        Falha ao atualizar as metricas em tempo real. A mostrar o ultimo snapshot
+                        disponivel.
+                      </CardContent>
+                    </Card>
+                  ) : null}
+                </div>
+              ) : null}
+            </section>
           ) : null}
 
           <section>

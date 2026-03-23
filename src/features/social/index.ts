@@ -22,6 +22,7 @@ export {
   useActivityFeed,
   useUserProfile,
   useMyProfile,
+  useUpdateMyProfile,
   useGlobalSearch,
 } from './hooks/useSocial'
 

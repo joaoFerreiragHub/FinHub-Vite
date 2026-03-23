@@ -1,7 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { Loader2 } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui'
 import { Skeleton, Button, Input, Textarea } from '@/components/ui'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import { getErrorMessage } from '@/lib/api/client'
 import { UserProfileCard } from '../components/UserProfileCard'
 import { ActivityFeedItem } from '../components/ActivityFeedItem'
 import { FollowButton } from '../components/FollowButton'
@@ -22,11 +24,24 @@ interface UserProfilePageProps {
 }
 
 export function UserProfilePage({ username }: UserProfilePageProps) {
-  const { user } = useAuthStore()
+  const { user, updateUser, isAuthenticated, hydrated } = useAuthStore()
   const isOwnProfile = !username || username === user?.username
+  const canEditProfile = isOwnProfile && Boolean(user)
 
-  const myProfileQuery = useMyProfile()
-  const otherProfileQuery = useUserProfile(username ?? '')
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!isOwnProfile || !hydrated) return
+    if (!isAuthenticated) {
+      window.location.replace('/login')
+    }
+  }, [isOwnProfile, hydrated, isAuthenticated])
+
+  const myProfileQuery = useMyProfile({
+    enabled: isOwnProfile && isAuthenticated,
+  })
+  const otherProfileQuery = useUserProfile(username ?? '', {
+    enabled: !isOwnProfile && Boolean(username),
+  })
 
   const profileQuery = isOwnProfile ? myProfileQuery : otherProfileQuery
   const profile = profileQuery.data
@@ -40,8 +55,16 @@ export function UserProfilePage({ username }: UserProfilePageProps) {
   const updateProfile = useUpdateMyProfile()
   const { toastSuccess, toastError } = useToast()
 
+  useEffect(() => {
+    if (!profile || editing) return
+
+    setEditName(profile.name ?? '')
+    setEditBio(profile.bio ?? '')
+    setEditAvatar(profile.avatar ?? '')
+  }, [editing, profile])
+
   function startEditing() {
-    if (!profile) return
+    if (!profile || !canEditProfile) return
     setEditName(profile.name)
     setEditBio(profile.bio ?? '')
     setEditAvatar(profile.avatar ?? '')
@@ -49,17 +72,38 @@ export function UserProfilePage({ username }: UserProfilePageProps) {
   }
 
   async function handleSave() {
-    try {
-      await updateProfile.mutateAsync({
-        name: editName,
-        bio: editBio || undefined,
-        avatar: editAvatar || undefined,
-      })
-      setEditing(false)
-      toastSuccess('Perfil actualizado')
-    } catch {
-      toastError('Erro ao actualizar perfil. Tenta novamente.')
+    if (!canEditProfile) return
+
+    const normalizedName = editName.trim()
+    if (!normalizedName) {
+      toastError('O nome e obrigatorio.')
+      return
     }
+
+    try {
+      const updatedProfile = await updateProfile.mutateAsync({
+        name: normalizedName,
+        bio: editBio,
+        avatar: editAvatar,
+      })
+
+      updateUser(updatedProfile)
+      setEditName(updatedProfile.name)
+      setEditBio(updatedProfile.bio ?? '')
+      setEditAvatar(updatedProfile.avatar ?? '')
+      setEditing(false)
+      toastSuccess('Perfil atualizado com sucesso.')
+    } catch (error) {
+      toastError(getErrorMessage(error))
+    }
+  }
+
+  if (isOwnProfile && (!hydrated || !isAuthenticated)) {
+    return (
+      <div className="flex min-h-[300px] items-center justify-center">
+        <p className="text-sm text-muted-foreground">A redirecionar para login...</p>
+      </div>
+    )
   }
 
   if (profileQuery.isLoading) {
@@ -85,8 +129,8 @@ export function UserProfilePage({ username }: UserProfilePageProps) {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-6">
-      {isOwnProfile && editing ? (
-        <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+      {canEditProfile && editing ? (
+        <div className="space-y-4 rounded-xl border border-border bg-card p-6">
           <h2 className="text-lg font-semibold">Editar perfil</h2>
           <div className="space-y-3">
             <div>
@@ -113,6 +157,7 @@ export function UserProfilePage({ username }: UserProfilePageProps) {
               <label className="text-sm font-medium">URL da foto de perfil</label>
               <Input
                 className="mt-1"
+                type="url"
                 placeholder="https://exemplo.com/foto.jpg"
                 value={editAvatar}
                 onChange={(e) => setEditAvatar(e.target.value)}
@@ -120,10 +165,17 @@ export function UserProfilePage({ username }: UserProfilePageProps) {
             </div>
           </div>
           <div className="flex gap-2 pt-1">
-            <Button onClick={handleSave} disabled={updateProfile.isPending}>
-              {updateProfile.isPending ? 'A guardar...' : 'Guardar'}
+            <Button type="button" onClick={handleSave} disabled={updateProfile.isPending}>
+              {updateProfile.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />A guardar...
+                </>
+              ) : (
+                'Guardar alteracoes'
+              )}
             </Button>
             <Button
+              type="button"
               variant="ghost"
               onClick={() => setEditing(false)}
               disabled={updateProfile.isPending}
@@ -135,7 +187,7 @@ export function UserProfilePage({ username }: UserProfilePageProps) {
       ) : (
         <div className="space-y-2">
           <UserProfileCard profile={profile} />
-          {isOwnProfile && (
+          {canEditProfile && (
             <div className="flex justify-end">
               <Button variant="outline" size="sm" onClick={startEditing}>
                 Editar perfil

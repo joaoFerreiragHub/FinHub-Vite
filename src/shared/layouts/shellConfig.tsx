@@ -1,5 +1,13 @@
 import type { LucideIcon } from 'lucide-react'
-import { BookOpen, FolderKanban, Home, Newspaper, TrendingUp, Wrench } from 'lucide-react'
+import {
+  BookOpen,
+  FolderKanban,
+  Home,
+  LayoutDashboard,
+  Newspaper,
+  TrendingUp,
+  Wrench,
+} from 'lucide-react'
 import { UserRole } from '@/features/auth/types'
 
 export type MainNavLink = {
@@ -11,6 +19,7 @@ export type MainNavLink = {
 
 export type UserMenuItem = {
   key:
+    | 'account'
     | 'profile'
     | 'feed'
     | 'favorites'
@@ -22,6 +31,7 @@ export type UserMenuItem = {
     | 'logout'
   label: string
   href?: string
+  icon?: LucideIcon
   isAction?: boolean
 }
 
@@ -41,8 +51,24 @@ export const MAIN_NAV_LINKS: MainNavLink[] = [
 
 const ROLE_MENU_KEYS: Record<UserRole, UserMenuItem['key'][]> = {
   [UserRole.VISITOR]: [],
-  [UserRole.FREE]: ['profile', 'feed', 'favorites', 'following', 'notifications', 'logout'],
-  [UserRole.PREMIUM]: ['profile', 'feed', 'favorites', 'following', 'notifications', 'logout'],
+  [UserRole.FREE]: [
+    'account',
+    'profile',
+    'feed',
+    'favorites',
+    'following',
+    'notifications',
+    'logout',
+  ],
+  [UserRole.PREMIUM]: [
+    'account',
+    'profile',
+    'feed',
+    'favorites',
+    'following',
+    'notifications',
+    'logout',
+  ],
   [UserRole.CREATOR]: [
     'profile',
     'feed',
@@ -67,6 +93,7 @@ const ROLE_MENU_KEYS: Record<UserRole, UserMenuItem['key'][]> = {
 }
 
 const MENU_ITEM_DEFINITIONS: Record<UserMenuItem['key'], Omit<UserMenuItem, 'key'>> = {
+  account: { label: 'A minha conta', href: '/conta', icon: LayoutDashboard },
   profile: { label: 'Perfil', href: '/perfil' },
   feed: { label: 'Feed', href: '/feed' },
   favorites: { label: 'Favoritos', href: '/favoritos' },

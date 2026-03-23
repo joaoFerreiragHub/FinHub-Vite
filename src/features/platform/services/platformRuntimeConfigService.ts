@@ -100,37 +100,45 @@ const parseCaptchaProvider = (
   return fallback
 }
 
-const readEnv = (key: string): string | undefined =>
-  (import.meta.env as unknown as Record<string, string | undefined>)[key]
+const runtimeEnv = (
+  import.meta as unknown as {
+    env?: Record<string, string | undefined> | null
+  }
+).env
+
+const readEnv = (key: string): string | undefined => {
+  if (!runtimeEnv || typeof runtimeEnv !== 'object') return undefined
+  return runtimeEnv[key]
+}
 
 const fallbackGeneratedAt = new Date(0).toISOString()
-const fallbackSiteUrl = normalizeSiteUrl(import.meta.env.VITE_SITE_URL, 'https://finhub.pt')
+const fallbackSiteUrl = normalizeSiteUrl(readEnv('VITE_SITE_URL'), 'https://finhub.pt')
 
 const FALLBACK_RUNTIME_CONFIG: PlatformRuntimeConfig = {
   generatedAt: fallbackGeneratedAt,
   analytics: {
     posthog: {
-      enabled: toOptionalString(import.meta.env.VITE_POSTHOG_KEY) !== null,
-      key: toOptionalString(import.meta.env.VITE_POSTHOG_KEY),
-      host: toNonEmptyString(import.meta.env.VITE_POSTHOG_HOST, 'https://app.posthog.com'),
+      enabled: toOptionalString(readEnv('VITE_POSTHOG_KEY')) !== null,
+      key: toOptionalString(readEnv('VITE_POSTHOG_KEY')),
+      host: toNonEmptyString(readEnv('VITE_POSTHOG_HOST'), 'https://app.posthog.com'),
     },
     googleAnalytics: {
-      enabled: toOptionalString(import.meta.env.VITE_GA_ID) !== null,
-      measurementId: toOptionalString(import.meta.env.VITE_GA_ID),
+      enabled: toOptionalString(readEnv('VITE_GA_ID')) !== null,
+      measurementId: toOptionalString(readEnv('VITE_GA_ID')),
     },
     googleTagManager: {
       enabled: toOptionalString(readEnv('VITE_GTM_ID')) !== null,
       containerId: toOptionalString(readEnv('VITE_GTM_ID')),
     },
     metaPixel: {
-      enabled: toOptionalString(import.meta.env.VITE_FB_PIXEL_ID) !== null,
-      pixelId: toOptionalString(import.meta.env.VITE_FB_PIXEL_ID),
+      enabled: toOptionalString(readEnv('VITE_FB_PIXEL_ID')) !== null,
+      pixelId: toOptionalString(readEnv('VITE_FB_PIXEL_ID')),
     },
   },
   captcha: {
-    enabled: parseCaptchaProvider(import.meta.env.VITE_CAPTCHA_PROVIDER, 'disabled') !== 'disabled',
-    provider: parseCaptchaProvider(import.meta.env.VITE_CAPTCHA_PROVIDER, 'disabled'),
-    siteKey: toOptionalString(import.meta.env.VITE_CAPTCHA_SITE_KEY),
+    enabled: parseCaptchaProvider(readEnv('VITE_CAPTCHA_PROVIDER'), 'disabled') !== 'disabled',
+    provider: parseCaptchaProvider(readEnv('VITE_CAPTCHA_PROVIDER'), 'disabled'),
+    siteKey: toOptionalString(readEnv('VITE_CAPTCHA_SITE_KEY')),
   },
   seo: {
     siteName: 'FinHub',
@@ -167,7 +175,10 @@ const mapRuntimeConfig = (raw: BackendPlatformRuntimeConfigResponse): PlatformRu
       ? raw.analytics.posthog.enabled
       : fallback.analytics.posthog.enabled
   const posthogKey = toOptionalString(raw.analytics?.posthog?.key) ?? fallback.analytics.posthog.key
-  const posthogHost = toNonEmptyString(raw.analytics?.posthog?.host, fallback.analytics.posthog.host)
+  const posthogHost = toNonEmptyString(
+    raw.analytics?.posthog?.host,
+    fallback.analytics.posthog.host,
+  )
 
   const gaEnabled =
     typeof raw.analytics?.googleAnalytics?.enabled === 'boolean'
@@ -189,7 +200,8 @@ const mapRuntimeConfig = (raw: BackendPlatformRuntimeConfigResponse): PlatformRu
     typeof raw.analytics?.metaPixel?.enabled === 'boolean'
       ? raw.analytics.metaPixel.enabled
       : fallback.analytics.metaPixel.enabled
-  const metaPixelId = toOptionalString(raw.analytics?.metaPixel?.pixelId) ?? fallback.analytics.metaPixel.pixelId
+  const metaPixelId =
+    toOptionalString(raw.analytics?.metaPixel?.pixelId) ?? fallback.analytics.metaPixel.pixelId
 
   const captchaEnabled =
     typeof raw.captcha?.enabled === 'boolean' ? raw.captcha.enabled : fallback.captcha.enabled
@@ -198,9 +210,15 @@ const mapRuntimeConfig = (raw: BackendPlatformRuntimeConfigResponse): PlatformRu
 
   const seoSiteName = toNonEmptyString(raw.seo?.siteName, fallback.seo.siteName)
   const seoSiteUrl = normalizeSiteUrl(raw.seo?.siteUrl, fallback.seo.siteUrl)
-  const seoDescription = toNonEmptyString(raw.seo?.defaultDescription, fallback.seo.defaultDescription)
+  const seoDescription = toNonEmptyString(
+    raw.seo?.defaultDescription,
+    fallback.seo.defaultDescription,
+  )
   const seoImage = toNonEmptyString(raw.seo?.defaultImage, fallback.seo.defaultImage)
-  const seoNoIndexExactPaths = toStringArray(raw.seo?.noIndexExactPaths, fallback.seo.noIndexExactPaths)
+  const seoNoIndexExactPaths = toStringArray(
+    raw.seo?.noIndexExactPaths,
+    fallback.seo.noIndexExactPaths,
+  )
   const seoNoIndexPrefixes = toStringArray(raw.seo?.noIndexPrefixes, fallback.seo.noIndexPrefixes)
 
   return {
@@ -245,7 +263,9 @@ export const getFallbackPlatformRuntimeConfig = (): PlatformRuntimeConfig =>
 
 export const platformRuntimeConfigService = {
   get: async (): Promise<PlatformRuntimeConfig> => {
-    const response = await apiClient.get<BackendPlatformRuntimeConfigResponse>('/platform/runtime-config')
+    const response = await apiClient.get<BackendPlatformRuntimeConfigResponse>(
+      '/platform/runtime-config',
+    )
     return mapRuntimeConfig(response.data)
   },
   getFallback: getFallbackPlatformRuntimeConfig,

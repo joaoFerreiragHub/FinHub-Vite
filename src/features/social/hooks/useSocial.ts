@@ -16,6 +16,10 @@ interface CreatorSubscriptionMutationInput {
   isSubscribed: boolean
 }
 
+interface UserProfileQueryOptions {
+  enabled?: boolean
+}
+
 // ========== FOLLOWS ==========
 
 export function useFollowing() {
@@ -173,18 +177,23 @@ export function useActivityFeed(followingOnly?: boolean, limit?: number) {
 
 // ========== USER PROFILE ==========
 
-export function useUserProfile(username: string) {
+export function useUserProfile(username: string, options: UserProfileQueryOptions = {}) {
+  const enabled = options.enabled ?? true
+
   return useQuery({
     queryKey: ['social', 'profile', username],
     queryFn: () => socialService.getUserProfile(username),
-    enabled: !!username,
+    enabled: !!username && enabled,
   })
 }
 
-export function useMyProfile() {
+export function useMyProfile(options: UserProfileQueryOptions = {}) {
+  const enabled = options.enabled ?? true
+
   return useQuery({
     queryKey: ['social', 'profile', 'me'],
     queryFn: () => socialService.getMyProfile(),
+    enabled,
   })
 }
 

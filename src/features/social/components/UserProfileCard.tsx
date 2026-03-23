@@ -21,7 +21,15 @@ const roleBadges: Record<
 }
 
 export function UserProfileCard({ profile, showStats = true }: UserProfileCardProps) {
-  const roleBadge = roleBadges[profile.role]
+  const normalizedRole = String(profile.role ?? '').toLowerCase() as UserRole
+  const roleBadge = roleBadges[normalizedRole] ?? {
+    label: String(profile.role || 'Utilizador'),
+    variant: 'outline' as const,
+  }
+  const fullName = [profile.name, profile.lastName].filter(Boolean).join(' ')
+  const displayName = fullName || profile.username
+  const creatorProfileHref = `/creators/${encodeURIComponent(profile.username)}`
+  const isCreator = normalizedRole === UserRole.CREATOR
 
   return (
     <div className="rounded-xl border border-border bg-card p-6">
@@ -41,22 +49,22 @@ export function UserProfileCard({ profile, showStats = true }: UserProfileCardPr
 
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h2 className="text-xl font-bold">
-              {profile.name} {profile.lastName}
-            </h2>
+            <h2 className="text-xl font-bold">{displayName}</h2>
             <Badge variant={roleBadge.variant}>{roleBadge.label}</Badge>
           </div>
           <p className="text-sm text-muted-foreground">@{profile.username}</p>
+          {isCreator ? (
+            <a
+              href={creatorProfileHref}
+              className="mt-1 inline-flex text-xs font-medium text-primary hover:underline"
+            >
+              Ver pagina de criador
+            </a>
+          ) : null}
           {profile.bio && <p className="mt-2 text-sm text-muted-foreground">{profile.bio}</p>}
           <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
             <Calendar className="h-3 w-3" />
-            <span>
-              Membro desde{' '}
-              {new Date(profile.joinedAt).toLocaleDateString('pt-PT', {
-                month: 'long',
-                year: 'numeric',
-              })}
-            </span>
+            <span>Membro desde {formatJoinedAt(profile.joinedAt)}</span>
           </div>
         </div>
       </div>
@@ -75,14 +83,28 @@ export function UserProfileCard({ profile, showStats = true }: UserProfileCardPr
       {/* Stats */}
       {showStats && (
         <div className="mt-4 grid grid-cols-4 gap-4 rounded-lg border border-border bg-muted/30 p-3">
-          <StatItem icon={Users} label="A Seguir" value={profile.followingCount} />
-          <StatItem icon={Heart} label="Favoritos" value={profile.favoritesCount} />
-          <StatItem icon={MessageSquare} label="Comentarios" value={profile.commentsCount} />
-          <StatItem icon={Star} label="Avaliacoes" value={profile.ratingsCount} />
+          <StatItem icon={Users} label="A Seguir" value={profile.followingCount ?? 0} />
+          <StatItem icon={Heart} label="Favoritos" value={profile.favoritesCount ?? 0} />
+          <StatItem icon={MessageSquare} label="Comentarios" value={profile.commentsCount ?? 0} />
+          <StatItem icon={Star} label="Avaliacoes" value={profile.ratingsCount ?? 0} />
         </div>
       )}
     </div>
   )
+}
+
+function formatJoinedAt(rawDate: string | undefined): string {
+  if (!rawDate) return 'data indisponivel'
+
+  const parsedDate = new Date(rawDate)
+  if (Number.isNaN(parsedDate.getTime())) {
+    return 'data indisponivel'
+  }
+
+  return parsedDate.toLocaleDateString('pt-PT', {
+    month: 'long',
+    year: 'numeric',
+  })
 }
 
 function StatItem({

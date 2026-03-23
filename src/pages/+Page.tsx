@@ -1,4 +1,4 @@
-﻿import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { HeroBanner, type HeroBannerSlide } from '@/components/home/HeroBanner'
 import { ContentRow } from '@/components/home/ContentRow'
@@ -82,6 +82,12 @@ interface HomeFeedData {
   creators: CreatorModel[]
 }
 
+type RequestParams = Record<string, string | number | boolean | undefined>
+
+const ONBOARDING_PREFS_STORAGE_KEY = 'finhub_onboarding_prefs'
+const ONBOARDING_PREFS_LEGACY_KEY = 'finhub-onboarding-prefs'
+const PERSONALIZED_CONTENT_LIMIT = 4
+
 const heroSlides: HeroBannerSlide[] = [
   {
     id: 'hero-1',
@@ -131,10 +137,10 @@ const normalizeCollection = (
   return []
 }
 
-const fetchCollection = async (endpoint: string, key: ContentListKey) => {
+const fetchCollection = async (endpoint: string, key: ContentListKey, params?: RequestParams) => {
   try {
     const response = await apiClient.get<ApiCollectionResponse>(endpoint, {
-      params: { limit: 12, sort: 'popular' },
+      params: { limit: 12, sort: 'popular', ...params },
     })
     return normalizeCollection(response.data, key)
   } catch (error) {
@@ -191,6 +197,97 @@ const fetchHomepageData = async (): Promise<HomeFeedData> => {
     resources,
     creators: creatorsPage.items.map(mapPublicCreatorListItemToCreator),
   }
+}
+
+const toUniqueStringList = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return []
+
+  const uniqueValues = new Set<string>()
+  for (const item of value) {
+    if (typeof item !== 'string') continue
+    const normalized = item.trim()
+    if (normalized.length === 0) continue
+    uniqueValues.add(normalized)
+  }
+
+  return Array.from(uniqueValues)
+}
+
+const readOnboardingInterests = (): string[] => {
+  if (typeof window === 'undefined') return []
+
+  const raw =
+    window.localStorage.getItem(ONBOARDING_PREFS_STORAGE_KEY) ??
+    window.localStorage.getItem(ONBOARDING_PREFS_LEGACY_KEY)
+
+  if (!raw) return []
+
+  try {
+    const parsed: unknown = JSON.parse(raw)
+
+    if (Array.isArray(parsed)) {
+      return toUniqueStringList(parsed)
+    }
+
+    if (parsed && typeof parsed === 'object') {
+      const record = parsed as { interests?: unknown; topics?: unknown; selectedTopics?: unknown }
+      const interests = toUniqueStringList(record.interests)
+      if (interests.length > 0) return interests
+
+      const topics = toUniqueStringList(record.topics)
+      if (topics.length > 0) return topics
+
+      return toUniqueStringList(record.selectedTopics)
+    }
+  } catch {
+    return []
+  }
+
+  return []
+}
+
+const dedupeByContentId = (items: ApiContentItem[]) => {
+  const seen = new Set<string>()
+
+  return items.filter((item, index) => {
+    const id = toCardId(item, index, 'content')
+    if (seen.has(id)) return false
+    seen.add(id)
+    return true
+  })
+}
+
+const fetchPopularArticles = async (): Promise<ApiContentItem[]> => {
+  const popularItems = await fetchCollection('/articles', 'articles', {
+    limit: PERSONALIZED_CONTENT_LIMIT,
+    sort: 'views',
+  })
+
+  return popularItems.slice(0, PERSONALIZED_CONTENT_LIMIT)
+}
+
+const fetchArticlesForInterests = async (interests: string[]): Promise<ApiContentItem[]> => {
+  const topics = toUniqueStringList(interests).slice(0, PERSONALIZED_CONTENT_LIMIT)
+  if (topics.length === 0) {
+    return fetchPopularArticles()
+  }
+
+  const topicBuckets = await Promise.all(
+    topics.map((topic) =>
+      fetchCollection('/articles', 'articles', {
+        limit: PERSONALIZED_CONTENT_LIMIT,
+        sort: 'views',
+        topic,
+      }),
+    ),
+  )
+
+  const merged = dedupeByContentId(topicBuckets.flat())
+    .sort((left, right) => (right.views ?? 0) - (left.views ?? 0))
+    .slice(0, PERSONALIZED_CONTENT_LIMIT)
+
+  if (merged.length > 0) return merged
+  return fetchPopularArticles()
 }
 
 const toCardId = (item: ApiContentItem, index: number, prefix: string) =>
@@ -264,27 +361,55 @@ const LoadingRowState = ({ count = 4 }: { count?: number }) => (
   </>
 )
 
+const mapArticleItemsToCards = (items: ApiContentItem[], limit = 12) =>
+  items.slice(0, limit).map((item, index) => ({
+    id: toCardId(item, index, 'article'),
+    slug: item.slug,
+    title: item.title || 'Sem titulo',
+    topic: toTopicLabel(item.category),
+    imageUrl: item.coverImage || item.imageUrl,
+    author: item.author || resolveCreatorName(item.creator),
+    createdAt: item.createdAt || new Date().toISOString(),
+    views: item.views ?? 0,
+    likes: item.likes ?? 0,
+  }))
+
 export function Page() {
+  const [mounted, setMounted] = useState(false)
+  const [hasLoadedOnboardingPrefs, setHasLoadedOnboardingPrefs] = useState(false)
+  const [onboardingInterests, setOnboardingInterests] = useState<string[]>([])
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+
+    setOnboardingInterests(readOnboardingInterests())
+    setHasLoadedOnboardingPrefs(true)
+  }, [mounted])
+
   const { data, isLoading } = useQuery({
     queryKey: ['home-feed'],
     queryFn: fetchHomepageData,
     staleTime: 60_000,
   })
 
-  const articleCards = useMemo(
-    () =>
-      (data?.articles ?? []).slice(0, 12).map((item, index) => ({
-        id: toCardId(item, index, 'article'),
-        slug: item.slug,
-        title: item.title || 'Sem titulo',
-        topic: toTopicLabel(item.category),
-        imageUrl: item.coverImage || item.imageUrl,
-        author: item.author || resolveCreatorName(item.creator),
-        createdAt: item.createdAt || new Date().toISOString(),
-        views: item.views ?? 0,
-        likes: item.likes ?? 0,
-      })),
-    [data?.articles],
+  const personalizedContentQuery = useQuery({
+    queryKey: ['home-feed', 'for-you', onboardingInterests],
+    queryFn: () => fetchArticlesForInterests(onboardingInterests),
+    enabled: mounted && hasLoadedOnboardingPrefs,
+    staleTime: 60_000,
+  })
+
+  const hasOnboardingInterests = onboardingInterests.length > 0
+
+  const articleCards = useMemo(() => mapArticleItemsToCards(data?.articles ?? []), [data?.articles])
+
+  const personalizedArticleCards = useMemo(
+    () => mapArticleItemsToCards(personalizedContentQuery.data ?? [], PERSONALIZED_CONTENT_LIMIT),
+    [personalizedContentQuery.data],
   )
 
   const courseCards = useMemo(
@@ -350,6 +475,28 @@ export function Page() {
   return (
     <>
       <HeroBanner slides={heroSlides} />
+
+      {mounted ? (
+        <ContentRow
+          title={hasOnboardingInterests ? 'Para ti' : 'Popular agora'}
+          subtitle={
+            hasOnboardingInterests
+              ? 'Conteudo selecionado a partir dos teus topicos de interesse.'
+              : 'Conteudos com mais visualizacoes neste momento.'
+          }
+          href="/hub/articles"
+        >
+          {personalizedContentQuery.isLoading ? (
+            <LoadingRowState count={PERSONALIZED_CONTENT_LIMIT} />
+          ) : personalizedArticleCards.length > 0 ? (
+            personalizedArticleCards.map((article) => (
+              <ArticleCard key={article.id} article={article} />
+            ))
+          ) : (
+            <EmptyRowState message="Sem conteudos relevantes para mostrar agora." />
+          )}
+        </ContentRow>
+      ) : null}
 
       <ContentRow
         title="Criadores Populares"

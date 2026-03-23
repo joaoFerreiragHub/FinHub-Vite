@@ -38,6 +38,7 @@ const shouldBypassShellLayout = (pathname: string): boolean => {
   if (isPathOrSubpath(pathname, '/admin')) return true
   if (isPathOrSubpath(pathname, '/creators/dashboard')) return true
   if (isPathOrSubpath(pathname, '/marcas/portal')) return true
+  if (isPathOrSubpath(pathname, '/conta')) return true
 
   return (
     isPathOrSubpath(pathname, '/creators/definicoes') ||
@@ -190,6 +191,10 @@ export function PageShell({ children, pageContext }: Props) {
   const pathname = pageContext.urlPathname ?? '/'
   const bypassShellLayout = shouldBypassShellLayout(pathname)
   const useAuthShell = mounted && isAuthenticated && role !== UserRole.VISITOR
+  const clientPathname =
+    mounted && typeof window !== 'undefined' ? window.location.pathname : pathname
+  const shouldRenderOnboarding =
+    mounted && clientPathname === '/' && !shouldBypassShellLayout(clientPathname)
 
   return (
     <HelmetProvider>
@@ -235,7 +240,7 @@ export function PageShell({ children, pageContext }: Props) {
                     />
                   </PublicShell>
                 )}
-                {mounted ? <OnboardingOverlay /> : null}
+                {shouldRenderOnboarding ? <OnboardingOverlay /> : null}
                 <DevUserSwitcher />
               </TooltipProvider>
             </ThemeProvider>
