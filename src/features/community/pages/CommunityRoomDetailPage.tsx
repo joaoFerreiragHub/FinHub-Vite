@@ -2,8 +2,8 @@ import { FormEvent, useMemo, useState } from 'react'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { MessageSquare, Users } from 'lucide-react'
 import {
-  Badge,
   Button,
   Card,
   CardContent,
@@ -114,12 +114,6 @@ export function CommunityRoomDetailPage({ slug }: CommunityRoomDetailPageProps) 
   )
 
   const handleCreatePostClick = () => {
-    if (!isAuthenticated) {
-      if (typeof window !== 'undefined') {
-        window.location.href = loginRedirect
-      }
-      return
-    }
     setIsComposerOpen((current) => !current)
   }
 
@@ -201,33 +195,56 @@ export function CommunityRoomDetailPage({ slug }: CommunityRoomDetailPageProps) 
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-      <Card className="mb-6">
-        <CardHeader>
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-0">
-              <CardTitle className="text-2xl sm:text-3xl">{room.name}</CardTitle>
-              <CardDescription className="mt-2 text-sm sm:text-base">
-                {room.description}
-              </CardDescription>
+      <div className="relative mb-6 overflow-hidden rounded-2xl border border-brand/20 bg-brand/[0.03] p-6 dark:bg-brand/[0.06] sm:p-8">
+        <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-brand via-brand/50 to-transparent" />
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <p className="text-xs font-semibold uppercase tracking-widest text-brand">Sala</p>
+              {isPremiumRoom ? (
+                <span className="rounded-full border border-amber-400/50 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-600 dark:bg-amber-950/30 dark:text-amber-400">
+                  Premium
+                </span>
+              ) : null}
             </div>
-            {isPremiumRoom ? <Badge variant="secondary">PREMIUM</Badge> : null}
+            <h1 className="mt-1 text-2xl font-extrabold tracking-tighter text-foreground sm:text-3xl">
+              {room.name}
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+              {room.description}
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5">
+                <Users className="h-4 w-4" />
+                {room.memberCount.toLocaleString('pt-PT')} membros
+              </span>
+              <span className="text-border">·</span>
+              <span className="inline-flex items-center gap-1.5">
+                <MessageSquare className="h-4 w-4" />
+                {room.postCount.toLocaleString('pt-PT')} posts
+              </span>
+            </div>
           </div>
-        </CardHeader>
-        <CardContent className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-            <span>{room.memberCount} membros</span>
-            <span>{room.postCount} posts</span>
+          <div className="shrink-0">
+            {isAuthenticated ? (
+              <Button
+                type="button"
+                className="bg-brand text-brand-foreground hover:bg-brand/90"
+                onClick={handleCreatePostClick}
+              >
+                {isComposerOpen ? 'Fechar editor' : 'Criar post'}
+              </Button>
+            ) : (
+              <Button asChild type="button" variant="outline">
+                <a href={loginRedirect}>Login para criar post</a>
+              </Button>
+            )}
           </div>
-          <Button type="button" onClick={handleCreatePostClick}>
-            {isComposerOpen ? 'Fechar editor' : 'Criar post'}
-          </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {!isAuthenticated ? (
-        <p className="mb-4 text-sm text-muted-foreground">
-          Inicia sessao para participar. Ao clicar em "Criar post" seras redirecionado para login.
-        </p>
+        <p className="mb-4 text-sm text-muted-foreground">Inicia sessao para participar.</p>
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -317,34 +334,40 @@ export function CommunityRoomDetailPage({ slug }: CommunityRoomDetailPageProps) 
                 </Card>
               ) : null}
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between gap-3">
-                  <div>
-                    <CardTitle>Posts da sala</CardTitle>
-                    <CardDescription>Ordena por recentes ou populares.</CardDescription>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
+              <div>
+                {/* Sort tabs — pill style */}
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-brand">
+                    Posts
+                  </p>
+                  <div className="flex items-center gap-1 rounded-full border border-border/50 bg-muted/40 p-1">
+                    <button
                       type="button"
-                      size="sm"
-                      variant={sortBy === 'recent' ? 'default' : 'outline'}
-                      onClick={() => setSortBy('recent')}
                       disabled={postsQuery.isFetching}
+                      onClick={() => setSortBy('recent')}
+                      className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
+                        sortBy === 'recent'
+                          ? 'bg-brand text-brand-foreground shadow-sm'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
                     >
                       Recentes
-                    </Button>
-                    <Button
+                    </button>
+                    <button
                       type="button"
-                      size="sm"
-                      variant={sortBy === 'popular' ? 'default' : 'outline'}
-                      onClick={() => setSortBy('popular')}
                       disabled={postsQuery.isFetching}
+                      onClick={() => setSortBy('popular')}
+                      className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
+                        sortBy === 'popular'
+                          ? 'bg-brand text-brand-foreground shadow-sm'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
                     >
                       Popular
-                    </Button>
+                    </button>
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
+                </div>
+                <div className="space-y-2">
                   {postsQuery.isLoading ? (
                     <div className="space-y-2">
                       {Array.from({ length: 3 }).map((_, index) => (
@@ -370,52 +393,63 @@ export function CommunityRoomDetailPage({ slug }: CommunityRoomDetailPageProps) 
                         <a
                           key={post.id}
                           href={`/comunidade/post/${encodeURIComponent(post.id)}`}
-                          className="block rounded-lg border border-border p-4 transition hover:border-primary/50 hover:bg-muted/30"
+                          className="group flex gap-3 rounded-xl border border-border/60 p-4 transition-all hover:border-brand/30 hover:bg-brand/[0.02]"
                         >
-                          <div className="flex items-start justify-between gap-3">
-                            <h3 className="text-base font-semibold text-foreground">
+                          {/* Upvote column — Reddit style */}
+                          <div className="flex flex-col items-center gap-0.5 pt-0.5">
+                            <span className="text-base leading-none text-muted-foreground transition-colors group-hover:text-brand">
+                              ↑
+                            </span>
+                            <span className="text-xs font-bold tabular-nums text-foreground">
+                              {post.upvotes}
+                            </span>
+                          </div>
+
+                          {/* Content */}
+                          <div className="min-w-0 flex-1">
+                            <h3 className="text-base font-semibold leading-snug text-foreground transition-colors group-hover:text-brand">
                               {post.title}
                             </h3>
-                            <div className="shrink-0 text-xs text-muted-foreground">
-                              {formatRelativeDate(post.createdAt)}
-                            </div>
-                          </div>
-                          <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                            <span className="inline-flex items-center gap-1">
+                            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                               {post.author.avatar ? (
                                 <img
                                   src={post.author.avatar}
                                   alt={post.author.name}
-                                  className="h-5 w-5 rounded-full object-cover"
+                                  className="h-4 w-4 rounded-full object-cover"
                                 />
                               ) : (
-                                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-muted font-semibold">
+                                <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-muted text-[9px] font-bold">
                                   {post.author.name.charAt(0).toUpperCase()}
                                 </span>
                               )}
-                              @{post.author.username}
+                              <span className="font-medium text-foreground/80">
+                                @{post.author.username}
+                              </span>
                               {post.author.level ? (
                                 <span
-                                  className="rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-foreground"
-                                  title={post.author.levelName || `Nivel ${post.author.level}`}
+                                  className="rounded-full border border-border px-1.5 py-0.5 text-[10px] font-medium"
+                                  title={post.author.levelName || `Nível ${post.author.level}`}
                                 >
                                   Nv.{post.author.level}
                                 </span>
                               ) : null}
-                            </span>
-                            <span>{post.upvotes} upvotes</span>
-                            <span>
-                              {post.replyCount} {post.replyCount === 1 ? 'resposta' : 'respostas'}
-                            </span>
+                              <span className="text-border/60">·</span>
+                              <span>{formatRelativeDate(post.createdAt)}</span>
+                              <span className="text-border/60">·</span>
+                              <span className="inline-flex items-center gap-1">
+                                <MessageSquare className="h-3 w-3" />
+                                {post.replyCount} {post.replyCount === 1 ? 'resposta' : 'respostas'}
+                              </span>
+                            </div>
+                            {post.imageUrl ? (
+                              <img
+                                src={post.imageUrl}
+                                alt={`Imagem do post ${post.title}`}
+                                loading="lazy"
+                                className="mt-3 max-h-48 w-full rounded-lg object-cover"
+                              />
+                            ) : null}
                           </div>
-                          {post.imageUrl ? (
-                            <img
-                              src={post.imageUrl}
-                              alt={`Imagem do post ${post.title}`}
-                              loading="lazy"
-                              className="mt-3 max-h-64 w-full rounded object-cover"
-                            />
-                          ) : null}
                         </a>
                       ))}
                     </div>
@@ -433,8 +467,8 @@ export function CommunityRoomDetailPage({ slug }: CommunityRoomDetailPageProps) 
                       </Button>
                     </div>
                   ) : null}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </div>
           )}
         </div>

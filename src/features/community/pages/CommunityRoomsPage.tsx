@@ -1,14 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui'
+import { MessageSquare, Users } from 'lucide-react'
+import { Button } from '@/components/ui'
 import { getErrorMessage } from '@/lib/api/client'
 import { LeaderboardWidget } from '../components/LeaderboardWidget'
 import { communityService } from '../services/communityService'
@@ -18,9 +11,6 @@ const ROOMS_PER_PAGE = 12
 
 const isPremiumRoom = (room: CommunityRoom): boolean =>
   room.isPremium || room.requiredRole === 'premium'
-
-const formatCount = (value: number, singular: string, plural: string): string =>
-  `${value} ${value === 1 ? singular : plural}`
 
 export function CommunityRoomsPage() {
   const [page, setPage] = useState(1)
@@ -36,91 +26,114 @@ export function CommunityRoomsPage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <section className="mb-8 rounded-2xl border border-border bg-card p-6 sm:p-8">
-        <p className="text-sm font-medium uppercase tracking-wide text-primary">
-          Comunidade FinHub
+      {/* Header — Discord/home aligned */}
+      <section className="relative mb-8 overflow-hidden rounded-2xl border border-brand/20 bg-brand/[0.03] p-6 dark:bg-brand/[0.06] sm:p-8">
+        <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-brand via-brand/50 to-transparent" />
+        <p className="text-xs font-semibold uppercase tracking-widest text-brand">
+          FinHub Comunidade
         </p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+        <h1 className="mt-2 text-3xl font-extrabold tracking-tighter text-foreground sm:text-4xl">
           Salas da Comunidade
         </h1>
-        <p className="mt-3 max-w-3xl text-sm text-muted-foreground sm:text-base">
-          Escolhe uma sala para participar em discussoes com outros membros, tirar duvidas e
-          partilhar experiencias financeiras.
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+          Escolhe uma sala, participa em discussões e cresce com outros investidores portugueses.
         </p>
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div>
+          {/* Loading skeletons */}
           {roomsQuery.isLoading ? (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {Array.from({ length: 6 }).map((_, index) => (
-                <Card key={`community-room-loading-${index}`} className="animate-pulse">
-                  <CardHeader>
-                    <div className="mb-2 h-5 w-24 rounded bg-muted" />
-                    <div className="h-6 w-48 rounded bg-muted" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="mb-2 h-4 w-full rounded bg-muted" />
-                    <div className="h-4 w-4/5 rounded bg-muted" />
-                  </CardContent>
-                </Card>
+                <div
+                  key={`community-room-loading-${index}`}
+                  className="animate-pulse rounded-xl border border-border/50 bg-card p-5"
+                >
+                  <div className="mb-3 h-8 w-8 rounded-lg bg-muted" />
+                  <div className="mb-2 h-5 w-32 rounded bg-muted" />
+                  <div className="h-4 w-full rounded bg-muted" />
+                  <div className="mt-1 h-4 w-4/5 rounded bg-muted" />
+                </div>
               ))}
             </div>
           ) : null}
 
+          {/* Error */}
           {roomsQuery.error ? (
-            <Card className="border-red-500/60 bg-red-50/70">
-              <CardHeader>
-                <CardTitle>Erro ao carregar salas</CardTitle>
-                <CardDescription>{getErrorMessage(roomsQuery.error)}</CardDescription>
-              </CardHeader>
-            </Card>
+            <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-6">
+              <p className="font-semibold text-foreground">Erro ao carregar salas</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {getErrorMessage(roomsQuery.error)}
+              </p>
+            </div>
           ) : null}
 
+          {/* Rooms grid */}
           {!roomsQuery.isLoading && !roomsQuery.error ? (
             <>
               {rooms.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {rooms.map((room) => {
-                    const premiumRoom = isPremiumRoom(room)
-
+                    const premium = isPremiumRoom(room)
                     return (
                       <a
                         key={room.id}
                         href={`/comunidade/${encodeURIComponent(room.slug)}`}
-                        className="block"
+                        className="group block"
                       >
-                        <Card className="h-full transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md">
-                          <CardHeader>
-                            <div className="flex items-start justify-between gap-3">
-                              <span className="text-3xl leading-none">{room.icon}</span>
-                              {premiumRoom ? <Badge variant="secondary">PREMIUM</Badge> : null}
-                            </div>
-                            <CardTitle className="pt-1 text-xl">{room.name}</CardTitle>
-                            <CardDescription className="line-clamp-3 min-h-[3.5rem]">
-                              {room.description}
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="flex items-center justify-between text-xs text-muted-foreground">
-                              <span>{formatCount(room.postCount, 'post', 'posts')}</span>
-                              <span>{formatCount(room.memberCount, 'membro', 'membros')}</span>
-                            </div>
-                          </CardContent>
-                        </Card>
+                        <div
+                          className={`flex h-full flex-col rounded-xl border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+                            premium
+                              ? 'border-amber-300/40 bg-amber-50/20 hover:border-amber-400/60 dark:bg-amber-950/10'
+                              : 'border-border/70 bg-card hover:border-brand/40'
+                          }`}
+                        >
+                          {/* Icon + badge */}
+                          <div className="mb-3 flex items-start justify-between">
+                            <span className="text-3xl leading-none" aria-hidden="true">
+                              {room.icon}
+                            </span>
+                            {premium ? (
+                              <span className="rounded-full border border-amber-400/50 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-600 dark:bg-amber-950/30 dark:text-amber-400">
+                                Premium
+                              </span>
+                            ) : null}
+                          </div>
+
+                          {/* Name */}
+                          <h3 className="text-base font-bold tracking-tight text-foreground transition-colors group-hover:text-brand">
+                            {room.name}
+                          </h3>
+
+                          {/* Description */}
+                          <p className="mt-1.5 line-clamp-2 min-h-[2.5rem] flex-1 text-sm leading-snug text-muted-foreground">
+                            {room.description}
+                          </p>
+
+                          {/* Stats */}
+                          <div className="mt-4 flex items-center gap-3 border-t border-border/40 pt-3 text-xs text-muted-foreground">
+                            <span className="inline-flex items-center gap-1">
+                              <Users className="h-3.5 w-3.5" />
+                              {room.memberCount.toLocaleString('pt-PT')}
+                            </span>
+                            <span className="inline-flex items-center gap-1">
+                              <MessageSquare className="h-3.5 w-3.5" />
+                              {room.postCount.toLocaleString('pt-PT')}
+                            </span>
+                          </div>
+                        </div>
                       </a>
                     )
                   })}
                 </div>
               ) : (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Sem salas disponiveis</CardTitle>
-                    <CardDescription>
-                      Nao existem salas publicas para mostrar neste momento.
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
+                <div className="rounded-xl border border-border/50 bg-card p-8 text-center">
+                  <p className="font-semibold text-foreground">Sem salas disponíveis</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Não existem salas públicas para mostrar neste momento.
+                  </p>
+                </div>
               )}
 
               {pagination && pagination.pages > 1 ? (
@@ -135,7 +148,7 @@ export function CommunityRoomsPage() {
                     Anterior
                   </Button>
                   <span className="text-sm text-muted-foreground">
-                    Pagina {pagination.page} de {pagination.pages}
+                    Página {pagination.page} de {pagination.pages}
                   </span>
                   <Button
                     type="button"

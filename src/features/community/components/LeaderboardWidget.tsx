@@ -37,9 +37,11 @@ export function LeaderboardWidget({ className }: LeaderboardWidgetProps) {
   const me = leaderboardQuery.data?.me
 
   return (
-    <Card className={className}>
-      <CardHeader>
-        <CardTitle className="text-base">Leaderboard Semanal</CardTitle>
+    <Card className={`overflow-hidden ${className ?? ''}`}>
+      <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-brand via-brand/50 to-transparent" />
+      <CardHeader className="pb-2">
+        <p className="text-xs font-semibold uppercase tracking-widest text-brand">Comunidade</p>
+        <CardTitle className="text-lg font-extrabold tracking-tight">Leaderboard Semanal</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {leaderboardQuery.isLoading ? (
@@ -79,7 +81,17 @@ export function LeaderboardWidget({ className }: LeaderboardWidgetProps) {
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex min-w-0 items-center gap-2">
-                      <span className="w-5 text-xs font-semibold text-muted-foreground">
+                      <span
+                        className={`w-5 text-xs font-bold ${
+                          entry.rank === 1
+                            ? 'text-amber-500'
+                            : entry.rank === 2
+                              ? 'text-slate-400'
+                              : entry.rank === 3
+                                ? 'text-amber-700/70'
+                                : 'text-muted-foreground'
+                        }`}
+                      >
                         #{entry.rank}
                       </span>
                       <Avatar className="h-7 w-7">
@@ -110,7 +122,10 @@ export function LeaderboardWidget({ className }: LeaderboardWidgetProps) {
                         </div>
                       </div>
                     </div>
-                    <p className="text-xs font-semibold text-foreground">{entry.weeklyXp} XP</p>
+                    <p className="text-xs font-semibold">
+                      <span className="text-brand">{entry.weeklyXp}</span>
+                      <span className="text-muted-foreground"> XP</span>
+                    </p>
                   </div>
                 </li>
               )
@@ -119,10 +134,12 @@ export function LeaderboardWidget({ className }: LeaderboardWidgetProps) {
         ) : null}
 
         {!leaderboardQuery.isLoading && !leaderboardQuery.error && isAuthenticated && me ? (
-          <div className="rounded-md border border-dashed border-border p-2">
-            <p className="text-xs text-muted-foreground">A tua posicao</p>
-            <p className="mt-1 text-sm font-semibold text-foreground">
-              #{me.rank} • {me.weeklyXp} XP
+          <div className="rounded-md border border-brand/20 bg-brand/[0.04] p-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand">
+              A tua posição
+            </p>
+            <p className="mt-1 text-sm font-bold text-foreground">
+              #{me.rank} · <span className="text-brand">{me.weeklyXp}</span> XP
             </p>
           </div>
         ) : null}
