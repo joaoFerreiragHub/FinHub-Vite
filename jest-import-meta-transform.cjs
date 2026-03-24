@@ -8,7 +8,7 @@
 const { TsJestTransformer } = require('ts-jest')
 
 class ImportMetaTransformer extends TsJestTransformer {
-  static CACHE_VERSION = 'import-meta-transform-v2'
+  static CACHE_VERSION = 'import-meta-transform-v3'
 
   constructor() {
     super({
@@ -31,6 +31,8 @@ class ImportMetaTransformer extends TsJestTransformer {
       .replace(/import\.meta\.env/g, '({DEV:false,PROD:true,MODE:"test",SSR:false})')
       .replace(/typeof\s+import\.meta\s*!==\s*['"]undefined['"]/g, 'true')
       .replace(/typeof\s+import\.meta\s*===\s*['"]undefined['"]/g, 'false')
+      // catch-all: bare import.meta (e.g. TypeScript cast `import.meta as unknown as X`)
+      .replace(/import\.meta/g, '({"env": process.env})')
     return super.process(transformed, sourcePath, options)
   }
 }
