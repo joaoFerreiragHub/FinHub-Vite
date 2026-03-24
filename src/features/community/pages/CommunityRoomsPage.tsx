@@ -5,12 +5,38 @@ import { Button } from '@/components/ui'
 import { getErrorMessage } from '@/lib/api/client'
 import { LeaderboardWidget } from '../components/LeaderboardWidget'
 import { communityService } from '../services/communityService'
-import type { CommunityRoom } from '../types/community'
+import type { CommunityRoom, CommunityRoomCategory } from '../types/community'
 
 const ROOMS_PER_PAGE = 12
 
 const isPremiumRoom = (room: CommunityRoom): boolean =>
   room.isPremium || room.requiredRole === 'premium'
+
+// Translucent tinted background for each category's icon header
+const CATEGORY_BG: Record<CommunityRoomCategory, string> = {
+  general: 'rgba(99,102,241,0.10)',
+  budgeting: 'rgba(245,158,11,0.10)',
+  investing: 'rgba(16,185,129,0.10)',
+  real_estate: 'rgba(249,115,22,0.10)',
+  fire: 'rgba(239,68,68,0.10)',
+  credit: 'rgba(59,130,246,0.10)',
+  expat: 'rgba(6,182,212,0.10)',
+  beginners: 'rgba(139,92,246,0.10)',
+  premium: 'rgba(245,158,11,0.15)',
+}
+
+// Foreground accent per category for "Entrar →" and hover cues
+const CATEGORY_COLOR: Record<CommunityRoomCategory, string> = {
+  general: '#6366f1',
+  budgeting: '#d97706',
+  investing: '#059669',
+  real_estate: '#ea580c',
+  fire: '#dc2626',
+  credit: '#2563eb',
+  expat: '#0891b2',
+  beginners: '#7c3aed',
+  premium: '#d97706',
+}
 
 export function CommunityRoomsPage() {
   const [page, setPage] = useState(1)
@@ -26,7 +52,7 @@ export function CommunityRoomsPage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      {/* Header — Discord/home aligned */}
+      {/* Header */}
       <section className="relative mb-8 overflow-hidden rounded-2xl border border-brand/20 bg-brand/[0.03] p-6 dark:bg-brand/[0.06] sm:p-8">
         <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-brand via-brand/50 to-transparent" />
         <p className="text-xs font-semibold uppercase tracking-widest text-brand">
@@ -48,12 +74,15 @@ export function CommunityRoomsPage() {
               {Array.from({ length: 6 }).map((_, index) => (
                 <div
                   key={`community-room-loading-${index}`}
-                  className="animate-pulse rounded-xl border border-border/50 bg-card p-5"
+                  className="animate-pulse overflow-hidden rounded-xl border border-border/50 bg-card"
                 >
-                  <div className="mb-3 h-8 w-8 rounded-lg bg-muted" />
-                  <div className="mb-2 h-5 w-32 rounded bg-muted" />
-                  <div className="h-4 w-full rounded bg-muted" />
-                  <div className="mt-1 h-4 w-4/5 rounded bg-muted" />
+                  <div className="h-[72px] bg-muted/40" />
+                  <div className="p-5">
+                    <div className="mb-2 h-5 w-28 rounded bg-muted" />
+                    <div className="h-3.5 w-full rounded bg-muted" />
+                    <div className="mt-1.5 h-3.5 w-4/5 rounded bg-muted" />
+                    <div className="mt-5 h-3 w-24 rounded bg-muted" />
+                  </div>
                 </div>
               ))}
             </div>
@@ -76,22 +105,26 @@ export function CommunityRoomsPage() {
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {rooms.map((room) => {
                     const premium = isPremiumRoom(room)
+                    const headerBg = premium
+                      ? CATEGORY_BG.premium
+                      : (CATEGORY_BG[room.category] ?? CATEGORY_BG.general)
+                    const accentColor = premium
+                      ? CATEGORY_COLOR.premium
+                      : (CATEGORY_COLOR[room.category] ?? CATEGORY_COLOR.general)
+
                     return (
                       <a
                         key={room.id}
                         href={`/comunidade/${encodeURIComponent(room.slug)}`}
                         className="group block"
                       >
-                        <div
-                          className={`flex h-full flex-col rounded-xl border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
-                            premium
-                              ? 'border-amber-300/40 bg-amber-50/20 hover:border-amber-400/60 dark:bg-amber-950/10'
-                              : 'border-border/70 bg-card hover:border-brand/40'
-                          }`}
-                        >
-                          {/* Icon + badge */}
-                          <div className="mb-3 flex items-start justify-between">
-                            <span className="text-3xl leading-none" aria-hidden="true">
+                        <div className="flex h-full flex-col overflow-hidden rounded-xl border border-border/60 bg-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
+                          {/* Colored icon header */}
+                          <div
+                            className="flex items-start justify-between px-5 py-4"
+                            style={{ backgroundColor: headerBg }}
+                          >
+                            <span className="text-4xl leading-none" aria-hidden="true">
                               {room.icon}
                             </span>
                             {premium ? (
@@ -101,26 +134,34 @@ export function CommunityRoomsPage() {
                             ) : null}
                           </div>
 
-                          {/* Name */}
-                          <h3 className="text-base font-bold tracking-tight text-foreground transition-colors group-hover:text-brand">
-                            {room.name}
-                          </h3>
+                          {/* Content */}
+                          <div className="flex flex-1 flex-col px-5 pb-5 pt-3">
+                            <h3 className="text-base font-extrabold leading-tight tracking-tight text-foreground transition-colors group-hover:text-brand">
+                              {room.name}
+                            </h3>
+                            <p className="mt-1.5 line-clamp-2 flex-1 text-sm leading-snug text-muted-foreground">
+                              {room.description}
+                            </p>
 
-                          {/* Description */}
-                          <p className="mt-1.5 line-clamp-2 min-h-[2.5rem] flex-1 text-sm leading-snug text-muted-foreground">
-                            {room.description}
-                          </p>
-
-                          {/* Stats */}
-                          <div className="mt-4 flex items-center gap-3 border-t border-border/40 pt-3 text-xs text-muted-foreground">
-                            <span className="inline-flex items-center gap-1">
-                              <Users className="h-3.5 w-3.5" />
-                              {room.memberCount.toLocaleString('pt-PT')}
-                            </span>
-                            <span className="inline-flex items-center gap-1">
-                              <MessageSquare className="h-3.5 w-3.5" />
-                              {room.postCount.toLocaleString('pt-PT')}
-                            </span>
+                            {/* Footer */}
+                            <div className="mt-4 flex items-center justify-between border-t border-border/40 pt-3">
+                              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                <span className="inline-flex items-center gap-1">
+                                  <Users className="h-3.5 w-3.5" />
+                                  {room.memberCount.toLocaleString('pt-PT')}
+                                </span>
+                                <span className="inline-flex items-center gap-1">
+                                  <MessageSquare className="h-3.5 w-3.5" />
+                                  {room.postCount.toLocaleString('pt-PT')}
+                                </span>
+                              </div>
+                              <span
+                                className="text-[11px] font-bold opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                                style={{ color: accentColor }}
+                              >
+                                Entrar →
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </a>
