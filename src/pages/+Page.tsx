@@ -9,6 +9,7 @@ import {
   mapPublicCreatorListItemToCreator,
 } from '@/features/creators/services/publicCreatorsService'
 import type { Creator as CreatorModel } from '@/features/creators/types/creator'
+import { communityService } from '@/features/community/services/communityService'
 import { apiClient } from '@/lib/api/client'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 
@@ -465,6 +466,12 @@ export function Page() {
     staleTime: 60_000,
   })
 
+  const leaderboardQuery = useQuery({
+    queryKey: ['community-leaderboard', 'homepage'],
+    queryFn: () => communityService.getLeaderboard(),
+    staleTime: 300_000,
+  })
+
   const hasOnboardingInterests = onboardingInterests.length > 0
   const isUsingBackendRecommendations = isAuthenticated
   const showingPersonalizedFeed = isUsingBackendRecommendations || hasOnboardingInterests
@@ -535,10 +542,69 @@ export function Page() {
   )
 
   const creatorCards = useMemo(() => data?.creators ?? [], [data?.creators])
+  const topWeekEntries = useMemo(
+    () => (leaderboardQuery.data?.items ?? []).slice(0, 3),
+    [leaderboardQuery.data?.items],
+  )
 
   return (
     <>
       <HeroBanner slides={heroSlides} />
+
+      {topWeekEntries.length > 0 ? (
+        <section className="px-4 py-10 sm:px-6 lg:px-12">
+          <div className="mx-auto max-w-6xl rounded-2xl border border-border bg-card p-6 sm:p-8">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+                  Comunidade
+                </p>
+                <h2 className="mt-1 text-2xl font-bold text-foreground">Top da Semana</h2>
+              </div>
+              <a href="/comunidade" className="text-sm font-medium text-primary hover:underline">
+                Ver leaderboard
+              </a>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              {topWeekEntries.map((entry) => (
+                <article
+                  key={`${entry.rank}-${entry.username}`}
+                  className="rounded-xl border border-border/70 p-4"
+                >
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <span className="text-xs font-semibold text-muted-foreground">
+                      #{entry.rank}
+                    </span>
+                    <span className="rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-foreground">
+                      Nv.{entry.level}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {entry.avatar ? (
+                      <img
+                        src={entry.avatar}
+                        alt={entry.username}
+                        className="h-10 w-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-muted text-sm font-semibold text-foreground">
+                        {entry.username.slice(0, 2).toUpperCase()}
+                      </span>
+                    )}
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">@{entry.username}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {entry.weeklyXp} XP esta semana
+                      </p>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {mounted ? (
         <ContentRow

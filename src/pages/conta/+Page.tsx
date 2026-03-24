@@ -1,7 +1,23 @@
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui'
+import { useQuery } from '@tanstack/react-query'
+import {
+  Badge,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Progress,
+} from '@/components/ui'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { UserRole } from '@/features/auth/types'
+import {
+  COMMUNITY_BADGES,
+  getCommunityLevelMeta,
+  getNextCommunityLevelMeta,
+} from '@/features/community/lib/xpMeta'
+import { communityService } from '@/features/community/services/communityService'
 import { useMyProfile } from '@/features/social/hooks/useSocial'
+import { getErrorMessage } from '@/lib/api/client'
 import { Helmet } from '@/lib/helmet'
 import { trackUpgradeCtaClicked } from '@/lib/analytics'
 import { UserAccountShell } from '@/shared/layouts/UserAccountShell'
@@ -23,13 +39,42 @@ function formatRole(role: UserRole | undefined): string {
   }
 }
 
+const calculateLevelProgress = (
+  totalXp: number,
+  currentLevelMinXp: number,
+  nextLevelMinXp: number | null,
+): number => {
+  if (!nextLevelMinXp || nextLevelMinXp <= currentLevelMinXp) return 100
+  const progress = ((totalXp - currentLevelMinXp) / (nextLevelMinXp - currentLevelMinXp)) * 100
+  return Math.max(0, Math.min(100, progress))
+}
+
 export function Page() {
   const user = useAuthStore((state) => state.user)
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const { data: profile, isLoading } = useMyProfile()
+  const myXpQuery = useQuery({
+    queryKey: ['my-xp'],
+    queryFn: () => communityService.getMyXp(),
+    enabled: isAuthenticated,
+    staleTime: 30_000,
+  })
 
   const favoritesCount = profile?.favoritesCount ?? 0
   const followingCount = profile?.followingCount ?? 0
   const isPremium = user?.role === UserRole.PREMIUM
+  const currentLevelMeta = getCommunityLevelMeta(myXpQuery.data?.level ?? 1)
+  const nextLevelMeta = getNextCommunityLevelMeta(currentLevelMeta.level)
+  const currentLevelName = myXpQuery.data?.levelName || currentLevelMeta.name
+  const progressPercent = calculateLevelProgress(
+    myXpQuery.data?.totalXp ?? 0,
+    currentLevelMeta.minXp,
+    nextLevelMeta?.minXp ?? null,
+  )
+  const badgeCatalog = COMMUNITY_BADGES
+  const unlockedBadges = myXpQuery.data?.badges ?? []
+  const unlockedBadgeIds = new Set(unlockedBadges.map((badge) => badge.id))
+  const nextLockedBadge = badgeCatalog.find((badge) => !unlockedBadgeIds.has(badge.id)) ?? null
 
   return (
     <>
@@ -90,6 +135,115 @@ export function Page() {
               </CardHeader>
             </Card>
           </section>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>O teu progresso</CardTitle>
+              <CardDescription>XP da comunidade e evolucao de nivel.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {myXpQuery.isLoading ? (
+                <p className="text-sm text-muted-foreground">A carregar progresso...</p>
+              ) : null}
+
+              {myXpQuery.error ? (
+                <p className="text-sm text-red-600">{getErrorMessage(myXpQuery.error)}</p>
+              ) : null}
+
+              {!myXpQuery.isLoading && !myXpQuery.error ? (
+                <>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Nivel atual</p>
+                      <p className="text-2xl font-semibold text-foreground">
+                        {currentLevelMeta.level} • {currentLevelName}
+                      </p>
+                    </div>
+                    <Badge variant="secondary">{myXpQuery.data?.totalXp ?? 0} XP</Badge>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Progress value={progressPercent} />
+                    <p className="text-xs text-muted-foreground">
+                      {nextLevelMeta
+                        ? `${myXpQuery.data?.totalXp ?? 0} / ${nextLevelMeta.minXp} XP para ${nextLevelMeta.name}`
+                        : 'Nivel maximo atingido.'}
+                    </p>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground">
+                    XP desta semana: {myXpQuery.data?.weeklyXp ?? 0}
+                  </p>
+                </>
+              ) : null}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Badges da comunidade</CardTitle>
+              <CardDescription>Progresso das tuas conquistas comunitarias.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {myXpQuery.isLoading ? (
+                <p className="text-sm text-muted-foreground">A carregar badges...</p>
+              ) : null}
+
+              {myXpQuery.error ? (
+                <p className="text-sm text-red-600">{getErrorMessage(myXpQuery.error)}</p>
+              ) : null}
+
+              {!myXpQuery.isLoading && !myXpQuery.error ? (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    {unlockedBadges.length} / {badgeCatalog.length} badges desbloqueadas.
+                  </p>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {badgeCatalog.map((badge) => {
+                      const unlocked = unlockedBadgeIds.has(badge.id)
+                      return (
+                        <article
+                          key={badge.id}
+                          className={`rounded-lg border p-3 ${unlocked ? 'border-border/70 bg-card' : 'border-dashed border-border/60 bg-muted/20 opacity-80'}`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="text-sm font-semibold text-foreground">
+                              {badge.emoji} {badge.name}
+                            </p>
+                            <Badge variant={unlocked ? 'default' : 'outline'}>
+                              {unlocked ? 'Desbloqueada' : 'Por desbloquear'}
+                            </Badge>
+                          </div>
+                          <p className="mt-2 text-xs text-muted-foreground">
+                            {unlocked ? badge.description : badge.unlockHint}
+                          </p>
+                        </article>
+                      )
+                    })}
+                  </div>
+
+                  {nextLockedBadge ? (
+                    <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                        Proxima badge
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-foreground">
+                        {nextLockedBadge.emoji} {nextLockedBadge.name}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {nextLockedBadge.unlockHint}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      Excelente: desbloqueaste todas as badges atuais.
+                    </p>
+                  )}
+                </>
+              ) : null}
+            </CardContent>
+          </Card>
 
           {isPremium ? (
             <Card className="border-emerald-500/40 bg-emerald-500/5">

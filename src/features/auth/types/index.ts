@@ -57,6 +57,11 @@ export interface UserCreatorCardConfig {
   featuredContentIds?: string[]
 }
 
+export interface UserXpBadge {
+  id: string
+  unlockedAt: string
+}
+
 export interface RegisterLegalAcceptanceInput {
   termsAccepted: boolean
   privacyAccepted: boolean
@@ -94,6 +99,10 @@ export interface User {
   cookieConsent?: UserCookieConsent
   isEmailVerified: boolean
   favoriteTopics?: string[]
+  level?: number
+  levelName?: string
+  totalXp?: number
+  badges?: UserXpBadge[]
   createdAt: string
   updatedAt: string
 }

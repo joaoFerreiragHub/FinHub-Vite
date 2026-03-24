@@ -1,0 +1,1 @@
+export default '/comunidade/@slug'

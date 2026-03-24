@@ -14,6 +14,10 @@ export interface PublicUserProfile {
   role: UserRole | string
   favoriteArticlesCount: number
   followingCreatorsCount: number
+  totalXp: number
+  level: number
+  levelName: string
+  badges: Array<{ id: string; unlockedAt: string }>
 }
 
 const toRecord = (value: unknown): UnknownRecord =>
@@ -41,6 +45,18 @@ const pickNumber = (...values: unknown[]): number => {
   }
 
   return 0
+}
+
+const toBadgeArray = (value: unknown): Array<{ id: string; unlockedAt: string }> => {
+  if (!Array.isArray(value)) return []
+
+  return value
+    .map((entry) => toRecord(entry))
+    .map((entry) => ({
+      id: toString(entry.id).trim(),
+      unlockedAt: toString(entry.unlockedAt).trim(),
+    }))
+    .filter((entry) => entry.id.length > 0 && entry.unlockedAt.length > 0)
 }
 
 const isUserRecord = (candidate: UnknownRecord): boolean => {
@@ -175,6 +191,10 @@ const mapToPublicUserProfile = (
       following.creators,
       following.total,
     ),
+    totalXp: pickNumber(row.totalXp, stats.totalXp, row.xp),
+    level: Math.max(1, pickNumber(row.level, stats.level, 1)),
+    levelName: toString(row.levelName, toString(stats.levelName, 'Novato Financeiro')),
+    badges: toBadgeArray(row.badges ?? stats.badges),
   }
 }
 
@@ -182,6 +202,19 @@ const isNotFoundError = (error: unknown): boolean =>
   axios.isAxiosError(error) && error.response?.status === 404
 
 async function fetchFromPrimaryEndpoint(username: string): Promise<UnknownRecord | null> {
+  try {
+    const response = await apiClient.get(`/users/${encodeURIComponent(username)}/public`)
+    return extractSingleUser(response.data)
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      return null
+    }
+
+    throw error
+  }
+}
+
+async function fetchFromLegacyProfileEndpoint(username: string): Promise<UnknownRecord | null> {
   try {
     const response = await apiClient.get(`/users/profile/${encodeURIComponent(username)}`)
     return extractSingleUser(response.data)
@@ -225,6 +258,11 @@ export async function fetchPublicUserProfile(username: string): Promise<PublicUs
   const primaryCandidate = await fetchFromPrimaryEndpoint(normalizedUsername)
   if (primaryCandidate) {
     return mapToPublicUserProfile(primaryCandidate, normalizedUsername)
+  }
+
+  const legacyCandidate = await fetchFromLegacyProfileEndpoint(normalizedUsername)
+  if (legacyCandidate) {
+    return mapToPublicUserProfile(legacyCandidate, normalizedUsername)
   }
 
   const fallbackCandidate = await fetchFromSearchEndpoint(normalizedUsername)
