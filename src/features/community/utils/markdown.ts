@@ -96,5 +96,10 @@ export const renderCommunityMarkdown = (markdown: string): string => {
     })
     .join('\n')
 
+  // DOMPurify requires a browser DOM — skip sanitization on the server (SSR)
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return rendered
+  }
+
   return DOMPurify.sanitize(rendered)
 }

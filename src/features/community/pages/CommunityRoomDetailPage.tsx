@@ -198,31 +198,38 @@ export function CommunityRoomDetailPage({ slug }: CommunityRoomDetailPageProps) 
       <div className="relative mb-6 overflow-hidden rounded-2xl border border-brand/20 bg-brand/[0.03] p-6 dark:bg-brand/[0.06] sm:p-8">
         <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-brand via-brand/50 to-transparent" />
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <p className="text-xs font-semibold uppercase tracking-widest text-brand">Sala</p>
-              {isPremiumRoom ? (
-                <span className="rounded-full border border-amber-400/50 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-600 dark:bg-amber-950/30 dark:text-amber-400">
-                  Premium
+          <div className="flex min-w-0 flex-1 items-start gap-4">
+            {/* Room icon */}
+            <span className="mt-0.5 text-4xl leading-none sm:text-5xl" aria-hidden="true">
+              {room.icon}
+            </span>
+
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-xs font-semibold uppercase tracking-widest text-brand">Sala</p>
+                {isPremiumRoom ? (
+                  <span className="rounded-full border border-amber-400/50 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-600 dark:bg-amber-950/30 dark:text-amber-400">
+                    Premium
+                  </span>
+                ) : null}
+              </div>
+              <h1 className="mt-0.5 text-2xl font-extrabold tracking-tighter text-foreground sm:text-3xl">
+                {room.name}
+              </h1>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+                {room.description}
+              </p>
+              <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5">
+                  <Users className="h-4 w-4" />
+                  {room.memberCount.toLocaleString('pt-PT')} membros
                 </span>
-              ) : null}
-            </div>
-            <h1 className="mt-1 text-2xl font-extrabold tracking-tighter text-foreground sm:text-3xl">
-              {room.name}
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-              {room.description}
-            </p>
-            <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-              <span className="inline-flex items-center gap-1.5">
-                <Users className="h-4 w-4" />
-                {room.memberCount.toLocaleString('pt-PT')} membros
-              </span>
-              <span className="text-border">·</span>
-              <span className="inline-flex items-center gap-1.5">
-                <MessageSquare className="h-4 w-4" />
-                {room.postCount.toLocaleString('pt-PT')} posts
-              </span>
+                <span className="text-border">·</span>
+                <span className="inline-flex items-center gap-1.5">
+                  <MessageSquare className="h-4 w-4" />
+                  {room.postCount.toLocaleString('pt-PT')} posts
+                </span>
+              </div>
             </div>
           </div>
           <div className="shrink-0">

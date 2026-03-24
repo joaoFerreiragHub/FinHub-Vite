@@ -119,49 +119,53 @@ export function CommunityRoomsPage() {
                         className="group block"
                       >
                         <div className="flex h-full flex-col overflow-hidden rounded-xl border border-border/60 bg-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
-                          {/* Colored icon header */}
-                          <div
-                            className="flex items-start justify-between px-5 py-4"
-                            style={{ backgroundColor: headerBg }}
-                          >
-                            <span className="text-4xl leading-none" aria-hidden="true">
+                          {/* Icon + name row */}
+                          <div className="flex items-start gap-3 p-4 sm:p-5">
+                            {/* Category-tinted icon badge */}
+                            <div
+                              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-2xl leading-none"
+                              style={{ backgroundColor: headerBg }}
+                              aria-hidden="true"
+                            >
                               {room.icon}
-                            </span>
-                            {premium ? (
-                              <span className="rounded-full border border-amber-400/50 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-600 dark:bg-amber-950/30 dark:text-amber-400">
-                                Premium
-                              </span>
-                            ) : null}
+                            </div>
+
+                            {/* Name + premium + description */}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-start justify-between gap-2">
+                                <h3 className="text-base font-extrabold leading-tight tracking-tight text-foreground transition-colors group-hover:text-brand">
+                                  {room.name}
+                                </h3>
+                                {premium ? (
+                                  <span className="shrink-0 rounded-full border border-amber-400/50 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-600 dark:bg-amber-950/30 dark:text-amber-400">
+                                    Premium
+                                  </span>
+                                ) : null}
+                              </div>
+                              <p className="mt-1 line-clamp-2 text-sm leading-snug text-muted-foreground">
+                                {room.description}
+                              </p>
+                            </div>
                           </div>
 
-                          {/* Content */}
-                          <div className="flex flex-1 flex-col px-5 pb-5 pt-3">
-                            <h3 className="text-base font-extrabold leading-tight tracking-tight text-foreground transition-colors group-hover:text-brand">
-                              {room.name}
-                            </h3>
-                            <p className="mt-1.5 line-clamp-2 flex-1 text-sm leading-snug text-muted-foreground">
-                              {room.description}
-                            </p>
-
-                            {/* Footer */}
-                            <div className="mt-4 flex items-center justify-between border-t border-border/40 pt-3">
-                              <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                                <span className="inline-flex items-center gap-1">
-                                  <Users className="h-3.5 w-3.5" />
-                                  {room.memberCount.toLocaleString('pt-PT')}
-                                </span>
-                                <span className="inline-flex items-center gap-1">
-                                  <MessageSquare className="h-3.5 w-3.5" />
-                                  {room.postCount.toLocaleString('pt-PT')}
-                                </span>
-                              </div>
-                              <span
-                                className="text-[11px] font-bold opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-                                style={{ color: accentColor }}
-                              >
-                                Entrar →
+                          {/* Footer */}
+                          <div className="mt-auto flex items-center justify-between border-t border-border/40 px-4 pb-4 pt-3 sm:px-5">
+                            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                              <span className="inline-flex items-center gap-1">
+                                <Users className="h-3.5 w-3.5" />
+                                {room.memberCount.toLocaleString('pt-PT')}
+                              </span>
+                              <span className="inline-flex items-center gap-1">
+                                <MessageSquare className="h-3.5 w-3.5" />
+                                {room.postCount.toLocaleString('pt-PT')}
                               </span>
                             </div>
+                            <span
+                              className="text-[11px] font-bold opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                              style={{ color: accentColor }}
+                            >
+                              Entrar →
+                            </span>
                           </div>
                         </div>
                       </a>
