@@ -5,7 +5,8 @@ import { CookieConsentBanner } from '@/features/auth/components/CookieConsentBan
 import { LoginDialog, RegisterDialog } from '@/features/auth/components/forms'
 import { DEFAULT_COOKIE_CONSENT_VERSION } from '@/features/auth/services/cookieConsentStorage'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
-import { MAIN_NAV_LINKS, ShellFooter, isMainNavActive } from './shellConfig'
+import { MAIN_NAV_LINKS, isMainNavActive } from './shellConfig'
+import { ShellFooter } from './ShellFooter'
 
 const legalVersion = import.meta.env.VITE_LEGAL_VERSION || DEFAULT_COOKIE_CONSENT_VERSION
 

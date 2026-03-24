@@ -6,7 +6,8 @@ import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { UserRole } from '@/features/auth/types'
 import { GlobalSearchBar } from '@/features/social/components/GlobalSearchBar'
 import { NotificationBell } from '@/features/social/components/NotificationBell'
-import { ShellFooter, getMainNavLinks, getUserMenuItems, isMainNavActive } from './shellConfig'
+import { getMainNavLinks, getUserMenuItems, isMainNavActive } from './shellConfig'
+import { ShellFooter } from './ShellFooter'
 
 interface UnifiedTopShellProps {
   children: React.ReactNode
