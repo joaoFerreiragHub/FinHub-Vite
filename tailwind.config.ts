@@ -129,6 +129,11 @@ const config: Config = {
           bear: '#EF4444',
           neutral: '#94A3B8',
         },
+        brand: {
+          DEFAULT: 'hsl(var(--brand) / <alpha-value>)',
+          foreground: 'hsl(var(--brand-foreground) / <alpha-value>)',
+          subtle: 'hsl(var(--brand-subtle) / <alpha-value>)',
+        },
       },
 
       // Font families

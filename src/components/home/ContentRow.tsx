@@ -50,7 +50,9 @@ export function ContentRow({ title, subtitle, href, children, className }: Conte
         <div>
           <h2 className="content-row__title">{title}</h2>
           {subtitle && (
-            <p className="text-sm text-muted-foreground mt-0.5 hidden sm:block">{subtitle}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 line-clamp-1">
+              {subtitle}
+            </p>
           )}
         </div>
         {href && (

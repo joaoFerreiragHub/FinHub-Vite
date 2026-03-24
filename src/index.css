@@ -52,6 +52,11 @@
     --chart-5: 27 87% 67%;
 
     --radius: 0.5rem;
+
+    /* Brand accent — Indigo */
+    --brand: 239 84% 67%;
+    --brand-foreground: 0 0% 100%;
+    --brand-subtle: 239 84% 97%;
   }
 
 .dark {
@@ -97,6 +102,11 @@
   --chart-3: 197 37% 24%;
   --chart-4: 43 74% 66%;
   --chart-5: 27 87% 67%;
+
+  /* Brand accent — Indigo (dark mode: lighter for contrast) */
+  --brand: 243 75% 72%;
+  --brand-foreground: 0 0% 100%;
+  --brand-subtle: 239 50% 14%;
 }
 
   * {
@@ -156,7 +166,7 @@
   }
 
   .hero-banner__dots {
-    @apply absolute bottom-4 left-1/2 -translate-x-1/2 z-20
+    @apply absolute bottom-6 sm:bottom-5 left-1/2 -translate-x-1/2 z-20
            flex gap-1.5 sm:gap-2;
   }
 
@@ -185,7 +195,23 @@
      Padding responsivo, gaps adaptativos
      ══════════════════════════════════════════ */
   .content-row {
-    @apply relative py-4 sm:py-6 md:py-8;
+    @apply relative py-6 sm:py-8 md:py-10;
+  }
+
+  /* Destaque para rows personalizadas / featured */
+  .content-row--featured {
+    background: hsl(var(--brand) / 0.025);
+    border-top: 1px solid hsl(var(--brand) / 0.12);
+    border-bottom: 1px solid hsl(var(--brand) / 0.12);
+  }
+
+  .dark .content-row--featured {
+    background: hsl(var(--brand) / 0.06);
+  }
+
+  /* Fundo alternado subtil para criar ritmo visual entre rows */
+  .content-row--muted {
+    @apply bg-muted/30;
   }
 
   .content-row__header {
@@ -197,13 +223,13 @@
   }
 
   .content-row__title {
-    @apply text-lg sm:text-xl md:text-2xl font-bold tracking-tight
+    @apply text-xl sm:text-2xl font-extrabold tracking-tighter
            text-foreground;
   }
 
   .content-row__link {
     @apply text-xs sm:text-sm font-medium
-           text-primary hover:text-primary/80
+           text-brand hover:text-brand/80
            transition-colors whitespace-nowrap;
   }
 

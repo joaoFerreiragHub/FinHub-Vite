@@ -553,16 +553,24 @@ export function Page() {
 
       {topWeekEntries.length > 0 ? (
         <section className="px-4 py-10 sm:px-6 lg:px-12">
-          <div className="mx-auto max-w-6xl rounded-2xl border border-border bg-card p-6 sm:p-8">
+          <div className="relative mx-auto max-w-6xl overflow-hidden rounded-2xl border border-brand/20 bg-card p-6 sm:p-8">
+            {/* Brand accent line */}
+            <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-brand via-brand/50 to-transparent" />
+
             <div className="mb-4 flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+                <p className="text-xs font-semibold uppercase tracking-widest text-brand">
                   Comunidade
                 </p>
-                <h2 className="mt-1 text-2xl font-bold text-foreground">Top da Semana</h2>
+                <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-foreground">
+                  Top da Semana
+                </h2>
               </div>
-              <a href="/comunidade" className="text-sm font-medium text-primary hover:underline">
-                Ver leaderboard
+              <a
+                href="/comunidade"
+                className="text-sm font-medium text-brand hover:text-brand/80 transition-colors"
+              >
+                Ver leaderboard →
               </a>
             </div>
 
@@ -573,10 +581,24 @@ export function Page() {
                   className="rounded-xl border border-border/70 p-4"
                 >
                   <div className="mb-2 flex items-center justify-between gap-2">
-                    <span className="text-xs font-semibold text-muted-foreground">
+                    <span
+                      className={`text-sm font-bold ${
+                        entry.rank === 1
+                          ? 'text-amber-500'
+                          : entry.rank === 2
+                            ? 'text-slate-400'
+                            : 'text-amber-700/70'
+                      }`}
+                    >
                       #{entry.rank}
                     </span>
-                    <span className="rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-foreground">
+                    <span
+                      className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${
+                        entry.rank === 1
+                          ? 'border-brand/30 bg-brand/[0.08] text-brand'
+                          : 'border-border text-foreground'
+                      }`}
+                    >
                       Nv.{entry.level}
                     </span>
                   </div>
@@ -595,7 +617,8 @@ export function Page() {
                     <div>
                       <p className="text-sm font-semibold text-foreground">@{entry.username}</p>
                       <p className="text-xs text-muted-foreground">
-                        {entry.weeklyXp} XP esta semana
+                        <span className="font-semibold text-brand">{entry.weeklyXp}</span> XP esta
+                        semana
                       </p>
                     </div>
                   </div>
@@ -611,12 +634,13 @@ export function Page() {
           title={showingPersonalizedFeed ? 'Para ti' : 'Popular agora'}
           subtitle={
             isUsingBackendRecommendations
-              ? 'Recomendacoes personalizadas com base no teu comportamento recente.'
+              ? 'Recomendações personalizadas com base no teu comportamento recente.'
               : hasOnboardingInterests
-                ? 'Conteudo selecionado a partir dos teus topicos de interesse.'
-                : 'Conteudos com mais visualizacoes neste momento.'
+                ? 'Conteúdo selecionado a partir dos teus tópicos de interesse.'
+                : 'Conteúdos com mais visualizações neste momento.'
           }
           href="/hub/articles"
+          className="content-row--featured"
         >
           {personalizedContentQuery.isLoading ? (
             <LoadingRowState count={PERSONALIZED_CONTENT_LIMIT} />
@@ -632,8 +656,9 @@ export function Page() {
 
       <ContentRow
         title="Criadores Populares"
-        subtitle="Criadores com dados completos para preview e modal"
+        subtitle="Segue os melhores criadores de literacia financeira em Portugal"
         href="/creators"
+        className="content-row--muted"
       >
         {isLoading ? (
           <LoadingRowState />
@@ -648,7 +673,7 @@ export function Page() {
 
       <ContentRow
         title="Recursos em Destaque"
-        subtitle="Corretoras, plataformas e ferramentas com dados reais"
+        subtitle="Corretoras e plataformas avaliadas pela comunidade FinHub"
         href="/mercados/recursos"
       >
         {isLoading ? (
@@ -661,9 +686,10 @@ export function Page() {
       </ContentRow>
 
       <ContentRow
-        title="Artigos em Tendencia"
-        subtitle="Dados reais carregados da API de artigos"
+        title="Artigos em Tendência"
+        subtitle="Os mais lidos esta semana pelos investidores portugueses"
         href="/hub/articles"
+        className="content-row--muted"
       >
         {isLoading ? (
           <LoadingRowState />
@@ -676,7 +702,7 @@ export function Page() {
 
       <ContentRow
         title="Cursos Recomendados"
-        subtitle="Dados reais carregados da API de cursos"
+        subtitle="Aprende com os melhores criadores de finanças pessoais e investimento"
         href="/hub/courses"
       >
         {isLoading ? (
@@ -690,8 +716,9 @@ export function Page() {
 
       <ContentRow
         title="Livros Essenciais"
-        subtitle="Dados reais carregados da API de livros"
+        subtitle="As leituras recomendadas pela comunidade para quem quer investir melhor"
         href="/hub/books"
+        className="content-row--muted"
       >
         {isLoading ? (
           <LoadingRowState />
@@ -702,26 +729,39 @@ export function Page() {
         )}
       </ContentRow>
 
-      <section className="px-4 sm:px-6 md:px-10 lg:px-12 py-12 sm:py-16 md:py-20">
-        <div className="max-w-4xl mx-auto text-center space-y-6">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-foreground">
-            Pronto para comecar a tua jornada financeira?
-          </h2>
-          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Junta-te a milhares de portugueses que estao a tomar controlo das suas financas. Acesso
-            gratuito a artigos, cursos e ferramentas.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4 pt-2">
-            <a href="/creators">
-              <button className="inline-flex items-center justify-center px-8 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm sm:text-base shadow-lg hover:opacity-90 transition-opacity">
-                Criar conta gratuita
-              </button>
-            </a>
-            <a href="/hub/courses">
-              <button className="inline-flex items-center justify-center px-8 py-3 rounded-lg border border-border bg-card text-foreground font-semibold text-sm sm:text-base hover:bg-accent transition-colors">
-                Explorar cursos
-              </button>
-            </a>
+      <section className="px-4 sm:px-6 md:px-10 lg:px-12 py-16 sm:py-20 md:py-28 border-t border-border/50 bg-brand/[0.03] dark:bg-brand/[0.06]">
+        <div className="mx-auto max-w-5xl">
+          <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between lg:gap-16">
+            {/* Headline + descrição */}
+            <div className="flex-1 space-y-5">
+              <p className="text-xs font-semibold uppercase tracking-widest text-brand">
+                Começa hoje — é gratuito
+              </p>
+              <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tighter leading-[0.9] text-foreground">
+                Aprende a investir. <span className="text-brand">Começa agora.</span>
+              </h2>
+              <p className="text-base sm:text-lg text-muted-foreground max-w-[46ch] leading-relaxed">
+                Literacia financeira para todos os portugueses. Artigos, cursos, ferramentas e uma
+                comunidade activa — sem custo para começar.
+              </p>
+            </div>
+
+            {/* CTAs */}
+            <div className="flex flex-col gap-3 sm:flex-row lg:flex-col lg:min-w-[220px]">
+              <a href="/registar" className="flex-1 lg:flex-none">
+                <button className="w-full inline-flex items-center justify-center px-8 py-4 rounded-lg bg-brand text-brand-foreground font-semibold text-base shadow-lg hover:bg-brand/90 transition-colors">
+                  Criar conta gratuita
+                </button>
+              </a>
+              <a href="/hub/courses" className="flex-1 lg:flex-none">
+                <button className="w-full inline-flex items-center justify-center px-8 py-4 rounded-lg border border-border/80 bg-transparent text-foreground font-semibold text-base hover:bg-accent transition-colors">
+                  Explorar cursos
+                </button>
+              </a>
+              <p className="text-xs text-center text-muted-foreground pt-1">
+                Sem cartão de crédito. Sem compromisso.
+              </p>
+            </div>
           </div>
         </div>
       </section>

@@ -70,9 +70,9 @@ const TYPE_CONFIG: Record<ContentType, TypeConfig> = {
   book: {
     label: 'Livro',
     Icon: BookOpen,
-    aspect: 'aspect-[4/3]',
+    aspect: 'aspect-[3/4]',
     hrefPrefix: '/hub/books',
-    defaultWidth: 'clamp(180px, 22vw, 240px)',
+    defaultWidth: 'clamp(160px, 18vw, 210px)',
   },
   podcast: {
     label: 'Podcast',

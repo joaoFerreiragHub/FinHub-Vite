@@ -64,23 +64,26 @@ export function HeroBanner({ slides, autoplayInterval = 7000 }: HeroBannerProps)
         {slide.badge && (
           <Badge
             variant="secondary"
-            className="w-fit text-xs sm:text-sm px-3 py-1 bg-primary/10 text-primary border-primary/20 backdrop-blur-sm"
+            className="w-fit text-xs sm:text-sm px-3 py-1 bg-brand/10 text-brand border-brand/20 backdrop-blur-sm"
           >
             {slide.badge}
           </Badge>
         )}
 
-        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight tracking-tight text-foreground">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-[0.95] tracking-tighter text-foreground">
           {slide.title}
         </h1>
 
-        <p className="text-sm sm:text-base md:text-lg text-muted-foreground line-clamp-2 sm:line-clamp-3 leading-relaxed">
+        <p className="text-sm sm:text-base md:text-lg text-muted-foreground line-clamp-2 sm:line-clamp-3 leading-relaxed max-w-[52ch]">
           {slide.description}
         </p>
 
         <div className="flex flex-wrap gap-3 mt-1">
           <a href={slide.ctaHref}>
-            <Button size="lg" className="font-semibold shadow-lg text-sm sm:text-base px-6 sm:px-8">
+            <Button
+              size="lg"
+              className="bg-brand text-brand-foreground hover:bg-brand/90 font-semibold shadow-lg text-sm sm:text-base px-6 sm:px-8"
+            >
               {slide.ctaLabel}
             </Button>
           </a>
