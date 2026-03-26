@@ -1,9 +1,8 @@
 import React from 'react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { TooltipProvider } from '@radix-ui/react-tooltip'
-import { Router, createPath, type Navigator, type To } from 'react-router-dom'
+import { Router, createPath, type Navigator, type To } from '@/lib/reactRouterDomCompat'
 import { ToastContainer } from 'react-toastify'
-import { navigate as vikeNavigate } from 'vike/client/router'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { HelmetProvider } from '@/lib/helmet'
 import { usePlatformRuntimeConfig } from '@/features/platform/hooks/usePlatformRuntimeConfig'
@@ -16,6 +15,7 @@ import { PublicShell, UnifiedTopShell } from '../shared/layouts'
 import { DevUserSwitcher } from '../shared/dev'
 import { ThemeProvider } from '../shared/providers/ThemeProvider'
 import { OnboardingOverlay } from '@/features/onboarding'
+import { CookieBanner } from '@/components/consent/CookieBanner'
 
 const PageContextContext = React.createContext<PageContext | null>(null)
 
@@ -38,6 +38,7 @@ const isPathOrSubpath = (pathname: string, prefix: string): boolean =>
   pathname === prefix || pathname.startsWith(`${prefix}/`)
 
 const shouldBypassShellLayout = (pathname: string): boolean => {
+  if (pathname === '/beta' || pathname.startsWith('/beta/')) return true
   if (isPathOrSubpath(pathname, '/admin')) return true
   if (isPathOrSubpath(pathname, '/creators/dashboard')) return true
   if (isPathOrSubpath(pathname, '/marcas/portal')) return true
@@ -49,6 +50,23 @@ const shouldBypassShellLayout = (pathname: string): boolean => {
     isPathOrSubpath(pathname, '/creators/progresso')
   )
 }
+
+const BETA_MODE = import.meta.env.VITE_BETA_MODE === 'true'
+const BETA_EXEMPT = [
+  '/beta',
+  '/login',
+  '/registar',
+  '/privacidade',
+  '/termos',
+  '/cookies',
+  '/aviso-legal',
+  '/faq',
+  '/sobre',
+  '/contacto',
+  '/legal/privacidade',
+  '/legal/termos',
+  '/legal/cookies',
+]
 
 const toRouterLocation = (pageContext: PageContext) => {
   const candidate = pageContext.urlOriginal ?? pageContext.urlPathname ?? '/'
@@ -137,26 +155,16 @@ function VikeRouter({
         if (typeof window === 'undefined') {
           return
         }
-        if (isExternalHref(href)) {
-          window.location.assign(href)
-          return
-        }
-        void vikeNavigate(href).then(() => {
-          persistHistoryUserState(state)
-        })
+        persistHistoryUserState(state)
+        window.location.assign(href)
       },
       replace(to: To, state?: unknown) {
         const href = toHref(to)
         if (typeof window === 'undefined') {
           return
         }
-        if (isExternalHref(href)) {
-          window.location.replace(href)
-          return
-        }
-        void vikeNavigate(href, { overwriteLastHistoryEntry: true }).then(() => {
-          persistHistoryUserState(state)
-        })
+        persistHistoryUserState(state)
+        window.location.replace(href)
       },
       go(delta: number) {
         if (typeof window === 'undefined') {
@@ -199,6 +207,7 @@ function OrganizationJsonLd() {
 export function PageShell({ children, pageContext }: Props) {
   const { user, isAuthenticated } = useAuthStore()
   const [mounted, setMounted] = React.useState(false)
+  const pathname = pageContext.urlPathname ?? '/'
 
   React.useEffect(() => {
     setMounted(true)
@@ -211,8 +220,21 @@ export function PageShell({ children, pageContext }: Props) {
     }
   }, [pageContext.user])
 
+  React.useEffect(() => {
+    if (!mounted) return
+    if (!BETA_MODE) return
+    if (isAuthenticated) return
+    if (typeof window === 'undefined') return
+
+    const currentPath = window.location.pathname || pathname
+    const isExempt = BETA_EXEMPT.some((path) => currentPath === path || currentPath.startsWith(`${path}/`))
+
+    if (!isExempt) {
+      window.location.replace('/beta')
+    }
+  }, [mounted, isAuthenticated, pathname])
+
   const role = user?.role ?? UserRole.VISITOR
-  const pathname = pageContext.urlPathname ?? '/'
   const bypassShellLayout = shouldBypassShellLayout(pathname)
   const useAuthShell = mounted && isAuthenticated && role !== UserRole.VISITOR
   const clientPathname =
@@ -253,7 +275,7 @@ export function PageShell({ children, pageContext }: Props) {
                     />
                   </UnifiedTopShell>
                 ) : (
-                  <PublicShell currentPath={pathname}>
+                  <PublicShell currentPath={pathname} hideHeader>
                     {children}
                     <ToastContainer
                       position="top-right"
@@ -266,6 +288,7 @@ export function PageShell({ children, pageContext }: Props) {
                   </PublicShell>
                 )}
                 {shouldRenderOnboarding ? <OnboardingOverlay /> : null}
+                <CookieBanner />
                 <DevUserSwitcher />
               </TooltipProvider>
             </ThemeProvider>
