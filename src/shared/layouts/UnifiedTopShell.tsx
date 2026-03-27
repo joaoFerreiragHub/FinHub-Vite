@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Menu, X } from 'lucide-react'
 import { Button, ToggleTheme } from '@/components/ui'
-import { CookieConsentBanner } from '@/features/auth/components/CookieConsentBanner'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { UserRole } from '@/features/auth/types'
 import { GlobalSearchBar } from '@/features/social/components/GlobalSearchBar'
@@ -176,7 +175,6 @@ export function UnifiedTopShell({ children, currentPath }: UnifiedTopShellProps)
 
       <main>{children}</main>
       <ShellFooter />
-      <CookieConsentBanner />
     </div>
   )
 }

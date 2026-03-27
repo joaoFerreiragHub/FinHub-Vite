@@ -23,7 +23,7 @@ import {
   UserX,
   WandSparkles,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from '@/lib/reactRouterDomCompat'
 import { toast } from 'react-toastify'
 import {
   Badge,

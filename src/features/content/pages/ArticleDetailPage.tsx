@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
+import DOMPurify from 'dompurify'
 import { JsonLd } from '@/components/seo/JsonLd'
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useParams } from '@/lib/reactRouterDomCompat'
 import { Helmet } from '@/lib/helmet'
 import { Eye, Star } from 'lucide-react'
 import { useArticle } from '@/features/hub/articles/hooks/useArticles'
@@ -109,6 +110,13 @@ export default function ArticleDetailPage() {
     return () => window.removeEventListener('scroll', trackReadCompletion)
   }, [article?.id])
 
+  const body = article?.content || article?.excerpt || article?.description
+  const safeBodyHtml = useMemo(() => {
+    if (!body || !hasHtml(body)) return ''
+    if (typeof window === 'undefined') return body
+    return DOMPurify.sanitize(body)
+  }, [body])
+
   if (isLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
@@ -120,8 +128,6 @@ export default function ArticleDetailPage() {
   if (isError || !article) {
     return <Navigate to="/explorar/artigos" replace />
   }
-
-  const body = article.content || article.excerpt || article.description
   const seoDescription = article.description || article.excerpt || 'Artigo FinHub'
   const authorName = resolveAuthor(article.creator)
   const authorUsername = resolveCreatorUsername(article.creator, authorName)
@@ -222,7 +228,7 @@ export default function ArticleDetailPage() {
             {hasHtml(body) ? (
               <div
                 className="prose prose-slate max-w-none dark:prose-invert"
-                dangerouslySetInnerHTML={{ __html: body }}
+                dangerouslySetInnerHTML={{ __html: safeBodyHtml }}
               />
             ) : (
               <div className="whitespace-pre-wrap text-sm leading-7 text-foreground">{body}</div>

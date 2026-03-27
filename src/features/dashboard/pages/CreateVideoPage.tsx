@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from '@/lib/reactRouterDomCompat'
 import { Card } from '@/components/ui'
 import { VideoForm } from '@/features/creators/dashboard/videos/components/VideoForm'
 import { useCreateVideo } from '@/features/hub/videos/hooks/useVideos'

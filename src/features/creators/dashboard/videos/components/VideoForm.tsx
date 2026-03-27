@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { navigate } from 'vike/client/router'
+import { useNavigate } from '@/lib/reactRouterDomCompat'
 import { Button, Input, Card, Label } from '@/components/ui'
 import { ContentCategory } from '@/features/hub/types'
 import {
@@ -60,6 +60,7 @@ export function VideoForm(props: VideoFormProps) {
   const redirectTo = props.redirectTo ?? '/creators/dashboard/videos'
   const [serverError, setServerError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const navigate = useNavigate()
 
   const topicOptions = useMemo(() => {
     const videoTopics = video?.tags ?? []
@@ -69,7 +70,7 @@ export function VideoForm(props: VideoFormProps) {
   }, [video?.tags])
 
   const navigateTo = (path: string) => {
-    void navigate(path)
+    navigate(path)
   }
 
   const {

@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { AlertTriangle, Clapperboard, Clock3, Eye, FileText, Star, Users } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from '@/lib/reactRouterDomCompat'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { articleService } from '@/features/hub/articles/services/articleService'
 import { videoService } from '@/features/hub/videos/services/videoService'
@@ -93,17 +93,16 @@ const normalizeStatus = (row: Record<string, unknown>): DashboardStatus => {
   return 'other'
 }
 
-const toDashboardItems = (
-  rows: unknown[],
-  type: DashboardContentType,
-): DashboardContentItem[] =>
+const toDashboardItems = (rows: unknown[], type: DashboardContentType): DashboardContentItem[] =>
   rows
     .map((raw) => {
       if (!raw || typeof raw !== 'object') return null
       const row = raw as Record<string, unknown>
       const id = typeof row.id === 'string' ? row.id : typeof row._id === 'string' ? row._id : ''
       const slug =
-        typeof row.slug === 'string' ? row.slug : id || (typeof row.title === 'string' ? row.title : '')
+        typeof row.slug === 'string'
+          ? row.slug
+          : id || (typeof row.title === 'string' ? row.title : '')
       if (!slug) return null
 
       return {
@@ -140,14 +139,7 @@ const fetchDashboardOverview = async (username?: string): Promise<DashboardOverv
   const items: DashboardContentItem[] = []
   let hasErrors = false
 
-  const types: DashboardContentType[] = [
-    'article',
-    'video',
-    'course',
-    'event',
-    'podcast',
-    'book',
-  ]
+  const types: DashboardContentType[] = ['article', 'video', 'course', 'event', 'podcast', 'book']
 
   contentResponses.forEach((result, index) => {
     if (result.status === 'rejected') {
@@ -198,14 +190,13 @@ export default function DashboardOverviewPage() {
     )
     const avgRating = totalRatings > 0 ? weightedRating / totalRatings : 0
 
-    const topContent = [...items]
-      .sort((a, b) => b.viewCount - a.viewCount)
-      .slice(0, 5)
+    const topContent = [...items].sort((a, b) => b.viewCount - a.viewCount).slice(0, 5)
 
     const recentContent = [...items]
       .sort(
         (a, b) =>
-          parseDateScore(b.publishedAt || b.createdAt) - parseDateScore(a.publishedAt || a.createdAt),
+          parseDateScore(b.publishedAt || b.createdAt) -
+          parseDateScore(a.publishedAt || a.createdAt),
       )
       .slice(0, 5)
 

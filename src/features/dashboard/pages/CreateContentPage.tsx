@@ -1,5 +1,5 @@
 import { Card } from '@/components/ui'
-import { Link } from 'react-router-dom'
+import { Link } from '@/lib/reactRouterDomCompat'
 import { ArticleForm } from '@/features/creators/dashboard/articles/components/ArticleForm'
 import { useCreateArticle } from '@/features/hub/articles/hooks/useArticles'
 import type { CreateArticleDto } from '@/features/hub/articles/types'

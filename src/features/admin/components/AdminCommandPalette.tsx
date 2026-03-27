@@ -12,7 +12,7 @@ import {
   Users,
   FileSpreadsheet,
 } from 'lucide-react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from '@/lib/reactRouterDomCompat'
 import {
   Button,
   CommandDialog,
@@ -130,13 +130,16 @@ export default function AdminCommandPalette({ className }: AdminCommandPalettePr
     }
   }, [clearGoShortcutTimer])
 
-  const navigateToPath = useCallback((path: string) => {
-    setOpen(false)
-    resetGoShortcut()
-    if (path !== location.pathname) {
-      navigate(path)
-    }
-  }, [location.pathname, navigate, resetGoShortcut])
+  const navigateToPath = useCallback(
+    (path: string) => {
+      setOpen(false)
+      resetGoShortcut()
+      if (path !== location.pathname) {
+        navigate(path)
+      }
+    },
+    [location.pathname, navigate, resetGoShortcut],
+  )
 
   return (
     <>

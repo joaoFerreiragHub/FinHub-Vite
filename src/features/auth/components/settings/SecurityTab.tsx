@@ -1,12 +1,13 @@
-import { useState } from 'react'
-import { Button } from '@/components/ui'
-import { Badge } from '@/components/ui'
-import StepPassword from '../forms/userForm/StepPassword'
-import { mockFormik } from '@/lib/mock/mockFormik'
-import { Separator } from '@/components/ui'
-import { FormikProps } from 'formik'
-import { FormValues } from '@/features/auth/types/FormValues'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui'
+import { useState, type FormEvent } from 'react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useToast } from '@/components/ui/use-toast'
+import { authService } from '@/features/auth/services/authService'
+import { getErrorMessage } from '@/lib/api/client'
 import SecurityEmailAlerts from './SecurityEmailAlerts'
 import SecurityLogs from './SecurityLogs'
 
@@ -14,20 +15,93 @@ interface SecurityTabProps {
   onSave: () => void
 }
 
+const MIN_PASSWORD_LENGTH = 8
+
 export default function SecurityTab({ onSave }: SecurityTabProps) {
   const [emailVerified, setEmailVerified] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const { toast } = useToast()
+
+  const handlePasswordSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    if (newPassword !== confirmPassword) {
+      toast({ title: 'As palavras-passe não coincidem', variant: 'destructive' })
+      return
+    }
+
+    if (newPassword.length < MIN_PASSWORD_LENGTH) {
+      toast({
+        title: `A nova palavra-passe deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres`,
+        variant: 'destructive',
+      })
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      await authService.changePassword(currentPassword, newPassword)
+      toast({ title: 'Palavra-passe alterada com sucesso' })
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+      onSave()
+    } catch (error) {
+      toast({ title: getErrorMessage(error), variant: 'destructive' })
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <div className="space-y-8">
       {/* Alterar Palavra-passe */}
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Alterar Palavra-passe</h2>
-        <StepPassword
-          formik={mockFormik as FormikProps<FormValues>}
-          isInvalid={() => false}
-          errorMessage={() => null}
-        />
-        <Button onClick={onSave}>Guardar Alterações</Button>
+
+        <form className="space-y-4" onSubmit={handlePasswordSubmit}>
+          <div className="space-y-2">
+            <Label htmlFor="currentPassword">Palavra-passe actual</Label>
+            <Input
+              id="currentPassword"
+              type="password"
+              value={currentPassword}
+              onChange={(event) => setCurrentPassword(event.target.value)}
+              autoComplete="current-password"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="newPassword">Nova palavra-passe</Label>
+            <Input
+              id="newPassword"
+              type="password"
+              value={newPassword}
+              onChange={(event) => setNewPassword(event.target.value)}
+              autoComplete="new-password"
+              required
+              minLength={MIN_PASSWORD_LENGTH}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Confirmar nova palavra-passe</Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              autoComplete="new-password"
+              required
+            />
+          </div>
+
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? 'A guardar...' : 'Alterar palavra-passe'}
+          </Button>
+        </form>
       </div>
 
       <Separator />

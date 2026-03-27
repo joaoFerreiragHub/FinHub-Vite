@@ -1,6 +1,6 @@
-﻿import { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Download, Loader2, RefreshCcw, Search, ShieldAlert, Sparkles } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from '@/lib/reactRouterDomCompat'
 import { toast } from 'react-toastify'
 import {
   Badge,
@@ -119,7 +119,11 @@ const formatSignedNumber = (value: number, maximumFractionDigits = 0): string =>
 const formatPercent = (value: number): string => `${formatDecimal(value, 2)}%`
 
 const valueToneClass = (value: number): string =>
-  value > 0 ? 'text-emerald-600 dark:text-emerald-400' : value < 0 ? 'text-red-500' : 'text-muted-foreground'
+  value > 0
+    ? 'text-emerald-600 dark:text-emerald-400'
+    : value < 0
+      ? 'text-red-500'
+      : 'text-muted-foreground'
 
 const formatDateTime = (value: string | null): string => {
   if (!value) return '-'
@@ -221,7 +225,9 @@ export default function AdminCreatorsPositiveAnalyticsPage() {
         </div>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">Analytics positivos de creators</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Analytics positivos de creators
+            </h1>
             <p className="max-w-3xl text-sm text-muted-foreground">
               Leaderboard por crescimento/engagement com trust lado a lado para decisoes editoriais.
             </p>
@@ -253,7 +259,9 @@ export default function AdminCreatorsPositiveAnalyticsPage() {
           </div>
           <div className="rounded-md border border-border/70 p-3">
             <p className="text-xs text-muted-foreground">Avg engagement score</p>
-            <p className="text-lg font-semibold">{formatDecimal(summary?.avgEngagementScore ?? 0)}</p>
+            <p className="text-lg font-semibold">
+              {formatDecimal(summary?.avgEngagementScore ?? 0)}
+            </p>
           </div>
           <div className="rounded-md border border-border/70 p-3">
             <p className="text-xs text-muted-foreground">Avg trust score</p>
@@ -276,7 +284,9 @@ export default function AdminCreatorsPositiveAnalyticsPage() {
               <Input
                 id="creator-positive-search"
                 value={filters.search}
-                onChange={(event) => setFilters((prev) => ({ ...prev, search: event.target.value }))}
+                onChange={(event) =>
+                  setFilters((prev) => ({ ...prev, search: event.target.value }))
+                }
                 placeholder="Nome, username ou email"
               />
             </div>
@@ -347,7 +357,10 @@ export default function AdminCreatorsPositiveAnalyticsPage() {
               <Select
                 value={filters.sortOrder}
                 onValueChange={(value) =>
-                  setFilters((prev) => ({ ...prev, sortOrder: value as AdminCreatorPositiveSortOrder }))
+                  setFilters((prev) => ({
+                    ...prev,
+                    sortOrder: value as AdminCreatorPositiveSortOrder,
+                  }))
                 }
               >
                 <SelectTrigger className="mt-1">
@@ -370,7 +383,9 @@ export default function AdminCreatorsPositiveAnalyticsPage() {
                 min={7}
                 max={180}
                 value={filters.windowDays}
-                onChange={(event) => setFilters((prev) => ({ ...prev, windowDays: event.target.value }))}
+                onChange={(event) =>
+                  setFilters((prev) => ({ ...prev, windowDays: event.target.value }))
+                }
               />
             </div>
             <div className="md:col-span-2 flex flex-wrap items-end gap-2">
@@ -420,8 +435,8 @@ export default function AdminCreatorsPositiveAnalyticsPage() {
               ? `Pagina ${pagination.page} de ${pagination.pages} | total ${pagination.total} creators`
               : 'Sem dados'}
             {' | '}
-            ordenado por {SORT_BY_LABEL[query.sortBy ?? 'growth']} ({SORT_ORDER_LABEL[query.sortOrder ?? 'desc']})
-            {' | '}
+            ordenado por {SORT_BY_LABEL[query.sortBy ?? 'growth']} (
+            {SORT_ORDER_LABEL[query.sortOrder ?? 'desc']}){' | '}
             janela {query.windowDays ?? 30} dias
           </CardDescription>
         </CardHeader>
@@ -442,7 +457,9 @@ export default function AdminCreatorsPositiveAnalyticsPage() {
                         <p className="text-sm font-semibold">
                           {item.creator.name || item.creator.username || item.creator.email}
                         </p>
-                        <p className="text-xs text-muted-foreground">@{item.creator.username || '-'}</p>
+                        <p className="text-xs text-muted-foreground">
+                          @{item.creator.username || '-'}
+                        </p>
                       </div>
                       <Badge variant={RISK_BADGE_VARIANT[item.trust.riskLevel]}>
                         {RISK_LABEL[item.trust.riskLevel]}
@@ -503,8 +520,12 @@ export default function AdminCreatorsPositiveAnalyticsPage() {
                             <p className="text-sm font-semibold">
                               {item.creator.name || item.creator.username || item.creator.email}
                             </p>
-                            <p className="text-xs text-muted-foreground">@{item.creator.username || '-'}</p>
-                            <p className="text-xs text-muted-foreground">{item.creator.email || '-'}</p>
+                            <p className="text-xs text-muted-foreground">
+                              @{item.creator.username || '-'}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {item.creator.email || '-'}
+                            </p>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -517,7 +538,9 @@ export default function AdminCreatorsPositiveAnalyticsPage() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="space-y-0.5">
-                            <p className="text-sm font-semibold">{formatNumber(item.creator.followers)}</p>
+                            <p className="text-sm font-semibold">
+                              {formatNumber(item.creator.followers)}
+                            </p>
                             <p className="text-xs text-muted-foreground">
                               following {formatNumber(item.creator.following)}
                             </p>
@@ -554,7 +577,9 @@ export default function AdminCreatorsPositiveAnalyticsPage() {
                         <TableCell>
                           <div className="space-y-1 text-xs">
                             <div className="flex flex-wrap items-center gap-1">
-                              <span className="font-semibold">{formatDecimal(item.trust.trustScore)}</span>
+                              <span className="font-semibold">
+                                {formatDecimal(item.trust.trustScore)}
+                              </span>
                               <Badge variant={RISK_BADGE_VARIANT[item.trust.riskLevel]}>
                                 {RISK_LABEL[item.trust.riskLevel]}
                               </Badge>
@@ -575,7 +600,8 @@ export default function AdminCreatorsPositiveAnalyticsPage() {
                         <TableCell>
                           <div className="space-y-1 text-xs">
                             <p className="font-semibold">
-                              pub {formatNumber(item.content.published)} / total {formatNumber(item.content.total)}
+                              pub {formatNumber(item.content.published)} / total{' '}
+                              {formatNumber(item.content.total)}
                             </p>
                             <p className="text-muted-foreground">
                               premium {formatNumber(item.content.premiumPublished)} | featured{' '}
@@ -611,7 +637,9 @@ export default function AdminCreatorsPositiveAnalyticsPage() {
             <Button
               type="button"
               variant="outline"
-              disabled={!pagination || pagination.page >= pagination.pages || analyticsQuery.isFetching}
+              disabled={
+                !pagination || pagination.page >= pagination.pages || analyticsQuery.isFetching
+              }
               onClick={() => setPage((current) => current + 1)}
             >
               Seguinte

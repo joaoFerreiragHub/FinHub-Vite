@@ -140,12 +140,13 @@ export function MarkdownEditor({
           maxLength={maxLength}
           rows={rows}
           placeholder={placeholder}
+          className="bg-background text-foreground border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring"
         />
       ) : (
         <div className="min-h-[200px] rounded-md border border-input bg-background px-3 py-2">
           {value.trim() ? (
             <div
-              className="prose max-w-none prose-headings:mb-3 prose-p:my-2 prose-pre:rounded-md prose-pre:bg-muted prose-pre:p-3"
+              className="prose prose-neutral max-w-none text-foreground dark:prose-invert prose-headings:mb-3 prose-p:my-2 prose-pre:rounded-md prose-pre:bg-muted prose-pre:p-3"
               dangerouslySetInnerHTML={{ __html: renderCommunityMarkdown(value) }}
             />
           ) : (

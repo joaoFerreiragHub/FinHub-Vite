@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useParams, Navigate } from 'react-router-dom'
+import { useParams, Navigate } from '@/lib/reactRouterDomCompat'
 import { useLive, useRegisterLive } from '../hooks/useLives'
 import { liveService } from '../services/liveService'
 import {

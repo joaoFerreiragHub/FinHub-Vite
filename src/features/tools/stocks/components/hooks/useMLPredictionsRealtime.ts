@@ -34,7 +34,14 @@ export function useMLPredictionsRealTime(
     if (!symbol || wsRef.current?.readyState === WebSocket.OPEN) return
 
     try {
-      const wsUrl = `${process.env.REACT_APP_WS_URL}/ml/predictions/${symbol}`
+      const rawApiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').trim()
+      const rawWsBaseUrl = (import.meta.env.VITE_WS_URL || rawApiBaseUrl).trim()
+      const wsBaseUrl = rawWsBaseUrl
+        .replace(/\/+$/, '')
+        .replace(/\/api$/i, '')
+        .replace(/^http:\/\//i, 'ws://')
+        .replace(/^https:\/\//i, 'wss://')
+      const wsUrl = `${wsBaseUrl}/ml/predictions/${encodeURIComponent(symbol)}`
       const ws = new WebSocket(wsUrl)
       wsRef.current = ws
 

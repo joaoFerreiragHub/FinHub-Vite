@@ -10,7 +10,7 @@ import {
   ShieldCheck,
   Undo2,
 } from 'lucide-react'
-import { Link, useInRouterContext } from 'react-router-dom'
+import { Link, useInRouterContext } from '@/lib/reactRouterDomCompat'
 import { toast } from 'react-toastify'
 import {
   Badge,

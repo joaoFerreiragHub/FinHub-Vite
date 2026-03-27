@@ -19,6 +19,7 @@ import { useGlobalSearch } from '../hooks/useSocial'
 import type { SearchFilterType, SearchResult } from '../types'
 import { PublicSurfaceDisabledState } from '@/features/platform/components/PublicSurfaceDisabledState'
 import { usePublicSurfaceControl } from '@/features/platform/hooks/usePublicSurfaceControl'
+import { getErrorMessage } from '@/lib/api/client'
 
 const typeIcons: Record<string, typeof FileText> = {
   [ContentType.ARTICLE]: FileText,
@@ -50,14 +51,15 @@ export function SearchPage() {
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [selectedType, setSelectedType] = useState<SearchTabType>('all')
+  const normalizedDebouncedQuery = debouncedQuery.trim()
 
   const queryType = selectedType === 'all' ? undefined : selectedType
-  const { data, isLoading } = useGlobalSearch(debouncedQuery, queryType)
+  const { data, isLoading, isError, error } = useGlobalSearch(debouncedQuery, queryType)
 
   // Get initial query from URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const q = params.get('q')
+    const q = params.get('q')?.trim()
     if (q) {
       setQuery(q)
       setDebouncedQuery(q)
@@ -114,13 +116,17 @@ export function SearchPage() {
       </Tabs>
 
       {/* Results */}
-      {isLoading && debouncedQuery.length >= 2 ? (
+      {isLoading && normalizedDebouncedQuery.length >= 2 ? (
         <div className="space-y-3">
           {Array.from({ length: 5 }).map((_, i) => (
             <Skeleton key={i} className="h-20 w-full rounded-lg" />
           ))}
         </div>
-      ) : debouncedQuery.length < 2 ? (
+      ) : isError && normalizedDebouncedQuery.length >= 2 ? (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
+          {getErrorMessage(error)}
+        </div>
+      ) : normalizedDebouncedQuery.length < 2 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-16">
           <Search className="h-12 w-12 text-muted-foreground/30 mb-4" />
           <h3 className="text-lg font-medium">Pesquisa</h3>
@@ -133,7 +139,7 @@ export function SearchPage() {
           <Search className="h-12 w-12 text-muted-foreground/30 mb-4" />
           <h3 className="text-lg font-medium">Nenhum resultado</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Nenhum resultado para &quot;{debouncedQuery}&quot;.
+            Nenhum resultado para &quot;{normalizedDebouncedQuery}&quot;.
             {selectedType !== 'all' && ' Tenta remover o filtro de tipo.'}
           </p>
         </div>

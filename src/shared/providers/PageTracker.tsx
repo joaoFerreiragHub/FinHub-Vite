@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation } from '@/lib/reactRouterDomCompat'
 import { trackContentView, trackPageView } from '../../lib/analytics'
 
 export function PageTracker() {

@@ -215,9 +215,11 @@ export function useUpdateMyProfile() {
 // ========== SEARCH ==========
 
 export function useGlobalSearch(query: string, type?: SearchFilterType) {
+  const normalizedQuery = query.trim()
+
   return useQuery({
-    queryKey: ['search', query, type],
-    queryFn: () => socialService.search(query, type ? { type } : undefined),
-    enabled: query.length >= 2,
+    queryKey: ['search', normalizedQuery, type],
+    queryFn: () => socialService.search(normalizedQuery, type ? { type } : undefined),
+    enabled: normalizedQuery.length >= 2,
   })
 }

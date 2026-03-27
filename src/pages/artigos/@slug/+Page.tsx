@@ -1,5 +1,5 @@
-﻿import ArticleDetailPage from '@/features/content/pages/ArticleDetailPage'
-import { Route, Routes } from 'react-router-dom'
+import ArticleDetailPage from '@/features/content/pages/ArticleDetailPage'
+import { Route, Routes } from '@/lib/reactRouterDomCompat'
 
 export const passToClient = ['routeParams']
 

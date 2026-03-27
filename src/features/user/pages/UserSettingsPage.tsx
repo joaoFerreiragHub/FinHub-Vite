@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ChangeEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@/lib/reactRouterDomCompat'
 import { AlertTriangle, Download, Loader2, RefreshCcw, ShieldCheck, ShieldX } from 'lucide-react'
 import { toast } from 'react-toastify'
 import {
@@ -83,6 +83,8 @@ const parseEvidenceLinks = (value: string): string[] =>
     .filter((item) => item.length > 0)
 
 const DELETE_CONFIRMATION_TEXT = 'ELIMINAR'
+const AVATAR_MAX_SIZE_BYTES = 5 * 1024 * 1024
+const AVATAR_ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 
 export default function UserSettingsPage() {
   const navigate = useNavigate()
@@ -97,6 +99,8 @@ export default function UserSettingsPage() {
   const [claimForm, setClaimForm] = useState(DEFAULT_CLAIM_FORM)
   const [profileName, setProfileName] = useState(authUser?.name ?? '')
   const [profileAvatar, setProfileAvatar] = useState(authUser?.avatar ?? '')
+  const [profileAvatarFile, setProfileAvatarFile] = useState<File | null>(null)
+  const [profileAvatarPreviewUrl, setProfileAvatarPreviewUrl] = useState<string | null>(null)
   const [profileBio, setProfileBio] = useState(authUser?.bio ?? '')
   const [profileWebsite, setProfileWebsite] = useState(authUser?.socialLinks?.website ?? '')
   const [profileTwitter, setProfileTwitter] = useState(authUser?.socialLinks?.twitter ?? '')
@@ -126,6 +130,15 @@ export default function UserSettingsPage() {
     authUser?.socialLinks?.linkedin,
     authUser?.socialLinks?.instagram,
   ])
+
+  useEffect(
+    () => () => {
+      if (profileAvatarPreviewUrl) {
+        URL.revokeObjectURL(profileAvatarPreviewUrl)
+      }
+    },
+    [profileAvatarPreviewUrl],
+  )
 
   const pendingQuery = useQuery({
     queryKey: ['auth', 'assisted-sessions', 'pending'],
@@ -183,8 +196,13 @@ export default function UserSettingsPage() {
   })
 
   const changePasswordMutation = useMutation({
-    mutationFn: ({ currentPassword, newPassword }: { currentPassword: string; newPassword: string }) =>
-      authService.changePassword(currentPassword, newPassword),
+    mutationFn: ({
+      currentPassword,
+      newPassword,
+    }: {
+      currentPassword: string
+      newPassword: string
+    }) => authService.changePassword(currentPassword, newPassword),
     onSuccess: (result) => {
       toast.success(result.message || 'Password alterada com sucesso.')
       logout()
@@ -195,10 +213,30 @@ export default function UserSettingsPage() {
     },
   })
 
+  const uploadAvatarMutation = useMutation({
+    mutationFn: (file: File) => authService.uploadAvatar(file),
+    onSuccess: (result) => {
+      toast.success(result.message || 'Avatar atualizado com sucesso.')
+      const avatar = result.avatar || result.avatarUrl || result.user?.avatar || ''
+      updateUser({
+        avatar: avatar || undefined,
+        updatedAt: result.user?.updatedAt,
+      })
+      setProfileAvatar(avatar)
+      if (profileAvatarPreviewUrl) {
+        URL.revokeObjectURL(profileAvatarPreviewUrl)
+      }
+      setProfileAvatarPreviewUrl(null)
+      setProfileAvatarFile(null)
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error))
+    },
+  })
+
   const updateProfileMutation = useMutation({
     mutationFn: (payload: {
       name: string
-      avatar: string | null
       bio: string | null
       socialLinks: {
         website: string | null
@@ -220,6 +258,40 @@ export default function UserSettingsPage() {
       toast.error(getErrorMessage(error))
     },
   })
+
+  const clearSelectedAvatar = () => {
+    if (profileAvatarPreviewUrl) {
+      URL.revokeObjectURL(profileAvatarPreviewUrl)
+    }
+    setProfileAvatarPreviewUrl(null)
+    setProfileAvatarFile(null)
+  }
+
+  const handleAvatarFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    if (!AVATAR_ALLOWED_MIME_TYPES.has(file.type)) {
+      toast.error('Formato invalido. Usa JPEG, PNG ou WebP.')
+      event.target.value = ''
+      return
+    }
+
+    if (file.size > AVATAR_MAX_SIZE_BYTES) {
+      toast.error('Avatar demasiado grande. O limite e 5MB.')
+      event.target.value = ''
+      return
+    }
+
+    if (profileAvatarPreviewUrl) {
+      URL.revokeObjectURL(profileAvatarPreviewUrl)
+    }
+
+    const previewUrl = URL.createObjectURL(file)
+    setProfileAvatarFile(file)
+    setProfileAvatarPreviewUrl(previewUrl)
+    event.target.value = ''
+  }
 
   const exportMyDataMutation = useMutation({
     mutationFn: () => authService.exportMyData(),
@@ -320,7 +392,6 @@ export default function UserSettingsPage() {
 
   const submitUpdateProfile = async () => {
     const name = profileName.trim()
-    const avatar = profileAvatar.trim()
     const bio = profileBio.trim()
     const website = profileWebsite.trim()
     const twitter = profileTwitter.trim()
@@ -332,9 +403,12 @@ export default function UserSettingsPage() {
       return
     }
 
+    if (profileAvatarFile) {
+      await uploadAvatarMutation.mutateAsync(profileAvatarFile)
+    }
+
     await updateProfileMutation.mutateAsync({
       name,
-      avatar: avatar || null,
       bio: bio || null,
       socialLinks: {
         website: website || null,
@@ -376,6 +450,13 @@ export default function UserSettingsPage() {
     })
   }
 
+  const profileAvatarSrc = profileAvatarPreviewUrl || profileAvatar
+  const profileAvatarFallback =
+    profileName.trim().charAt(0).toUpperCase() ||
+    authUser?.name?.trim().charAt(0).toUpperCase() ||
+    'U'
+  const isSavingProfile = updateProfileMutation.isPending || uploadAvatarMutation.isPending
+
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6">
       <div className="space-y-1">
@@ -404,13 +485,32 @@ export default function UserSettingsPage() {
               />
             </div>
             <div>
-              <Label htmlFor="profile-avatar">Avatar URL</Label>
-              <Input
-                id="profile-avatar"
-                value={profileAvatar}
-                onChange={(event) => setProfileAvatar(event.target.value)}
-                placeholder="https://..."
-              />
+              <Label htmlFor="profile-avatar-file">Avatar</Label>
+              <div className="mt-2 flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-sm font-medium text-muted-foreground">
+                  {profileAvatarSrc ? (
+                    <img
+                      src={profileAvatarSrc}
+                      alt="Avatar do perfil"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    profileAvatarFallback
+                  )}
+                </div>
+                <Input
+                  id="profile-avatar-file"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleAvatarFileChange}
+                />
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">JPEG/PNG/WebP, maximo 5MB.</p>
+              {profileAvatarFile ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Ficheiro selecionado: {profileAvatarFile.name}
+                </p>
+              ) : null}
             </div>
             <div className="md:col-span-2">
               <Label htmlFor="profile-bio">Bio</Label>
@@ -461,18 +561,24 @@ export default function UserSettingsPage() {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              onClick={submitUpdateProfile}
-              disabled={updateProfileMutation.isPending}
-            >
-              {updateProfileMutation.isPending ? (
+            <Button type="button" onClick={submitUpdateProfile} disabled={isSavingProfile}>
+              {isSavingProfile ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <ShieldCheck className="h-4 w-4" />
               )}
               Guardar perfil
             </Button>
+            {profileAvatarFile ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={clearSelectedAvatar}
+                disabled={isSavingProfile}
+              >
+                Limpar avatar selecionado
+              </Button>
+            ) : null}
           </div>
         </CardContent>
       </Card>

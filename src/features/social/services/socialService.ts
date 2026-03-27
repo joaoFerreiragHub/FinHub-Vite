@@ -142,6 +142,7 @@ interface BackendCreatorSubscriptionListResponse {
 
 interface BackendFeedContent {
   id?: string
+  _id?: string
   type?: string
   slug?: string
   title?: string
@@ -152,13 +153,18 @@ interface BackendFeedContent {
   category?: string
   tags?: string[]
   viewCount?: number
+  views?: number
   likeCount?: number
+  likes?: number
   favoriteCount?: number
+  favorites?: number
   shareCount?: number
   averageRating?: number
   ratingCount?: number
+  ratingsCount?: number
   reviewCount?: number
   commentCount?: number
+  commentsCount?: number
   commentsEnabled?: boolean
   requiredRole?: 'free' | 'premium' | 'creator' | 'brand_manager' | 'admin'
   isPremium?: boolean
@@ -190,6 +196,30 @@ interface BackendFeedResponse {
   filters?: {
     following?: boolean
   }
+}
+
+interface BackendSearchResult {
+  id?: string | number
+  _id?: string | number
+  type?: string
+  title?: string
+  name?: string
+  description?: string | null
+  shortDescription?: string | null
+  coverImage?: string | null
+  image?: string | null
+  url?: string
+  slug?: string
+  username?: string
+  score?: number
+}
+
+interface BackendSearchResponse {
+  results?: BackendSearchResult[]
+  items?: BackendSearchResult[]
+  total?: number
+  query?: string
+  q?: string
 }
 
 const readAuthState = (): Record<string, unknown> | null => {
@@ -545,24 +575,45 @@ const mapCreatorSubscriptionsResponse = (
 }
 
 const mapBackendCategoryToHubCategory = (rawCategory?: string): ContentCategory => {
-  switch (rawCategory) {
-    case 'crypto':
-      return ContentCategory.CRYPTO
+  const normalizedCategory = rawCategory?.trim().toLowerCase().replace(/-/g, '_')
+
+  switch (normalizedCategory) {
+    case 'personal_finance':
     case 'finance':
-    case 'personal-finance':
       return ContentCategory.PERSONAL_FINANCE
+    case 'budgeting':
+      return ContentCategory.BUDGETING
+    case 'saving':
+      return ContentCategory.SAVING
+    case 'debt':
+      return ContentCategory.DEBT
+    case 'stocks':
     case 'investing':
     case 'trading':
     case 'analysis':
       return ContentCategory.STOCKS
+    case 'crypto':
+      return ContentCategory.CRYPTO
+    case 'real_estate':
+      return ContentCategory.REAL_ESTATE
+    case 'funds':
+      return ContentCategory.FUNDS
+    case 'basics':
     case 'economics':
     case 'business':
     case 'education':
       return ContentCategory.BASICS
+    case 'advanced':
+      return ContentCategory.ADVANCED
+    case 'trends':
     case 'technology':
       return ContentCategory.TRENDS
     case 'news':
       return ContentCategory.NEWS
+    case 'tools':
+      return ContentCategory.TOOLS
+    case 'lifestyle':
+      return ContentCategory.LIFESTYLE
     default:
       return ContentCategory.NEWS
   }
@@ -582,34 +633,47 @@ const mapFeedItem = (item: BackendFeedItem): ActivityFeedItem | null => {
   if (!item.content) return null
 
   const content = item.content
-  const contentId = content.id
-  const slug = content.slug
+  const contentId = content.id ?? content._id
+  const normalizedContentId = contentId ? String(contentId) : ''
+  const slug = content.slug?.trim() || normalizedContentId
   const normalizedType = toContentType(content.type)
 
-  if (!contentId || !slug || !normalizedType) return null
+  if (!normalizedContentId || !slug || !normalizedType) return null
+
+  const resolvedCreatorId = content.creatorId ?? resolveId(content.creator) ?? ''
+  const resolvedCreatorName =
+    item.creatorName ??
+    (typeof content.creator === 'object'
+      ? (content.creator.name ?? content.creator.username)
+      : undefined) ??
+    'Criador'
+  const resolvedCreatorAvatar =
+    item.creatorAvatar ??
+    (typeof content.creator === 'object' ? content.creator.avatar : undefined) ??
+    undefined
 
   return {
-    id: item.id ?? `${normalizedType}:${contentId}`,
+    id: item.id ?? `${normalizedType}:${normalizedContentId}`,
     type: 'content_published',
     content: {
-      id: contentId,
+      id: normalizedContentId,
       type: normalizedType,
       slug,
       title: content.title ?? 'Sem titulo',
       description: content.description ?? '',
       coverImage: content.coverImage ?? undefined,
-      creator: content.creatorId ?? resolveId(content.creator) ?? '',
-      creatorId: content.creatorId ?? resolveId(content.creator) ?? '',
+      creator: resolvedCreatorId,
+      creatorId: resolvedCreatorId,
       category: mapBackendCategoryToHubCategory(content.category),
       tags: Array.isArray(content.tags) ? content.tags : [],
-      viewCount: Number(content.viewCount ?? 0),
-      likeCount: Number(content.likeCount ?? 0),
-      favoriteCount: Number(content.favoriteCount ?? 0),
+      viewCount: Number(content.viewCount ?? content.views ?? 0),
+      likeCount: Number(content.likeCount ?? content.likes ?? 0),
+      favoriteCount: Number(content.favoriteCount ?? content.favorites ?? 0),
       shareCount: Number(content.shareCount ?? 0),
       averageRating: Number(content.averageRating ?? 0),
-      ratingCount: Number(content.ratingCount ?? 0),
-      reviewCount: Number(content.reviewCount ?? content.ratingCount ?? 0),
-      commentCount: Number(content.commentCount ?? 0),
+      ratingCount: Number(content.ratingCount ?? content.ratingsCount ?? 0),
+      reviewCount: Number(content.reviewCount ?? content.ratingCount ?? content.ratingsCount ?? 0),
+      commentCount: Number(content.commentCount ?? content.commentsCount ?? 0),
       commentsEnabled: Boolean(content.commentsEnabled ?? true),
       requiredRole: mapBackendRequiredRoleToUserRole(content.requiredRole),
       isPremium: Boolean(content.isPremium),
@@ -621,8 +685,8 @@ const mapFeedItem = (item: BackendFeedItem): ActivityFeedItem | null => {
       updatedAt:
         content.updatedAt ?? content.createdAt ?? item.createdAt ?? new Date().toISOString(),
     },
-    creatorName: item.creatorName ?? 'Criador',
-    creatorAvatar: item.creatorAvatar ?? undefined,
+    creatorName: resolvedCreatorName,
+    creatorAvatar: resolvedCreatorAvatar,
     createdAt:
       item.createdAt ?? content.publishedAt ?? content.createdAt ?? new Date().toISOString(),
   }
@@ -645,6 +709,115 @@ const mapFeedResponse = (payload: BackendFeedResponse): ActivityFeedResponse => 
     total,
     hasMore: page < pages,
     following: payload.filters?.following !== false,
+  }
+}
+
+const normalizeSearchResultType = (rawType?: string): SearchFilterType | null => {
+  if (!rawType) return null
+  const normalizedType = rawType.trim().toLowerCase()
+
+  switch (normalizedType) {
+    case 'article':
+      return ContentType.ARTICLE
+    case 'course':
+      return ContentType.COURSE
+    case 'video':
+      return ContentType.VIDEO
+    case 'event':
+    case 'live':
+      return ContentType.EVENT
+    case 'book':
+      return ContentType.BOOK
+    case 'podcast':
+      return ContentType.PODCAST
+    case 'creator':
+      return 'creator'
+    case 'brand':
+      return 'brand'
+    default:
+      return null
+  }
+}
+
+const fallbackSearchUrlByType = (type: SearchFilterType, slugOrId: string): string => {
+  switch (type) {
+    case ContentType.ARTICLE:
+      return `/hub/articles/${slugOrId}`
+    case ContentType.COURSE:
+      return `/hub/courses/${slugOrId}`
+    case ContentType.VIDEO:
+      return `/hub/videos/${slugOrId}`
+    case ContentType.EVENT:
+      return `/hub/lives/${slugOrId}`
+    case ContentType.BOOK:
+      return `/hub/books/${slugOrId}`
+    case ContentType.PODCAST:
+      return `/hub/podcasts/${slugOrId}`
+    case 'creator':
+      return `/creators/${encodeURIComponent(slugOrId)}`
+    case 'brand':
+      return `/recursos/${encodeURIComponent(slugOrId)}`
+  }
+}
+
+const normalizeSearchUrl = (rawUrl: unknown, type: SearchFilterType, slugOrId: string): string => {
+  if (typeof rawUrl === 'string' && rawUrl.trim().length > 0) {
+    const trimmed = rawUrl.trim()
+    if (/^(https?:)?\/\//i.test(trimmed) || trimmed.startsWith('/')) {
+      return trimmed
+    }
+    return `/${trimmed}`
+  }
+
+  return fallbackSearchUrlByType(type, slugOrId)
+}
+
+const mapSearchResult = (item: BackendSearchResult): SearchResponse['results'][number] | null => {
+  const normalizedType = normalizeSearchResultType(item.type)
+  if (!normalizedType) return null
+
+  const normalizedId = item.id ?? item._id
+  if (normalizedId === undefined || normalizedId === null) return null
+
+  const id = String(normalizedId)
+  const slugOrId = item.slug?.trim() || item.username?.trim() || id
+  const title = item.title?.trim() || item.name?.trim() || 'Sem titulo'
+  const description = item.description?.trim() || item.shortDescription?.trim() || ''
+  const parsedScore = Number(item.score)
+
+  return {
+    id,
+    type: normalizedType,
+    title,
+    description,
+    coverImage: item.coverImage ?? item.image ?? undefined,
+    url: normalizeSearchUrl(item.url, normalizedType, slugOrId),
+    score: Number.isFinite(parsedScore) ? parsedScore : 0,
+  }
+}
+
+const mapSearchResponse = (payload: BackendSearchResponse, query: string): SearchResponse => {
+  const rawResults = Array.isArray(payload.results)
+    ? payload.results
+    : Array.isArray(payload.items)
+      ? payload.items
+      : []
+
+  const results = rawResults
+    .map(mapSearchResult)
+    .filter((item): item is SearchResponse['results'][number] => item !== null)
+
+  const total =
+    typeof payload.total === 'number' && Number.isFinite(payload.total)
+      ? Math.max(0, Math.floor(payload.total))
+      : results.length
+
+  const normalizedQuery = (payload.query ?? payload.q ?? query).trim()
+
+  return {
+    results,
+    total,
+    query: normalizedQuery,
   }
 }
 
@@ -1083,9 +1256,18 @@ export const socialService = {
   // ========== SEARCH ==========
 
   search: async (query: string, filters?: { type?: SearchFilterType }): Promise<SearchResponse> => {
-    const response = await apiClient.get<SearchResponse>('/search', {
-      params: { q: query, ...filters },
+    const normalizedQuery = query.trim()
+    if (normalizedQuery.length < 2) {
+      return {
+        results: [],
+        total: 0,
+        query: normalizedQuery,
+      }
+    }
+
+    const response = await apiClient.get<BackendSearchResponse>('/search', {
+      params: { q: normalizedQuery, ...filters },
     })
-    return response.data
+    return mapSearchResponse(response.data, normalizedQuery)
   },
 }

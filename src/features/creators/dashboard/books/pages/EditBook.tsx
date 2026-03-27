@@ -1,4 +1,4 @@
-﻿import { useParams, Navigate } from 'react-router-dom'
+import { useParams, Navigate } from '@/lib/reactRouterDomCompat'
 import { CreatorDashboardShell } from '@/shared/layouts'
 import { BookForm } from '../components/BookForm'
 import { useBook, useUpdateBook } from '@/features/hub/books/hooks/useBooks'

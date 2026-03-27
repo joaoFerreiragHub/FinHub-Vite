@@ -1,5 +1,5 @@
 import { EditCourse } from '@/features/creators/dashboard/courses'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes } from '@/lib/reactRouterDomCompat'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const resolveId = (props: any): string => {

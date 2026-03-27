@@ -9,7 +9,7 @@ import {
   ShieldCheck,
   X,
 } from 'lucide-react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from '@/lib/reactRouterDomCompat'
 import { getErrorMessage } from '@/lib/api/client'
 import {
   Badge,
@@ -119,10 +119,7 @@ export default function BrandsComparePage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [searchInput, setSearchInput] = useState('')
 
-  const selectedSlugs = useMemo(
-    () => parseSlugsParam(searchParams.get('slugs')),
-    [searchParams],
-  )
+  const selectedSlugs = useMemo(() => parseSlugsParam(searchParams.get('slugs')), [searchParams])
 
   const canCompare = selectedSlugs.length >= MIN_COMPARE_ITEMS
   const canAddMore = selectedSlugs.length < MAX_COMPARE_ITEMS
@@ -450,7 +447,9 @@ export default function BrandsComparePage() {
                   <p>
                     <span className="font-medium text-foreground">Verticais:</span>{' '}
                     {comparison.verticalTypes.length > 0
-                      ? comparison.verticalTypes.map((value) => verticalLabel[value] || value).join(', ')
+                      ? comparison.verticalTypes
+                          .map((value) => verticalLabel[value] || value)
+                          .join(', ')
                       : 'Sem dados'}
                   </p>
                 </CardContent>
@@ -474,9 +473,7 @@ export default function BrandsComparePage() {
                       </Badge>
                     ) : null}
                     <p>{item.shortDescription}</p>
-                    <p>
-                      Rating: {item.ratingsCount > 0 ? formatRating(item.averageRating) : '-'}
-                    </p>
+                    <p>Rating: {item.ratingsCount > 0 ? formatRating(item.averageRating) : '-'}</p>
                     <div className="flex flex-wrap gap-2">
                       <Button asChild size="sm" variant="outline">
                         <Link to={`/recursos/${item.slug}`}>

@@ -1,7 +1,7 @@
 import React, { type ReactElement } from 'react'
 import { render, type RenderOptions } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from '@/lib/reactRouterDomCompat'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import type { AuthState } from '@/features/auth/types'
 

@@ -1,5 +1,5 @@
-﻿import VideoDetailPage from '@/features/content/pages/VideoDetailPage'
-import { Route, Routes } from 'react-router-dom'
+import VideoDetailPage from '@/features/content/pages/VideoDetailPage'
+import { Route, Routes } from '@/lib/reactRouterDomCompat'
 
 export const passToClient = ['routeParams']
 

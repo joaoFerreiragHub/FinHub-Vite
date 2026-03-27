@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { navigate } from 'vike/client/router'
+import { useNavigate } from '@/lib/reactRouterDomCompat'
 import { Button, Card, Input, Label } from '@/components/ui'
 import { ContentCategory } from '@/features/hub/types'
 import type { Article, CreateArticleDto, UpdateArticleDto } from '@/features/hub/articles/types'
@@ -64,6 +64,7 @@ export function ArticleForm(props: ArticleFormProps) {
   const redirectTo = props.redirectTo ?? '/creators/dashboard/articles'
   const [serverError, setServerError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const navigate = useNavigate()
 
   const tagOptions = useMemo(() => {
     const articleTags = article?.tags ?? []
@@ -73,7 +74,7 @@ export function ArticleForm(props: ArticleFormProps) {
   }, [article?.tags])
 
   const navigateTo = (path: string) => {
-    void navigate(path)
+    navigate(path)
   }
 
   const {

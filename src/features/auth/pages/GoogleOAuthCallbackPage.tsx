@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from '@/lib/reactRouterDomCompat'
 import { Button } from '@/components/ui'
 import { authService } from '../services/authService'
 import { useAuthStore } from '../stores/useAuthStore'

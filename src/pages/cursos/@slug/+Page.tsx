@@ -1,5 +1,5 @@
-﻿import CourseDetailPage from '@/features/content/pages/CourseDetailPage'
-import { Route, Routes } from 'react-router-dom'
+import CourseDetailPage from '@/features/content/pages/CourseDetailPage'
+import { Route, Routes } from '@/lib/reactRouterDomCompat'
 
 export const passToClient = ['routeParams']
 

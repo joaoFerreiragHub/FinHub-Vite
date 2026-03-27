@@ -1,5 +1,5 @@
 import { EditPodcast } from '@/features/creators/dashboard/podcasts'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes } from '@/lib/reactRouterDomCompat'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const resolveId = (props: any): string => {

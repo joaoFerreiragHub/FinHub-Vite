@@ -1,6 +1,6 @@
 import { type FormEvent, useMemo, useState } from 'react'
 import { AlertCircle, ArrowRight, Search, Star } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from '@/lib/reactRouterDomCompat'
 import {
   Badge,
   Button,

@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
+import { Navigate, useLocation } from '@/lib/reactRouterDomCompat'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 
 export interface RequireAuthProps {

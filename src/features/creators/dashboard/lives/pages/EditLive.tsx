@@ -1,4 +1,4 @@
-﻿import { useParams, Navigate } from 'react-router-dom'
+import { useParams, Navigate } from '@/lib/reactRouterDomCompat'
 import { CreatorDashboardShell } from '@/shared/layouts'
 import { LiveForm } from '../components/LiveForm'
 import { useLive, useUpdateLive } from '@/features/hub/lives/hooks/useLives'

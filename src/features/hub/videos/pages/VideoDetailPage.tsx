@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { Helmet } from '@/lib/helmet'
-import { Navigate, useParams } from 'react-router-dom'
+import { Navigate, useParams } from '@/lib/reactRouterDomCompat'
 import { Clock3, PlayCircle } from 'lucide-react'
 import { Card } from '@/components/ui'
 import { ContentMeta, RatingsSection, CommentSection } from '@/features/hub/components'

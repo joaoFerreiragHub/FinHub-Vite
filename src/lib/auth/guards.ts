@@ -1,4 +1,4 @@
-import { redirect, LoaderFunctionArgs } from 'react-router-dom'
+import { redirect, LoaderFunctionArgs } from '@/lib/reactRouterDomCompat'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { canAccessAdminPath, getDefaultAdminPath } from '@/features/admin/lib/access'
 

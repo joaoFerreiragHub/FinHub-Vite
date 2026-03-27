@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate } from '@/lib/reactRouterDomCompat'
 import { usePermissions } from '@/features/auth/hooks/usePermissions'
 import { UserRole } from '@/features/auth/types'
 import { Permission } from '@/lib/permissions/config'

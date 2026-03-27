@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, Navigate } from 'react-router-dom'
+import { useParams, Navigate } from '@/lib/reactRouterDomCompat'
 import { usePodcast } from '../hooks/usePodcasts'
 import { podcastService } from '../services/podcastService'
 import {

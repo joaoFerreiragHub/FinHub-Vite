@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs } from 'react-router-dom'
+import type { LoaderFunctionArgs } from '@/lib/reactRouterDomCompat'
 import { UserRole } from '@/features/auth/types'
 import { requireAdmin } from '@/lib/auth/guards'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'

@@ -1,5 +1,5 @@
-﻿import BrandsExchangesPage from '@/features/brands/pages/BrandsExchangesPage'
-import { Route, Routes } from 'react-router-dom'
+import BrandsExchangesPage from '@/features/brands/pages/BrandsExchangesPage'
+import { Route, Routes } from '@/lib/reactRouterDomCompat'
 
 export function Page() {
   return (

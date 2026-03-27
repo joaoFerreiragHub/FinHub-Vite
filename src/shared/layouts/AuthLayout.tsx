@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate } from '@/lib/reactRouterDomCompat'
 import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { Card } from '@/components/ui'
 

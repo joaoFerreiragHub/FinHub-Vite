@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
+import { Link } from '@/lib/reactRouterDomCompat'
 import { ArrowLeft, CalendarClock, FileText } from 'lucide-react'
 import { Button } from '@/components/ui'
 import {
@@ -137,9 +137,10 @@ export function LegalDocumentPage({ documentKey }: LegalDocumentPageProps) {
               Conteudo indisponivel temporariamente. Mostramos uma versao de fallback.
             </p>
           ) : null}
-          <p className="whitespace-pre-line text-sm leading-7 text-foreground sm:text-base">
-            {document.content}
-          </p>
+          <div
+            className="text-sm leading-7 text-foreground sm:text-base [&_a]:text-brand [&_a]:underline [&_h2]:mb-2 [&_h2]:mt-8 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:text-foreground first:[&_h2]:mt-0 [&_h3]:mb-1 [&_h3]:mt-5 [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-foreground [&_li]:my-0.5 [&_li]:leading-7 [&_p]:mb-3 [&_p]:leading-7 [&_strong]:font-semibold [&_ul]:mb-3 [&_ul]:list-disc [&_ul]:pl-6"
+            dangerouslySetInnerHTML={{ __html: document.content }}
+          />
         </section>
 
         <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">

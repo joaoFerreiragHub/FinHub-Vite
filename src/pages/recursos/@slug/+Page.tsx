@@ -1,5 +1,5 @@
-﻿import BrandDetailPage from '@/features/brands/pages/BrandDetailPage'
-import { Route, Routes } from 'react-router-dom'
+import BrandDetailPage from '@/features/brands/pages/BrandDetailPage'
+import { Route, Routes } from '@/lib/reactRouterDomCompat'
 
 export const passToClient = ['routeParams']
 

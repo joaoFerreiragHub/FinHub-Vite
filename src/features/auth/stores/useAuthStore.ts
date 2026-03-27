@@ -96,6 +96,20 @@ const buildDevAuthState = (role: UserRole) => {
   }
 }
 
+const setBetaSessionCookie = () => {
+  // Beta session cookie — permite gate server-side
+  if (typeof document !== 'undefined') {
+    document.cookie = 'betaSession=valid; path=/; max-age=604800; SameSite=Lax'
+  }
+}
+
+const clearBetaSessionCookie = () => {
+  // Remover cookie de sessao beta
+  if (typeof document !== 'undefined') {
+    document.cookie = 'betaSession=; path=/; max-age=0; SameSite=Lax'
+  }
+}
+
 /**
  * Store principal de autenticação usando Zustand
  *
@@ -121,13 +135,8 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true })
         try {
           const response = await authService.login(credentials)
-          set({
-            user: response.user,
-            accessToken: response.tokens.accessToken,
-            refreshToken: response.tokens.refreshToken,
-            isAuthenticated: true,
-            isLoading: false,
-          })
+          get().setUser(response.user, response.tokens.accessToken, response.tokens.refreshToken)
+          set({ isLoading: false })
         } catch (error) {
           set({ isLoading: false })
           throw error
@@ -138,13 +147,8 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true })
         try {
           const response = await authService.register(data)
-          set({
-            user: response.user,
-            accessToken: response.tokens.accessToken,
-            refreshToken: response.tokens.refreshToken,
-            isAuthenticated: true,
-            isLoading: false,
-          })
+          get().setUser(response.user, response.tokens.accessToken, response.tokens.refreshToken)
+          set({ isLoading: false })
         } catch (error) {
           set({ isLoading: false })
           throw error
@@ -162,6 +166,7 @@ export const useAuthStore = create<AuthStore>()(
         if (typeof window !== 'undefined') {
           localStorage.removeItem(ASSISTED_BACKUP_STORAGE_KEY)
         }
+        clearBetaSessionCookie()
         set({
           user: null,
           accessToken: null,
@@ -200,6 +205,7 @@ export const useAuthStore = create<AuthStore>()(
           refreshToken,
           isAuthenticated: true,
         })
+        setBetaSessionCookie()
       },
 
       updateUser: (data: Partial<User>) => {
@@ -216,6 +222,7 @@ export const useAuthStore = create<AuthStore>()(
         if (typeof window !== 'undefined') {
           localStorage.removeItem(ASSISTED_BACKUP_STORAGE_KEY)
         }
+        clearBetaSessionCookie()
         set({
           user: null,
           accessToken: null,
@@ -266,7 +273,7 @@ export const useAuthStore = create<AuthStore>()(
         // Set hydrated IMMEDIATELY to unblock UI
         useAuthStore.setState({ hydrated: true })
 
-        if (isDevelopment()) {
+        if (import.meta.env.DEV && import.meta.env.VITE_DEV_AUTO_LOGIN === 'true') {
           const hasRealUser = !!state?.user && state.user.id !== DEV_MOCK_USER.id
           if (!hasRealUser) {
             const preferredRole = isValidRole(state?.user?.role)
@@ -304,7 +311,7 @@ if (typeof window !== 'undefined') {
       useAuthStore.setState({ hydrated: true })
     }
 
-    if (isDevelopment() && !state.user) {
+    if (import.meta.env.DEV && import.meta.env.VITE_DEV_AUTO_LOGIN === 'true' && !state.user) {
       const preferredRole = getStoredDevRole()
       useAuthStore.setState(buildDevAuthState(preferredRole))
       console.log(`🔧 [DEV] Sessao dev aplicada via fallback com role: ${preferredRole}`)

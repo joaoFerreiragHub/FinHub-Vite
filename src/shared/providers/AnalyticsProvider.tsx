@@ -20,6 +20,7 @@ export function AnalyticsProvider() {
   const user = useAuthStore((state) => state.user)
   const hydrated = useAuthStore((state) => state.hydrated)
   const userCookieConsent = user?.cookieConsent
+  const userAllowsAnalytics = user?.allowAnalytics !== false
   const runtimeConfigQuery = usePlatformRuntimeConfig()
   const runtimeConfig = runtimeConfigQuery.data ?? platformRuntimeConfigService.getFallback()
   const runtimePosthog = runtimeConfig.analytics.posthog
@@ -57,8 +58,11 @@ export function AnalyticsProvider() {
       dispatchCookieConsentUpdated()
     }
 
-    const consentGranted = user?.id ? Boolean(userCookieConsent?.analytics) : visitorConsentGranted
+    const cookieConsentGranted = user?.id
+      ? Boolean(userCookieConsent?.analytics)
+      : visitorConsentGranted
 
+    const consentGranted = cookieConsentGranted && userAllowsAnalytics
     setAnalyticsConsent(consentGranted)
 
     if (consentGranted && user?.id) {
@@ -73,6 +77,7 @@ export function AnalyticsProvider() {
     runtimePosthog.host,
     runtimePosthog.key,
     userCookieConsent,
+    userAllowsAnalytics,
     visitorConsentGranted,
     user?.id,
     user?.email,

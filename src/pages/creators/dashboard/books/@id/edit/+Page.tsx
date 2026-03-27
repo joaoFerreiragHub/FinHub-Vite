@@ -1,5 +1,5 @@
 import { EditBook } from '@/features/creators/dashboard/books'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes } from '@/lib/reactRouterDomCompat'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const resolveId = (props: any): string => {

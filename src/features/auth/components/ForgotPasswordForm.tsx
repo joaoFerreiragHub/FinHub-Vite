@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link } from 'react-router-dom'
+import { Link } from '@/lib/reactRouterDomCompat'
 import { Button, Input, Label } from '@/components/ui'
 import { getErrorMessage } from '@/lib/api/client'
 import { forgotPasswordSchema, type ForgotPasswordFormData } from '../schemas/authSchemas'

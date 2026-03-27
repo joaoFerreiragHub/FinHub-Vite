@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from '@/lib/reactRouterDomCompat'
 import {
   Eye,
   Heart,
@@ -14,11 +14,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Button, Card } from '@/components/ui'
 import type { ContentFilters } from '@/features/hub/types'
-import {
-  useDeleteVideo,
-  useMyVideos,
-  usePublishVideo,
-} from '@/features/hub/videos/hooks/useVideos'
+import { useDeleteVideo, useMyVideos, usePublishVideo } from '@/features/hub/videos/hooks/useVideos'
 
 type VideoStatusFilter = NonNullable<ContentFilters['status']>
 type VideoSortFilter = NonNullable<ContentFilters['sortBy']>

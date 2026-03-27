@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from '@/lib/reactRouterDomCompat'
 import { ArrowRight, Compass, LayoutTemplate, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui'
 

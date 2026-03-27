@@ -1,4 +1,4 @@
-﻿import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import { useAuthStore } from '@/features/auth/stores/useAuthStore'
 import { apiClient } from './api/client'
 import { captureEvent, identifyUser } from './analyticsProviders'
 
@@ -200,6 +200,7 @@ export const resolveContentViewMatch = (pathname: string): ContentViewMatch | nu
 
 export function trackEvent<TName extends EventName>({ name, properties }: TrackEventProps<TName>) {
   const { user } = useAuthStore.getState()
+  if (user?.allowAnalytics === false) return
   const baseProps = {
     userId: user?.id || 'anonymous',
     userRole: user?.role || 'visitor',

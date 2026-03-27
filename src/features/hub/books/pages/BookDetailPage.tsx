@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useParams, Navigate } from 'react-router-dom'
+import { useParams, Navigate } from '@/lib/reactRouterDomCompat'
 import { useBook } from '../hooks/useBooks'
 import { bookService } from '../services/bookService'
 import {

@@ -1,4 +1,4 @@
-﻿import { useParams, Navigate } from 'react-router-dom'
+import { useParams, Navigate } from '@/lib/reactRouterDomCompat'
 import { CreatorDashboardShell } from '@/shared/layouts'
 import { PodcastForm } from '../components/PodcastForm'
 import { usePodcast, useUpdatePodcast } from '@/features/hub/podcasts/hooks/usePodcasts'

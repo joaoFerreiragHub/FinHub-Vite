@@ -1,4 +1,4 @@
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from '@/lib/reactRouterDomCompat'
 import { Button } from '@/components/ui'
 import { ResetPasswordForm } from '@/features/auth/components/ResetPasswordForm'
 

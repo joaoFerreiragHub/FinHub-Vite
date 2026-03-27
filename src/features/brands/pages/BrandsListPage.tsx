@@ -15,7 +15,7 @@ import {
   Star,
   Wallet,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from '@/lib/reactRouterDomCompat'
 import {
   Badge,
   Button,

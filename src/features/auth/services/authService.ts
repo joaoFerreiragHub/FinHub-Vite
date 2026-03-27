@@ -45,11 +45,20 @@ export interface UpdateMyProfileRequest {
     instagram?: string | null
     youtube?: string | null
   } | null
+  allowAnalytics?: boolean
 }
 
 export interface UpdateMyProfileResponse {
   message: string
   user: MeResponse['user']
+}
+
+export interface UploadAvatarResponse {
+  message: string
+  avatar: string
+  avatarUrl: string
+  publicId?: string
+  user?: MeResponse['user']
 }
 
 interface DeleteMyAccountRequest {
@@ -63,19 +72,40 @@ interface DeleteMyAccountResponse {
 }
 
 interface ExportMyDataResponse {
-  exportedAt: string
-  formatVersion: string
-  user: MeResponse['user']
-  data: Record<string, unknown>
-  summary?: {
-    favoritesCount?: number
-    followingCount?: number
-    followersCount?: number
-    claimRequestsCount?: number
-    creatorSubscriptionsCount?: number
+  profile: {
+    name: string
+    email: string
+    bio: string | null
+    avatar: string | null
+    topics: string[]
+    socialLinks: {
+      website?: string
+      twitter?: string
+      linkedin?: string
+      instagram?: string
+      youtube?: string
+    }
+    createdAt: string
   }
+  content: {
+    articles: string[]
+    courses: string[]
+    videos: string[]
+  }
+  community: {
+    posts: string[]
+    replies: string[]
+    xp: {
+      level: number
+      totalXp: number
+      badges: Array<{ id: string; unlockedAt: string }>
+    }
+  }
+  analytics: {
+    allowAnalytics: boolean
+  }
+  exportedAt: string
 }
-
 /**
  * Authentication Service
  *
@@ -161,10 +191,33 @@ export const authService = {
   },
 
   /**
+   * Upload de avatar da conta autenticada
+   */
+  uploadAvatar: async (file: File): Promise<UploadAvatarResponse> => {
+    const formData = new FormData()
+    formData.append('avatar', file)
+
+    const response = await apiClient.post<UploadAvatarResponse>('/account/avatar', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+
+    return response.data
+  },
+
+  /**
+   * Alias legado para compatibilidade com componentes antigos.
+   */
+  uploadMyAvatar: async (file: File): Promise<UploadAvatarResponse> => {
+    return authService.uploadAvatar(file)
+  },
+
+  /**
    * Exportar dados da conta autenticada (RGPD)
    */
   exportMyData: async (): Promise<ExportMyDataResponse> => {
-    const response = await apiClient.get<ExportMyDataResponse>('/users/me/export')
+    const response = await apiClient.get<ExportMyDataResponse>('/account/export')
     return response.data
   },
 

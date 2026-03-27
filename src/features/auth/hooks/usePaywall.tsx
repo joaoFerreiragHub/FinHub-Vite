@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@/lib/reactRouterDomCompat'
 import { usePermissions } from './usePermissions'
 import { Permission } from '@/lib/permissions/config'
 import { UserRole } from '../types'

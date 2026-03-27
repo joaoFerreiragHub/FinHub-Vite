@@ -97,6 +97,7 @@ export interface User {
   assistedSession?: AssistedSessionContext
   legalAcceptance?: UserLegalAcceptance
   cookieConsent?: UserCookieConsent
+  allowAnalytics?: boolean
   isEmailVerified: boolean
   favoriteTopics?: string[]
   level?: number

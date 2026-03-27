@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { Loader2, Rss } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@/lib/reactRouterDomCompat'
 import { Button, Skeleton } from '@/components/ui'
 import { ActivityFeedItem } from '@/features/social/components/ActivityFeedItem'
 import { useActivityFeed } from '@/features/social/hooks/useSocial'
@@ -48,7 +48,7 @@ export default function FollowingFeedPage() {
           void fetchNextPage()
         }
       },
-      { threshold: 0.2 }
+      { threshold: 0.2 },
     )
 
     observer.observe(target)
@@ -114,8 +114,7 @@ export default function FollowingFeedPage() {
           <div ref={loadMoreRef} className="flex min-h-12 items-center justify-center">
             {isFetchingNextPage ? (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                A carregar mais...
+                <Loader2 className="h-4 w-4 animate-spin" />A carregar mais...
               </div>
             ) : hasNextPage ? (
               <span className="text-xs text-muted-foreground">A deslizar para mais...</span>

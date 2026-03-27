@@ -9,6 +9,10 @@ interface CoursesSectionProps {
 
 const CoursesSection: React.FC<CoursesSectionProps> = ({ courses, onCourseClick }) => {
   const [userRatings, setUserRatings] = useState<Record<string, number>>({})
+  const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(
+    /\/+$/,
+    '',
+  )
 
   useEffect(() => {
     const fetchAverageRatings = async () => {
@@ -19,9 +23,7 @@ const CoursesSection: React.FC<CoursesSectionProps> = ({ courses, onCourseClick 
       await Promise.all(
         courses.map(async (course) => {
           try {
-            const response = await fetch(
-              `${process.env.REACT_APP_API_URL}ratings/course/${course.id}/average-rating`,
-            )
+            const response = await fetch(`${apiBaseUrl}/ratings/course/${course.id}/average-rating`)
             const data = await response.json()
             ratings[course.id] = data.averageRating ?? 0
           } catch (error) {
@@ -34,7 +36,7 @@ const CoursesSection: React.FC<CoursesSectionProps> = ({ courses, onCourseClick 
     }
 
     fetchAverageRatings()
-  }, [courses])
+  }, [apiBaseUrl, courses])
 
   return (
     <div className="courses-section">

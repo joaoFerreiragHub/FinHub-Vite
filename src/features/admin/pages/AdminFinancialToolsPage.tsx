@@ -10,7 +10,7 @@ import {
   Settings2,
   ShieldAlert,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from '@/lib/reactRouterDomCompat'
 import { toast } from 'react-toastify'
 import {
   Badge,
@@ -250,7 +250,9 @@ export default function AdminFinancialToolsPage() {
       return toast.error(getErrorMessage(error))
     }
 
-    const envOverrides: Partial<Record<AdminFinancialToolEnvironment, AdminFinancialToolConfigOverride | null>> = {}
+    const envOverrides: Partial<
+      Record<AdminFinancialToolEnvironment, AdminFinancialToolConfigOverride | null>
+    > = {}
     if (devOverride !== undefined) envOverrides.development = devOverride
     if (stagingOverride !== undefined) envOverrides.staging = stagingOverride
     if (prodOverride !== undefined) envOverrides.production = prodOverride
@@ -326,10 +328,15 @@ export default function AdminFinancialToolsPage() {
           <Select
             value={filters.environment}
             onValueChange={(value) =>
-              setFilters((prev) => ({ ...prev, environment: value as AdminFinancialToolEnvironment }))
+              setFilters((prev) => ({
+                ...prev,
+                environment: value as AdminFinancialToolEnvironment,
+              }))
             }
           >
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="development">Development</SelectItem>
               <SelectItem value="staging">Staging</SelectItem>
@@ -342,7 +349,9 @@ export default function AdminFinancialToolsPage() {
               setFilters((prev) => ({ ...prev, tool: value as AdminFinancialToolKey | 'all' }))
             }
           >
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas</SelectItem>
               <SelectItem value="stocks">Stocks</SelectItem>
@@ -351,11 +360,31 @@ export default function AdminFinancialToolsPage() {
               <SelectItem value="crypto">Crypto</SelectItem>
             </SelectContent>
           </Select>
-          <Input type="number" min={1} max={90} value={filters.days} onChange={(e) => setFilters((p) => ({ ...p, days: e.target.value }))} />
+          <Input
+            type="number"
+            min={1}
+            max={90}
+            value={filters.days}
+            onChange={(e) => setFilters((p) => ({ ...p, days: e.target.value }))}
+          />
           <div className="flex flex-wrap gap-2">
-            <Button type="button" onClick={() => setQueryFilters(filters)}>Aplicar</Button>
-            <Button type="button" variant="outline" onClick={() => { void controlsQuery.refetch(); void usageQuery.refetch() }} disabled={controlsQuery.isFetching || usageQuery.isFetching}>
-              {controlsQuery.isFetching || usageQuery.isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCcw className="h-4 w-4" />}
+            <Button type="button" onClick={() => setQueryFilters(filters)}>
+              Aplicar
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                void controlsQuery.refetch()
+                void usageQuery.refetch()
+              }}
+              disabled={controlsQuery.isFetching || usageQuery.isFetching}
+            >
+              {controlsQuery.isFetching || usageQuery.isFetching ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCcw className="h-4 w-4" />
+              )}
               Refresh
             </Button>
           </div>
@@ -363,32 +392,107 @@ export default function AdminFinancialToolsPage() {
       </Card>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard title="Requests" value={formatNumber(usage?.totals.requests ?? 0)} description={`Desde ${usage?.sinceDay ?? '-'}`} icon={Activity} />
-        <KpiCard title="Success rate" value={formatPercent(usage?.totals.successRatePercent ?? 0)} description="Taxa de sucesso global." tone={(usage?.totals.successRatePercent ?? 0) >= 98 ? 'success' : 'warn'} icon={Gauge} />
-        <KpiCard title="Error rate" value={formatPercent(usage?.totals.errorRatePercent ?? 0)} description="4xx + 5xx." tone={(usage?.totals.errorRatePercent ?? 0) >= 5 ? 'danger' : 'warn'} icon={AlertTriangle} />
-        <KpiCard title="Tools" value={formatNumber(controls.length)} description={`Ambiente ${queryFilters.environment}`} icon={Bot} />
+        <KpiCard
+          title="Requests"
+          value={formatNumber(usage?.totals.requests ?? 0)}
+          description={`Desde ${usage?.sinceDay ?? '-'}`}
+          icon={Activity}
+        />
+        <KpiCard
+          title="Success rate"
+          value={formatPercent(usage?.totals.successRatePercent ?? 0)}
+          description="Taxa de sucesso global."
+          tone={(usage?.totals.successRatePercent ?? 0) >= 98 ? 'success' : 'warn'}
+          icon={Gauge}
+        />
+        <KpiCard
+          title="Error rate"
+          value={formatPercent(usage?.totals.errorRatePercent ?? 0)}
+          description="4xx + 5xx."
+          tone={(usage?.totals.errorRatePercent ?? 0) >= 5 ? 'danger' : 'warn'}
+          icon={AlertTriangle}
+        />
+        <KpiCard
+          title="Tools"
+          value={formatNumber(controls.length)}
+          description={`Ambiente ${queryFilters.environment}`}
+          icon={Bot}
+        />
       </section>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Control plane por ferramenta</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="text-base">Control plane por ferramenta</CardTitle>
+        </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Tool</TableHead><TableHead>Efetiva</TableHead><TableHead>Base</TableHead><TableHead>Version</TableHead><TableHead>Updated</TableHead><TableHead className="text-right">Acao</TableHead>
+                <TableHead>Tool</TableHead>
+                <TableHead>Efetiva</TableHead>
+                <TableHead>Base</TableHead>
+                <TableHead>Version</TableHead>
+                <TableHead>Updated</TableHead>
+                <TableHead className="text-right">Acao</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {controls.length === 0 ? <TableRow><TableCell colSpan={6} className="text-muted-foreground">Sem controlos para filtros atuais.</TableCell></TableRow> : controls.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell><p className="font-medium">{item.label}</p><p className="text-xs text-muted-foreground">{TOOL_LABEL[item.tool]} | {VERTICAL_LABEL[item.vertical]}</p></TableCell>
-                  <TableCell><div className="flex flex-wrap gap-1 text-xs"><Badge variant={item.effectiveConfig.enabled ? 'secondary' : 'destructive'}>{item.effectiveConfig.enabled ? 'on' : 'off'}</Badge><Badge variant="outline">max {item.effectiveConfig.maxSymbolsPerRequest}</Badge><Badge variant="outline">ttl {item.effectiveConfig.cacheTtlSeconds}s</Badge><Badge variant="outline">rpm {item.effectiveConfig.requestsPerMinute}</Badge></div></TableCell>
-                  <TableCell><div className="flex flex-wrap gap-1 text-xs"><Badge variant={item.baseConfig.enabled ? 'secondary' : 'destructive'}>{item.baseConfig.enabled ? 'on' : 'off'}</Badge><Badge variant="outline">max {item.baseConfig.maxSymbolsPerRequest}</Badge><Badge variant="outline">ttl {item.baseConfig.cacheTtlSeconds}s</Badge><Badge variant="outline">rpm {item.baseConfig.requestsPerMinute}</Badge></div></TableCell>
-                  <TableCell>v{item.version}</TableCell>
-                  <TableCell>{formatDateTime(item.updatedAt)}</TableCell>
-                  <TableCell className="text-right"><Button type="button" size="sm" variant="outline" disabled={!canWrite} onClick={() => openEditDialog(item)}><Pencil className="mr-1 h-4 w-4" />Editar</Button></TableCell>
+              {controls.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-muted-foreground">
+                    Sem controlos para filtros atuais.
+                  </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                controls.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell>
+                      <p className="font-medium">{item.label}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {TOOL_LABEL[item.tool]} | {VERTICAL_LABEL[item.vertical]}
+                      </p>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1 text-xs">
+                        <Badge variant={item.effectiveConfig.enabled ? 'secondary' : 'destructive'}>
+                          {item.effectiveConfig.enabled ? 'on' : 'off'}
+                        </Badge>
+                        <Badge variant="outline">
+                          max {item.effectiveConfig.maxSymbolsPerRequest}
+                        </Badge>
+                        <Badge variant="outline">ttl {item.effectiveConfig.cacheTtlSeconds}s</Badge>
+                        <Badge variant="outline">
+                          rpm {item.effectiveConfig.requestsPerMinute}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1 text-xs">
+                        <Badge variant={item.baseConfig.enabled ? 'secondary' : 'destructive'}>
+                          {item.baseConfig.enabled ? 'on' : 'off'}
+                        </Badge>
+                        <Badge variant="outline">max {item.baseConfig.maxSymbolsPerRequest}</Badge>
+                        <Badge variant="outline">ttl {item.baseConfig.cacheTtlSeconds}s</Badge>
+                        <Badge variant="outline">rpm {item.baseConfig.requestsPerMinute}</Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>v{item.version}</TableCell>
+                    <TableCell>{formatDateTime(item.updatedAt)}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={!canWrite}
+                        onClick={() => openEditDialog(item)}
+                      >
+                        <Pencil className="mr-1 h-4 w-4" />
+                        Editar
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
@@ -396,26 +500,149 @@ export default function AdminFinancialToolsPage() {
 
       <Dialog open={dialogOpen} onOpenChange={(open) => (!open ? closeEditDialog() : undefined)}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
-          <DialogHeader><DialogTitle>Editar financial tool</DialogTitle><DialogDescription>Overrides aceitam JSON ({'{}'}) ou `null` para limpar ambiente.</DialogDescription></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Editar financial tool</DialogTitle>
+            <DialogDescription>
+              Overrides aceitam JSON ({'{}'}) ou `null` para limpar ambiente.
+            </DialogDescription>
+          </DialogHeader>
           {selectedTool && editForm ? (
             <div className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-2">
-                <div><Label>Label</Label><Input value={editForm.label} onChange={(e) => setEditForm((p) => p ? { ...p, label: e.target.value } : p)} /></div>
-                <div><Label>Notas</Label><Input value={editForm.notes} onChange={(e) => setEditForm((p) => p ? { ...p, notes: e.target.value } : p)} /></div>
-                <div><Label>Base enabled</Label><Select value={editForm.baseEnabled ? 'true' : 'false'} onValueChange={(v) => setEditForm((p) => p ? { ...p, baseEnabled: v === 'true' } : p)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="true">On</SelectItem><SelectItem value="false">Off</SelectItem></SelectContent></Select></div>
-                <div><Label>Base max symbols</Label><Input type="number" min={1} value={editForm.baseMaxSymbolsPerRequest} onChange={(e) => setEditForm((p) => p ? { ...p, baseMaxSymbolsPerRequest: e.target.value } : p)} /></div>
-                <div><Label>Base cache ttl (s)</Label><Input type="number" min={0} value={editForm.baseCacheTtlSeconds} onChange={(e) => setEditForm((p) => p ? { ...p, baseCacheTtlSeconds: e.target.value } : p)} /></div>
-                <div><Label>Base requests/min</Label><Input type="number" min={1} value={editForm.baseRequestsPerMinute} onChange={(e) => setEditForm((p) => p ? { ...p, baseRequestsPerMinute: e.target.value } : p)} /></div>
-                <div><Label>Base experience</Label><Select value={editForm.baseExperienceMode} onValueChange={(v) => setEditForm((p) => p ? { ...p, baseExperienceMode: v as AdminFinancialToolExperienceMode } : p)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="legacy">Legacy</SelectItem><SelectItem value="standard">Standard</SelectItem><SelectItem value="enhanced">Enhanced</SelectItem></SelectContent></Select></div>
+                <div>
+                  <Label>Label</Label>
+                  <Input
+                    value={editForm.label}
+                    onChange={(e) => setEditForm((p) => (p ? { ...p, label: e.target.value } : p))}
+                  />
+                </div>
+                <div>
+                  <Label>Notas</Label>
+                  <Input
+                    value={editForm.notes}
+                    onChange={(e) => setEditForm((p) => (p ? { ...p, notes: e.target.value } : p))}
+                  />
+                </div>
+                <div>
+                  <Label>Base enabled</Label>
+                  <Select
+                    value={editForm.baseEnabled ? 'true' : 'false'}
+                    onValueChange={(v) =>
+                      setEditForm((p) => (p ? { ...p, baseEnabled: v === 'true' } : p))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">On</SelectItem>
+                      <SelectItem value="false">Off</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Base max symbols</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={editForm.baseMaxSymbolsPerRequest}
+                    onChange={(e) =>
+                      setEditForm((p) =>
+                        p ? { ...p, baseMaxSymbolsPerRequest: e.target.value } : p,
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <Label>Base cache ttl (s)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={editForm.baseCacheTtlSeconds}
+                    onChange={(e) =>
+                      setEditForm((p) => (p ? { ...p, baseCacheTtlSeconds: e.target.value } : p))
+                    }
+                  />
+                </div>
+                <div>
+                  <Label>Base requests/min</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={editForm.baseRequestsPerMinute}
+                    onChange={(e) =>
+                      setEditForm((p) => (p ? { ...p, baseRequestsPerMinute: e.target.value } : p))
+                    }
+                  />
+                </div>
+                <div>
+                  <Label>Base experience</Label>
+                  <Select
+                    value={editForm.baseExperienceMode}
+                    onValueChange={(v) =>
+                      setEditForm((p) =>
+                        p ? { ...p, baseExperienceMode: v as AdminFinancialToolExperienceMode } : p,
+                      )
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="legacy">Legacy</SelectItem>
+                      <SelectItem value="standard">Standard</SelectItem>
+                      <SelectItem value="enhanced">Enhanced</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="grid gap-3 sm:grid-cols-3">
-                <div><Label>Override development (JSON/null)</Label><Textarea rows={6} value={editForm.devOverride} onChange={(e) => setEditForm((p) => p ? { ...p, devOverride: e.target.value } : p)} /></div>
-                <div><Label>Override staging (JSON/null)</Label><Textarea rows={6} value={editForm.stagingOverride} onChange={(e) => setEditForm((p) => p ? { ...p, stagingOverride: e.target.value } : p)} /></div>
-                <div><Label>Override production (JSON/null)</Label><Textarea rows={6} value={editForm.prodOverride} onChange={(e) => setEditForm((p) => p ? { ...p, prodOverride: e.target.value } : p)} /></div>
+                <div>
+                  <Label>Override development (JSON/null)</Label>
+                  <Textarea
+                    rows={6}
+                    value={editForm.devOverride}
+                    onChange={(e) =>
+                      setEditForm((p) => (p ? { ...p, devOverride: e.target.value } : p))
+                    }
+                  />
+                </div>
+                <div>
+                  <Label>Override staging (JSON/null)</Label>
+                  <Textarea
+                    rows={6}
+                    value={editForm.stagingOverride}
+                    onChange={(e) =>
+                      setEditForm((p) => (p ? { ...p, stagingOverride: e.target.value } : p))
+                    }
+                  />
+                </div>
+                <div>
+                  <Label>Override production (JSON/null)</Label>
+                  <Textarea
+                    rows={6}
+                    value={editForm.prodOverride}
+                    onChange={(e) =>
+                      setEditForm((p) => (p ? { ...p, prodOverride: e.target.value } : p))
+                    }
+                  />
+                </div>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                <div><Label>Motivo (obrigatorio)</Label><Input value={editForm.reason} onChange={(e) => setEditForm((p) => p ? { ...p, reason: e.target.value } : p)} /></div>
-                <div><Label>Nota (opcional)</Label><Input value={editForm.note} onChange={(e) => setEditForm((p) => p ? { ...p, note: e.target.value } : p)} /></div>
+                <div>
+                  <Label>Motivo (obrigatorio)</Label>
+                  <Input
+                    value={editForm.reason}
+                    onChange={(e) => setEditForm((p) => (p ? { ...p, reason: e.target.value } : p))}
+                  />
+                </div>
+                <div>
+                  <Label>Nota (opcional)</Label>
+                  <Input
+                    value={editForm.note}
+                    onChange={(e) => setEditForm((p) => (p ? { ...p, note: e.target.value } : p))}
+                  />
+                </div>
               </div>
             </div>
           ) : null}

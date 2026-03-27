@@ -1,5 +1,5 @@
-﻿import BrandsPodcastsPage from '@/features/brands/pages/BrandsPodcastsPage'
-import { Route, Routes } from 'react-router-dom'
+import BrandsPodcastsPage from '@/features/brands/pages/BrandsPodcastsPage'
+import { Route, Routes } from '@/lib/reactRouterDomCompat'
 
 export function Page() {
   return (

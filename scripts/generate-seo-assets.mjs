@@ -6,49 +6,13 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const projectRoot = resolve(__dirname, '..')
 const publicDir = resolve(projectRoot, 'public')
 
-const siteUrl = (process.env.VITE_SITE_URL || 'https://finhub.pt').replace(/\/+$/, '')
+const siteUrl = (process.env.SITE_URL || process.env.VITE_SITE_URL || 'https://finhub.pt').replace(
+  /\/+$/,
+  '',
+)
 const lastMod = new Date().toISOString().slice(0, 10)
 
-const publicRoutes = [
-  { path: '/', changefreq: 'daily', priority: '1.0' },
-  { path: '/explorar/tudo', changefreq: 'daily', priority: '0.9' },
-  { path: '/explorar/artigos', changefreq: 'daily', priority: '0.8' },
-  { path: '/explorar/videos', changefreq: 'daily', priority: '0.8' },
-  { path: '/explorar/cursos', changefreq: 'daily', priority: '0.8' },
-  { path: '/explorar/eventos', changefreq: 'weekly', priority: '0.7' },
-  { path: '/explorar/podcasts', changefreq: 'weekly', priority: '0.7' },
-  { path: '/explorar/livros', changefreq: 'weekly', priority: '0.7' },
-  { path: '/criadores', changefreq: 'daily', priority: '0.8' },
-  { path: '/criadores/top', changefreq: 'daily', priority: '0.7' },
-  { path: '/recursos', changefreq: 'weekly', priority: '0.8' },
-  { path: '/recursos/corretoras', changefreq: 'weekly', priority: '0.7' },
-  { path: '/recursos/plataformas', changefreq: 'weekly', priority: '0.7' },
-  { path: '/recursos/exchanges', changefreq: 'weekly', priority: '0.7' },
-  { path: '/recursos/apps', changefreq: 'weekly', priority: '0.7' },
-  { path: '/recursos/sites', changefreq: 'weekly', priority: '0.7' },
-  { path: '/recursos/podcasts', changefreq: 'weekly', priority: '0.7' },
-  { path: '/recursos/livros', changefreq: 'weekly', priority: '0.7' },
-  { path: '/recursos/comparar', changefreq: 'weekly', priority: '0.7' },
-  { path: '/aprender', changefreq: 'weekly', priority: '0.7' },
-  { path: '/aprender/noticias', changefreq: 'daily', priority: '0.7' },
-  { path: '/aprender/glossario', changefreq: 'weekly', priority: '0.6' },
-  { path: '/aprender/cursos-gratuitos', changefreq: 'weekly', priority: '0.6' },
-  { path: '/aprender/guias', changefreq: 'weekly', priority: '0.6' },
-  { path: '/mercados', changefreq: 'daily', priority: '0.8' },
-  { path: '/mercados/acoes', changefreq: 'daily', priority: '0.7' },
-  { path: '/mercados/etfs', changefreq: 'daily', priority: '0.7' },
-  { path: '/mercados/reits', changefreq: 'daily', priority: '0.7' },
-  { path: '/mercados/cripto', changefreq: 'daily', priority: '0.7' },
-  { path: '/mercados/watchlist', changefreq: 'daily', priority: '0.7' },
-  { path: '/ferramentas', changefreq: 'daily', priority: '0.7' },
-  { path: '/sobre', changefreq: 'monthly', priority: '0.5' },
-  { path: '/contacto', changefreq: 'monthly', priority: '0.5' },
-  { path: '/faq', changefreq: 'monthly', priority: '0.5' },
-  { path: '/termos', changefreq: 'monthly', priority: '0.4' },
-  { path: '/privacidade', changefreq: 'monthly', priority: '0.4' },
-  { path: '/cookies', changefreq: 'monthly', priority: '0.4' },
-  { path: '/aviso-legal', changefreq: 'monthly', priority: '0.4' },
-]
+const fallbackRoutes = ['/', '/hub/conteudos', '/criadores', '/recursos', '/ferramentas/fire', '/precos', '/comunidade']
 
 const disallowPaths = [
   '/admin/',
@@ -68,16 +32,15 @@ const disallowPaths = [
 const renderSitemap = () => {
   const lines = [
     '<?xml version="1.0" encoding="UTF-8"?>',
+    '<!-- fallback estático — sitemap dinâmico em server/index.mjs -->',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
   ]
 
-  for (const route of publicRoutes) {
-    const loc = route.path === '/' ? `${siteUrl}/` : `${siteUrl}${route.path}`
+  for (const route of fallbackRoutes) {
+    const loc = route === '/' ? `${siteUrl}/` : `${siteUrl}${route}`
     lines.push('  <url>')
     lines.push(`    <loc>${loc}</loc>`)
     lines.push(`    <lastmod>${lastMod}</lastmod>`)
-    lines.push(`    <changefreq>${route.changefreq}</changefreq>`)
-    lines.push(`    <priority>${route.priority}</priority>`)
     lines.push('  </url>')
   }
 

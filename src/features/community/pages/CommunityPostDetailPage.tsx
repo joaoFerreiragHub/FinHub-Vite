@@ -385,7 +385,7 @@ export function CommunityPostDetailPage({ postId }: CommunityPostDetailPageProps
                 rows={3}
                 maxLength={5000}
                 placeholder="Escreve a tua resposta..."
-                className="text-sm"
+                className="bg-background text-foreground border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring text-sm"
               />
               <div className="flex items-center gap-2">
                 <Button
@@ -558,7 +558,7 @@ export function CommunityPostDetailPage({ postId }: CommunityPostDetailPageProps
               rows={4}
               maxLength={5000}
               placeholder="Partilha a tua perspetiva..."
-              className="text-sm"
+              className="bg-background text-foreground border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring text-sm"
             />
             {formError ? <p className="text-sm text-destructive">{formError}</p> : null}
             <Button

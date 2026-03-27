@@ -16,15 +16,20 @@ const pendingEvents: Array<{ name: string; properties?: AnalyticsProps }> = []
 const MAX_PENDING_EVENTS = 100
 
 const ENV_POSTHOG_KEY =
-  typeof import.meta.env.VITE_POSTHOG_KEY === 'string' ? import.meta.env.VITE_POSTHOG_KEY.trim() : ''
+  typeof import.meta.env.VITE_POSTHOG_KEY === 'string'
+    ? import.meta.env.VITE_POSTHOG_KEY.trim()
+    : ''
 const ENV_POSTHOG_HOST =
-  typeof import.meta.env.VITE_POSTHOG_HOST === 'string' && import.meta.env.VITE_POSTHOG_HOST.trim().length > 0
+  typeof import.meta.env.VITE_POSTHOG_HOST === 'string' &&
+  import.meta.env.VITE_POSTHOG_HOST.trim().length > 0
     ? import.meta.env.VITE_POSTHOG_HOST.trim()
     : 'https://app.posthog.com'
 
 let runtimeAnalyticsEnabled = true
 let runtimePosthogKey = ENV_POSTHOG_KEY
 let runtimePosthogHost = ENV_POSTHOG_HOST
+
+const GDPR_COOKIE_CONSENT_KEY = 'finhub_cookie_consent'
 
 const resolvePosthogKey = (): string => (runtimeAnalyticsEnabled ? runtimePosthogKey : '')
 const resolvePosthogHost = (): string => runtimePosthogHost || ENV_POSTHOG_HOST
@@ -137,7 +142,10 @@ export function configureAnalyticsRuntime(input: AnalyticsRuntimeConfigInput) {
 
 export function isAnalyticsEnabled(): boolean {
   return (
-    runtimeAnalyticsEnabled && posthogConsentResolved && posthogConsentGranted && Boolean(posthogInstance)
+    runtimeAnalyticsEnabled &&
+    posthogConsentResolved &&
+    posthogConsentGranted &&
+    Boolean(posthogInstance)
   )
 }
 
@@ -220,7 +228,21 @@ export function initAnalytics() {
     return
   }
 
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  const consentValue = window.localStorage.getItem(GDPR_COOKIE_CONSENT_KEY)
+  if (consentValue !== 'accepted') {
+    setAnalyticsConsent(false)
+    return
+  }
+
   if (!resolvePosthogKey()) {
     console.info('[analytics] PostHog disabled: missing VITE_POSTHOG_KEY')
+    setAnalyticsConsent(false)
+    return
   }
+
+  setAnalyticsConsent(true)
 }

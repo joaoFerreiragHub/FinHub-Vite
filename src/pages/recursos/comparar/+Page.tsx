@@ -1,5 +1,5 @@
-﻿import BrandsComparePage from '@/features/brands/pages/BrandsComparePage'
-import { Route, Routes } from 'react-router-dom'
+import BrandsComparePage from '@/features/brands/pages/BrandsComparePage'
+import { Route, Routes } from '@/lib/reactRouterDomCompat'
 
 export function Page() {
   return (

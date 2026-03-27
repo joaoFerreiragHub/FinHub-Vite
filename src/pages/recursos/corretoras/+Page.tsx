@@ -1,5 +1,5 @@
-﻿import BrandsBrokersPage from '@/features/brands/pages/BrandsBrokersPage'
-import { Route, Routes } from 'react-router-dom'
+import BrandsBrokersPage from '@/features/brands/pages/BrandsBrokersPage'
+import { Route, Routes } from '@/lib/reactRouterDomCompat'
 
 export function Page() {
   return (

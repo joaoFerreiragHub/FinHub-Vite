@@ -1,4 +1,4 @@
-import { Navigate, useParams } from 'react-router-dom'
+import { Navigate, useParams } from '@/lib/reactRouterDomCompat'
 import { Card } from '@/components/ui'
 import { ArticleForm } from '@/features/creators/dashboard/articles/components/ArticleForm'
 import { useArticleById, useUpdateArticle } from '@/features/hub/articles/hooks/useArticles'

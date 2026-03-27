@@ -1,4 +1,4 @@
-import { Navigate, useParams } from 'react-router-dom'
+import { Navigate, useParams } from '@/lib/reactRouterDomCompat'
 import { Card } from '@/components/ui'
 import { VideoForm } from '@/features/creators/dashboard/videos/components/VideoForm'
 import { useUpdateVideo, useVideoById } from '@/features/hub/videos/hooks/useVideos'

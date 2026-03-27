@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { JsonLd } from '@/components/seo/JsonLd'
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useParams } from '@/lib/reactRouterDomCompat'
 import { Helmet } from '@/lib/helmet'
 import { Clock3, Eye, Star } from 'lucide-react'
 import { useVideo } from '@/features/hub/videos/hooks/useVideos'

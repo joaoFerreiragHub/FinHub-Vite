@@ -286,6 +286,7 @@ export function CommunityRoomDetailPage({ slug }: CommunityRoomDetailPageProps) 
                           onChange={(event) => setPostTitle(event.target.value)}
                           maxLength={200}
                           placeholder="Ex: Como organizam o vosso fundo de emergencia?"
+                          className="bg-background text-foreground border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring"
                         />
                       </div>
                       <div className="space-y-1">
@@ -317,9 +318,10 @@ export function CommunityRoomDetailPage({ slug }: CommunityRoomDetailPageProps) 
                           onChange={(event) => setPostImageUrl(event.target.value)}
                           maxLength={2048}
                           placeholder="https://exemplo.com/imagem.jpg"
+                          className="bg-background text-foreground border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring"
                         />
                       </div>
-                      {formError ? <p className="text-sm text-red-600">{formError}</p> : null}
+                      {formError ? <p className="text-sm text-destructive">{formError}</p> : null}
                       <div className="flex flex-wrap items-center gap-2">
                         <Button type="submit" disabled={createPostMutation.isPending}>
                           {createPostMutation.isPending ? 'A publicar...' : 'Publicar post'}
@@ -387,7 +389,7 @@ export function CommunityRoomDetailPage({ slug }: CommunityRoomDetailPageProps) 
                   ) : null}
 
                   {postsQuery.error ? (
-                    <p className="text-sm text-red-600">{getErrorMessage(postsQuery.error)}</p>
+                    <p className="text-sm text-destructive">{getErrorMessage(postsQuery.error)}</p>
                   ) : null}
 
                   {!postsQuery.isLoading && !postsQuery.error && posts.length === 0 ? (

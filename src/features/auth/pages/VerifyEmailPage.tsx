@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from '@/lib/reactRouterDomCompat'
 import { Button } from '@/components/ui'
 import { getErrorMessage } from '@/lib/api/client'
 import { authService } from '../services/authService'

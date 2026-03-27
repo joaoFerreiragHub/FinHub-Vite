@@ -51,7 +51,7 @@ export function CommunityRoomsPage() {
   const pagination = roomsQuery.data?.pagination
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-7xl px-4 pb-10 pt-20 sm:px-6 sm:pt-24 lg:px-8">
       {/* Header */}
       <section className="relative mb-8 overflow-hidden rounded-2xl border border-brand/20 bg-brand/[0.03] p-6 dark:bg-brand/[0.06] sm:p-8">
         <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-brand via-brand/50 to-transparent" />

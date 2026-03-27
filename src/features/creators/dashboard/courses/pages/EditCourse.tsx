@@ -1,4 +1,4 @@
-﻿import { useParams, Navigate } from 'react-router-dom'
+import { useParams, Navigate } from '@/lib/reactRouterDomCompat'
 import { CreatorDashboardShell } from '@/shared/layouts'
 import { CourseForm } from '../components/CourseForm'
 import { useCourse, useUpdateCourse } from '@/features/hub/courses/hooks/useCourses'

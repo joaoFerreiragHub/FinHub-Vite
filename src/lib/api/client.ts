@@ -10,7 +10,11 @@ import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestCo
  * - Request/Response interceptors
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+    ? '/api'
+    : 'http://localhost:5000/api')
 const SHOULD_LOG_API_DEBUG = import.meta.env.DEV && import.meta.env.VITE_DEBUG_API === 'true'
 const DEV_MOCK_REFRESH_UNSUPPORTED_ERROR = 'Dev mock token does not support refresh'
 const DEV_MOCK_AUTH_401_MESSAGE =

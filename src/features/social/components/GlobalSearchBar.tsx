@@ -17,6 +17,7 @@ import { useGlobalSearch } from '../hooks/useSocial'
 import type { SearchResult } from '../types'
 import { usePublicSurfaceControl } from '@/features/platform/hooks/usePublicSurfaceControl'
 import { trackSearchPerformed, trackSearchResultClicked } from '@/lib/analytics'
+import { getErrorMessage } from '@/lib/api/client'
 
 interface GlobalSearchBarProps {
   onNavigate?: (url: string) => void
@@ -50,8 +51,9 @@ export function GlobalSearchBar({ onNavigate }: GlobalSearchBarProps) {
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const lastTrackedQueryRef = useRef<string>('')
+  const normalizedDebouncedQuery = debouncedQuery.trim()
 
-  const { data, isLoading } = useGlobalSearch(debouncedQuery)
+  const { data, isLoading, isError, error } = useGlobalSearch(debouncedQuery)
 
   // Debounce
   useEffect(() => {
@@ -105,7 +107,14 @@ export function GlobalSearchBar({ onNavigate }: GlobalSearchBarProps) {
     setQuery('')
     setDebouncedQuery('')
     lastTrackedQueryRef.current = ''
-    onNavigate?.(result.url)
+    if (onNavigate) {
+      onNavigate(result.url)
+      return
+    }
+
+    if (typeof window !== 'undefined') {
+      window.location.assign(result.url)
+    }
   }
 
   // Group results by type
@@ -157,7 +166,10 @@ export function GlobalSearchBar({ onNavigate }: GlobalSearchBarProps) {
             />
             {query && (
               <button
-                onClick={() => setQuery('')}
+                onClick={() => {
+                  setQuery('')
+                  setDebouncedQuery('')
+                }}
                 className="text-xs text-muted-foreground hover:text-foreground"
               >
                 Limpar
@@ -167,17 +179,24 @@ export function GlobalSearchBar({ onNavigate }: GlobalSearchBarProps) {
 
           {/* Results */}
           <div className="max-h-80 overflow-y-auto p-2">
-            {isLoading && debouncedQuery.length >= 2 && (
+            {isLoading && normalizedDebouncedQuery.length >= 2 && (
               <p className="py-6 text-center text-sm text-muted-foreground">A pesquisar...</p>
             )}
 
-            {!isLoading && debouncedQuery.length >= 2 && (!data || data.results.length === 0) && (
-              <p className="py-6 text-center text-sm text-muted-foreground">
-                Nenhum resultado para &quot;{debouncedQuery}&quot;
-              </p>
+            {!isLoading && isError && normalizedDebouncedQuery.length >= 2 && (
+              <p className="py-6 text-center text-sm text-destructive">{getErrorMessage(error)}</p>
             )}
 
-            {!isLoading && debouncedQuery.length < 2 && (
+            {!isLoading &&
+              !isError &&
+              normalizedDebouncedQuery.length >= 2 &&
+              (!data || data.results.length === 0) && (
+                <p className="py-6 text-center text-sm text-muted-foreground">
+                  Nenhum resultado para &quot;{normalizedDebouncedQuery}&quot;
+                </p>
+              )}
+
+            {!isLoading && normalizedDebouncedQuery.length < 2 && (
               <p className="py-6 text-center text-sm text-muted-foreground">
                 Escreve pelo menos 2 caracteres para pesquisar
               </p>

@@ -1,5 +1,5 @@
 import { useMemo, type ElementType } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from '@/lib/reactRouterDomCompat'
 import {
   Activity,
   AlertTriangle,
