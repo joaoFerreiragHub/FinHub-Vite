@@ -116,7 +116,9 @@ export const authService = {
    * Login do usuário
    */
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    const response = await apiClient.post<AuthResponse>('/auth/login', credentials)
+    const payload = { ...credentials }
+    if (!payload.captchaToken?.trim()) delete payload.captchaToken
+    const response = await apiClient.post<AuthResponse>('/auth/login', payload)
     return response.data
   },
 
@@ -124,7 +126,9 @@ export const authService = {
    * Registro de novo usuário
    */
   register: async (data: RegisterData): Promise<AuthResponse> => {
-    const response = await apiClient.post<AuthResponse>('/auth/register', data)
+    const payload = { ...data }
+    if (!payload.captchaToken?.trim()) delete payload.captchaToken
+    const response = await apiClient.post<AuthResponse>('/auth/register', payload)
     return response.data
   },
 
