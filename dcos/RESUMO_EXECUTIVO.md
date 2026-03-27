@@ -157,11 +157,27 @@ Escopo: pasta `dcos`
 - Plano Moderation Control Plane (backend): `API_finhub/dcos/P4_MODERATION_CONTROL_PLANE.md`
 - Plano P5 analytics de negocio/patrocinios: `dcos/P5_ANALYTICS_NEGOCIO_PATROCINIOS.md`
 
+## Deploy Railway — Beta funcional (2026-03-27)
+
+- **Repositórios de produção estabelecidos:** `FinHub-Vite` (frontend) + `API_finhub` (backend) em `C:\Users\User\Documents\GitHub\Riquinho\api\Front\` são os repos git que Railway usa para deploy automático.
+- **Backups:** `Desktop\HUB Backups\Janeiro - 2025\Riquinho\api\Front\Comunidade\FinhubFront` e `Finhub_Back` mantidos em sincronia manualmente.
+- **Fixes aplicados para Railway (Claude 2026-03-27):**
+  - `client.ts`: `API_BASE_URL` fallback usa `/api` em produção (quando `VITE_API_URL` não definido)
+  - `authService.ts`: `captchaToken` stripped se vazio antes do POST (evita erro `validateOptionalString`)
+  - `server/index.mjs`: CSP actualizado com `font-src` Google Fonts + `connect-src` PostHog (`eu.posthog.com`)
+  - `PageShell.tsx`: `hydrated` de `useAuthStore` adicionado ao beta gate `useEffect` e a `useAuthShell` — elimina race condition onde gate disparava antes de Zustand rehydratar localStorage
+  - `PageShell.tsx`: `hideHeader` removido de `<PublicShell>` — header visível em páginas públicas; `/beta` usa `bypassShellLayout` por isso nunca chega ao `PublicShell`
+  - `ArticleDetailPage.tsx`: `useMemo` movido acima dos early returns (`isLoading`/`isError`) — corrige `react-hooks/rules-of-hooks`
+- **Variáveis Railway configuradas:** `FRONTEND_URL`, `VITE_API_URL` (com `https://`), `VITE_BETA_MODE`, `BETA_MODE`, `CAPTCHA_PROVIDER=disabled`
+- **Bootstrap BD produção:** `admin@finhub.com` / `Finhub2026!` registado e promovido a `role: admin` via terminal Node.js → MongoDB Atlas
+- **Estado beta:** unauthenticated → `/beta`; authenticated → acesso completo com `UnifiedTopShell` visível
+
 ## Pontos remanescentes (nao bloqueantes para operacao atual)
 
 - Warnings de build em mocks legados e avisos de deprecacao de plugin.
 - Divida tecnica fora de escopo imediato: tipagem global de modulos legados para eventual retorno do gate full `tsc -b`.
 - Expansao de E2E para full business flows continua recomendada como reforco de qualidade (atualmente existe smoke).
+- `HTTPS enforced` (redirect HTTP→HTTPS), `Backups MongoDB automatizados` e `Logs sem stack traces` ainda ⏳ — ver TASKS.md Infra/Deploy.
 - Proximo bloco sugerido:
   1. fechar P3 (Analise Rapida) com gate tecnico completo.
   2. fechar o hardening do P4 Moderation Control Plane (docs, runbook, E2E e robustez operacional).

@@ -32,8 +32,6 @@ interface Props {
   pageContext: PageContext
 }
 
-const isExternalHref = (href: string): boolean => /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(href)
-
 const isPathOrSubpath = (pathname: string, prefix: string): boolean =>
   pathname === prefix || pathname.startsWith(`${prefix}/`)
 
@@ -205,7 +203,7 @@ function OrganizationJsonLd() {
 }
 
 export function PageShell({ children, pageContext }: Props) {
-  const { user, isAuthenticated } = useAuthStore()
+  const { user, isAuthenticated, hydrated } = useAuthStore()
   const [mounted, setMounted] = React.useState(false)
   const pathname = pageContext.urlPathname ?? '/'
 
@@ -222,21 +220,24 @@ export function PageShell({ children, pageContext }: Props) {
 
   React.useEffect(() => {
     if (!mounted) return
+    if (!hydrated) return
     if (!BETA_MODE) return
     if (isAuthenticated) return
     if (typeof window === 'undefined') return
 
     const currentPath = window.location.pathname || pathname
-    const isExempt = BETA_EXEMPT.some((path) => currentPath === path || currentPath.startsWith(`${path}/`))
+    const isExempt = BETA_EXEMPT.some(
+      (path) => currentPath === path || currentPath.startsWith(`${path}/`),
+    )
 
     if (!isExempt) {
       window.location.replace('/beta')
     }
-  }, [mounted, isAuthenticated, pathname])
+  }, [mounted, hydrated, isAuthenticated, pathname])
 
   const role = user?.role ?? UserRole.VISITOR
   const bypassShellLayout = shouldBypassShellLayout(pathname)
-  const useAuthShell = mounted && isAuthenticated && role !== UserRole.VISITOR
+  const useAuthShell = mounted && hydrated && isAuthenticated && role !== UserRole.VISITOR
   const clientPathname =
     mounted && typeof window !== 'undefined' ? window.location.pathname : pathname
   const shouldRenderOnboarding =
@@ -275,7 +276,7 @@ export function PageShell({ children, pageContext }: Props) {
                     />
                   </UnifiedTopShell>
                 ) : (
-                  <PublicShell currentPath={pathname} hideHeader>
+                  <PublicShell currentPath={pathname}>
                     {children}
                     <ToastContainer
                       position="top-right"
